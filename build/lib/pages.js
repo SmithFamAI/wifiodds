@@ -63,7 +63,10 @@ function leaderboard(m, limit) {
 
   return '<div class="tbl-shell rv"><table class="tbl" id="lbTable">\n' +
     '    <thead><tr><th data-k="rank" data-t="num">#</th><th data-k="name">Airline</th>' +
-    '<th data-k="score" data-t="num">ConnectScore</th><th data-k="sys">System</th>' +
+    /* aria-sort is baked because the table really IS sorted by score desc on
+       arrival — which also makes the first click on that header flip to ascending
+       instead of re-applying the order it already has. */
+    '<th data-k="score" data-t="num" aria-sort="descending">ConnectScore</th><th data-k="sys">System</th>' +
     '<th data-k="fleet" data-t="num">Fleet equipped</th><th data-k="free">Free</th>' +
     '<th class="hide-sm">Note</th></tr></thead>\n    <tbody>\n' + rows + '\n    </tbody>\n' +
     '  </table></div>\n';
