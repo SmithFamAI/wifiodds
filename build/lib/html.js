@@ -131,7 +131,7 @@ function footer(updated) {
   return '<footer>\n' +
     '  <div class="flinks"><a href="/airlines/">Airlines</a><a href="/united/">United</a>' +
     '<a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a>' +
-    '<a href="/privacy.html">Privacy</a>' +
+    '<a href="/api/docs/">API</a><a href="/privacy.html">Privacy</a>' +
     '<a href="' + REPO + '" target="_blank" rel="noopener">Open source ↗</a></div>\n' +
     '  <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> ' +
     '· <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> ' +

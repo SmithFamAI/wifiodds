@@ -96,7 +96,12 @@ var ROADMAP = [
     'then the near-complete fleets: WestJet, Air France, airBaltic, JSX. Each gets the United treatment ' +
     'as instrumentation lands.'],
   ['planned', 'PWA', 'Installable, offline ConnectScores, and push notifications for Guardian alerts.'],
-  ['planned', 'Public ConnectScore API', '<code>GET /score/UA212/2026-08-14</code> — free, credited, rate-limited.'],
+  /* v0 is live. The status word here is read off what actually answers a curl:
+     the endpoints below are real, the date-scoped variant in the original plan is
+     not, so it stays out of the description rather than being implied by it. */
+  ['shipped', 'Public ConnectScore API', 'Live now: <code>GET /api/airlines</code>, ' +
+    '<code>GET /api/airlines/qatar</code> and <code>GET /api/score/UA212</code> — free, no key, ' +
+    'CORS open, credits in every response body. <a href="/api/docs/">Read the API docs →</a>'],
   ['shipped', 'The rollout archive', 'The daily install history grows into the industry’s rollout record; ' +
     'every new airline inherits its priors.']
 ];

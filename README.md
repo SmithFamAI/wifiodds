@@ -27,8 +27,8 @@ footer were touched.
 | Node | Any current LTS. **Zero dependencies** — there is no `package.json` and nothing to install |
 | Excluded from the deploy | `.assetsignore` (`build/`, `*.md`, `.claude`) |
 
-`build/prerender.js` **generates every one of the 27 served pages** and writes `sitemap.xml`,
-`robots.txt` and `llms.txt`. `<lastmod>` comes from `united/data.json`'s `updated` field, so the daily
+`build/prerender.js` **generates every one of the 28 served pages** and writes `sitemap.xml`,
+`robots.txt`, `llms.txt` and `functions/_lib/score.mjs`. `<lastmod>` comes from `united/data.json`'s `updated` field, so the daily
 data commit moves it too. The generated HTML is committed, because Pages serves the repo root.
 
 **Never hand-edit a file listed in `build/routes.js` — the next build overwrites it.** Layout:
@@ -46,6 +46,42 @@ Three tripwires fail the build rather than shipping quietly:
 2. a served `.html` file that is **not** in `ROUTES` — the drift guard. Four pages were once
    hand-authored whole documents, each with its own stale copy of the header, and nothing caught it;
 3. a route still marked `kind: 'hand'`. There are none left.
+
+## The public ConnectScore API
+
+`/api/airlines`, `/api/airlines/{key}`, `/api/score/{flightNumber}` and `/api` are **Cloudflare Pages
+Functions**, not files. They deploy automatically from `functions/` alongside the static build — there
+is no build change and no `wrangler.toml`.
+
+| | |
+|---|---|
+| `functions/api/**/*.js` | route bindings, one line each. `[key].js` / `[flight].js` are dynamic segments |
+| `functions/_lib/handlers.mjs` | **all** the logic. Kept out of the route files so plain `node` can import and test it |
+| `functions/_lib/api.mjs` | response envelope, CORS, the `sources` credits, flight-number parsing, the `united/data.json` lookup |
+| `functions/_lib/score.mjs` | **GENERATED — do not edit.** `build/prerender.js` re-emits `assets/airlines.js` as an ES module |
+| `api/docs/index.html` | the human docs — a normal generated page, the only `/api` path in `ROUTES` |
+
+Two rules the code enforces on itself:
+
+- **One formula.** The score lives only in `assets/airlines.js`, which must stay a *classic* script
+  (the browser loads it with a plain `<script src>`, so an `export` keyword there breaks every page).
+  `prerender.js` mechanically re-emits it as `functions/_lib/score.mjs` — a verbatim copy with the
+  CommonJS tail swapped for `export {}` — and fails the build if a name it re-exports has been
+  renamed. Nothing is retyped, so the API cannot drift from the pages.
+- **No third-party requests.** The API reads only `united/data.json` out of its own deploy via
+  `env.ASSETS`. It never calls a tracker or an airline. `build/apitest.js` fails if any module other
+  than `_lib/api.mjs` so much as mentions `fetch(`.
+
+```bash
+node build/prerender.js     # must run first — apitest reads its output
+node build/apitest.js       # 278 checks: syntax, every handler against a mock context, and PARITY
+```
+
+`wrangler` is deliberately not installed, so there is no local Functions runtime. `apitest.js` is the
+substitute: it copies each `functions/**/*.js` to a temp `.mjs` for `node --check`, imports the
+handlers for real, and asserts the **parsed response bodies** — including that the score the API
+returns for Qatar equals the number the generated `/airlines/qatar/index.html` actually prints. A
+green light there is a light that was looking.
 
 ## Local preview
 

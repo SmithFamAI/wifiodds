@@ -28,6 +28,14 @@ ConnectScore is the chance of getting the GOOD system, not of any wifi at all. L
 17. British Airways (BA) — 2/100, not yet — Starlink, 5/261 equipped — https://wifiodds.com/airlines/britishairways/
 18. Southwest (WN) — 0/100, not yet — Starlink, 1/817 equipped — https://wifiodds.com/airlines/southwest/
 
+## Public ConnectScore API (v0 — free, no key, CORS open, no rate limit yet)
+- GET https://wifiodds.com/api — JSON index of every endpoint
+- GET https://wifiodds.com/api/airlines — all 18 airlines with ConnectScore, system, free status and fleet counts, best odds first
+- GET https://wifiodds.com/api/airlines/{key} — one airline (keys: airbaltic, aircanada, airfrance, alaska, american, britishairways, delta, emirates, hawaiian, jetblue, jsx, qatar, sas, southwest, united, virginatlantic, westjet, zipair)
+- GET https://wifiodds.com/api/score/{flightNumber} — e.g. /api/score/UA212. United flights found in our cached route history return the per-flight odds with method "route-history"; everything else returns the coarse airline ConnectScore with method "airline-coarse". An untracked airline prefix returns 404 JSON.
+- Human docs: https://wifiodds.com/api/docs/
+- Every response body carries a "sources" array with the data credits. Please keep it attached when you re-publish. The API serves only our own cached data and never calls an airline or a third-party tracker.
+
 ## Machine-readable surfaces
 - https://wifiodds.com/united/data.json — the full United dataset: fleet totals, per-type counts, the 481-tail roster with install dates, route cache and route leaderboard (JSON)
 - https://wifiodds.com/airlines/ — all ConnectScores as a sortable HTML table

@@ -116,6 +116,21 @@ function buildLlms(m) {
       ' — ' + ORIGIN + '/airlines/' + a.key + '/');
   });
   lines.push('');
+  lines.push('## Public ConnectScore API (v0 — free, no key, CORS open, no rate limit yet)');
+  lines.push('- GET ' + ORIGIN + '/api — JSON index of every endpoint');
+  lines.push('- GET ' + ORIGIN + '/api/airlines — all ' + m.ranked.length +
+    ' airlines with ConnectScore, system, free status and fleet counts, best odds first');
+  lines.push('- GET ' + ORIGIN + '/api/airlines/{key} — one airline (keys: ' +
+    m.ranked.map(function (a) { return a.key; }).sort().join(', ') + ')');
+  lines.push('- GET ' + ORIGIN + '/api/score/{flightNumber} — e.g. /api/score/UA212. United flights ' +
+    'found in our cached route history return the per-flight odds with method "route-history"; ' +
+    'everything else returns the coarse airline ConnectScore with method "airline-coarse". An ' +
+    'untracked airline prefix returns 404 JSON.');
+  lines.push('- Human docs: ' + ORIGIN + '/api/docs/');
+  lines.push('- Every response body carries a "sources" array with the data credits. Please keep it ' +
+    'attached when you re-publish. The API serves only our own cached data and never calls an ' +
+    'airline or a third-party tracker.');
+  lines.push('');
   lines.push('## Machine-readable surfaces');
   lines.push('- ' + ORIGIN + '/united/data.json — the full United dataset: fleet totals, per-type counts, ' +
     'the ' + m.registry.length + '-tail roster with install dates, route cache and route leaderboard (JSON)');
@@ -147,6 +162,65 @@ function buildSitemap(m) {
 function fileMod(f) {
   try { return fs.statSync(abs(f)).mtime.toISOString().slice(0, 10); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+
+/* ── functions/_lib/score.mjs — ONE FORMULA, TWO RUNTIMES ─────────────────
+ * The public API (functions/api/**) needs the ConnectScore formula, and Pages
+ * Functions are ESM in a Workers runtime: they cannot `require()` a classic
+ * script, and assets/airlines.js MUST stay a classic script because the browser
+ * loads it with a plain <script src> (an `export` keyword in it is an instant
+ * SyntaxError on every page) and because it is a byte-copy of the extension's
+ * own airlines.js.
+ *
+ * So the formula is authored in exactly ONE place — assets/airlines.js — and this
+ * step mechanically re-emits it as an ES module. It is a source-to-source
+ * transform, not a re-implementation: the body is copied verbatim and only the
+ * CommonJS tail is swapped for an `export {}` list. Nothing is retyped, so the
+ * API cannot drift from the pages the way a second copy of the numbers would.
+ *
+ * The generated file IS committed, so `node build/apitest.js` works on a clean
+ * checkout and so the functions bundle is right whichever order Cloudflare runs
+ * the build step and the bundler in. Never hand-edit it. */
+var SCORE_EXPORTS = ['WIFI_AIRLINES', 'SYSTEM_QUALITY', 'FREE_FACTOR', 'SYSTEM_LABEL',
+  'SCORE_CAVEAT', 'SCORE_METHOD_LINE', 'clamp01', 'systemQuality', 'freeFactor', 'pctEquipped',
+  'labelFor', 'scoreClass', 'scoreEntry', 'scoreAirline', 'rankAirlines'];
+
+function buildScoreModule() {
+  var src = fs.readFileSync(abs('assets/airlines.js'), 'utf8');
+  var cut = src.indexOf('if (typeof module !== "undefined"');
+  if (cut < 0) {
+    console.error('Build FAILED — assets/airlines.js no longer ends with the CommonJS export guard,');
+    console.error('  so functions/_lib/score.mjs cannot be generated from it. Fix the transform in');
+    console.error('  build/prerender.js rather than hand-writing the formula a second time.');
+    process.exit(1);
+  }
+  var core = src.slice(0, cut).replace(/\s+$/, '');
+  /* Every name we promise to export must actually be declared in the copied body.
+   * This is the drift tripwire for the API: rename scoreAirline in
+   * assets/airlines.js and the build fails here instead of the API 500ing live. */
+  var absent = SCORE_EXPORTS.filter(function (n) {
+    return !new RegExp('^(?:const|function)\\s+' + n + '\\b', 'm').test(core);
+  });
+  if (absent.length) {
+    console.error('Build FAILED — assets/airlines.js does not declare: ' + absent.join(', '));
+    console.error('  functions/_lib/score.mjs re-exports those names for the public API. Either a');
+    console.error('  declaration was renamed or SCORE_EXPORTS in build/prerender.js is stale.');
+    process.exit(1);
+  }
+  var lines = [];
+  for (var i = 0; i < SCORE_EXPORTS.length; i += 4) {
+    lines.push('  ' + SCORE_EXPORTS.slice(i, i + 4).join(', ') +
+      (i + 4 < SCORE_EXPORTS.length ? ',' : ''));
+  }
+  return '/* functions/_lib/score.mjs — GENERATED FILE. DO NOT EDIT.\n' +
+    ' *\n' +
+    ' * Emitted by build/prerender.js from assets/airlines.js, which is the single\n' +
+    ' * source of truth for the ConnectScore formula and the airline table. The body\n' +
+    ' * below is a verbatim copy; only the CommonJS tail is replaced with ES exports\n' +
+    ' * so Cloudflare Pages Functions can import it.\n' +
+    ' *\n' +
+    ' * Edit assets/airlines.js, then re-run `node build/prerender.js`.\n' +
+    ' */\n\n' + core + '\n\nexport {\n' + lines.join('\n') + '\n};\n';
 }
 
 function buildRobots() {
@@ -188,6 +262,7 @@ function main() {
   });
   write('united/fleet/index.html', Render.fleetPage(m));
   write('roadmap/index.html', Render.roadmapPage(m));
+  write('api/docs/index.html', Render.apiDocs(m));
   write('404.html', Render.notFound(m));
   /* the four former hand-authored pages — content from build/templates/, chrome
      from build/lib/html.js, numbers baked from data.json at render time */
@@ -200,6 +275,10 @@ function main() {
   write('sitemap.xml', buildSitemap(m));
   write('robots.txt', buildRobots());
   write('llms.txt', buildLlms(m));
+
+  /* 2b. the public API's copy of the formula — generated, never authored. See
+   *     buildScoreModule() above for why this exists at all. */
+  write('functions/_lib/score.mjs', buildScoreModule());
 
   /* 3. the tripwire — assert AFTER writing, both directions */
   var missing = [];

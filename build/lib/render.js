@@ -455,10 +455,259 @@ function roadmapPage(m) {
     H.credit('all');
   return H.page({
     title: 'What’s next for WiFi Odds',
-    desc: 'Tail-swap Guardian, more airlines in rollout order, a PWA, and a free public ConnectScore API. ' +
-      'No dates promised.',
+    desc: 'Tail-swap Guardian, more airlines in rollout order, a PWA — and the free public ConnectScore ' +
+      'API, which is live now. No dates promised.',
     canonical: '/roadmap/', here: '/roadmap/', updated: m.updated, crumb: crumbs, body: body,
     jsonld: [crumbLd(crumbs)]
+  });
+}
+
+/* ═══ /api/docs/ ════════════════════════════════════════════════════════
+ * The ONE human page in the /api namespace. Everything else under /api is a
+ * Cloudflare Pages Function in functions/api/** and has no file on disk, which
+ * is why this is the only /api entry in build/routes.js.
+ *
+ * The numbers in the worked examples are BAKED from the same scoreAirline() the
+ * API calls, so a docs page that shows 58 for Qatar is showing it for the same
+ * reason the API and /airlines/qatar/ do. Never type a score in here by hand. */
+function apiDocs(m) {
+  var crumbs = [['/', 'Home'], ['/api/docs/', 'API']];
+  var qr = m.A.scoreAirline('qatar');
+  var ua = m.A.scoreAirline('united');
+  var keys = m.ranked.map(function (a) { return a.key; }).sort();
+  var codes = m.ranked.map(function (a) { return a.code; }).filter(Boolean).sort();
+
+  /* scoped styles: two elements the design system has no rule for yet, and a docs
+     page is not a good reason to add global CSS */
+  var css = '<style>\n' +
+    '.apic{background:var(--field-bg);border:1px solid var(--edge);border-radius:var(--r-md);' +
+    'padding:14px 16px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.55;' +
+    'color:var(--body);margin-top:12px;white-space:pre}\n' +
+    '.apic b{color:var(--accent);font-weight:700}\n' +
+    '.apip{font-family:var(--mono);font-size:13px;color:var(--ink);font-weight:700}\n' +
+    '.apiv{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:800;' +
+    'letter-spacing:.6px;padding:2px 7px;border-radius:999px;border:1px solid var(--edge-strong);' +
+    'color:var(--accent)}\n' +
+    '.blk h3.apih{font-size:17px;font-weight:800;margin-top:26px}\n' +
+    '</style>\n';
+
+  function code(s) { return '<div class="apic">' + esc(s) + '</div>\n'; }
+
+  var endpointRows = [
+    ['GET', '/api', 'This index: every endpoint, the airline keys, the flight-number prefixes.'],
+    ['GET', '/api/airlines', 'All ' + m.airlineCount + ' airlines, best ConnectScore first.'],
+    ['GET', '/api/airlines/{key}', 'One airline. Unknown key → 404 JSON with the list of valid keys.'],
+    ['GET', '/api/score/{flightNumber}', 'Per-flight odds where we have route history, otherwise the ' +
+      'coarse airline score. Untracked prefix → 404 JSON.']
+  ].map(function (r) {
+    return '      <tr><td class="mono"><b>' + r[0] + '</b></td>' +
+      '<td class="mono">' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td></tr>';
+  }).join('\n');
+
+  var freeRows = Object.keys(P.FREE).map(function (k) {
+    return '      <tr><td class="mono"><b>' + esc(k) + '</b></td>' +
+      '<td class="num">' + m.A.freeFactor(k).toFixed(2) + '</td>' +
+      '<td>' + esc(P.FREE[k]) + '</td></tr>';
+  }).join('\n');
+
+  var sysRows = Object.keys(m.A.SYSTEM_QUALITY).map(function (k) {
+    return '      <tr><td class="mono"><b>' + esc(k) + '</b></td>' +
+      '<td class="num">' + m.A.SYSTEM_QUALITY[k].toFixed(1) + '</td>' +
+      '<td>' + esc(m.A.SYSTEM_LABEL[k] || '—') + '</td></tr>';
+  }).join('\n');
+
+  var errRows = [
+    ['400', 'unparseable_flight', 'The path segment is not shaped like a flight number.'],
+    ['404', 'unknown_airline', 'No airline with that key.'],
+    ['404', 'unknown_airline_prefix', 'The flight number parses, but we do not track that carrier.'],
+    ['405', 'method_not_allowed', 'Read-only API — GET or HEAD.'],
+    ['503', 'dataset_unavailable', 'The cached United dataset could not be read from this deploy. ' +
+      'This should never happen; it means the deploy is broken, and we would rather say so than ' +
+      'quietly hand back the coarse score as if nothing were wrong.']
+  ].map(function (r) {
+    return '      <tr><td class="mono"><b>' + r[0] + '</b></td><td class="mono">' + esc(r[1]) +
+      '</td><td>' + esc(r[2]) + '</td></tr>';
+  }).join('\n');
+
+  var body =
+    '<header class="hero" style="padding-top:18px">\n' +
+    '  <span class="kicker"><span class="dot"></span>ConnectScore API <span class="apiv">v0</span></span>\n' +
+    '  <h1 class="ph">The ConnectScore API</h1>\n' +
+    '  <p class="lede">Every ConnectScore on this site, as JSON. Free, no key, no accounts, no ' +
+    'rate limit, CORS open to every origin. Read-only. Each response carries a <b>sources</b> array ' +
+    'with the data credits — please keep it attached when you re-publish.</p>\n' +
+    '  <div class="microlinks"><a href="/airlines/">The same data as a table →</a>' +
+    '<a href="/united/data.json">The full United dataset (JSON) →</a>' +
+    '<a href="/llms.txt">llms.txt →</a></div>\n' +
+    '</header>\n\n' + H.credit('all') + '\n' +
+
+    '<section class="blk">\n  <div class="sec-h"><h2>Try it</h2></div>\n' +
+    code('curl -s ' + ORIGIN + '/api/airlines | head -40\n' +
+      'curl -s ' + ORIGIN + '/api/airlines/qatar\n' +
+      'curl -s ' + ORIGIN + '/api/score/UA212\n' +
+      'curl -s ' + ORIGIN + '/api/score/AS15') +
+    '  <p class="tblcap">Responses are pretty-printed and gzipped. ' +
+    'Cache-Control: public, max-age=3600 on success (the data is refreshed once a day), 300 on errors.</p>\n' +
+    '</section>\n\n' +
+
+    '<section class="blk">\n  <div class="sec-h"><h2>Endpoints</h2>' +
+    '<span class="sub">four, all GET</span></div>\n' +
+    '  <div class="tbl-shell"><table class="tbl">\n' +
+    '    <thead><tr><th>Method</th><th>Path</th><th>Returns</th></tr></thead>\n' +
+    '    <tbody>\n' + endpointRows + '\n    </tbody>\n  </table></div>\n' +
+
+    '  <h3 class="apih">GET /api/airlines</h3>\n' +
+    '  <p class="sec-lede">All ' + m.airlineCount + ' airlines, ordered by ConnectScore descending, ' +
+    'ties broken by name — the same order as the leaderboard, from the same function.</p>\n' +
+    code('{\n' +
+      '  "count": ' + m.airlineCount + ',\n' +
+      '  "asOf": "' + (m.ranked[0].asOf || m.updated) + '",\n' +
+      '  "order": "connectScore desc, then name",\n' +
+      '  "airlines": [ … ' + m.airlineCount + ' objects … ],\n' +
+      '  "sources": [ … ]\n' +
+      '}') +
+
+    '  <h3 class="apih">GET /api/airlines/{key}</h3>\n' +
+    '  <p class="sec-lede">Keys are the slugs used in the site URLs: <span class="apip">' +
+    esc(keys.join(' · ')) + '</span></p>\n' +
+    code('{\n' +
+      '  "airline": {\n' +
+      '    "key": "qatar",\n' +
+      '    "name": ' + JSON.stringify(qr.name) + ',\n' +
+      '    "code": "' + qr.code + '",\n' +
+      '    "connectScore": ' + qr.score + ',\n' +
+      '    "band": "' + qr.label + '",\n' +
+      '    "system":  { "key": "' + qr.system + '", "label": "' + qr.systemLabel + '", "quality": ' +
+      qr.parts.systemQuality.toFixed(1) + ' },\n' +
+      '    "free":    { "status": "free", "factor": ' + qr.parts.freeFactor.toFixed(2) + ' },\n' +
+      '    "fleet":   { "equipped": ' + qr.equipped + ', "total": ' + qr.fleet + ', "equippedShare": ' +
+      (Math.round(qr.parts.pctEquipped * 10000) / 10000) + ', "equippedPct": ' +
+      Math.round(qr.parts.pctEquipped * 100) + ', "basis": "tail-counts" },\n' +
+      '    "perFlightOdds": false,\n' +
+      '    "tracker": null,\n' +
+      '    "future": null,\n' +
+      '    "note": "…",\n' +
+      '    "asOf": "' + (qr.asOf || m.updated) + '",\n' +
+      '    "url": "' + ORIGIN + '/airlines/qatar/"\n' +
+      '  },\n' +
+      '  "sources": [ … ]\n' +
+      '}') +
+    '  <p class="tblcap">Abridged. ' + esc(qr.name) + ' really is ' + qr.score + ' — ' +
+    Math.round(qr.parts.pctEquipped * 100) + '% of the fleet × ' +
+    qr.parts.systemQuality.toFixed(1) + ' system quality × ' + qr.parts.freeFactor.toFixed(2) +
+    ' free-for-you. <a href="/airlines/qatar/">Same number on the page →</a></p>\n' +
+
+    '  <h3 class="apih">GET /api/score/{flightNumber}</h3>\n' +
+    '  <p class="sec-lede">Accepts <span class="apip">UA212</span>, <span class="apip">ua 212</span>, ' +
+    '<span class="apip">UA0212</span> — case, spaces, hyphens and leading zeros are all normalised ' +
+    'away. Prefixes we know: <span class="apip">' + esc(codes.join(' ')) + '</span></p>\n' +
+    '  <p class="sec-lede">The <b>method</b> field is the whole point of this endpoint. It tells you ' +
+    'how much to trust the number, and it is never blurred:</p>\n' +
+    '  <div class="tbl-shell"><table class="tbl">\n' +
+    '    <thead><tr><th>method</th><th>prob</th><th>What it means</th></tr></thead>\n' +
+    '    <tbody>\n' +
+    '      <tr><td class="mono"><b>route-history</b></td><td class="mono">0–100</td>' +
+    '<td>We found this exact flight number in our cached United route history. <b>prob</b> is the ' +
+    'share of recent observations of that flight that were flown by a Starlink aircraft, with the ' +
+    'observation count and confidence in <b>evidence</b>.</td></tr>\n' +
+    '      <tr><td class="mono"><b>airline-coarse</b></td><td class="mono">null</td>' +
+    '<td>We have no per-flight history for it, so all we can honestly offer is the airline’s ' +
+    'fleet-wide ConnectScore. <b>prob</b> is <b>null</b> rather than a guess — inventing precision ' +
+    'here would be the worst thing this API could do.</td></tr>\n' +
+    '    </tbody>\n  </table></div>\n' +
+    code('{\n' +
+      '  "flight": "UA212",\n' +
+      '  "airline": { "key": "united", "connectScore": ' + ua.score + ', … },\n' +
+      '  "prob": 47,\n' +
+      '  "connectScore": ' + ua.score + ',\n' +
+      '  "method": "route-history",\n' +
+      '  "evidence": { "route": "LAX-ORD", "observations": 20, "confidence": "high",\n' +
+      '                "dataset": "routeCache", "cachedAt": "…" },\n' +
+      '  "asOf": "' + m.updated + '",\n' +
+      '  "sources": [ … ]\n' +
+      '}') +
+    '  <p class="tblcap">United is the only fleet with per-flight history today; ' +
+    'every other prefix returns <span class="mono">airline-coarse</span>. ' +
+    '<a href="/united/">Rank a whole route →</a></p>\n' +
+    '</section>\n\n' +
+
+    '<section class="blk">\n  <div class="sec-h"><h2>The score, field by field</h2>' +
+    '<span class="sub">nothing here is transcribed</span></div>\n' +
+    '  <div class="panel"><p style="font-family:var(--mono);font-size:14.5px;color:var(--ink)">' +
+    'connectScore = fleet.equippedShare × system.quality × free.factor, rounded</p>\n' +
+    '  <div class="caveat">' + esc(m.A.SCORE_CAVEAT) + '</div></div>\n' +
+    '  <div class="grid3" style="margin-top:16px">\n' +
+    '    <div class="card"><h3>system.quality</h3><div class="tbl-shell" style="margin-top:10px">' +
+    '<table class="tbl" style="min-width:0">\n' +
+    '    <thead><tr><th>key</th><th>q</th><th>Label</th></tr></thead>\n    <tbody>\n' + sysRows +
+    '\n    </tbody>\n  </table></div></div>\n' +
+    '    <div class="card"><h3>free.status</h3><div class="tbl-shell" style="margin-top:10px">' +
+    '<table class="tbl" style="min-width:0">\n' +
+    '    <thead><tr><th>status</th><th>factor</th><th>Means</th></tr></thead>\n    <tbody>\n' + freeRows +
+    '\n    </tbody>\n  </table></div></div>\n' +
+    '    <div class="card"><h3>fleet.basis</h3><p><b>tail-counts</b> — the airline publishes equipped ' +
+    'and total aircraft, so <span class="mono">equippedShare = equipped / total</span>.</p>' +
+    '<p><b>fleetwide-coverage</b> — no tail counts exist (Delta, jetBlue publish only ' +
+    '&ldquo;fleetwide&rdquo;), so <span class="mono">equipped</span> and <span class="mono">total</span> ' +
+    'are <b>null</b> and the share comes from a stated coverage fraction.</p>' +
+    '<p class="note">A future deal is never scored. <span class="mono">future</span> is reported and ' +
+    'contributes zero until the hardware flies.</p></div>\n' +
+    '  </div>\n</section>\n\n' +
+
+    '<section class="blk">\n  <div class="sec-h"><h2>Errors</h2>' +
+    '<span class="sub">always JSON, always with sources</span></div>\n' +
+    '  <div class="tbl-shell"><table class="tbl">\n' +
+    '    <thead><tr><th>Status</th><th>code</th><th>When</th></tr></thead>\n' +
+    '    <tbody>\n' + errRows + '\n    </tbody>\n  </table></div>\n' +
+    code('$ curl -s ' + ORIGIN + '/api/score/XX999\n' +
+      '{\n' +
+      '  "error": { "status": 404, "code": "unknown_airline_prefix",\n' +
+      '             "message": "We do not track airline \\"XX\\" …" },\n' +
+      '  "docs": "' + ORIGIN + '/api/docs/",\n' +
+      '  "flight": "XX999",\n  "prefix": "XX",\n  "prefixes": [ … ],\n' +
+      '  "sources": [ … ]\n}') +
+    '</section>\n\n' +
+
+    '<section class="blk">\n  <div class="sec-h"><h2>Using it</h2></div>\n' +
+    '  <div class="faq">\n' +
+    '    <div class="q"><h3>Credit is the only condition</h3><p>The fleet numbers for United and ' +
+    'Alaska are not ours — they come from unitedstarlinktracker.com and alaskastarlinktracker.com, ' +
+    'the independent community trackers built by @martinamps. The <span class="mono">sources</span> ' +
+    'array is in every response so that the credit travels with the data. Keep it, or reproduce it ' +
+    'wherever you show the numbers.</p></div>\n' +
+    '    <div class="q"><h3>This API never calls anyone else</h3><p>It reads only our own cached ' +
+    'dataset, from the same deploy that served this page. It does not proxy a tracker, an airline, ' +
+    'or a flight-status provider — your traffic can never become their bill. That is also why ' +
+    'per-flight odds exist for United only: it is the fleet we have history for.</p></div>\n' +
+    '    <div class="q"><h3>No rate limit, so please cache</h3><p>There is no key and no quota. ' +
+    'Responses are cacheable for an hour and the underlying data changes once a day, so honour the ' +
+    'Cache-Control header rather than polling. If it ever gets abused, a limit is the thing that ' +
+    'appears first.</p></div>\n' +
+    '    <div class="q"><h3>v0 means v0</h3><p>Fields may be added at any time. Anything already ' +
+    'here — <span class="mono">connectScore</span>, <span class="mono">method</span>, ' +
+    '<span class="mono">prob</span>, <span class="mono">sources</span> — will not change meaning ' +
+    'without the path changing to <span class="mono">/api/v1/</span>. Every response carries an ' +
+    '<span class="mono">x-connectscore-api</span> header with the version.</p></div>\n' +
+    '    <div class="q"><h3>Not a guarantee</h3><p>ConnectScores and per-flight odds are historical ' +
+    'estimates. Aircraft assignments change until departure, and a score is the chance of getting the ' +
+    'good system, not of getting any WiFi at all.</p></div>\n' +
+    '  </div>\n</section>\n';
+
+  return H.page({
+    title: 'ConnectScore API — free airline WiFi scores as JSON',
+    desc: 'The free public ConnectScore API: every airline’s inflight WiFi score as JSON, plus ' +
+      'per-flight Starlink odds for United. No key, no accounts, CORS open, credits in every response.',
+    canonical: '/api/docs/', here: '/', updated: m.updated, crumb: crumbs,
+    extraHead: css, body: body,
+    jsonld: [{
+      '@context': 'https://schema.org', '@type': 'WebAPI',
+      name: 'WiFi Odds ConnectScore API', url: ORIGIN + '/api/docs/',
+      documentation: ORIGIN + '/api/docs/',
+      description: 'Free, key-less JSON API for airline inflight WiFi ConnectScores and per-flight ' +
+        'United Starlink odds.',
+      provider: { '@type': 'Organization', name: 'WiFi Odds', url: ORIGIN + '/' },
+      termsOfService: ORIGIN + '/privacy.html'
+    }, crumbLd(crumbs)]
   });
 }
 
@@ -615,7 +864,7 @@ function privacyPage(m) {
 
 module.exports = {
   home: home, airlinesIndex: airlinesIndex, airlinePage: airlinePage,
-  fleetPage: fleetPage, roadmapPage: roadmapPage, notFound: notFound,
+  fleetPage: fleetPage, roadmapPage: roadmapPage, apiDocs: apiDocs, notFound: notFound,
   unitedOptimizer: unitedOptimizer, unitedHistory: unitedHistory,
   alaskaRollout: alaskaRollout, privacyPage: privacyPage,
   datasetLd: datasetLd, crumbLd: crumbLd, DATASET_ID: DATASET_ID

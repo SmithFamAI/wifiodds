@@ -11,8 +11,12 @@
  * content lives in build/templates/ now; the chrome comes from build/lib/html.js.
  * NEVER HAND-EDIT A FILE LISTED HERE — the next build overwrites it.
  *
- * /api is DELIBERATELY ABSENT. It is empty until Phase B (Supabase) and lives as
- * a roadmap item, nothing else — no placeholder page, no sitemap entry. */
+ * /api/docs/ is the ONLY /api path in this table, and that is on purpose: it is
+ * the one /api path that is an HTML page on disk. The JSON endpoints themselves
+ * (/api, /api/airlines, /api/airlines/{key}, /api/score/{flightNumber}) are
+ * Cloudflare Pages Functions in functions/api/**, computed per request — there is
+ * no file for the drift-guard to find and nothing for the sitemap to list. Adding
+ * them to ROUTES would make the build assert files that must never exist. */
 
 var AIRLINE_KEYS = ['united', 'alaska', 'jsx', 'airbaltic', 'zipair', 'westjet', 'airfrance',
   'hawaiian', 'qatar', 'sas', 'emirates', 'virginatlantic', 'aircanada', 'britishairways',
@@ -26,6 +30,7 @@ var ROUTES = [
   { url: '/united/history/', file: 'united/history/index.html', kind: 'gen', tmpl: 'united-history', changefreq: 'daily', priority: '0.6' },
   { url: '/alaska/', file: 'alaska/index.html', kind: 'gen', tmpl: 'alaska-rollout', changefreq: 'weekly', priority: '0.8' },
   { url: '/roadmap/', file: 'roadmap/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.5' },
+  { url: '/api/docs/', file: 'api/docs/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.5' },
   { url: '/privacy.html', file: 'privacy.html', kind: 'gen', tmpl: 'privacy', changefreq: 'yearly', priority: '0.3' }
 ];
 

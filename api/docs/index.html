@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script>(function(){try{var t=localStorage.getItem("woTheme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2369B3E7'/%3E%3Cstop offset='1' stop-color='%230033A0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Cpath d='M9 21c3-9 11-9 14-13' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='11' cy='22' r='2.6' fill='%23fff'/%3E%3C/svg%3E">
+<title>ConnectScore API — free airline WiFi scores as JSON</title>
+<meta name="description" content="The free public ConnectScore API: every airline’s inflight WiFi score as JSON, plus per-flight Starlink odds for United. No key, no accounts, CORS open, credits in every response.">
+<link rel="canonical" href="https://wifiodds.com/api/docs/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="WiFi Odds">
+<meta property="og:title" content="ConnectScore API — free airline WiFi scores as JSON">
+<meta property="og:description" content="The free public ConnectScore API: every airline’s inflight WiFi score as JSON, plus per-flight Starlink odds for United. No key, no accounts, CORS open, credits in every response.">
+<meta property="og:url" content="https://wifiodds.com/api/docs/">
+<meta property="og:image" content="https://wifiodds.com/assets/og.png?v=2">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="WiFi Odds — know before you book">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ConnectScore API — free airline WiFi scores as JSON">
+<meta name="twitter:description" content="The free public ConnectScore API: every airline’s inflight WiFi score as JSON, plus per-flight Starlink odds for United. No key, no accounts, CORS open, credits in every response.">
+<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=2">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+.apic{background:var(--field-bg);border:1px solid var(--edge);border-radius:var(--r-md);padding:14px 16px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.55;color:var(--body);margin-top:12px;white-space:pre}
+.apic b{color:var(--accent);font-weight:700}
+.apip{font-family:var(--mono);font-size:13px;color:var(--ink);font-weight:700}
+.apiv{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.6px;padding:2px 7px;border-radius:999px;border:1px solid var(--edge-strong);color:var(--accent)}
+.blk h3.apih{font-size:17px;font-weight:800;margin-top:26px}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebAPI","name":"WiFi Odds ConnectScore API","url":"https://wifiodds.com/api/docs/","documentation":"https://wifiodds.com/api/docs/","description":"Free, key-less JSON API for airline inflight WiFi ConnectScores and per-flight United Starlink odds.","provider":{"@type":"Organization","name":"WiFi Odds","url":"https://wifiodds.com/"},"termsOfService":"https://wifiodds.com/privacy.html"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://wifiodds.com/"},{"@type":"ListItem","position":2,"name":"API","item":"https://wifiodds.com/api/docs/"}]}</script>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a class="mark" href="/"><span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round"><path d="M4.5 10.5a11 11 0 0 1 15 0"/><path d="M7.6 14a7 7 0 0 1 8.8 0"/><circle cx="12" cy="18.2" r="1.5" fill="#fff" stroke="none"/></svg></span><span class="wm">WiFi Odds</span></a>
+  <nav class="topnav" aria-label="Main">
+    <a href="/airlines/">Airlines</a>
+    <a href="/roadmap/">Roadmap</a>
+    <a class="cta" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Get the extension</a>
+  </nav>
+  <button class="tt" type="button" aria-label="Switch theme" title="Switch theme">☽</button>
+</div>
+<nav class="crumb" aria-label="Breadcrumb"><a href="/">Home</a><span class="sep">→</span><span aria-current="page">API</span></nav>
+<header class="hero" style="padding-top:18px">
+  <span class="kicker"><span class="dot"></span>ConnectScore API <span class="apiv">v0</span></span>
+  <h1 class="ph">The ConnectScore API</h1>
+  <p class="lede">Every ConnectScore on this site, as JSON. Free, no key, no accounts, no rate limit, CORS open to every origin. Read-only. Each response carries a <b>sources</b> array with the data credits — please keep it attached when you re-publish.</p>
+  <div class="microlinks"><a href="/airlines/">The same data as a table →</a><a href="/united/data.json">The full United dataset (JSON) →</a><a href="/llms.txt">llms.txt →</a></div>
+</header>
+
+<div class="credit"><span class="cb">DATA CREDIT</span><span class="cbody">Fleet verification for the instrumented airlines comes from the independent community trackers <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener"><b>unitedstarlinktracker.com</b></a> and <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener"><b>alaskastarlinktracker.com</b></a>, built by <b>@martinamps</b>. All credit for that data goes to them ↗. Every other airline is compiled from public airline announcements (July 2026). WiFi Odds is unofficial and not affiliated with any airline, SpaceX/Starlink, Amazon, Viasat, or the trackers.</span></div>
+
+<section class="blk">
+  <div class="sec-h"><h2>Try it</h2></div>
+<div class="apic">curl -s https://wifiodds.com/api/airlines | head -40
+curl -s https://wifiodds.com/api/airlines/qatar
+curl -s https://wifiodds.com/api/score/UA212
+curl -s https://wifiodds.com/api/score/AS15</div>
+  <p class="tblcap">Responses are pretty-printed and gzipped. Cache-Control: public, max-age=3600 on success (the data is refreshed once a day), 300 on errors.</p>
+</section>
+
+<section class="blk">
+  <div class="sec-h"><h2>Endpoints</h2><span class="sub">four, all GET</span></div>
+  <div class="tbl-shell"><table class="tbl">
+    <thead><tr><th>Method</th><th>Path</th><th>Returns</th></tr></thead>
+    <tbody>
+      <tr><td class="mono"><b>GET</b></td><td class="mono">/api</td><td>This index: every endpoint, the airline keys, the flight-number prefixes.</td></tr>
+      <tr><td class="mono"><b>GET</b></td><td class="mono">/api/airlines</td><td>All 18 airlines, best ConnectScore first.</td></tr>
+      <tr><td class="mono"><b>GET</b></td><td class="mono">/api/airlines/{key}</td><td>One airline. Unknown key → 404 JSON with the list of valid keys.</td></tr>
+      <tr><td class="mono"><b>GET</b></td><td class="mono">/api/score/{flightNumber}</td><td>Per-flight odds where we have route history, otherwise the coarse airline score. Untracked prefix → 404 JSON.</td></tr>
+    </tbody>
+  </table></div>
+  <h3 class="apih">GET /api/airlines</h3>
+  <p class="sec-lede">All 18 airlines, ordered by ConnectScore descending, ties broken by name — the same order as the leaderboard, from the same function.</p>
+<div class="apic">{
+  &quot;count&quot;: 18,
+  &quot;asOf&quot;: &quot;2026-07&quot;,
+  &quot;order&quot;: &quot;connectScore desc, then name&quot;,
+  &quot;airlines&quot;: [ … 18 objects … ],
+  &quot;sources&quot;: [ … ]
+}</div>
+  <h3 class="apih">GET /api/airlines/{key}</h3>
+  <p class="sec-lede">Keys are the slugs used in the site URLs: <span class="apip">airbaltic · aircanada · airfrance · alaska · american · britishairways · delta · emirates · hawaiian · jetblue · jsx · qatar · sas · southwest · united · virginatlantic · westjet · zipair</span></p>
+<div class="apic">{
+  &quot;airline&quot;: {
+    &quot;key&quot;: &quot;qatar&quot;,
+    &quot;name&quot;: &quot;Qatar Airways&quot;,
+    &quot;code&quot;: &quot;QR&quot;,
+    &quot;connectScore&quot;: 58,
+    &quot;band&quot;: &quot;mixed&quot;,
+    &quot;system&quot;:  { &quot;key&quot;: &quot;starlink&quot;, &quot;label&quot;: &quot;Starlink&quot;, &quot;quality&quot;: 1.0 },
+    &quot;free&quot;:    { &quot;status&quot;: &quot;free&quot;, &quot;factor&quot;: 1.00 },
+    &quot;fleet&quot;:   { &quot;equipped&quot;: 140, &quot;total&quot;: 241, &quot;equippedShare&quot;: 0.5809, &quot;equippedPct&quot;: 58, &quot;basis&quot;: &quot;tail-counts&quot; },
+    &quot;perFlightOdds&quot;: false,
+    &quot;tracker&quot;: null,
+    &quot;future&quot;: null,
+    &quot;note&quot;: &quot;…&quot;,
+    &quot;asOf&quot;: &quot;2026-07&quot;,
+    &quot;url&quot;: &quot;https://wifiodds.com/airlines/qatar/&quot;
+  },
+  &quot;sources&quot;: [ … ]
+}</div>
+  <p class="tblcap">Abridged. Qatar Airways really is 58 — 58% of the fleet × 1.0 system quality × 1.00 free-for-you. <a href="/airlines/qatar/">Same number on the page →</a></p>
+  <h3 class="apih">GET /api/score/{flightNumber}</h3>
+  <p class="sec-lede">Accepts <span class="apip">UA212</span>, <span class="apip">ua 212</span>, <span class="apip">UA0212</span> — case, spaces, hyphens and leading zeros are all normalised away. Prefixes we know: <span class="apip">AA AC AF AS B6 BA BT DL EK HA QR SK UA VS WN WS XE ZG</span></p>
+  <p class="sec-lede">The <b>method</b> field is the whole point of this endpoint. It tells you how much to trust the number, and it is never blurred:</p>
+  <div class="tbl-shell"><table class="tbl">
+    <thead><tr><th>method</th><th>prob</th><th>What it means</th></tr></thead>
+    <tbody>
+      <tr><td class="mono"><b>route-history</b></td><td class="mono">0–100</td><td>We found this exact flight number in our cached United route history. <b>prob</b> is the share of recent observations of that flight that were flown by a Starlink aircraft, with the observation count and confidence in <b>evidence</b>.</td></tr>
+      <tr><td class="mono"><b>airline-coarse</b></td><td class="mono">null</td><td>We have no per-flight history for it, so all we can honestly offer is the airline’s fleet-wide ConnectScore. <b>prob</b> is <b>null</b> rather than a guess — inventing precision here would be the worst thing this API could do.</td></tr>
+    </tbody>
+  </table></div>
+<div class="apic">{
+  &quot;flight&quot;: &quot;UA212&quot;,
+  &quot;airline&quot;: { &quot;key&quot;: &quot;united&quot;, &quot;connectScore&quot;: 27, … },
+  &quot;prob&quot;: 47,
+  &quot;connectScore&quot;: 27,
+  &quot;method&quot;: &quot;route-history&quot;,
+  &quot;evidence&quot;: { &quot;route&quot;: &quot;LAX-ORD&quot;, &quot;observations&quot;: 20, &quot;confidence&quot;: &quot;high&quot;,
+                &quot;dataset&quot;: &quot;routeCache&quot;, &quot;cachedAt&quot;: &quot;…&quot; },
+  &quot;asOf&quot;: &quot;2026-07-24&quot;,
+  &quot;sources&quot;: [ … ]
+}</div>
+  <p class="tblcap">United is the only fleet with per-flight history today; every other prefix returns <span class="mono">airline-coarse</span>. <a href="/united/">Rank a whole route →</a></p>
+</section>
+
+<section class="blk">
+  <div class="sec-h"><h2>The score, field by field</h2><span class="sub">nothing here is transcribed</span></div>
+  <div class="panel"><p style="font-family:var(--mono);font-size:14.5px;color:var(--ink)">connectScore = fleet.equippedShare × system.quality × free.factor, rounded</p>
+  <div class="caveat">ConnectScore is the chance of getting the GOOD system, not of any wifi at all. Legacy satellite service on the not-yet-converted part of a fleet is not credited. Signed-but-unflown deals (AA Starlink 2027, DL/B6 Amazon Leo) score zero until they fly.</div></div>
+  <div class="grid3" style="margin-top:16px">
+    <div class="card"><h3>system.quality</h3><div class="tbl-shell" style="margin-top:10px"><table class="tbl" style="min-width:0">
+    <thead><tr><th>key</th><th>q</th><th>Label</th></tr></thead>
+    <tbody>
+      <tr><td class="mono"><b>starlink</b></td><td class="num">1.0</td><td>Starlink</td></tr>
+      <tr><td class="mono"><b>leo</b></td><td class="num">1.0</td><td>Amazon Leo</td></tr>
+      <tr><td class="mono"><b>viasat</b></td><td class="num">0.6</td><td>Viasat</td></tr>
+      <tr><td class="mono"><b>2ku</b></td><td class="num">0.6</td><td>2Ku</td></tr>
+      <tr><td class="mono"><b>intelsat</b></td><td class="num">0.6</td><td>Intelsat</td></tr>
+      <tr><td class="mono"><b>geo</b></td><td class="num">0.3</td><td>legacy GEO</td></tr>
+      <tr><td class="mono"><b>panasonic</b></td><td class="num">0.3</td><td>Panasonic</td></tr>
+      <tr><td class="mono"><b>none</b></td><td class="num">0.0</td><td>—</td></tr>
+    </tbody>
+  </table></div></div>
+    <div class="card"><h3>free.status</h3><div class="tbl-shell" style="margin-top:10px"><table class="tbl" style="min-width:0">
+    <thead><tr><th>status</th><th>factor</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td class="mono"><b>free</b></td><td class="num">1.00</td><td>free onboard</td></tr>
+      <tr><td class="mono"><b>loyalty-free</b></td><td class="num">1.00</td><td>free for loyalty members</td></tr>
+      <tr><td class="mono"><b>loyalty-tier</b></td><td class="num">0.85</td><td>free on paid status tiers</td></tr>
+      <tr><td class="mono"><b>partial</b></td><td class="num">0.85</td><td>free on some cabins/routes</td></tr>
+      <tr><td class="mono"><b>unknown</b></td><td class="num">0.85</td><td>free status unconfirmed</td></tr>
+      <tr><td class="mono"><b>paid</b></td><td class="num">0.70</td><td>paid</td></tr>
+    </tbody>
+  </table></div></div>
+    <div class="card"><h3>fleet.basis</h3><p><b>tail-counts</b> — the airline publishes equipped and total aircraft, so <span class="mono">equippedShare = equipped / total</span>.</p><p><b>fleetwide-coverage</b> — no tail counts exist (Delta, jetBlue publish only &ldquo;fleetwide&rdquo;), so <span class="mono">equipped</span> and <span class="mono">total</span> are <b>null</b> and the share comes from a stated coverage fraction.</p><p class="note">A future deal is never scored. <span class="mono">future</span> is reported and contributes zero until the hardware flies.</p></div>
+  </div>
+</section>
+
+<section class="blk">
+  <div class="sec-h"><h2>Errors</h2><span class="sub">always JSON, always with sources</span></div>
+  <div class="tbl-shell"><table class="tbl">
+    <thead><tr><th>Status</th><th>code</th><th>When</th></tr></thead>
+    <tbody>
+      <tr><td class="mono"><b>400</b></td><td class="mono">unparseable_flight</td><td>The path segment is not shaped like a flight number.</td></tr>
+      <tr><td class="mono"><b>404</b></td><td class="mono">unknown_airline</td><td>No airline with that key.</td></tr>
+      <tr><td class="mono"><b>404</b></td><td class="mono">unknown_airline_prefix</td><td>The flight number parses, but we do not track that carrier.</td></tr>
+      <tr><td class="mono"><b>405</b></td><td class="mono">method_not_allowed</td><td>Read-only API — GET or HEAD.</td></tr>
+      <tr><td class="mono"><b>503</b></td><td class="mono">dataset_unavailable</td><td>The cached United dataset could not be read from this deploy. This should never happen; it means the deploy is broken, and we would rather say so than quietly hand back the coarse score as if nothing were wrong.</td></tr>
+    </tbody>
+  </table></div>
+<div class="apic">$ curl -s https://wifiodds.com/api/score/XX999
+{
+  &quot;error&quot;: { &quot;status&quot;: 404, &quot;code&quot;: &quot;unknown_airline_prefix&quot;,
+             &quot;message&quot;: &quot;We do not track airline \&quot;XX\&quot; …&quot; },
+  &quot;docs&quot;: &quot;https://wifiodds.com/api/docs/&quot;,
+  &quot;flight&quot;: &quot;XX999&quot;,
+  &quot;prefix&quot;: &quot;XX&quot;,
+  &quot;prefixes&quot;: [ … ],
+  &quot;sources&quot;: [ … ]
+}</div>
+</section>
+
+<section class="blk">
+  <div class="sec-h"><h2>Using it</h2></div>
+  <div class="faq">
+    <div class="q"><h3>Credit is the only condition</h3><p>The fleet numbers for United and Alaska are not ours — they come from unitedstarlinktracker.com and alaskastarlinktracker.com, the independent community trackers built by @martinamps. The <span class="mono">sources</span> array is in every response so that the credit travels with the data. Keep it, or reproduce it wherever you show the numbers.</p></div>
+    <div class="q"><h3>This API never calls anyone else</h3><p>It reads only our own cached dataset, from the same deploy that served this page. It does not proxy a tracker, an airline, or a flight-status provider — your traffic can never become their bill. That is also why per-flight odds exist for United only: it is the fleet we have history for.</p></div>
+    <div class="q"><h3>No rate limit, so please cache</h3><p>There is no key and no quota. Responses are cacheable for an hour and the underlying data changes once a day, so honour the Cache-Control header rather than polling. If it ever gets abused, a limit is the thing that appears first.</p></div>
+    <div class="q"><h3>v0 means v0</h3><p>Fields may be added at any time. Anything already here — <span class="mono">connectScore</span>, <span class="mono">method</span>, <span class="mono">prob</span>, <span class="mono">sources</span> — will not change meaning without the path changing to <span class="mono">/api/v1/</span>. Every response carries an <span class="mono">x-connectscore-api</span> header with the version.</p></div>
+    <div class="q"><h3>Not a guarantee</h3><p>ConnectScores and per-flight odds are historical estimates. Aircraft assignments change until departure, and a score is the chance of getting the good system, not of getting any WiFi at all.</p></div>
+  </div>
+</section>
+<footer>
+  <div class="flinks"><a href="/airlines/">Airlines</a><a href="/united/">United</a><a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a><a href="/api/docs/">API</a><a href="/privacy.html">Privacy</a><a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Open source ↗</a></div>
+  <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> · <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> (independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>
+  <div class="frow"><b>No accounts, no analytics, no tracking</b> — on this site or in the extension. The only thing stored in your browser is your light/dark choice. See the <a href="/privacy.html">privacy policy</a>.</div>
+  <div class="frow">Data updated <b>2026-07-24</b>. ConnectScores and per-flight odds are historical estimates, not guarantees — aircraft assignments change until departure. WiFi Odds is an unofficial, free, open-source project. 🛰️</div>
+</footer>
+</div>
+<script src="/assets/site.js" defer></script>
+</body>
+</html>
