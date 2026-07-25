@@ -274,7 +274,11 @@ const REST_TIER_LABEL = {
 const SERVICE_TIER_BLURB = {
   "next-gen": "Low-earth-orbit across the fleet: streams, uploads, real work.",
   mixed: "Part of the fleet is low-earth orbit; the rest is older satellite service.",
-  streaming: "Modern geostationary service fleetwide — streams, uploads, real work, " +
+  /* Deliberately says nothing about COVERAGE — the blurb describes the class of
+     service, and how much of the fleet has it is a separate number that the
+     surfaces state themselves. Saying "fleetwide" here made Delta's card claim
+     something Delta's own data contradicts. */
+  streaming: "Modern geostationary service — streams, uploads, real work, " +
     "with more lag than low-earth orbit.",
   basic: "Legacy satellite service — email, messaging, and not much else.",
 };

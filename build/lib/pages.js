@@ -146,8 +146,17 @@ function todayLine(m, a, e) {
   } else if (a.serviceTier === 'next-gen') {
     bits.push(a.nextGenLabel + ' fleetwide');
   } else {
-    bits.push(a.serviceTierLabel + ' fleetwide');
-    if (a.restTierLabel) bits.push('some of the fleet ' + a.restTierLabel);
+    /* "fleetwide" is a CLAIM about coverage, so it has to be checked against the
+     * coverage number rather than assumed from the tier. Delta was the case that
+     * broke it: streaming-tier, but Sync reaches ~86% of the fleet, with the 80
+     * Boeing 717s carrying nothing at all since May 2026. American is the same
+     * shape at ~90%. Only say fleetwide when the share actually is. */
+    var share = a.parts && typeof a.parts.pctEquipped === 'number'
+      ? a.parts.pctEquipped : 1;
+    bits.push(share >= 0.99
+      ? a.serviceTierLabel + ' fleetwide'
+      : a.serviceTierLabel + ' on ' + pctText(share) + ' of the fleet');
+    if (a.restTierLabel) bits.push('the rest ' + a.restTierLabel + ' or none');
   }
   bits.push(freeText(e.free));
   return 'Today: ' + bits.join(' · ');
