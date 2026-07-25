@@ -575,6 +575,408 @@ function fleetPage(m) {
   });
 }
 
+/* ═══ /race/ ═════════════════════════════════════════════════════════════
+ * THE RACE. Eighteen airlines, one question: when does this fleet finish?
+ *
+ * This page exists because the homepage had a slot called "The United rollout,
+ * three ways" — three visualisations of ONE airline, on a site that claims to
+ * score eighteen. The rollout story is genuinely the most interesting thing in
+ * this data, and it is not a United story: it is a race, with a leader, a pause
+ * (British Airways), a fleet nobody can finish quickly (Southwest), and a
+ * counter-camp that has not started (Delta and jetBlue on Amazon Leo). United
+ * appears here as the FASTEST RETROFIT, which is a claim about the race — not as
+ * the subject.
+ *
+ * Everything numeric is read from airlines.js and data.json at render time.
+ * build/lib/market.js supplies only the finish lines and the prose, with the
+ * source and date attached to each row. */
+function racePage(m) {
+  var crumbs = [['/', 'Home'], ['/race/', 'The Race']];
+  var MK = require('./market.js');
+
+  /* Every scored airline must have a finish-line row, or the table quietly ships
+     with holes in it. Fail the build instead — same rule as a missing route. */
+  var noRow = Object.keys(m.A.WIFI_AIRLINES).filter(function (k) { return !MK.ROLLOUT[k]; });
+  if (noRow.length) {
+    console.error('Build FAILED — /race/ has no rollout row for: ' + noRow.join(', '));
+    console.error('  Add them to ROLLOUT in build/lib/market.js, with a source and a date. A blank');
+    console.error('  cell in a timeline reads as "no rollout", which is a different claim entirely.');
+    process.exit(1);
+  }
+
+  /* ranked by how much of the fleet is next-gen TODAY — the honest race order.
+     Ties break on the fuller fleet, so a 100%-of-9-aircraft airline does not
+     outrank a 100%-of-159 one by alphabet. */
+  var race = m.ranked.slice().sort(function (a, b) {
+    if (b.nextGenShare !== a.nextGenShare) return b.nextGenShare - a.nextGenShare;
+    if ((b.fleet || 0) !== (a.fleet || 0)) return (b.fleet || 0) - (a.fleet || 0);
+    return a.name.localeCompare(b.name);
+  });
+  var phases = { done: [], installing: [], signed: [], none: [] };
+  race.forEach(function (a) { phases[MK.phaseOf(m.A, a)].push(a); });
+
+  function pctText(a) {
+    var raw = a.nextGenShare * 100;
+    return raw > 0 && raw < 1 ? '<1%' : Math.round(raw) + '%';
+  }
+
+  var rows = race.map(function (a) {
+    var R = MK.ROLLOUT[a.key];
+    var ph = MK.phaseOf(m.A, a);
+    var target = R.target
+      ? esc(R.target)
+      : '<span style="color:var(--faint)">no public completion date</span>';
+    return '      <tr data-f="' + ph + '" data-q="' + esc((a.name + ' ' + (a.code || '')).toLowerCase()) +
+      '">' +
+      '<td><a class="aname" href="/airlines/' + a.key + '/">' + esc(a.name) +
+      '<span class="code">' + esc(a.code || '') + '</span></a></td>' +
+      '<td data-s="' + a.nextGenShare.toFixed(4) + '">' +
+      (a.nextGenSystem
+        ? '<span class="sysdot ' + P.sysClass(a.nextGenSystem) + '"></span><b>' + pctText(a) + '</b> ' +
+          '<span style="color:var(--faint)">' + esc(a.nextGenLabel) + '</span>' +
+          (a.fleet ? '<span class="track mini"><i class="fill" style="--pct:' +
+            Math.round(a.nextGenShare * 100) + '%"></i></span>' : '')
+        : '<b>0%</b> <span style="color:var(--faint)">none flying</span>') +
+      '</td>' +
+      '<td data-s="' + esc(a.serviceTier) + '">' + esc(a.serviceTierLabel) +
+      (a.restTierLabel ? '<span style="color:var(--faint)"> · rest ' + esc(a.restTierLabel) + '</span>' : '') +
+      '</td>' +
+      '<td data-s="' + esc(R.target || 'zzz') + '">' + target + '</td>' +
+      '<td class="note hide-sm">' + esc(R.detail) + ' <span style="color:var(--faint)">— ' +
+      esc(R.source) + '</span></td></tr>';
+  }).join('\n');
+
+  var chips = [['done', 'Finished'], ['installing', 'Installing'], ['signed', 'Signed only'],
+    ['all', 'All ' + m.airlineCount]];
+
+  var leader = phases.installing[0] || race[0];
+  var body =
+    '<header class="hero" style="padding-top:18px">\n' +
+    '  <span class="kicker"><span class="dot"></span>The Race · data as of ' + esc(m.updated) + '</span>\n' +
+    '  <h1 class="ph">The race to next-gen inflight WiFi</h1>\n' +
+    '  <p class="lede">Every airline we score, ordered by how much of its fleet is flying <b>Starlink ' +
+    'or Amazon Leo today</b> — with the finish line each one has actually committed to in public. Four ' +
+    'fleets are done. ' + phases.installing.length + ' are mid-retrofit, which is the only phase where ' +
+    'per-flight odds mean anything. ' + phases.signed.length + ' have signed for hardware that is not ' +
+    'in the air, and those score zero here until it is.</p>\n' +
+    '  <div class="microlinks"><a href="/systems/">Starlink vs Amazon Leo →</a>' +
+    '<a href="/airlines/">The full leaderboard →</a><a href="/methodology/">How we know →</a></div>\n' +
+    '</header>\n\n' + H.credit('all') + '\n' +
+
+    '<div class="chips">' +
+    P.kpi(String(phases.done.length), 'Fleets finished', 'next-gen on 90%+ of the fleet') +
+    P.kpi(String(phases.installing.length), 'Mid-retrofit', 'the messy middle — where odds matter') +
+    P.kpi(String(phases.signed.length), 'Signed, not flying', 'scored zero until hardware is up') +
+    P.kpi(String(MK.INDUSTRY.programs), 'Airline programs industry-wide', MK.INDUSTRY.deployed +
+      ' deployed · ' + MK.INDUSTRY.installing + ' installing · ' + MK.INDUSTRY.signed + ' signed') +
+    '</div>\n\n' +
+
+    '<section class="blk">\n  <div class="sec-h"><h2>Every finish line</h2>' +
+    '<span class="sub">next-gen share today, and the date the airline has committed to</span>' +
+    '<a class="more" href="/systems/">what the hardware actually is →</a></div>\n' +
+    '  <p class="sec-lede">Read the two middle columns together. <b>Next-gen today</b> is the odds of ' +
+    'drawing a low-earth-orbit aircraft on a flight that has not been assigned one yet. <b>Today’s ' +
+    'tier</b> is what you get on the rest of the fleet, which is the part a single score hides: ' +
+    'streaming-class is a working connection with lag, basic is email and messaging, and the two are ' +
+    'not interchangeable on a four-hour transcon.</p>\n' +
+    '  <div class="filters needs-js" data-target="#raceTable" data-cur="all" role="group" ' +
+    'aria-label="Filter by rollout phase">' +
+    chips.map(function (c, i) {
+      return '<button type="button" data-f="' + c[0] + '" aria-pressed="' +
+        (c[0] === 'all') + '">' + esc(c[1]) + '</button>';
+    }).join('') + '</div>\n' +
+    '  <div class="tbl-shell rv"><table class="tbl" id="raceTable">\n' +
+    '    <thead><tr><th data-k="name">Airline</th>' +
+    '<th data-k="ng" data-t="num" aria-sort="descending">Next-gen today</th>' +
+    '<th data-k="tier">Today’s tier</th><th data-k="target">Finish line</th>' +
+    '<th class="hide-sm">What we know · source</th></tr></thead>\n    <tbody>\n' + rows +
+    '\n    </tbody>\n  </table></div>\n' +
+    '  <p class="tblcap"><span data-count-for="#raceTable">' + m.airlineCount + '</span> airlines · ' +
+    'fleet counts as of ' + esc(m.updated) + ' · finish lines from public announcements, ' +
+    esc(MK.VERIFIED) + ' · nothing here is fetched live.</p>\n' +
+    '  <div class="caveat">' + esc(m.A.TIER_METHOD_LINE) + '</div>\n' +
+    '</section>\n\n' +
+
+    /* ── chapter one: United. The deep-dive that used to headline the homepage,
+     * repositioned as what it actually is — the leading entry in a race, and the
+     * only fleet in the world instrumented tail by tail. */
+    '<section class="blk">\n  <div class="sec-h"><h2>Chapter one — United, the fastest retrofit</h2>' +
+    '<span class="sub">' + m.archiveDays + ' install days on record, verified daily</span>' +
+    '<a class="more" href="/united/fleet/">the whole fleet →</a></div>\n' +
+    '  <p class="sec-lede">United is not the biggest next-gen share in the table and it is the fastest ' +
+    'moving large fleet in it: ' + num(m.fleet.equipped) + ' aircraft since ' +
+    esc(DL.prettyDate(m.firstDay)) + ', express first, mainline catching up. It is also the only fleet ' +
+    'anywhere with a public per-tail archive — which is why United is where the per-flight odds come ' +
+    'from, and why every other airline’s curve gets read against this one.</p>\n' +
+    '  <div class="chips" style="margin:14px 0 16px">' +
+    P.kpi(num(m.fleet.equipped), 'United aircraft equipped', 'verified tail by tail') +
+    P.kpi(m.sharePct + '%', 'Of the United fleet', 'of ' + num(m.fleet.total) + ' aircraft') +
+    P.kpi(String(m.archiveDays), 'Days of install history', 'since ' +
+      esc(DL.shortMonth(m.firstDay)) + ' 2025') +
+    P.kpi(String(m.fleet.mainlinePacePerWeek), 'Mainline pace / week', 'straight-line finish ~' +
+      esc(m.etaLabel) + ' at this pace') +
+    '</div>\n' +
+    '  <div class="grid3">\n' +
+    '    <a class="card rv" href="/united/fleet/"><h3>Rollout curve</h3>' + V.spark(m) +
+    '<p>' + num(m.fleet.equipped) + ' aircraft equipped since ' + esc(DL.prettyDate(m.firstDay)) +
+    ' — the shape every other fleet in the table is compared against.</p>' +
+    '<span class="go">See the timeline →</span></a>\n' +
+    '    <a class="card rv" href="/united/fleet/"><h3>Hangar floor</h3>' + V.miniWaffle(m) +
+    '<p>One cell per 10 aircraft · <b>' + num(m.fleet.equipped) + ' of ' + num(m.fleet.total) +
+    '</b> equipped (' + m.sharePct + '%). The full floor is one cell per aircraft.</p>' +
+    '<span class="go">Open all ' + num(m.cells) + ' cells →</span></a>\n' +
+    '    <div class="card rv"><h3>Busiest Starlink routes</h3>' + P.routePills(m) +
+    '<p class="note">' + m.leaderboardCount + '-route leaderboard · ' + m.routeCount +
+    ' cached routes in the optimizer.</p>' +
+    '<a class="go" href="/united/">Open the route optimizer →</a></div>\n' +
+    '  </div>\n' +
+    '  <p class="tblcap">Alaska is instrumented too, one tier down: verified tails, no per-flight feed. ' +
+    '<a href="/alaska/">Alaska’s rollout →</a> · <a href="/methodology/">why that is a different ' +
+    'kind of answer →</a></p>\n' +
+    '</section>\n\n' +
+
+    '<section class="blk">\n  <div class="sec-h"><h2>What the race decides</h2>' +
+    '<span class="sub">three things worth knowing before you book</span></div>\n' +
+    '  <div class="faq">\n' +
+    '    <div class="q rv"><h3>A paused rollout is worse than a slow one</h3><p>British Airways fitted ' +
+    'five aircraft and stopped for the summer. A fleet-share percentage cannot tell you that on its ' +
+    'own — the number just looks small. The date next to it is the part that matters, which is why ' +
+    'every row above carries one.</p></div>\n' +
+    '    <div class="q rv"><h3>Some fleets will never finish</h3><p>American signed Starlink for 500+ ' +
+    'Airbus aircraft; the Boeing fleet stays on Viasat under the current deal. So American’s odds may ' +
+    'never converge on 100%, and the aircraft type on your itinerary will keep mattering there long ' +
+    'after United’s stops mattering. Southwest is the other version of this: 817 aircraft is years of ' +
+    'work at any believable rate.</p></div>\n' +
+    '    <div class="q rv"><h3>A signed deal is not a connection</h3><p>Delta and jetBlue picked Amazon ' +
+    'Leo, from 2028 and 2027. Both score <b>0</b> for next-gen odds today and both have genuinely ' +
+    'good, free, streaming-class Viasat right now. Those two facts are not in tension — they are the ' +
+    'reason this site shows two numbers instead of one. <a href="/systems/">Starlink vs Amazon Leo, ' +
+    'compared →</a></p></div>\n' +
+    '  </div>\n</section>\n\n' + H.credit('all');
+
+  return H.page({
+    title: 'The race to next-gen inflight WiFi — every airline’s rollout timeline',
+    desc: 'Which airlines are finished, which are mid-retrofit and which have only signed: next-gen ' +
+      'fleet share plus the public finish line for ' + m.airlineCount + ' airlines, with United as the ' +
+      'fastest large retrofit. Updated ' + m.updated + '.',
+    canonical: '/race/', here: '/race/', updated: m.updated, crumb: crumbs, body: body,
+    jsonld: [{
+      '@context': 'https://schema.org', '@type': 'ItemList',
+      name: 'Airline next-gen inflight WiFi rollout race',
+      description: 'Airlines ordered by the share of the fleet flying Starlink or Amazon Leo today.',
+      numberOfItems: race.length,
+      itemListElement: race.map(function (a, i) {
+        return {
+          '@type': 'ListItem', position: i + 1,
+          name: a.name + ' — ' + Math.round(a.nextGenShare * 100) + '% next-gen, ' +
+            (MK.ROLLOUT[a.key].target || 'no public completion date'),
+          url: ORIGIN + '/airlines/' + a.key + '/'
+        };
+      })
+    }, crumbLd(crumbs)]
+  });
+}
+
+/* ═══ /systems/ ══════════════════════════════════════════════════════════
+ * The evergreen page. Fleet counts change daily; how a satellite works does not,
+ * and "is Starlink actually better than what Delta has" is the question underneath
+ * every score on this site. It is also the page that has to be most careful: the
+ * honest answer for Amazon Leo is "nobody has measured it in a cabin yet", and
+ * saying so is worth more than a plausible number would be.
+ *
+ * The quality weights in the table are read out of A.SYSTEM_QUALITY, not typed, so
+ * the primer and the scoring cannot disagree. */
+function systemsPage(m) {
+  var crumbs = [['/', 'Home'], ['/systems/', 'Systems']];
+  var MK = require('./market.js');
+  var A = m.A;
+
+  var sl = MK.carriersOf(A, 'starlink');
+  var leoSigned = MK.signedFor(A, 'leo');
+  var slEquipped = sl.reduce(function (t, a) { return t + (a.equipped || 0); }, 0);
+  var slFleet = sl.reduce(function (t, a) { return t + (a.fleet || 0); }, 0);
+
+  function carrierPills(list, cls) {
+    if (!list.length) return '<span class="note">none in this set</span>';
+    return list.map(function (a) {
+      return '<a class="pill' + (cls ? ' ' + cls : '') + '" href="/airlines/' + a.key + '/">' +
+        esc(a.name) + '</a>';
+    }).join('');
+  }
+
+  /* head-to-head: the same six questions asked of both LEO systems */
+  var vs = [
+    ['Flying on a passenger aircraft today',
+      'Yes — ' + sl.length + ' of the ' + m.airlineCount + ' airlines here, ' + num(slEquipped) +
+      ' aircraft in this set alone.',
+      'No. Not one passenger aircraft, anywhere.'],
+    ['Airlines committed',
+      MK.INDUSTRY.programs + ' programs industry-wide: ' + MK.INDUSTRY.deployed + ' fully deployed, ' +
+      MK.INDUSTRY.installing + ' installing, ' + MK.INDUSTRY.signed + ' signed (' + MK.VERIFIED + ').',
+      leoSigned.map(function (a) {
+        return a.name + ' (' + a.future.from + (a.future.detail ? ', ' + a.future.detail : '') + ')';
+      }).join('; ') + '.'],
+    ['First in service',
+      'JSX finished its entire fleet before anyone else started.',
+      'jetBlue, from 2027 — a year ahead of Delta’s 500 aircraft.'],
+    ['What we can measure',
+      '100+ Mbps advertised; roughly 20–80 Mbps in the cabin in practice, latency in tens of ' +
+      'milliseconds. Streams, uploads, real work.',
+      'Nothing yet. There is no in-cabin measurement to quote, so we quote none.'],
+    ['How ConnectScore treats it',
+      'System quality ' + A.SYSTEM_QUALITY.starlink.toFixed(1) + ' — the ceiling.',
+      'System quality ' + A.SYSTEM_QUALITY.leo.toFixed(1) + ' when it flies, and a next-gen score of ' +
+      '<b>zero</b> on every airline until then. A deal you cannot connect to is not connectivity.'],
+    ['What would change our mind',
+      'A fleet finishing: once a carrier is at 97% the odds question dies of success and the ' +
+      'interesting number becomes speed on the day.',
+      'The first jetBlue aircraft in service. That is the day Leo stops being a press release in this ' +
+      'data set and starts being a number.']
+  ];
+
+  var sysRows = MK.SYSTEMS.map(function (s) {
+    var q = A.systemQuality(s.key);
+    var carriers = MK.carriersOf(A, s.key);
+    var signed = MK.signedFor(A, s.key);
+    return '      <tr data-f="' + (s.nextGen ? 'nextgen' : 'legacy') + '">' +
+      '<td><span class="sysdot ' + P.sysClass(s.key) + '"></span><b>' +
+      esc(A.SYSTEM_LABEL[s.key] || s.key) + '</b>' +
+      '<div class="note" style="margin-top:3px">' + esc(s.operator) + ' · ' + esc(s.orbit) + '</div></td>' +
+      '<td>' + esc(s.how) + '</td>' +
+      '<td>' + esc(s.speed) + '</td>' +
+      '<td>' + esc(s.reliability) + '</td>' +
+      '<td>' + esc(s.price) + '</td>' +
+      '<td class="num" data-s="' + q + '"><b>' + q.toFixed(1) + '</b></td>' +
+      '<td class="hide-sm">' +
+      (carriers.length ? carriers.map(function (a) { return esc(a.name); }).join(', ') : '—') +
+      (signed.length ? '<div class="note" style="margin-top:4px">signed: ' +
+        signed.map(function (a) { return esc(a.name) + ' ' + esc(a.future.from); }).join(', ') +
+        '</div>' : '') +
+      '</td></tr>';
+  }).join('\n');
+
+  var faqs = [
+    ['Is Starlink actually better than Delta’s WiFi, or is that just marketing?',
+      'Both things are true and they answer different questions. Delta Sync is free, fleetwide, and ' +
+      'genuinely streaming-class — you can work on it. Starlink is a low-earth-orbit system roughly ' +
+      '60 times closer to the aircraft than a geostationary satellite, so the lag is tens of ' +
+      'milliseconds instead of about half a second, and it keeps working mid-ocean and at high ' +
+      'latitude where geostationary coverage thins out. If your flight is four hours of real work, ' +
+      'the difference is noticeable. If it is email and a film, it is not.'],
+    ['What is Amazon Leo, and does any airline have it?',
+      'Amazon Leo is Amazon’s low-earth-orbit constellation, formerly Project Kuiper — the same ' +
+      'physics class as Starlink. No passenger aircraft is flying it yet. jetBlue is first, from ' +
+      '2027; Delta signed for 500 aircraft from 2028. Because nothing is in the air, both airlines ' +
+      'score zero for next-gen odds on this site, and we publish no speed figure for Leo at all — ' +
+      'there is no in-cabin measurement to publish.'],
+    ['Why does “free WiFi” not tell you whether it is good?',
+      'Because the two are unrelated. American launched free WiFi across about 90% of its fleet in ' +
+      'January 2026, and it is Viasat/Intelsat — streaming-class, geostationary, with the widebodies ' +
+      'on older Panasonic hardware excluded from the offer entirely. Free and fast are separate axes, ' +
+      'which is why ConnectScore multiplies them rather than picking one.'],
+    ['Which system will my flight have?',
+      'That depends on the aircraft, not the airline — which is the whole problem. For United we hold ' +
+      'a per-tail archive and can give you the odds for your actual flight number. For every other ' +
+      'carrier the honest answer is the fleet share plus the aircraft type on your itinerary. The ' +
+      'race page has each fleet’s current split and its finish line.'],
+    ['Does more bandwidth fix the lag?',
+      'No, and this is the one piece of physics worth knowing. A geostationary satellite sits 35,786 ' +
+      'km up; the round trip is about half a second no matter how fast the link is. Low-earth orbit ' +
+      'is roughly 550 km, so the delay is tens of milliseconds. Bandwidth decides whether video ' +
+      'streams; distance decides whether the connection feels alive.']
+  ];
+
+  var body =
+    '<header class="hero" style="padding-top:18px">\n' +
+    '  <span class="kicker"><span class="dot"></span>Systems · evergreen · reviewed ' +
+    esc(MK.VERIFIED) + '</span>\n' +
+    '  <h1 class="ph">Inflight WiFi systems, compared</h1>\n' +
+    '  <p class="lede">Every score on this site rests on one distinction: <b>low-earth orbit or ' +
+    'geostationary</b>. This page is that distinction in full — Starlink against Amazon Leo ' +
+    'head-to-head, then every system flying on the airlines we track, with what it actually does in ' +
+    'the cabin, what it costs, and the weight it carries in ConnectScore.</p>\n' +
+    '  <div class="microlinks"><a href="/race/">The rollout race →</a>' +
+    '<a href="/airlines/">The leaderboard →</a><a href="/methodology/">The formula →</a></div>\n' +
+    '</header>\n\n' +
+
+    '<section class="blk">\n  <div class="sec-h"><h2>Starlink vs Amazon Leo</h2>' +
+    '<span class="sub">the two low-earth-orbit camps</span></div>\n' +
+    '  <p class="sec-lede">These are the only two systems this site treats as next-gen, they are ' +
+    'technically the same idea, and exactly one of them is carrying passengers. That asymmetry is the ' +
+    'single most important fact on this page, and it is why Delta’s next-gen score is 0 while its ' +
+    'ConnectScore is one of the highest here.</p>\n' +
+    '  <div class="tbl-shell rv"><table class="tbl">\n' +
+    '    <thead><tr><th></th>' +
+    '<th><span class="sysdot starlink"></span>Starlink <span class="note">SpaceX</span></th>' +
+    '<th><span class="sysdot leo"></span>Amazon Leo <span class="note">Amazon, ex-Kuiper</span></th>' +
+    '</tr></thead>\n    <tbody>\n' +
+    vs.map(function (r) {
+      return '      <tr><td><b>' + esc(r[0]) + '</b></td><td>' + r[1] + '</td><td>' + r[2] +
+        '</td></tr>';
+    }).join('\n') +
+    '\n    </tbody>\n  </table></div>\n' +
+    '  <div class="grid3" style="margin-top:16px">\n' +
+    '    <div class="card rv"><h3>Flying Starlink today</h3><p>' +
+    carrierPills(sl) + '</p><p class="note">' + num(slEquipped) + ' of ' + num(slFleet) +
+    ' aircraft across those fleets, as of ' + esc(m.updated) + '.</p></div>\n' +
+    '    <div class="card rv"><h3>Signed for Amazon Leo</h3><p>' +
+    carrierPills(leoSigned, 'soon') + '</p><p class="note">Zero aircraft in service. Both fleets run ' +
+    'free streaming-class Viasat until the hardware arrives.</p></div>\n' +
+    '    <div class="card rv"><h3>Why the gap matters</h3><p>A signed deal changes nothing about the ' +
+    'flight you are booking this month. It changes a great deal about the one you book in 2028 — which ' +
+    'is why the race page tracks both, and why neither number is allowed to stand in for the ' +
+    'other.</p><a class="go" href="/race/">The rollout race →</a></div>\n' +
+    '  </div>\n</section>\n\n' +
+
+    '<section class="blk">\n  <div class="sec-h"><h2>Every system, end to end</h2>' +
+    '<span class="sub">how it works · what it does · what it weighs</span></div>\n' +
+    '  <p class="sec-lede">The last column is the multiplier this system contributes to ConnectScore. ' +
+    'It is read straight out of the scoring table rather than typed here, so the primer and the ' +
+    'formula cannot drift apart.</p>\n' +
+    '  <div class="tbl-shell rv"><table class="tbl">\n' +
+    '    <thead><tr><th>System</th><th>How it works</th><th>Real-world speed</th>' +
+    '<th>Reliability</th><th>Price onboard</th><th data-t="num">Quality</th>' +
+    '<th class="hide-sm">Airlines here</th></tr></thead>\n    <tbody>\n' + sysRows +
+    '\n    </tbody>\n  </table></div>\n' +
+    '  <p class="tblcap">Quality weights from the ConnectScore table · carrier lists derived from the ' +
+    'same airline data as every other page · fleet counts as of ' + esc(m.updated) + '.</p>\n' +
+    '  <div class="caveat">' + esc(m.A.SCORE_CAVEAT) + '</div>\n' +
+    '</section>\n\n' +
+
+    '<section class="blk">\n  <div class="sec-h"><h2>The questions people actually ask</h2>' +
+    '<a class="more" href="/methodology/">methodology →</a></div>\n' +
+    '  <div class="faq">' + faqs.map(function (f) {
+      return '<div class="q rv"><h3>' + esc(f[0]) + '</h3><p>' + esc(f[1]) + '</p></div>';
+    }).join('') + '</div>\n</section>\n\n' + H.credit('all');
+
+  return H.page({
+    title: 'Inflight WiFi systems compared — Starlink vs Amazon Leo vs Viasat',
+    desc: 'Starlink and Amazon Leo head to head, plus every inflight WiFi system flying on the ' +
+      'airlines we track: how each one works, real-world cabin speed, reliability, price and the ' +
+      'weight it carries in ConnectScore. Reviewed ' + MK.VERIFIED + '.',
+    canonical: '/systems/', here: '/systems/', updated: m.updated, crumb: crumbs, body: body,
+    jsonld: [{
+      '@context': 'https://schema.org', '@type': 'FAQPage',
+      mainEntity: faqs.map(function (f) {
+        return {
+          '@type': 'Question', name: f[0],
+          acceptedAnswer: { '@type': 'Answer', text: f[1] }
+        };
+      })
+    }, {
+      '@context': 'https://schema.org', '@type': 'TechArticle',
+      headline: 'Inflight WiFi systems compared: Starlink, Amazon Leo, Viasat, 2Ku, Panasonic',
+      url: ORIGIN + '/systems/',
+      dateModified: m.updated,
+      description: 'Low-earth orbit against geostationary: how each inflight WiFi system works, what ' +
+        'it delivers in the cabin, and how ConnectScore weights it.',
+      author: { '@type': 'Organization', name: 'WiFi Odds', url: ORIGIN + '/' },
+      publisher: { '@id': ORIGIN + '/#org' },
+      about: 'Inflight satellite connectivity systems'
+    }, crumbLd(crumbs)]
+  });
+}
+
 /* ═══ /roadmap/ ═════════════════════════════════════════════════════════ */
 function roadmapPage(m) {
   var crumbs = [['/', 'Home'], ['/roadmap/', 'Roadmap']];
@@ -1332,6 +1734,7 @@ function privacyPage(m) {
 module.exports = {
   home: home, airlinesIndex: airlinesIndex, airlinePage: airlinePage,
   fleetPage: fleetPage, roadmapPage: roadmapPage, methodologyPage: methodologyPage,
+  racePage: racePage, systemsPage: systemsPage,
   apiDocs: apiDocs, notFound: notFound,
   unitedOptimizer: unitedOptimizer, unitedHistory: unitedHistory,
   alaskaRollout: alaskaRollout, privacyPage: privacyPage,

@@ -25,6 +25,14 @@ var AIRLINE_KEYS = ['united', 'alaska', 'jsx', 'airbaltic', 'zipair', 'westjet',
 var ROUTES = [
   { url: '/', file: 'index.html', kind: 'gen', changefreq: 'daily', priority: '1.0' },
   { url: '/airlines/', file: 'airlines/index.html', kind: 'gen', changefreq: 'daily', priority: '0.9' },
+  /* THE RACE — every airline's rollout timeline to full next-gen. changefreq
+     daily because the next-gen share in every row is re-baked from the same daily
+     pull as the leaderboard; only the finish-line prose is editorial. */
+  { url: '/race/', file: 'race/index.html', kind: 'gen', changefreq: 'daily', priority: '0.9' },
+  /* SYSTEMS — the evergreen hardware primer. Starlink vs Amazon Leo plus every
+     system flying on the fleets we score. Monthly: satellites do not move house,
+     and the carrier lists inside it are derived so they stay current anyway. */
+  { url: '/systems/', file: 'systems/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.8' },
   { url: '/united/', file: 'united/index.html', kind: 'gen', tmpl: 'united-optimizer', changefreq: 'daily', priority: '0.9' },
   { url: '/united/fleet/', file: 'united/fleet/index.html', kind: 'gen', changefreq: 'daily', priority: '0.9' },
   { url: '/united/history/', file: 'united/history/index.html', kind: 'gen', tmpl: 'united-history', changefreq: 'daily', priority: '0.6' },

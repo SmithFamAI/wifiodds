@@ -48,6 +48,12 @@ var MARK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width=
  * airline link here, add a SUBNAV section instead. */
 var NAV = [
   ['/airlines/', 'Airlines'],
+  /* /race/ earns a global slot because it is the one page that is about the whole
+     industry rather than one carrier — it replaced a homepage section that was
+     three views of United. /systems/ deliberately does NOT get one: it is
+     evergreen reference reached from the footer, the homepage teaser and /race/,
+     and a four-item nav plus the CTA is already the mobile limit. */
+  ['/race/', 'The Race'],
   ['/roadmap/', 'Roadmap']
 ];
 
@@ -139,7 +145,8 @@ function credit(which) {
 
 function footer(updated) {
   return '<footer>\n' +
-    '  <div class="flinks"><a href="/airlines/">Airlines</a><a href="/united/">United</a>' +
+    '  <div class="flinks"><a href="/airlines/">Airlines</a><a href="/race/">The Race</a>' +
+    '<a href="/systems/">Systems</a><a href="/united/">United</a>' +
     '<a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a>' +
     /* Methodology is linked from the FOOTER and from the leaderboard's caveat, not
        from the global topnav: NAV stays two items plus the CTA, and a provenance
