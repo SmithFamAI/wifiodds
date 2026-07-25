@@ -42,17 +42,30 @@
 <header class="hero" style="padding-top:14px">
   <h1 class="ph">ZIPAIR inflight WiFi</h1>
   <p class="lede">All nine 787s equipped, free onboard.</p>
-  <div class="scorebox rv"><svg class="viz" width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="ConnectScore 100 out of 100"><circle class="ring-bg" cx="60" cy="60" r="46" stroke-width="10"/><circle class="ring-fg" cx="60" cy="60" r="46" stroke-width="10" stroke-dasharray="289 0" transform="rotate(-90 60 60)"/><text class="ring-n" x="60" y="70" text-anchor="middle" font-size="32">100</text></svg><div class="sbmid"><div class="t">ConnectScore <span class="band sc-exc">excellent</span></div><div class="m">100% of the fleet equipped × 1.0 system quality (Starlink) × 1.00 free-for-you = 100 / 100</div></div><div style="flex:none"><a class="btn ghost" href="/airlines/">All 18 airlines →</a></div></div>
+  <div class="scorebox rv"><svg class="viz" width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="ConnectScore 100 out of 100"><circle class="ring-bg" cx="60" cy="60" r="46" stroke-width="10"/><circle class="ring-fg" cx="60" cy="60" r="46" stroke-width="10" stroke-dasharray="289 0" transform="rotate(-90 60 60)"/><text class="ring-n" x="60" y="70" text-anchor="middle" font-size="32">100</text></svg><div class="sbmid"><div class="t">ConnectScore <span class="band sc-exc">excellent</span></div><div class="m">1 fleet segments over 9 aircraft with a published system, added up = 100 / 100</div></div><div style="flex:none"><a class="btn ghost" href="/airlines/">All 18 airlines →</a></div></div>
 </header>
 
 <section class="blk">
   <div class="sec-h"><h2>Where the rollout stands</h2><span class="sub">as of 2026-07</span></div>
   <div class="stats">
     <div class="stat rv"><div class="n">9<small> / 9</small></div><div class="l">Aircraft equipped</div><span class="track"><i class="fill" style="--pct:100%"></i></span><div class="d">100% of the fleet carries Starlink.</div></div>
-    <div class="stat rv"><div class="n" style="font-size:21px"><span class="sysdot starlink"></span>Starlink</div><div class="l">System</div><div class="d">Low-earth-orbit — the good stuff (quality 1.0).</div></div>
+    <div class="stat rv"><div class="n" style="font-size:21px"><span class="sysdot starlink"></span>Starlink</div><div class="l">System</div><div class="d">Low-earth-orbit — the good stuff (quality 1.00).</div></div>
     <div class="stat rv"><div class="n" style="font-size:21px">free onboard</div><div class="l">Cost onboard</div><div class="d">Free-for-you factor 1.00.</div></div>
     <div class="stat rv"><div class="n">100</div><div class="l">ConnectScore</div><div class="d">Band: excellent (18 airlines ranked).</div></div>
   </div>
+</section>
+
+<section class="blk">
+  <div class="sec-h"><h2>How the 100 is built</h2><span class="sub">type-resolved</span></div>
+  <p class="sec-lede">Every aircraft ZIPAIR flies, by system, priced. The rows add up to the ConnectScore, and the top row on its own is the next-gen number.</p>
+<div class="tbl-shell rv"><table class="tbl">
+    <thead><tr><th>Segment</th><th class="num">Aircraft</th><th class="num">Share</th><th class="num">Quality</th><th class="num">Free</th><th class="num">Points</th></tr></thead>
+    <tbody>
+      <tr class="instr"><td><span class="sysdot starlink"></span><b>Starlink</b> <span class="pill">next-gen row</span><div class="note" style="margin-top:3px">All nine 787s.</div><div class="note" style="margin-top:3px">ZIPAIR announcements · 2026-07</div></td><td class="num">9</td><td class="num">100.0%</td><td class="num">1.00</td><td class="num">1.00</td><td class="num"><b>100.0</b></td></tr>
+    </tbody>
+    <tfoot><tr><td><b>ConnectScore</b></td><td class="num">9</td><td class="num">100%</td><td class="num">—</td><td class="num">—</td><td class="num"><b>100</b></td></tr><tr><td>Next-gen odds, the top row on its own</td><td class="num">—</td><td class="num">100.0%</td><td class="num">—</td><td class="num">—</td><td class="num"><b>100</b></td></tr></tfoot>
+  </table></div>
+  <p class="tblcap">9 aircraft with a published system. Segments come from a published fleet table by aircraft type. Points are shown to one decimal place; the unrounded rows sum to 100.00, which rounds to the published 100.</p>
 </section>
 
 <section class="blk">
@@ -62,7 +75,7 @@
 <section class="blk">
   <div class="sec-h"><h2>ZIPAIR WiFi questions</h2></div>
   <div class="faq"><div class="q rv"><h3>Does ZIPAIR have Starlink WiFi?</h3><p>ZIPAIR has Starlink on 9 of its 9 aircraft (100%) as of 2026-07, so it is close to a sure thing. Its ConnectScore is 100 out of 100 — excellent.</p></div><div class="q rv"><h3>Is ZIPAIR’s WiFi free?</h3><p>On ZIPAIR it is free onboard. ConnectScore multiplies the fleet share by a free-for-you factor, so a paid or unconfirmed free claim scores lower than the same fleet given away free.</p></div><div class="q rv"><h3>How many ZIPAIR planes have Starlink?</h3><p>9 of 9 — 100% of the fleet. Compiled from public airline announcements, July 2026.</p></div></div>
-  <div class="caveat">ConnectScore is the chance of getting the GOOD system, not of any wifi at all. Legacy satellite service on the not-yet-converted part of a fleet is not credited. Signed-but-unflown deals (AA Starlink 2027, DL/B6 Amazon Leo) score zero until they fly.</div>
+  <div class="caveat">ConnectScore is an expected value over a whole fleet, not a prediction about one flight: United measured 320, 56 and 15 Mbps on three systems in one livery in one reporting period. Aircraft whose system an airline does not publish are left out of the denominator rather than assumed. Signed-but-unflown deals (AA Starlink 2027, DL/B6 Amazon Leo) score zero until they fly.</div>
 </section>
 
 <div class="credit"><span class="cb">DATA CREDIT</span><span class="cbody">Fleet verification for the instrumented airlines comes from the independent community trackers <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener"><b>unitedstarlinktracker.com</b></a> and <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener"><b>alaskastarlinktracker.com</b></a>, built by <b>@martinamps</b>. All credit for that data goes to them ↗. Every other airline is compiled from public airline announcements (July 2026). WiFi Odds is unofficial and not affiliated with any airline, SpaceX/Starlink, Amazon, Viasat, or the trackers.</span></div>

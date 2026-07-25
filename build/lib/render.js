@@ -216,10 +216,13 @@ function home(m) {
     '<a class="more" href="/methodology/">full method →</a></div>\n' +
     '  <div class="panel"><p style="font-family:var(--mono);font-size:14.5px;color:var(--ink)">' +
     'next-gen odds = share of the fleet flying Starlink or Amazon Leo × free-for-you<br>' +
-    'ConnectScore&nbsp;&nbsp;= P(connectivity) × system quality × free-for-you</p>' +
+    'ConnectScore&nbsp;&nbsp;= Σ segment share × system quality × free-for-you</p>' +
     '  <p class="note" style="margin-top:10px">The first is what improves every week a rollout runs. ' +
-    'The second credits streaming-class geostationary service at 0.6 rather than pretending it is ' +
-    'nothing, which is why free fleetwide Viasat can outrank a quarter-finished Starlink fleet. ' +
+    'The second walks the whole fleet, segment by segment: streaming-class geostationary counts ' +
+    m.A.SYSTEM_QUALITY.viasat.toFixed(2) + ', legacy Ku counts ' +
+    m.A.SYSTEM_QUALITY.panasonic.toFixed(2) + ', and an aircraft with no wifi at all counts zero. ' +
+    'That is why free modern GEO across most of a fleet can outrank a quarter-finished Starlink one, ' +
+    'and why six carriers here lose points for sub-fleets nobody else scores. ' +
     'Neither number is a bandwidth guarantee: the claim the hardware supports is streams, uploads, ' +
     'real work.</p>' +
     '<div class="caveat">' + esc(m.A.SCORE_CAVEAT) + '</div></div>\n</section>\n\n' +
@@ -344,12 +347,13 @@ function airlinesIndex(m) {
       'only on some cabins, which scores lower — ConnectScore multiplies the fleet share by a ' +
       'free-for-you factor rather than pretending a paywalled system is the same product.'],
     ['How is ConnectScore calculated?',
-      m.A.SCORE_METHOD_LINE + ' Worked example — United: ' + num(ua.equipped) + ' of ' + num(ua.fleet) +
-      ' aircraft is a ' + ua.parts.pctEquipped.toFixed(4) + ' fleet share, × ' +
-      ua.parts.systemQuality.toFixed(1) + ' system quality (' + ua.systemLabel + ') × ' +
-      ua.parts.freeFactor.toFixed(2) + ' free-for-you = ' + ua.parts.raw.toFixed(4) +
-      ', so ConnectScore ' + ua.score + '. The full method, the three confidence tiers and the ' +
-      'things it cannot see are on the methodology page.'],
+      m.A.SCORE_METHOD_LINE + ' Worked example — United flies five systems, so it gets five rows: ' +
+      ua.segments.map(function (r) {
+        return r.systemLabel + ' ' + num(r.n) + ' aircraft at ' + r.pointsMin.toFixed(1) + ' points';
+      }).join(', ') + '. Added up that is ConnectScore ' + ua.score + ', and the ' +
+      ua.segments[0].systemLabel + ' row on its own is the next-gen number, ' + ua.nextGenScore +
+      '. The full method, the three confidence tiers and the things it cannot see are on the ' +
+      'methodology page.'],
     ['Can you tell me whether my specific flight will have Starlink?',
       'For United, yes: we hold a per-flight history and can give the odds for that flight number. ' +
       'For Alaska the tails are verified but there is no per-flight feed, so the honest answer is the ' +
@@ -413,6 +417,84 @@ function airlinesIndex(m) {
   });
 }
 
+/* ── the ConnectScore ledger, the page that shows its working ─────────────
+ * One row per fleet segment, and the rows add up to the published score. The
+ * next-gen row is sorted to the top and labelled, because next-gen odds ARE that
+ * row — the relationship is something a reader can see here instead of a second
+ * number they have to take on trust.
+ *
+ * Where a segment names more than one possible system and the airline publishes
+ * no split, the row shows both bounds and says which document would settle it.
+ * build/prerender.js fails the build if these rows do not sum to the score. */
+function ledgerTable(m, a) {
+  if (!a.ledger) return '';
+  var L = a.ledger;
+  var rows = L.rows.slice().sort(function (x, y) {
+    return (y.nextGen ? 1 : 0) - (x.nextGen ? 1 : 0) || y.share - x.share;
+  });
+  var body = rows.map(function (r) {
+    var q = r.qMin === r.qMax ? r.qMin.toFixed(2) : r.qMin.toFixed(2) + '–' + r.qMax.toFixed(2);
+    var pts = r.qMin === r.qMax ? r.pointsMin.toFixed(1)
+      : r.pointsMin.toFixed(1) + '–' + r.pointsMax.toFixed(1);
+    return '      <tr' + (r.nextGen ? ' class="instr"' : '') + '>' +
+      '<td><span class="sysdot ' + P.sysClass(r.systems[0]) + '"></span><b>' + esc(r.systemLabel) +
+      '</b>' + (r.nextGen ? ' <span class="pill">next-gen row</span>' : '') +
+      (r.assumed ? ' <span class="pill">inferred</span>' : '') +
+      (r.note ? '<div class="note" style="margin-top:3px">' + esc(r.note) + '</div>' : '') +
+      '<div class="note" style="margin-top:3px">' + esc(r.src) + ' · ' + esc(r.as) + '</div></td>' +
+      '<td class="num">' + num(r.n) + '</td>' +
+      '<td class="num">' + (r.share * 100).toFixed(1) + '%</td>' +
+      '<td class="num">' + q + '</td>' +
+      '<td class="num">' + r.freeFactor.toFixed(2) + '</td>' +
+      '<td class="num"><b>' + pts + '</b></td></tr>';
+  }).join('\n');
+
+  var unres = L.unresolved
+    ? '      <tr><td><b>Not published</b>' +
+      '<div class="note" style="margin-top:3px">' + esc(L.unresolvedWhy || '') + '</div></td>' +
+      '<td class="num">' + num(L.unresolved) + '</td>' +
+      '<td class="num">—</td><td class="num">—</td><td class="num">—</td>' +
+      '<td class="num">excluded</td></tr>\n'
+    : '';
+
+  var splits = rows.filter(function (r) { return r.split; });
+
+  return '<section class="blk">\n  <div class="sec-h"><h2>How the ' + a.score +
+    ' is built</h2><span class="sub">' + esc(a.resolutionLabel) + '</span></div>\n' +
+    '  <p class="sec-lede">Every aircraft ' + esc(a.name) + ' flies, by system, priced. The rows add ' +
+    'up to the ConnectScore, and the top row on its own is the next-gen number.</p>\n' +
+    '<div class="tbl-shell rv"><table class="tbl">\n' +
+    '    <thead><tr><th>Segment</th><th class="num">Aircraft</th><th class="num">Share</th>' +
+    '<th class="num">Quality</th><th class="num">Free</th><th class="num">Points</th></tr></thead>\n' +
+    '    <tbody>\n' + body + '\n' + unres +
+    '    </tbody>\n    <tfoot><tr><td><b>ConnectScore</b>' +
+    (a.hasRange ? '<div class="note" style="margin-top:3px">We publish the floor. The ceiling is ' +
+      a.ceiling + ', and the gap is the part of the fleet whose split nobody has published.</div>' : '') +
+    '</td><td class="num">' + num(L.known) + '</td><td class="num">100%</td>' +
+    '<td class="num">—</td><td class="num">—</td><td class="num"><b>' +
+    (a.hasRange ? a.floor + '–' + a.ceiling : a.floor) + '</b></td></tr>' +
+    '<tr><td>Next-gen odds, the top row on its own</td><td class="num">—</td><td class="num">' +
+    (a.nextGenShare * 100).toFixed(1) + '%</td><td class="num">—</td><td class="num">—</td>' +
+    '<td class="num"><b>' + a.nextGenScore + '</b></td></tr></tfoot>\n' +
+    '  </table></div>\n' +
+    '  <p class="tblcap">' + num(L.known) + ' aircraft with a published system' +
+    (L.unresolved ? ', plus ' + num(L.unresolved) + ' left out of the denominator rather than ' +
+      'assumed, for ' + num(L.total) + ' in total' : '') + '. ' +
+    esc(m.A.RESOLUTION_BLURB[a.resolution] || '') +
+    /* Add the rows on this page and you get 48.2, not 48, because each row is
+       shown to one decimal. Print the unrounded sum rather than leaving a reader
+       to conclude the ledger does not add up. */
+    ' Points are shown to one decimal place; the unrounded rows sum to ' +
+    L.sumFloor.toFixed(2) + ', which rounds to the published ' + a.floor + '.</p>\n' +
+    (splits.length
+      ? '  <p class="tblcap">Unpublished splits: ' + splits.map(function (r) {
+        return esc(r.systemLabel) + ' (' + num(r.n) + ' aircraft). ' + esc(r.src) +
+          ' would settle it.';
+      }).join(' ') + '</p>\n'
+      : '') +
+    '</section>\n\n';
+}
+
 /* ═══ /airlines/{key}/ ══════════════════════════════════════════════════ */
 function airlinePage(m, key) {
   var e = m.A.WIFI_AIRLINES[key];
@@ -449,9 +531,13 @@ function airlinePage(m, key) {
     '  <div class="scorebox rv">' + V.scoreRing(a.score) +
     '<div class="sbmid"><div class="t">ConnectScore <span class="band ' + P.band(a.score) + '">' +
     esc(a.label) + '</span></div>' +
-    '<div class="m">' + pct + '% of the fleet equipped × ' + a.parts.systemQuality.toFixed(1) +
-    ' system quality (' + esc(a.systemLabel) + ') × ' + a.parts.freeFactor.toFixed(2) +
-    ' free-for-you = ' + a.score + ' / 100</div></div>' +
+    '<div class="m">' + (a.ledger
+      ? a.ledger.rows.length + ' fleet segments over ' + num(a.known) +
+        ' aircraft with a published system, added up = ' + a.score + ' / 100' +
+        (a.hasRange ? ' (ceiling ' + a.ceiling + ')' : '')
+      : pct + '% of the fleet equipped × ' + a.parts.systemQuality.toFixed(2) +
+        ' system quality (' + esc(a.systemLabel) + ') × ' + a.parts.freeFactor.toFixed(2) +
+        ' free-for-you = ' + a.score + ' / 100') + '</div></div>' +
     '<div style="flex:none"><a class="btn ghost" href="/airlines/">All ' + m.airlineCount +
     ' airlines →</a></div></div>\n' +
     '</header>\n\n' +
@@ -464,8 +550,8 @@ function airlinePage(m, key) {
     '<div class="d">' + pct + '% of the fleet carries ' + esc(a.systemLabel) + '.</div></div>\n' +
     '    <div class="stat rv"><div class="n" style="font-size:21px"><span class="sysdot ' +
     P.sysClass(a.system) + '"></span>' + esc(a.systemLabel) + '</div><div class="l">System</div>' +
-    '<div class="d">' + (a.parts.systemQuality >= 1 ? 'Low-earth-orbit — the good stuff (quality 1.0).'
-      : 'Geostationary hardware — slower, scores ' + a.parts.systemQuality.toFixed(1) + '.') + '</div></div>\n' +
+    '<div class="d">' + (a.parts.systemQuality >= 1 ? 'Low-earth-orbit — the good stuff (quality 1.00).'
+      : 'Geostationary hardware — slower, scores ' + a.parts.systemQuality.toFixed(2) + '.') + '</div></div>\n' +
     '    <div class="stat rv"><div class="n" style="font-size:21px">' + esc(P.freeText(e.free)) +
     '</div><div class="l">Cost onboard</div><div class="d">Free-for-you factor ' +
     a.parts.freeFactor.toFixed(2) + '.</div></div>\n' +
@@ -478,6 +564,7 @@ function airlinePage(m, key) {
       (a.future.detail ? ' (' + esc(a.future.detail) + ')' : '') + '. ConnectScore counts zero for ' +
       'hardware that is not flying yet — a deal you cannot connect to is not connectivity.</p></div>\n' : '') +
     '</section>\n\n' +
+    ledgerTable(m, a) +
     (toolHref
       ? '<section class="blk">\n  <div class="callout rv"><h3>Per-flight odds for ' + esc(a.name) + '</h3>' +
         '<p>' + esc(a.name) + ' is instrumented: we can score the actual flight you are about to book, ' +
@@ -916,8 +1003,8 @@ function systemsPage(m) {
       'milliseconds. Streams, uploads, real work.',
       'Nothing yet. There is no in-cabin measurement to quote, so we quote none.'],
     ['How ConnectScore treats it',
-      'System quality ' + A.SYSTEM_QUALITY.starlink.toFixed(1) + ' — the ceiling.',
-      'System quality ' + A.SYSTEM_QUALITY.leo.toFixed(1) + ' when it flies, and a next-gen score of ' +
+      'System quality ' + A.SYSTEM_QUALITY.starlink.toFixed(2) + ' — the ceiling.',
+      'System quality ' + A.SYSTEM_QUALITY.leo.toFixed(2) + ' when it flies, and a next-gen score of ' +
       '<b>zero</b> on every airline until then. A deal you cannot connect to is not connectivity.'],
     ['What would change our mind',
       'A fleet finishing: once a carrier is at 97% the odds question dies of success and the ' +
@@ -938,7 +1025,7 @@ function systemsPage(m) {
       '<td>' + esc(s.speed) + '</td>' +
       '<td>' + esc(s.reliability) + '</td>' +
       '<td>' + esc(s.price) + '</td>' +
-      '<td class="num" data-s="' + q + '"><b>' + q.toFixed(1) + '</b></td>' +
+      '<td class="num" data-s="' + q + '"><b>' + q.toFixed(2) + '</b></td>' +
       '<td class="hide-sm">' +
       (carriers.length ? carriers.map(function (a) { return esc(a.name); }).join(', ') : '—') +
       (signed.length ? '<div class="note" style="margin-top:4px">signed: ' +
@@ -1232,22 +1319,27 @@ function methodologyPage(m) {
 
     '<section class="blk">\n  <div class="sec-h"><h2>The formula, worked through</h2>' +
     '<span class="sub">nothing here is typed by hand</span></div>\n' +
-    '  <p class="sec-lede">ConnectScore answers one question — <b>what are the odds I get the good ' +
-    'system, and is it free once I am on it?</b> Three factors, multiplied, rounded to an integer ' +
-    'from 0 to 100:</p>\n' +
-    '  <div class="wex">ConnectScore = <b>fleet share</b> × <b>system quality</b> × ' +
+    '  <p class="sec-lede">ConnectScore answers one question — <b>what is the wifi likely to be on a ' +
+    'flight I have not been assigned an aircraft for yet, and is it free once I am on it?</b> A fleet ' +
+    'is a list of segments. Each segment is a count of aircraft, a system and a price, and the score ' +
+    'is the sum of the segments:</p>\n' +
+    '  <div class="wex">ConnectScore = Σ <b>segment share</b> × <b>system quality</b> × ' +
     '<b>free-for-you</b> × 100</div>\n' +
     '  <div class="grid3" style="margin-top:16px">\n' +
-    '    <div class="card"><h3>Fleet share</h3><p>Equipped aircraft ÷ total aircraft, from the verified ' +
-    'roster where one exists and from the airline’s own published counts otherwise. Where an airline ' +
-    'publishes no tail counts at all (only “fleetwide”), a stated coverage fraction is used and the ' +
-    'basis is reported as <span class="mono">fleetwide-coverage</span>.</p></div>\n' +
-    '    <div class="card"><h3>System quality</h3><p>Starlink and Amazon Leo score ' +
-    m.A.SYSTEM_QUALITY.starlink.toFixed(1) + '. Viasat and 2Ku score ' +
-    m.A.SYSTEM_QUALITY.viasat.toFixed(1) + '. Older geostationary hardware scores ' +
-    m.A.SYSTEM_QUALITY.geo.toFixed(1) + '. Low-earth-orbit is a different product from a satellite ' +
-    'dish pointed at the equator, and pretending otherwise would flatten the only distinction that ' +
-    'matters onboard.</p></div>\n' +
+    '    <div class="card"><h3>Segment share</h3><p>Aircraft in the segment ÷ aircraft with a published ' +
+    'system. Where an airline does not say what is flying on part of its fleet, those aircraft are ' +
+    'left out of the denominator rather than assumed into it, and every airline page prints how many ' +
+    'that was. Where an airline publishes no counts at all (only “fleetwide”), a stated coverage ' +
+    'fraction is used and the basis is reported as <span class="mono">fleetwide-coverage</span>.</p></div>\n' +
+    '    <div class="card"><h3>System quality</h3><p>Anchored to Ookla’s 2H 2025 provider medians and ' +
+    'tenth percentiles, not asserted. Starlink and Amazon Leo score ' +
+    m.A.SYSTEM_QUALITY.starlink.toFixed(2) + '; Starlink’s tenth percentile, 63.71 Mbps, beats every ' +
+    'rival’s median. Viasat, 2Ku, Hughes and Thales score ' +
+    m.A.SYSTEM_QUALITY.viasat.toFixed(2) + '. Panasonic, Inmarsat and the rest of legacy Ku score ' +
+    m.A.SYSTEM_QUALITY.geo.toFixed(2) + ', because their slow decile is 1.06 to 1.58 Mbps. ' +
+    'Gogo ATG-4 gets its own ' + m.A.SYSTEM_QUALITY.atg.toFixed(2) + ': far worse throughput than ' +
+    'legacy satellite, far better latency and loss. No connectivity at all scores zero, and six ' +
+    'carriers here have aircraft in that row.</p></div>\n' +
     '    <div class="card"><h3>Free-for-you</h3><p>Free for everyone, or free with a free loyalty ' +
     'signup, scores ' + m.A.FREE_FACTOR.free.toFixed(2) + '. A paid status tier, a partial rollout or ' +
     'an unconfirmed claim scores ' + m.A.FREE_FACTOR['loyalty-tier'].toFixed(2) + '. Paid scores ' +
@@ -1255,19 +1347,21 @@ function methodologyPage(m) {
     'product as working WiFi you just connect to.</p></div>\n' +
     '  </div>\n' +
     '  <h3 class="apih" style="margin-top:26px">Worked example — ' + esc(ua.name) +
-    ', the whole airline</h3>\n' +
+    ', every aircraft it flies</h3>\n' +
     '  <div class="wex">' +
-    'fleet share  = ' + num(ua.equipped) + ' equipped ÷ ' + num(ua.fleet) + ' aircraft = <b>' +
-    ua.parts.pctEquipped.toFixed(4) + '</b>\n' +
-    'system       = ' + esc(ua.systemLabel) + ' → quality <b>' + ua.parts.systemQuality.toFixed(1) +
-    '</b>\n' +
-    'cost onboard = ' + esc(P.freeText(m.A.WIFI_AIRLINES.united.free)) + ' → free-for-you <b>' +
-    ua.parts.freeFactor.toFixed(2) + '</b>\n\n' +
-    ua.parts.pctEquipped.toFixed(4) + ' × ' + ua.parts.systemQuality.toFixed(1) + ' × ' +
-    ua.parts.freeFactor.toFixed(2) + ' = ' + ua.parts.raw.toFixed(4) +
-    ' → <span class="r">ConnectScore ' + ua.score + ' (' + esc(ua.label) + ')</span></div>\n' +
+    ua.segments.map(function (r) {
+      return (r.systemLabel + '            ').slice(0, 12) + num(r.n).padStart(6) + '  ' +
+        (r.share * 100).toFixed(1).padStart(5) + '% × quality <b>' + r.qMin.toFixed(2) +
+        '</b> × free <b>' + r.freeFactor.toFixed(2) + '</b> = <b>' + r.pointsMin.toFixed(1) + '</b>';
+    }).join('\n') + '\n' +
+    'not published' + num(ua.unresolved).padStart(5) + '   left out of the denominator\n\n' +
+    'ConnectScore = <span class="r">' + ua.score + ' (' + esc(ua.label) + ')</span>, ' +
+    'next-gen odds = <span class="r">' + ua.nextGenScore + '</span> — the ' +
+    esc(ua.segments[0].systemLabel) + ' row on its own</div>\n' +
     '  <p class="tblcap">Those are the live numbers, generated at build time by the same function the ' +
-    'API and the extension call. <a href="/airlines/united/">Same figure on United’s page →</a></p>\n' +
+    'API and the extension call. The 131-aircraft zero row is the part a single fleet-share number ' +
+    'hides: it does not shrink as installs proceed, it shrinks when those aircraft retire. ' +
+    '<a href="/airlines/united/">The same ledger on United’s page →</a></p>\n' +
     (ex ? '  <h3 class="apih" style="margin-top:26px">Worked example — one flight, from the Verified ' +
       'tier</h3>\n' +
       '  <div class="wex">flight   = <b>' + esc(ex.f.fn) + '</b>' +
@@ -1310,8 +1404,12 @@ function methodologyPage(m) {
     'getting the good system — not a bandwidth guarantee, and not a promise that any WiFi at all will ' +
     'be working.</p></div>\n' +
     '    <div class="q rv"><h3>The gap our own caveat names</h3><p>' + esc(m.A.SCORE_CAVEAT) +
-    ' That is deliberate: the question being answered is “what are my odds of the good WiFi”, not “is ' +
-    'there any WiFi at all”. It is why an airline with fleetwide legacy service can score near zero.</p></div>\n' +
+    ' Until July 2026 the score counted only the next-gen part of a fleet and dropped the rest, so ' +
+    'Southwest read 0 on 803 aircraft that mostly do have wifi. The segmented model credits older ' +
+    'service at what it measures, which is why Southwest now reads ' +
+    m.A.scoreAirline('southwest').floor + '–' + m.A.scoreAirline('southwest').ceiling +
+    ' rather than nothing. The width of that range is the finding: nobody has published which of ' +
+    'those 802 aircraft carry which system.</p></div>\n' +
     '  </div>\n</section>\n\n' +
 
     '<section class="blk">\n  <div class="sec-h"><h2>Data freshness</h2>' +
@@ -1424,8 +1522,9 @@ function apiDocs(m) {
 
   var sysRows = Object.keys(m.A.SYSTEM_QUALITY).map(function (k) {
     return '      <tr><td class="mono"><b>' + esc(k) + '</b></td>' +
-      '<td class="num">' + m.A.SYSTEM_QUALITY[k].toFixed(1) + '</td>' +
-      '<td>' + esc(m.A.SYSTEM_LABEL[k] || '—') + '</td></tr>';
+      '<td class="num">' + m.A.SYSTEM_QUALITY[k].toFixed(2) + '</td>' +
+      '<td>' + esc(m.A.SYSTEM_LABEL[k] || '—') + '</td>' +
+      '<td>' + esc(m.A.QUALITY_TIER_LABEL[m.A.SYSTEM_TIER[k]] || '') + '</td></tr>';
   }).join('\n');
 
   var errRows = [
@@ -1496,7 +1595,7 @@ function apiDocs(m) {
       '    "service": { "tier": "' + qr.serviceTier + '", "label": "' + qr.serviceTierLabel +
       '", "rest": ' + JSON.stringify(qr.restTier) + ' },\n' +
       '    "system":  { "key": "' + qr.system + '", "label": "' + qr.systemLabel + '", "quality": ' +
-      qr.parts.systemQuality.toFixed(1) + ' },\n' +
+      qr.parts.systemQuality.toFixed(2) + ' },\n' +
       '    "free":    { "status": "free", "factor": ' + qr.parts.freeFactor.toFixed(2) + ' },\n' +
       '    "fleet":   { "equipped": ' + qr.equipped + ', "total": ' + qr.fleet + ', "equippedShare": ' +
       (Math.round(qr.parts.pctEquipped * 10000) / 10000) + ', "equippedPct": ' +
@@ -1510,10 +1609,12 @@ function apiDocs(m) {
       '  },\n' +
       '  "sources": [ … ]\n' +
       '}') +
-    '  <p class="tblcap">Abridged. ' + esc(qr.name) + ' really is ' + qr.score + ' — ' +
-    Math.round(qr.parts.pctEquipped * 100) + '% of the fleet × ' +
-    qr.parts.systemQuality.toFixed(1) + ' system quality × ' + qr.parts.freeFactor.toFixed(2) +
-    ' free-for-you. <a href="/airlines/qatar/">Same number on the page →</a></p>\n' +
+    '  <p class="tblcap">Abridged, and the response carries more: <span class="mono">floor</span>, ' +
+    '<span class="mono">ceiling</span>, <span class="mono">resolution</span> and the ' +
+    '<span class="mono">segments[]</span> array the ledger is drawn from. ' + esc(qr.name) +
+    ' really is ' + qr.score + ' — ' + qr.segments.map(function (r) {
+      return esc(r.systemLabel) + ' ' + num(r.n) + ' at ' + r.pointsMin.toFixed(1);
+    }).join(' + ') + ' points. <a href="/airlines/qatar/">Same number on the page →</a></p>\n' +
 
     '  <h3 class="apih">GET /api/score/{flightNumber}</h3>\n' +
     '  <p class="sec-lede">Accepts <span class="apip">UA212</span>, <span class="apip">ua 212</span>, ' +
@@ -1551,7 +1652,7 @@ function apiDocs(m) {
 
     /* ── the two-number section. Added when the site stopped leading with a single
      * score: an API that returned only connectScore would have let a caller
-     * publish "Delta 60, United 27" and be technically correct and wrong. */
+     * publish "Delta 49, United 48" and be technically correct and wrong. */
     '<section class="blk">\n  <div class="sec-h"><h2>Two numbers, not one</h2>' +
     '<span class="sub">read both before you quote either</span></div>\n' +
     '  <p class="sec-lede">Every airline object carries <b>connectScore</b> and ' +
@@ -1562,9 +1663,9 @@ function apiDocs(m) {
     '      <tr><td class="mono"><b>nextGenScore</b></td><td>Odds of a Starlink or Amazon Leo ' +
     'aircraft × free-for-you. A signed deal contributes nothing.</td>' +
     '<td class="mono">' + m.A.scoreAirline('delta').nextGenScore + '</td></tr>\n' +
-    '      <tr><td class="mono"><b>connectScore</b></td><td>The original score: fleet share × system ' +
-    'quality × free-for-you. Credits streaming-class geostationary service at ' +
-    m.A.SYSTEM_QUALITY.viasat.toFixed(1) + '.</td>' +
+    '      <tr><td class="mono"><b>connectScore</b></td><td>The whole fleet, segment by segment: ' +
+    'share × system quality × free-for-you, added up. Credits streaming-class geostationary service ' +
+    'at ' + m.A.SYSTEM_QUALITY.viasat.toFixed(2) + ' and no connectivity at 0.</td>' +
     '<td class="mono">' + m.A.scoreAirline('delta').score + '</td></tr>\n' +
     '      <tr><td class="mono"><b>serviceTier</b></td><td><span class="mono">next-gen</span> · ' +
     '<span class="mono">streaming</span> · <span class="mono">basic</span> · ' +
@@ -1582,12 +1683,13 @@ function apiDocs(m) {
     '<section class="blk">\n  <div class="sec-h"><h2>The score, field by field</h2>' +
     '<span class="sub">nothing here is transcribed</span></div>\n' +
     '  <div class="panel"><p style="font-family:var(--mono);font-size:14.5px;color:var(--ink)">' +
-    'connectScore = fleet.equippedShare × system.quality × free.factor, rounded</p>\n' +
+    'connectScore = Σ segments[].share × segments[].quality × segments[].free.factor, rounded. ' +
+    'It is the FLOOR; ceiling is the same sum at the top of every unpublished split.</p>\n' +
     '  <div class="caveat">' + esc(m.A.SCORE_CAVEAT) + '</div></div>\n' +
     '  <div class="grid3" style="margin-top:16px">\n' +
     '    <div class="card"><h3>system.quality</h3><div class="tbl-shell" style="margin-top:10px">' +
     '<table class="tbl" style="min-width:0">\n' +
-    '    <thead><tr><th>key</th><th>q</th><th>Label</th></tr></thead>\n    <tbody>\n' + sysRows +
+    '    <thead><tr><th>key</th><th>q</th><th>Label</th><th>Tier</th></tr></thead>\n    <tbody>\n' + sysRows +
     '\n    </tbody>\n  </table></div></div>\n' +
     '    <div class="card"><h3>free.status</h3><div class="tbl-shell" style="margin-top:10px">' +
     '<table class="tbl" style="min-width:0">\n' +
@@ -1686,8 +1788,8 @@ function apiDocs(m) {
     'without the path changing to <span class="mono">/api/v1/</span>. Every response carries an ' +
     '<span class="mono">x-connectscore-api</span> header with the version.</p></div>\n' +
     '    <div class="q"><h3>Not a guarantee</h3><p>ConnectScores and per-flight odds are historical ' +
-    'estimates. Aircraft assignments change until departure, and a score is the chance of getting the ' +
-    'good system, not of getting any WiFi at all.</p></div>\n' +
+    'estimates. Aircraft assignments change until departure, and a fleet-wide expected value is not a ' +
+    'prediction about the aircraft you are assigned.</p></div>\n' +
     '  </div>\n</section>\n';
 
   return H.page({
@@ -1809,9 +1911,17 @@ function alaskaRollout(m) {
     'alaska.fleet': num(al.fleet),
     'alaska.pct': pct + '%',
     'alaska.free': 'free for everyone onboard',
-    'alaska.math': pct + '% of the fleet equipped × ' + al.parts.systemQuality.toFixed(1) +
-      ' system quality (' + al.systemLabel + ') × ' + al.parts.freeFactor.toFixed(2) +
-      ' free-for-you = ' + al.score + ' / 100',
+    /* Not "share × quality × free" any more: Alaska is three segments, and the
+       two Gogo ones carry most of the fleet. The arithmetic on the page has to be
+       the arithmetic the score came from. */
+    'alaska.math': al.ledger
+      ? al.segments.map(function (r) {
+        return num(r.n) + ' ' + r.systemLabel + ' at ' + r.pointsMin.toFixed(1);
+      }).join(' + ') + ' = ' + al.score + ' / 100'
+      : pct + '% of the fleet equipped × ' + al.parts.systemQuality.toFixed(2) +
+        ' system quality (' + al.systemLabel + ') × ' + al.parts.freeFactor.toFixed(2) +
+        ' free-for-you = ' + al.score + ' / 100',
+    'alaska.nextgen': String(al.nextGenScore),
     'site.updated': m.updated,
     'site.airlines': String(m.airlineCount)
   }, 'alaska-rollout');

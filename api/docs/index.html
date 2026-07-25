@@ -90,13 +90,13 @@ curl -s https://wifiodds.com/api/score/AS15</div>
     &quot;key&quot;: &quot;qatar&quot;,
     &quot;name&quot;: &quot;Qatar Airways&quot;,
     &quot;code&quot;: &quot;QR&quot;,
-    &quot;connectScore&quot;: 58,
-    &quot;band&quot;: &quot;mixed&quot;,
+    &quot;connectScore&quot;: 61,
+    &quot;band&quot;: &quot;good&quot;,
     &quot;nextGenScore&quot;: 58,
     &quot;nextGen&quot;: { &quot;score&quot;: 58, &quot;system&quot;: &quot;starlink&quot;, &quot;pct&quot;: 58 },
     &quot;serviceTier&quot;: &quot;mixed&quot;,
-    &quot;service&quot;: { &quot;tier&quot;: &quot;mixed&quot;, &quot;label&quot;: &quot;mixed&quot;, &quot;rest&quot;: &quot;unknown&quot; },
-    &quot;system&quot;:  { &quot;key&quot;: &quot;starlink&quot;, &quot;label&quot;: &quot;Starlink&quot;, &quot;quality&quot;: 1.0 },
+    &quot;service&quot;: { &quot;tier&quot;: &quot;mixed&quot;, &quot;label&quot;: &quot;mixed&quot;, &quot;rest&quot;: &quot;basic&quot; },
+    &quot;system&quot;:  { &quot;key&quot;: &quot;starlink&quot;, &quot;label&quot;: &quot;Starlink&quot;, &quot;quality&quot;: 1.00 },
     &quot;free&quot;:    { &quot;status&quot;: &quot;free&quot;, &quot;factor&quot;: 1.00 },
     &quot;fleet&quot;:   { &quot;equipped&quot;: 140, &quot;total&quot;: 241, &quot;equippedShare&quot;: 0.5809, &quot;equippedPct&quot;: 58, &quot;basis&quot;: &quot;tail-counts&quot; },
     &quot;perFlightOdds&quot;: false,
@@ -108,7 +108,7 @@ curl -s https://wifiodds.com/api/score/AS15</div>
   },
   &quot;sources&quot;: [ … ]
 }</div>
-  <p class="tblcap">Abridged. Qatar Airways really is 58 — 58% of the fleet × 1.0 system quality × 1.00 free-for-you. <a href="/airlines/qatar/">Same number on the page →</a></p>
+  <p class="tblcap">Abridged, and the response carries more: <span class="mono">floor</span>, <span class="mono">ceiling</span>, <span class="mono">resolution</span> and the <span class="mono">segments[]</span> array the ledger is drawn from. Qatar Airways really is 61 — Starlink 140 at 58.1 + Inmarsat or SITA 53 at 3.4 + no wifi 48 at 0.0 points. <a href="/airlines/qatar/">Same number on the page →</a></p>
   <h3 class="apih">GET /api/score/{flightNumber}</h3>
   <p class="sec-lede">Accepts <span class="apip">UA212</span>, <span class="apip">ua 212</span>, <span class="apip">UA0212</span> — case, spaces, hyphens and leading zeros are all normalised away. Prefixes we know: <span class="apip">AA AC AF AS B6 BA BT DL EK HA QR SK UA VS WN WS XE ZG</span></p>
   <p class="sec-lede">The <b>method</b> field is the whole point of this endpoint. It tells you how much to trust the number, and it is never blurred:</p>
@@ -121,9 +121,9 @@ curl -s https://wifiodds.com/api/score/AS15</div>
   </table></div>
 <div class="apic">{
   &quot;flight&quot;: &quot;UA212&quot;,
-  &quot;airline&quot;: { &quot;key&quot;: &quot;united&quot;, &quot;connectScore&quot;: 27, … },
+  &quot;airline&quot;: { &quot;key&quot;: &quot;united&quot;, &quot;connectScore&quot;: 48, … },
   &quot;prob&quot;: 47,
-  &quot;connectScore&quot;: 27,
+  &quot;connectScore&quot;: 48,
   &quot;method&quot;: &quot;route-history&quot;,
   &quot;evidence&quot;: { &quot;route&quot;: &quot;LAX-ORD&quot;, &quot;observations&quot;: 20, &quot;confidence&quot;: &quot;high&quot;,
                 &quot;dataset&quot;: &quot;routeCache&quot;, &quot;cachedAt&quot;: &quot;…&quot; },
@@ -140,7 +140,7 @@ curl -s https://wifiodds.com/api/score/AS15</div>
     <thead><tr><th>Field</th><th>What it is</th><th>Delta, as an example</th></tr></thead>
     <tbody>
       <tr><td class="mono"><b>nextGenScore</b></td><td>Odds of a Starlink or Amazon Leo aircraft × free-for-you. A signed deal contributes nothing.</td><td class="mono">0</td></tr>
-      <tr><td class="mono"><b>connectScore</b></td><td>The original score: fleet share × system quality × free-for-you. Credits streaming-class geostationary service at 0.6.</td><td class="mono">52</td></tr>
+      <tr><td class="mono"><b>connectScore</b></td><td>The whole fleet, segment by segment: share × system quality × free-for-you, added up. Credits streaming-class geostationary service at 0.55 and no connectivity at 0.</td><td class="mono">49</td></tr>
       <tr><td class="mono"><b>serviceTier</b></td><td><span class="mono">next-gen</span> · <span class="mono">streaming</span> · <span class="mono">basic</span> · <span class="mono">mixed</span> — what the fleet delivers today. <span class="mono">service.rest</span> is the tier on the part that is not next-gen yet, and <span class="mono">"unknown"</span> where we have not verified it.</td><td class="mono">streaming</td></tr>
     </tbody>
   </table></div>
@@ -149,20 +149,27 @@ curl -s https://wifiodds.com/api/score/AS15</div>
 
 <section class="blk">
   <div class="sec-h"><h2>The score, field by field</h2><span class="sub">nothing here is transcribed</span></div>
-  <div class="panel"><p style="font-family:var(--mono);font-size:14.5px;color:var(--ink)">connectScore = fleet.equippedShare × system.quality × free.factor, rounded</p>
-  <div class="caveat">ConnectScore is the chance of getting the GOOD system, not of any wifi at all. Legacy satellite service on the not-yet-converted part of a fleet is not credited. Signed-but-unflown deals (AA Starlink 2027, DL/B6 Amazon Leo) score zero until they fly.</div></div>
+  <div class="panel"><p style="font-family:var(--mono);font-size:14.5px;color:var(--ink)">connectScore = Σ segments[].share × segments[].quality × segments[].free.factor, rounded. It is the FLOOR; ceiling is the same sum at the top of every unpublished split.</p>
+  <div class="caveat">ConnectScore is an expected value over a whole fleet, not a prediction about one flight: United measured 320, 56 and 15 Mbps on three systems in one livery in one reporting period. Aircraft whose system an airline does not publish are left out of the denominator rather than assumed. Signed-but-unflown deals (AA Starlink 2027, DL/B6 Amazon Leo) score zero until they fly.</div></div>
   <div class="grid3" style="margin-top:16px">
     <div class="card"><h3>system.quality</h3><div class="tbl-shell" style="margin-top:10px"><table class="tbl" style="min-width:0">
-    <thead><tr><th>key</th><th>q</th><th>Label</th></tr></thead>
+    <thead><tr><th>key</th><th>q</th><th>Label</th><th>Tier</th></tr></thead>
     <tbody>
-      <tr><td class="mono"><b>starlink</b></td><td class="num">1.0</td><td>Starlink</td></tr>
-      <tr><td class="mono"><b>leo</b></td><td class="num">1.0</td><td>Amazon Leo</td></tr>
-      <tr><td class="mono"><b>viasat</b></td><td class="num">0.6</td><td>Viasat</td></tr>
-      <tr><td class="mono"><b>2ku</b></td><td class="num">0.6</td><td>2Ku</td></tr>
-      <tr><td class="mono"><b>intelsat</b></td><td class="num">0.6</td><td>Intelsat</td></tr>
-      <tr><td class="mono"><b>geo</b></td><td class="num">0.3</td><td>legacy GEO</td></tr>
-      <tr><td class="mono"><b>panasonic</b></td><td class="num">0.3</td><td>Panasonic</td></tr>
-      <tr><td class="mono"><b>none</b></td><td class="num">0.0</td><td>—</td></tr>
+      <tr><td class="mono"><b>starlink</b></td><td class="num">1.00</td><td>Starlink</td><td>low-earth orbit</td></tr>
+      <tr><td class="mono"><b>leo</b></td><td class="num">1.00</td><td>Amazon Leo</td><td>low-earth orbit</td></tr>
+      <tr><td class="mono"><b>viasat</b></td><td class="num">0.55</td><td>Viasat</td><td>modern geostationary</td></tr>
+      <tr><td class="mono"><b>intelsat</b></td><td class="num">0.55</td><td>Intelsat</td><td>modern geostationary</td></tr>
+      <tr><td class="mono"><b>2ku</b></td><td class="num">0.55</td><td>2Ku</td><td>modern geostationary</td></tr>
+      <tr><td class="mono"><b>hughes</b></td><td class="num">0.55</td><td>Hughes</td><td>modern geostationary</td></tr>
+      <tr><td class="mono"><b>thales</b></td><td class="num">0.55</td><td>Thales FlytLIVE</td><td>modern geostationary</td></tr>
+      <tr><td class="mono"><b>panasonic</b></td><td class="num">0.22</td><td>Panasonic</td><td>legacy geostationary</td></tr>
+      <tr><td class="mono"><b>inmarsat</b></td><td class="num">0.22</td><td>Inmarsat</td><td>legacy geostationary</td></tr>
+      <tr><td class="mono"><b>sita</b></td><td class="num">0.22</td><td>SITA</td><td>legacy geostationary</td></tr>
+      <tr><td class="mono"><b>anuvu</b></td><td class="num">0.22</td><td>Anuvu</td><td>legacy geostationary</td></tr>
+      <tr><td class="mono"><b>geo</b></td><td class="num">0.22</td><td>legacy GEO</td><td>legacy geostationary</td></tr>
+      <tr><td class="mono"><b>atg</b></td><td class="num">0.12</td><td>Gogo ATG-4</td><td>air-to-ground</td></tr>
+      <tr><td class="mono"><b>ean</b></td><td class="num">0.12</td><td>EAN</td><td>air-to-ground</td></tr>
+      <tr><td class="mono"><b>none</b></td><td class="num">0.00</td><td>no wifi</td><td>no connectivity</td></tr>
     </tbody>
   </table></div></div>
     <div class="card"><h3>free.status</h3><div class="tbl-shell" style="margin-top:10px"><table class="tbl" style="min-width:0">
@@ -236,7 +243,7 @@ curl -sS -X POST https://wifiodds.com/mcp -H 'content-type: application/json' \
     <div class="q"><h3>This API never calls anyone else</h3><p>It reads only our own cached dataset, from the same deploy that served this page. It does not proxy a tracker, an airline, or a flight-status provider — your traffic can never become their bill. That is also why per-flight odds exist for United only: it is the fleet we have history for.</p></div>
     <div class="q"><h3>No rate limit, so please cache</h3><p>There is no key and no quota. Responses are cacheable for an hour and the underlying data changes once a day, so honour the Cache-Control header rather than polling. If it ever gets abused, a limit is the thing that appears first.</p></div>
     <div class="q"><h3>v0 means v0</h3><p>Fields may be added at any time. Anything already here — <span class="mono">connectScore</span>, <span class="mono">method</span>, <span class="mono">prob</span>, <span class="mono">sources</span> — will not change meaning without the path changing to <span class="mono">/api/v1/</span>. Every response carries an <span class="mono">x-connectscore-api</span> header with the version.</p></div>
-    <div class="q"><h3>Not a guarantee</h3><p>ConnectScores and per-flight odds are historical estimates. Aircraft assignments change until departure, and a score is the chance of getting the good system, not of getting any WiFi at all.</p></div>
+    <div class="q"><h3>Not a guarantee</h3><p>ConnectScores and per-flight odds are historical estimates. Aircraft assignments change until departure, and a fleet-wide expected value is not a prediction about the aircraft you are assigned.</p></div>
   </div>
 </section>
 <footer>

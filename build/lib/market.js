@@ -68,8 +68,11 @@ var ROLLOUT = {
   },
   hawaiian: {
     target: 'widebody fit nearly complete',
-    detail: 'The highest next-gen share of any US carrier. Inherited into the Alaska group, which is ' +
-      'why the two entries have to be read together rather than added up.',
+    detail: 'The highest next-gen share of any US carrier, and it went from no wifi at all straight ' +
+      'to Starlink in 2024 — Hawaiian never had Viasat. The 19 Boeing 717s flying about 150 ' +
+      'interisland departures a day have never carried connectivity, and Alaska Air Group has said ' +
+      'twice that they never will. Inherited into the Alaska group, which is why the two entries ' +
+      'have to be read together rather than added up.',
     source: 'airlinestarlinktracker.com, ' + VERIFIED
   },
   jsx: {
@@ -88,10 +91,12 @@ var ROLLOUT = {
     source: 'starlinkflights.com list, ' + VERIFIED
   },
   westjet: {
-    target: 'fleetwide install all but finished',
-    detail: 'A handful of aircraft left. Effectively a finished rollout, and the fastest completion of ' +
-      'any fleet above a hundred aircraft in this set.',
-    source: 'starlinkflights.com tracker, ' + VERIFIED
+    target: 'mainline install all but finished; no plan announced for Encore',
+    detail: 'The 737 and 787 fleet is a handful of aircraft short of done, and it was the fastest ' +
+      'install of any fleet above a hundred aircraft in this set. WestJet Encore is the asterisk: ' +
+      '39 Q400s, about a fifth of what a WS flight number can put you on, with no connectivity of ' +
+      'any kind and nothing announced.',
+    source: 'starlinkflights.com tracker + WestJet Encore fleet list, ' + VERIFIED
   },
   airfrance: {
     target: null,
@@ -243,6 +248,22 @@ var SYSTEMS = [
       'whose "free WiFi" announcement excluded the widebodies.',
     price: 'Usually paid, and usually not worth it.',
     verdict: 'Basic. The tier a fleet-average score hides if you only read one number.'
+  },
+  {
+    /* Its own weight rather than a share of the legacy GEO bucket, because the
+       two are unlike in opposite directions and averaging them loses both facts.
+       Alaska's eleven 737-700s are the only aircraft in this data set flying it. */
+    key: 'atg', operator: 'Gogo', nextGen: false,
+    orbit: 'None. Ground towers, pointed up',
+    how: 'An antenna under the fuselage talks to a network of cell towers on the ground. No satellite ' +
+      'is involved, which is why it stops at the coastline.',
+    speed: '0.1 to 0.8 Mbps per device — an order of magnitude below legacy satellite. Latency is ' +
+      '260 to 310 ms against geostationary’s 750, and three quarters of measured tests lose no ' +
+      'packets at all.',
+    reliability: 'Steady over the continental US and absent everywhere else.',
+    price: 'Paid.',
+    verdict: 'Messaging and email feel fine. Streaming is not possible. Two systems can both score ' +
+      'around 0.2 and be nothing alike, and this is the pair.'
   }
 ];
 

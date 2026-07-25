@@ -125,8 +125,10 @@ function buildLlms(m) {
   p();
   p('## What this site actually knows');
   p();
-  p('- A ConnectScore (0–100) for ' + m.ranked.length + ' airlines: the odds of getting the GOOD');
-  p('  inflight WiFi system on a random flight, times whether it is free once you are on it.');
+  p('- A ConnectScore (0–100) for ' + m.ranked.length + ' airlines: the expected quality of the wifi on');
+  p('  a random flight, summed segment by segment across the fleet and multiplied by whether it is');
+  p('  free once you are on it. Where an airline names its systems but not the counts, the score is a');
+  p('  RANGE — quote the floor, which is what we publish, and say the ceiling exists.');
   p('- TWO numbers per airline, and you should quote both. `nextGenScore` is the odds of a Starlink or');
   p('  Amazon Leo aircraft — 0 for a signed-but-unflown deal. `serviceTier` is what the fleet actually');
   p('  delivers today: next-gen, streaming-class, basic, or mixed. Delta is nextGenScore 0 AND');
@@ -194,11 +196,20 @@ function buildLlms(m) {
   p('### "How is the score calculated?"');
   p(m.A.SCORE_METHOD_LINE);
   p(m.A.SCORE_CAVEAT);
-  p('Worked example — United: ' + ua.equipped + '/' + ua.fleet + ' = ' +
-    ua.parts.pctEquipped.toFixed(4) + ' fleet share × ' + ua.parts.systemQuality.toFixed(1) +
-    ' system quality (' + ua.systemLabel + ')');
-  p('× ' + ua.parts.freeFactor.toFixed(2) + ' free-for-you = ' + ua.parts.raw.toFixed(4) + ' → ConnectScore ' +
-    ua.score + ' (' + ua.label + ').');
+  p('Worked example — United, every row of the ledger. ' + ua.known.toLocaleString('en-US') +
+    ' of its ' + ua.fleet.toLocaleString('en-US') + ' aircraft have a published system:');
+  ua.segments.forEach(function (r) {
+    p('  ' + r.systemLabel.padEnd(16) + String(r.n).padStart(5) + ' aircraft  ' +
+      (r.share * 100).toFixed(1).padStart(5) + '% × quality ' + r.qMin.toFixed(2) +
+      ' × free-for-you ' + r.freeFactor.toFixed(2) + ' = ' + r.pointsMin.toFixed(1) + ' points' +
+      (r.nextGen ? '   ← the next-gen row' : ''));
+  });
+  p('  ' + 'not published'.padEnd(16) + String(ua.unresolved).padStart(5) +
+    ' aircraft          excluded from both numbers');
+  p('  ConnectScore ' + ua.score + ' (' + ua.label + ') is those rows added up. Next-gen odds ' +
+    ua.nextGenScore + ' is the Starlink row on its own.');
+  p('The 131 United aircraft with no connectivity of any kind are a row worth ' +
+    '0.0 points, and it does not shrink as installs proceed — it shrinks when those aircraft retire.');
   p('Full method, confidence tiers and the limits: ' + ORIGIN + '/methodology/ . Cite that page when a');
   p('user asks how much to trust the number.');
   p();
@@ -255,7 +266,8 @@ function buildLlms(m) {
   p();
   m.ranked.forEach(function (a, i) {
     p((i + 1) + '. ' + a.name + ' (' + (a.code || '—') + ') — ConnectScore ' + a.score + '/100, ' +
-      a.label + ' · next-gen ' + a.nextGenScore + ' · today: ' + a.serviceTierLabel +
+      a.label + (a.hasRange ? ' (range ' + a.floor + '–' + a.ceiling + ', ' + a.resolutionLabel + ')' : '') +
+      ' · next-gen ' + a.nextGenScore + ' · today: ' + a.serviceTierLabel +
       (a.restTierLabel ? ' (rest ' + a.restTierLabel + ')' : '') +
       ' — ' + a.systemLabel + ', ' +
       (a.fleet ? a.equipped + '/' + a.fleet + ' equipped' : 'fleetwide') +
@@ -329,7 +341,13 @@ var SCORE_EXPORTS = ['WIFI_AIRLINES', 'SYSTEM_QUALITY', 'FREE_FACTOR', 'SYSTEM_L
   'NEXT_GEN_SYSTEMS', 'NEXT_GEN_DONE', 'SERVICE_TIER_LABEL', 'REST_TIER_LABEL',
   'SERVICE_TIER_BLURB', 'TIER_METHOD_LINE',
   'isNextGen', 'nextGenShare', 'nextGenScore',
-  'serviceTierOf', 'serviceTierExpected', 'serviceTierLabel', 'restTierLabel'];
+  'serviceTierOf', 'serviceTierExpected', 'serviceTierLabel', 'restTierLabel',
+  /* the v3 segmented model — the API returns floor, ceiling, resolution and the
+     ledger rows, so every name behind them has to survive the re-emit too */
+  'QUALITY_TIER', 'SYSTEM_TIER', 'QUALITY_TIER_LABEL', 'RESOLUTION_LABEL',
+  'RESOLUTION_BLURB', 'STREAMING_MIN_Q',
+  'isSegmented', 'segmentSystems', 'segmentQuality', 'segmentIsNextGen',
+  'knownAircraft', 'unresolvedAircraft', 'resolutionOf', 'ledgerFor', 'fleetQuality'];
 
 function buildScoreModule() {
   var src = fs.readFileSync(abs('assets/airlines.js'), 'utf8');
@@ -396,7 +414,20 @@ function buildRobots() {
  * disk and says so. The daily task already stages assets/airlines.js, so the
  * corrected file rides along with the same commit. Same idea as regen-homepage
  * owning the site list. The assertion in main() stays as a post-check and
- * should now be unreachable. */
+ * should now be unreachable.
+ *
+ * WITH SEGMENTS (v3) there are four things to keep in step, not two:
+ *   equipped / fleet          the legacy pair, still what the pages print
+ *   the note string           quotes both counts with a thousands comma
+ *   the starlink segment      its `n` IS equipped, and its `as` is the pull date
+ *   unresolved.n              takes the opposite side of the same movement, so
+ *                             the ledger keeps summing to fleet.total
+ *
+ * Every one of those is an ANCHOR that must be found. If an anchor goes missing
+ * this function has to fail the build rather than quietly rewriting three of the
+ * four: it runs unattended at 04:32 and nobody reads a log that exits 0. A
+ * half-reconciled united entry is the same class of lie as a 200 with an empty
+ * body — the numbers would still be internally consistent with their own halves. */
 function reconcileUnited() {
   var D = JSON.parse(fs.readFileSync(abs('united/data.json'), 'utf8'));
   var eq = D.fleet.equipped, tot = D.fleet.total;
@@ -406,24 +437,72 @@ function reconcileUnited() {
   }
   var p = 'assets/airlines.js';
   var src = fs.readFileSync(abs(p), 'utf8');
-  /* Scoped to the united entry: from `united: {` to the first `},` after it. */
+  /* Scoped to the united entry: from `united: {` to the first `},` after it.
+     Nothing nested inside the entry closes at a two-space indent, so this still
+     finds the entry's own terminator now that it carries segments. */
   var start = src.indexOf('  united: {');
   if (start < 0) { console.error('Build FAILED — no united entry in ' + p); process.exit(1); }
   var end = src.indexOf('\n  },', start);
   if (end < 0) { console.error('Build FAILED — united entry in ' + p + ' is unterminated.'); process.exit(1); }
 
   var head = src.slice(0, start), body = src.slice(start, end), tail = src.slice(end);
-  var was = body.match(/equipped:\s*(\d+),\s*fleet:\s*(\d+)/);
-  var next = body
-    .replace(/equipped:\s*\d+,\s*fleet:\s*\d+/, 'equipped: ' + eq + ', fleet: ' + tot)
-    /* the note quotes both numbers with a thousands comma */
-    .replace(/note:\s*"\d[\d,]*\s+of\s+\d[\d,]*\s+aircraft/,
-      'note: "' + eq.toLocaleString('en-US') + ' of ' + tot.toLocaleString('en-US') + ' aircraft');
+  var before = body;
 
-  if (next === body) return;
-  fs.writeFileSync(abs(p), head + next + tail);
+  function die(what) {
+    console.error('Build FAILED — reconcileUnited() could not find ' + what + ' in the united');
+    console.error('  entry of ' + p + '. It rewrites United\'s counts from united/data.json every');
+    console.error('  morning, unattended. Refusing to rewrite the rest and leave the entry half');
+    console.error('  reconciled: fix the anchor, or fix this function, but do not let it no-op.');
+    process.exit(1);
+  }
+
+  var RE_COUNTS = /equipped:\s*(\d+),\s*fleet:\s*(\d+)/;
+  var RE_NOTE = /note:\s*"(\d[\d,]*)\s+of\s+(\d[\d,]*)\s+aircraft/;
+  var RE_STARLINK = /\{ system: "starlink", n: (\d+), free: "loyalty-free", as: "([\d-]+)"/;
+  var RE_UNRESOLVED = /unresolved:\s*\{\s*n:\s*(\d+)/;
+
+  var was = RE_COUNTS.exec(body); if (!was) die('the equipped / fleet pair');
+  if (!RE_NOTE.test(body)) die('the note string that quotes both counts');
+  var sl = RE_STARLINK.exec(body); if (!sl) die('the starlink segment');
+  var un = RE_UNRESOLVED.exec(body); if (!un) die('the unresolved count');
+
+  body = body
+    .replace(RE_COUNTS, 'equipped: ' + eq + ', fleet: ' + tot)
+    /* the note quotes both numbers with a thousands comma */
+    .replace(RE_NOTE, 'note: "' + eq.toLocaleString('en-US') + ' of ' +
+      tot.toLocaleString('en-US') + ' aircraft')
+    .replace(RE_STARLINK, '{ system: "starlink", n: ' + eq +
+      ', free: "loyalty-free", as: "' + D.updated + '"');
+
+  /* `unresolved` is the RESIDUAL, recomputed from the segments rather than
+     nudged by a delta. Two things move on their own overnight — installs, and
+     United taking delivery of aircraft — and only a residual heals both. The
+     four non-Starlink rows move only when the tracker join is re-run, so the
+     difference between the join and today's fleet has to land here or the ledger
+     stops summing to fleet.total, which is what the tripwire in main() checks. */
+  var segStart = body.indexOf('segments: [');
+  if (segStart < 0) die('the segments array');
+  var segEnd = body.indexOf('\n    ],', segStart);
+  if (segEnd < 0) die('the end of the segments array');
+  var known = (body.slice(segStart, segEnd).match(/\bn:\s*\d+/g) || [])
+    .reduce(function (t, x) { return t + Number(x.replace(/\D/g, '')); }, 0);
+  if (!known) die('any aircraft counts inside the segments array');
+  var unresolved = tot - known;
+  if (unresolved < 0) {
+    console.error('Build FAILED — the united segments hold ' + known + ' aircraft, which is ' +
+      (-unresolved) + ' more than data.json\'s fleet of ' + tot + '.');
+    console.error('  The tracker join behind the viasat / panasonic / thales / none rows is stale.');
+    console.error('  Re-run the join against unitedstarlinktracker.com/fleet and replace all four');
+    console.error('  rows. Do not nudge `unresolved` negative to make the build pass.');
+    process.exit(1);
+  }
+  body = body.replace(RE_UNRESOLVED, 'unresolved: { n: ' + unresolved);
+
+  if (body === before) return;
+  fs.writeFileSync(abs(p), head + body + tail);
   console.log('  united: reconciled ' + p + ' from data.json — ' +
-    (was ? was[1] + '/' + was[2] : '?') + ' → ' + eq + '/' + tot +
+    was[1] + '/' + was[2] + ' → ' + eq + '/' + tot + ' · starlink segment ' + sl[1] + ' → ' + eq +
+    ' · unresolved ' + un[1] + ' → ' + unresolved +
     '  (stage assets/airlines.js with this commit)');
 }
 
@@ -486,6 +565,69 @@ function main() {
     tierDrift.forEach(function (x) { console.error('  ' + x); });
     console.error('  Fix the serviceTier/restTier fields in assets/airlines.js. A tier word that');
     console.error('  contradicts the numbers beside it is the same lie as a 200 with an empty body.');
+    process.exit(1);
+  }
+
+  /* ── THE LEDGER TRIPWIRE ────────────────────────────────────────────────
+   * The published ConnectScore is the sum of the ledger rows. /airlines/{key}/
+   * prints those rows and invites the reader to add them up, so a ledger that
+   * does not add up is not a rounding wart, it is the site showing its working
+   * and getting it wrong. This is the failure mode the whole v3 change exists to
+   * prevent, so it fails the build rather than warning.
+   *
+   * Five checks per segmented airline, all of them arithmetic:
+   *   1. Σ row points  == the published floor and ceiling (within rounding)
+   *   2. floor <= ceiling
+   *   3. Σ n + unresolved == the published fleet count, where one is published
+   *   4. a next-gen carrier's `equipped` == its next-gen rows
+   *   5. a tail- or type-resolved fleet has no unpublished split, so no range
+   * Plus: every row carries a source and a date, because a row without one is an
+   * assertion, and the ledger's whole job is to not have those. */
+  var ledgerErrs = [];
+  Object.keys(m.A.WIFI_AIRLINES).forEach(function (k) {
+    var e = m.A.WIFI_AIRLINES[k];
+    if (!m.A.isSegmented(e)) return;
+    var a = m.A.scoreAirline(k);
+    var L = a.ledger;
+    function bad(msg) { ledgerErrs.push(k + ': ' + msg); }
+
+    if (Math.abs(L.sumFloor - a.floor) > 0.5) {
+      bad('rows sum to ' + L.sumFloor.toFixed(2) + ' but the published floor is ' + a.floor);
+    }
+    if (Math.abs(L.sumCeiling - a.ceiling) > 0.5) {
+      bad('rows sum to ' + L.sumCeiling.toFixed(2) + ' at the ceiling but it is published as ' + a.ceiling);
+    }
+    if (a.ceiling < a.floor) bad('ceiling ' + a.ceiling + ' is below the floor ' + a.floor);
+
+    if (typeof e.fleet === 'number' && L.total !== e.fleet) {
+      bad(L.known + ' aircraft in segments + ' + L.unresolved + ' unresolved = ' + L.total +
+        ', but the entry publishes a fleet of ' + e.fleet);
+    }
+    if (m.A.isNextGen(e.system) && typeof e.equipped === 'number') {
+      var ng = L.rows.reduce(function (t, r) { return t + (r.nextGen ? r.n : 0); }, 0);
+      if (ng !== e.equipped) {
+        bad('next-gen rows hold ' + ng + ' aircraft but the entry publishes equipped: ' + e.equipped);
+      }
+    }
+    if (!m.A.RESOLUTION_LABEL[a.resolution]) {
+      bad('resolution "' + a.resolution + '" is not one of ' +
+        Object.keys(m.A.RESOLUTION_LABEL).join(', '));
+    }
+    if ((a.resolution === 'tail' || a.resolution === 'type') && a.ceiling !== a.floor) {
+      bad('resolution "' + a.resolution + '" claims every segment is resolved, but the score is a ' +
+        'range (' + a.floor + '–' + a.ceiling + '). Either name the split or drop to "systems".');
+    }
+    L.rows.forEach(function (r, i) {
+      if (!r.src) bad('segment ' + (i + 1) + ' (' + r.systemLabel + ') carries no src');
+      if (!r.as) bad('segment ' + (i + 1) + ' (' + r.systemLabel + ') carries no as-of date');
+    });
+  });
+  if (ledgerErrs.length) {
+    console.error('Build FAILED — the ConnectScore ledger does not add up:');
+    ledgerErrs.forEach(function (x) { console.error('  ' + x); });
+    console.error('  Every /airlines/{key}/ page prints these rows and sums them to the published');
+    console.error('  score. Fix the segments in assets/airlines.js. Do not adjust the published');
+    console.error('  number to match a broken ledger.');
     process.exit(1);
   }
 

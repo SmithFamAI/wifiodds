@@ -191,7 +191,69 @@ async function main() {
     }
     /* no video-call promise leaks into any machine-readable string either */
     ok(!/video call/i.test(JSON.stringify(a)), a.key + ': API text promises no video calls');
+
+    /* ── the segmented model. The contract is that connectScore IS the floor and
+     * that the ledger the site prints adds up to it — the API and the page are
+     * summing the same rows, so if these disagree one of them is decorative. */
+    eq(a.floor, a.connectScore, a.key + ': connectScore is the floor');
+    ok(a.ceiling >= a.floor, a.key + ': ceiling is not below the floor', [a.floor, a.ceiling]);
+    ok(a.segments && a.segments.length, a.key + ': has fleet segments');
+    ok(['tail', 'type', 'systems', 'announced'].indexOf(a.resolution) >= 0,
+      a.key + ': resolution is one of the four tiers', a.resolution);
+    if (a.segments) {
+      var lo = function (s) { return typeof s.points === 'number' ? s.points : s.points.min; };
+      var hi = function (s) { return typeof s.points === 'number' ? s.points : s.points.max; };
+      var sumLo = a.segments.reduce(function (t, s) { return t + lo(s); }, 0);
+      var sumHi = a.segments.reduce(function (t, s) { return t + hi(s); }, 0);
+      ok(Math.abs(sumLo - a.floor) <= 0.5, a.key + ': ledger rows sum to the floor',
+        [Number(sumLo.toFixed(2)), a.floor]);
+      ok(Math.abs(sumHi - a.ceiling) <= 0.5, a.key + ': ledger rows sum to the ceiling',
+        [Number(sumHi.toFixed(2)), a.ceiling]);
+      /* next-gen odds are the next-gen rows and nothing else — the relationship
+         the ledger exists to make visible */
+      var ngRows = a.segments.filter(function (s) { return s.nextGen; });
+      var ngSum = ngRows.reduce(function (t, s) { return t + s.share * s.free.factor * 100; }, 0);
+      ok(Math.abs(ngSum - a.nextGenScore) <= 0.5,
+        a.key + ': the next-gen rows sum to nextGenScore', [Number(ngSum.toFixed(2)), a.nextGenScore]);
+      /* aircraft, not just points: the rows plus the unresolved pool have to be
+         the fleet, or the denominator is quietly wrong */
+      if (a.fleet.total !== null) {
+        var heads = a.segments.reduce(function (t, s) { return t + s.aircraft; }, 0) +
+          (a.unresolved ? a.unresolved.aircraft : 0);
+        eq(heads, a.fleet.total, a.key + ': segments + unresolved = the published fleet');
+      }
+      a.segments.forEach(function (s, i) {
+        ok(typeof s.source === 'string' && s.source.length,
+          a.key + ' segment ' + (i + 1) + ': carries a source');
+        ok(/^\d{4}-\d{2}(-\d{2})?$/.test(s.asOf || ''),
+          a.key + ' segment ' + (i + 1) + ': carries an as-of date', s.asOf);
+        ok(s.splitPublished || Array.isArray(s.systems) && s.systems.length > 1,
+          a.key + ' segment ' + (i + 1) + ': only a multi-system row may be marked unpublished');
+      });
+      if (a.unresolved) {
+        eq(a.unresolved.inDenominator, false,
+          a.key + ': unresolved aircraft stay out of the denominator');
+        ok(typeof a.unresolved.why === 'string' && a.unresolved.why.length,
+          a.key + ': says why those aircraft are unresolved');
+      }
+    }
   });
+
+  /* ── the legacy single-system path, which has to keep working ─────────────
+   * Not every airline will arrive with segment data, so scoreEntry() still takes
+   * a v2-shaped entry. Nothing in WIFI_AIRLINES exercises it any more, so it is
+   * tested here against a synthetic fleet rather than left to rot. */
+  var legacy = A.scoreEntry({ system: 'viasat', equipped: 50, fleet: 100, free: 'paid' });
+  eq(legacy.score, 19, 'legacy path: 0.5 × 0.55 × 0.7 = 19');
+  eq(legacy.floor, legacy.score, 'legacy path: floor is the score');
+  eq(legacy.ceiling, legacy.score, 'legacy path: no segments, no range');
+  eq(legacy.ledger, null, 'legacy path: no ledger');
+  eq(A.nextGenScore({ system: 'starlink', equipped: 50, fleet: 100, free: 'free' }), 50,
+    'legacy path: next-gen odds still come off equipped/fleet');
+  eq(A.serviceTierExpected({ system: 'viasat', coverage: 1, free: 'free' }), 'streaming',
+    'legacy path: a modern-GEO fleet is still streaming-class at the new 0.55 weight');
+  eq(A.serviceTierExpected({ system: 'panasonic', coverage: 1, free: 'free' }), 'basic',
+    'legacy path: legacy GEO is still basic');
   /* the two shapes of fleet data, both covered */
   eq(all.airlines.filter(function (a) { return a.fleet.basis === 'fleetwide-coverage'; }).length, 2,
     'exactly two airlines are fleetwide-coverage (Delta, jetBlue)');
@@ -200,11 +262,23 @@ async function main() {
   var dl = all.airlines.filter(function (a) { return a.key === 'delta'; })[0];
   eq(dl.nextGenScore, 0, 'PARITY: /api/airlines Delta nextGenScore is 0');
   eq(dl.serviceTier, 'streaming', 'PARITY: /api/airlines Delta serviceTier is streaming');
-  /* Was 60 until 2026-07-25, when coverage was corrected from 1.0 to 0.86.
-     Delta Sync reaches 1,150+ of ~1,330 aircraft; the 80 Boeing 717s have had
-     no wifi at all since May 2026 and transpacific widebodies come online in
-     the fall. 0.86 × 0.6 × 1.0 = 52. */
-  eq(dl.connectScore, 52, 'Delta connectScore is 52 — coverage 0.86, not fleetwide');
+  /* 60 → 52 → 49. The 52 was 0.86 coverage × 0.6 Viasat × 1.0 free. Under the
+     segmented model Delta is three rows out of 1,330 aircraft: 1,150 on Viasat
+     or Hughes at the corrected modern-GEO weight of 0.55 (47.6 points), the 80
+     Boeing 717s with no wifi at all since May 2026 (0.0), and 100 transpacific
+     widebodies whose system Delta does not publish, scored at the legacy floor
+     (1.4). 47.6 + 0 + 1.4 = 49. */
+  eq(dl.connectScore, 49, 'Delta connectScore is 49 — the floor of a three-segment fleet');
+  eq(dl.floor, 49, 'Delta floor is the published connectScore');
+  /* The ceiling exists because the transpacific row could be 2Ku rather than
+     legacy Ku. Publishing the floor is what makes the score defensible without
+     an assumption; the ceiling rides alongside so the gap is visible. */
+  eq(dl.ceiling, 51, 'Delta ceiling is 51 — the transpacific split is unpublished');
+  eq(dl.resolution, 'systems', 'Delta resolution tier');
+  eq(dl.segments.length, 3, 'Delta has three fleet segments');
+  eq(dl.segments[1].aircraft, 80, 'Delta still carries the 80 Boeing 717s as a no-wifi segment');
+  eq(dl.segments[1].points, 0, 'the 717 segment contributes zero points');
+  eq(dl.unresolved, null, 'Delta publishes a system for every aircraft in its denominator');
   eq(dl.future.system, 'leo', 'Delta future deal is still reported (Amazon Leo)');
   /* the index documents the second number rather than leaving it undeclared */
   ok(/Starlink or Amazon Leo/.test(j.nextGenMethod || ''), '/api index explains next-gen odds');
@@ -477,10 +551,17 @@ async function main() {
   var rendered = Object.keys(seen).map(function (k) { return seen[k] ? Number(seen[k][1]) : -1; });
   ok(rendered.every(function (n) { return n === rendered[0]; }),
     'the four places /airlines/qatar/ prints its score disagree with each other', rendered);
-  eq(rendered[0], 58, 'the rendered /airlines/qatar/ page shows 58');
+  /* 58 → 61. The 58 was 140/241 Starlink and nothing else counted. The segmented
+     score adds the 53 pre-Starlink widebodies on Inmarsat or SITA at the legacy
+     weight and a paid factor (+3.4), and puts the 48 aircraft Qatar has never
+     listed as connected in a zero row. 58.1 + 3.4 + 0 = 61. */
+  eq(rendered[0], 61, 'the rendered /airlines/qatar/ page shows 61');
   eq(qr.airline.connectScore, rendered[0],
     'PARITY: the API score for qatar equals the score rendered on /airlines/qatar/');
-  eq(qr.airline.connectScore, 58, 'PARITY: the API score for qatar is 58');
+  eq(qr.airline.connectScore, 61, 'PARITY: the API score for qatar is 61');
+  /* next-gen odds are UNCHANGED at 58: the Starlink row is the same row it was,
+     and that is the contract the two-number split exists to protect. */
+  eq(qr.airline.nextGenScore, 58, 'qatar next-gen odds are still 58 — the Starlink row alone');
 
   /* ── PARITY, second axis: the homepage card and the API must agree about the
    * NEXT-GEN number too. Same rule, same reason — read the bytes of the page a
@@ -525,8 +606,13 @@ async function main() {
   ok(/Amazon Leo/.test(racePage), '/race/ names Amazon Leo');
   var sysPage = fs.readFileSync(path.join(ROOT, 'systems', 'index.html'), 'utf8');
   ok(/Amazon Leo/.test(sysPage), '/systems/ names Amazon Leo');
-  ok(sysPage.indexOf(A.SYSTEM_QUALITY.viasat.toFixed(1)) !== -1,
+  /* toFixed(2), not toFixed(1): the weights are 0.55 / 0.22 / 0.12 now, and
+     (0.55).toFixed(1) prints "0.6" — the old assertion would have passed while
+     the page printed a weight the scoring does not use. */
+  ok(sysPage.indexOf(A.SYSTEM_QUALITY.viasat.toFixed(2)) !== -1,
     '/systems/ prints the Viasat quality weight straight from the scoring table');
+  ok(sysPage.indexOf(A.SYSTEM_QUALITY.panasonic.toFixed(2)) !== -1,
+    '/systems/ prints the legacy GEO weight straight from the scoring table');
 
   /* and the generated module really is a verbatim copy, not a second hand-typed
    * implementation that happens to agree today */

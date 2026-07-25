@@ -93,10 +93,12 @@ function leaderboard(m, limit) {
  * The full 18 are one click away at /airlines/, which still carries the whole
  * sortable table. Do not re-add it here.
  *
- * NOTE ON THE SCORES: American, Delta and jetBlue outrank United and Alaska on
- * this row, and that is not a bug — free fleetwide Viasat scores 0.6 × 1.0 while
- * a quarter-finished Starlink fleet scores ~0.27. The status line under each name
- * says which, so nobody reads "60" as "Starlink". */
+ * NOTE ON THE SCORES: American, Delta and jetBlue still outrank United and
+ * Alaska on ConnectScore, and that is not a bug — free modern GEO across most of
+ * a fleet scores 0.55 × 1.0 on most of its rows, while a quarter-finished
+ * Starlink fleet earns its Starlink points on 30% of its rows and legacy points
+ * on the rest. The status line under each name says which, so nobody reads "51"
+ * as "Starlink". The cards lead with the NEXT-GEN number for that reason. */
 var US_MAJORS = ['american', 'delta', 'united', 'southwest', 'alaska', 'jetblue', 'hawaiian'];
 
 /* ── THE TWO LINES ON EVERY CARD ──────────────────────────────────────────
@@ -125,11 +127,20 @@ function pctText(share) {
   return raw > 0 && raw < 1 ? '<1%' : Math.round(raw) + '%';
 }
 
+/* THE DENOMINATOR ON THIS LINE IS `known`, NOT `fleet`, wherever the two differ.
+ * United is 481 of 1,808 aircraft and 481 of 1,579 aircraft whose system the
+ * tracker publishes, which is 27% and 30%. The share the next-gen number is
+ * built from is the second one, so this line has to print the second denominator
+ * or the card would show 30 next to an arithmetic that gives 27. It says which
+ * denominator it is using rather than leaving the reader to reconcile it. */
 function nextGenLine(m, a) {
   if (a.nextGenScore > 0 || a.nextGenSystem) {
-    return 'Next-gen: ' + a.nextGenScore + ' — ' + a.nextGenLabel + ' on ' +
-      (a.fleet ? num(a.equipped) + ' of ' + num(a.fleet) + ' (' + pctText(a.nextGenShare) + ')'
-        : 'the whole fleet');
+    var count = a.known && a.known !== a.fleet
+      ? num(a.equipped) + ' of ' + num(a.known) + ' with a published system'
+      : a.fleet ? num(a.equipped) + ' of ' + num(a.fleet)
+        : a.known ? num(a.equipped || 0) + ' of ' + num(a.known) : null;
+    return 'Next-gen: ' + a.nextGenScore + ' — ' + a.nextGenLabel +
+      (count ? ' on ' + count + ' (' + pctText(a.nextGenShare) + ')' : ' on the whole fleet');
   }
   if (a.future) {
     return 'Next-gen: 0 (' + (m.A.SYSTEM_LABEL[a.future.system] || a.future.system) +
@@ -170,7 +181,7 @@ function usStatus(m, a, e) { return todayLine(m, a, e); }
  *
  * ORDERED BY NEXT-GEN ODDS, which is the headline the cards now show. Ties fall
  * back to the ConnectScore so the three US carriers sitting at next-gen 0 still
- * order sensibly among themselves (American 54, Delta 60, jetBlue 60), then by
+ * order sensibly among themselves (American 51, jetBlue 55, Delta 49), then by
  * name. /airlines/ keeps the ConnectScore sort — two orders, two questions, and
  * both pages say which one they are answering. */
 function usRanked(m) {
@@ -217,7 +228,7 @@ function kpi(n, label, detail, cls) {
 var ROADMAP = [
   ['building', 'Tail-swap Guardian', 'Watches your booked flight for equipment swaps, booking to boarding. ' +
     'Prototype built; ships with extension 2.1.'],
-  ['building', 'More airlines, in rollout order', 'Hawaiian next (42 of 61 — the best US Starlink odds), ' +
+  ['building', 'More airlines, in rollout order', 'Hawaiian next (42 of 66 — the best US Starlink odds), ' +
     'then the near-complete fleets: WestJet, Air France, airBaltic, JSX. Each gets the United treatment ' +
     'as instrumentation lands.'],
   ['planned', 'PWA', 'Installable, offline ConnectScores, and push notifications for Guardian alerts.'],

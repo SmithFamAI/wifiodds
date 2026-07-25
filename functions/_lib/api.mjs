@@ -155,11 +155,52 @@ export function airlineJson(key) {
       restLabel: a.restTierLabel,
       means: a.serviceTierBlurb
     },
+    /* ── ADDITIVE, v0-safe: the segmented model (July 2026).
+     *   floor / ceiling — connectScore IS the floor. They differ only where a
+     *                     segment names more than one possible system and the
+     *                     airline publishes no split; quote the floor.
+     *   resolution      — how the segments were sourced: tail | type | systems |
+     *                     announced. null for an airline still on the legacy
+     *                     single-system path.
+     *   segments[]      — the ledger, in the order the site prints it. The rows
+     *                     sum to the floor; the build fails if they do not.
+     *   unresolved      — aircraft whose system the airline does not publish.
+     *                     They are OUT of the denominator rather than assumed
+     *                     into it, which is why known can be less than total. */
+    floor: a.floor,
+    ceiling: a.ceiling,
+    resolution: a.resolution,
+    resolutionLabel: a.resolutionLabel,
+    segments: a.segments ? a.segments.map(function (r) {
+      return {
+        systems: r.systems,
+        label: r.systemLabel,
+        tier: r.tier,
+        aircraft: r.n,
+        share: round(r.share, 4),
+        quality: r.qMin === r.qMax ? r.qMin : { min: r.qMin, max: r.qMax },
+        free: { status: r.free, factor: r.freeFactor },
+        points: r.qMin === r.qMax ? round(r.pointsMin, 2)
+          : { min: round(r.pointsMin, 2), max: round(r.pointsMax, 2) },
+        nextGen: r.nextGen,
+        splitPublished: !r.split,
+        inferred: r.assumed,
+        source: r.src,
+        asOf: r.as,
+        note: r.note
+      };
+    }) : null,
+    /* null when there is nothing unresolved, rather than a zero-count object: a
+     * consumer should be able to test the field, not the count inside it. */
+    unresolved: a.ledger && a.unresolved
+      ? { aircraft: a.unresolved, why: a.unresolvedWhy, inDenominator: false }
+      : null,
     system: { key: a.system, label: a.systemLabel, quality: a.parts.systemQuality },
     free: { status: e.free || 'unknown', factor: a.parts.freeFactor },
     fleet: {
       equipped: a.equipped,
       total: a.fleet,
+      known: a.known,
       equippedShare: round(a.parts.pctEquipped, 4),
       equippedPct: Math.round(a.parts.pctEquipped * 100),
       basis: a.fleet ? 'tail-counts' : 'fleetwide-coverage'
