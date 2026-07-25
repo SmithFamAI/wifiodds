@@ -47,20 +47,33 @@ function home(m) {
   var eq = m.fleet.equipped;
   var delta = m.todayDelta !== null && m.todayDelta > 0
     ? '<span class="up">+' + m.todayDelta + ' today</span>' : 'confirmed United tails';
+  /* ── ABOVE THE FOLD: the answer, not a description of our ability to answer.
+   * A stranger arrives with one question — "will MY flight have WiFi that
+   * works?" — so the H1 IS that question and the first interactive thing on the
+   * page answers it (P.flightCheck → /api/score/{fn} or /api/airlines/{key},
+   * client-side, same origin).
+   *
+   * The leaderboard used to be the first thing here. It answers a question the
+   * visitor did not ask, and our own honest sort puts airBaltic, JSX and ZIPAIR
+   * in the top three — 139 aircraft most US visitors will never board. It is
+   * still on the page, one screen down, mechanically unchanged.
+   *
+   * The one-line extension plug sits above the fold too (owner requirement) but
+   * stays a signpost: the real pitch is P.extensionSection() at #extension,
+   * after the check has actually delivered something. */
   var body =
-    '<header class="hero">\n' +
+    '<header class="hero heroq">\n' +
     '  <span class="kicker"><span class="dot"></span>ConnectScore · updated ' + esc(m.updated) + '</span>\n' +
-    '  <h1>Know your WiFi odds<span class="tag">before you book.</span></h1>\n' +
-    '  <p class="lede">Inflight WiFi is a lottery: same airline, same route, and one aircraft has ' +
-    '<b>Starlink</b> while the next has a satellite dish from 2012. <b>ConnectScore</b> turns each ' +
-    'airline’s fleet rollout into one number from 0 to 100 — your odds of getting the good system, and ' +
-    'whether it’s free once you’re on it. For <b>United</b> and <b>Alaska</b> we go a level deeper: ' +
-    'per-flight odds, right on the booking page.</p>\n' +
-    '  <div class="cta-row"><a class="btn" href="/airlines/">Check an airline →</a>' +
-    '<a class="btn ghost" href="' + H.EXT + '" target="_blank" rel="noopener">Get the extension ↗</a></div>\n' +
+    '  <h1>Will your flight have WiFi<span class="tag">that actually works?</span></h1>\n' +
+    '  <p class="lede">Type a flight number or an airline. Inflight WiFi is a lottery — same airline, ' +
+    'same route, one aircraft has <b>Starlink</b> and the next has a dish from 2012 — so we answer ' +
+    'with the odds, and with how sure we are.</p>\n' +
+    P.flightCheck(m) +
+    P.extPlug() +
     '  <div class="microlinks">' +
-    '<a href="/united/fleet/">The United hangar floor →</a>' +
-    '<a href="/roadmap/">Roadmap →</a>' +
+    '<a href="/airlines/">All ' + m.airlineCount + ' airlines, ranked →</a>' +
+    '<a href="/methodology/">How we know →</a>' +
+    '<a href="/api/docs/">Free API →</a>' +
     '<a href="' + H.REPO + '" target="_blank" rel="noopener">Open source ↗</a></div>\n' +
     '</header>\n\n' +
     '<div class="chips">' +
@@ -93,8 +106,7 @@ function home(m) {
     ' cached routes in the optimizer.</p>' +
     '<a class="go" href="/united/">Open the route optimizer →</a></div>\n' +
     '  </div>\n</section>\n\n' +
-    '<section class="blk">\n  <div class="sec-h"><h2>Get the odds while you book</h2></div>\n' +
-    P.extensionCta() + '</section>\n\n' +
+    P.extensionSection(m) +
     '<section class="blk">\n  <div class="sec-h"><h2>What’s coming</h2>' +
     '<a class="more" href="/roadmap/">full roadmap →</a></div>\n' + P.roadmapSteps(3) + '</section>\n\n';
   body +=
@@ -110,6 +122,11 @@ function home(m) {
       'and Alaska. ' + num(eq) + ' of ' + num(m.fleet.total) + ' United aircraft equipped. Free, unofficial, no tracking.',
     canonical: '/', here: '/', updated: m.updated,
     body: body,
+    /* The flight check's only script, and the only page that loads it. It runs
+       BEFORE site.js (afterWrap is emitted first) and depends on nothing in it —
+       both are `defer`, so both land after the document is parsed and neither
+       blocks the answer that is already in the HTML. */
+    afterWrap: '<script src="/assets/flightcheck.js" defer></script>\n',
     jsonld: [
       {
         '@context': 'https://schema.org', '@type': 'WebSite', '@id': ORIGIN + '/#website',

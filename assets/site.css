@@ -439,6 +439,121 @@ footer .flinks a:hover{text-decoration:underline}
 /* the /united/ starfield is that page's flourish only, and never in light */
 [data-theme="light"] #stars{display:none}
 
+/* ═══ HOMEPAGE FLIGHT CHECK — the above-the-fold answer ════════════════════
+   The hero IS the tool. Structure only in this pass: current tokens, no new
+   palette, no new type stack — "The Plate" re-skin is a later increment.
+
+   READ THE MARKUP NOTE IN build/lib/pages.js flightCheck() BEFORE EDITING.
+   `.needs-js` sits on the plain wrapper `.fchk`, never on `.fchk-form`, because
+   `html.js .needs-js{display:revert}` (0,2,1) beats `.fchk-form{display:flex}`
+   (0,1,0) and would quietly turn the row back into a block. Layout lives on the
+   children for exactly that reason.
+   ═════════════════════════════════════════════════════════════════════════ */
+.heroq{padding:26px 0 0}
+.heroq h1{max-width:24ch}
+.heroq .lede{font-size:16.5px;margin-top:13px}
+
+.fchk{margin-top:22px}
+.fchk-lb{display:block;font-size:var(--fs-micro);font-weight:800;letter-spacing:1px;
+  text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.fchk-row{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+.fchk-in{flex:1 1 250px;min-width:0;padding:14px 16px;border-radius:var(--r-md);
+  font-family:var(--mono);font-size:17px;letter-spacing:.5px;
+  background:var(--field-bg);color:var(--ink);border:1px solid var(--edge-strong);
+  -webkit-appearance:none;appearance:none}
+.fchk-in::placeholder{color:var(--faint);letter-spacing:.3px}
+.fchk-in:focus{outline:none;border-color:var(--sky);box-shadow:var(--shadow)}
+.fchk-in::-webkit-search-cancel-button{-webkit-appearance:none}
+.fchk-go{flex:0 0 auto;padding:14px 22px}
+.fchk-hint{font-size:13px;color:var(--faint);margin-top:9px;max-width:74ch}
+.fchk-hint b{color:var(--dim);font-family:var(--mono)}
+.fchk-hint a{text-decoration:none}
+.fchk-links{margin-top:8px}
+.fchk-links b{font-family:var(--mono);color:var(--ink)}
+.fchk-nojs{margin-top:20px}
+.fchk-out{margin-top:16px}
+.fchk-out:empty{display:none}
+.fchk-busy,.fchk-err{font-size:14.5px;color:var(--dim);padding:14px 16px;
+  border:1px dashed var(--edge);border-radius:var(--r-md)}
+.fchk-busy b{color:var(--ink);font-family:var(--mono)}
+.fchk-err{color:var(--amber);border-color:rgba(255,176,32,.4)}
+.fchk-err b{font-family:var(--mono)}
+
+/* the answer card. The tier tag is not decoration: no number appears on this
+   card without the method that produced it sitting next to it. */
+.fa{background:var(--surface);border:1px solid var(--edge-strong);border-radius:var(--r-lg);
+  padding:18px 20px;box-shadow:var(--shadow)}
+.fa-h{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.fa-big{font-family:var(--mono);font-weight:800;line-height:1;display:flex;align-items:baseline;
+  gap:1px}
+.fa-big b{font-size:clamp(34px,7vw,46px);letter-spacing:-2px;color:inherit}
+.fa-big small{font-size:15px;color:var(--faint);font-weight:700}
+.fa-t{flex:1 1 200px;min-width:0}
+.fa-t h3{font-size:19px;font-weight:800;letter-spacing:-.3px}
+.fa-air{color:var(--dim);font-weight:700}
+.fa-what{font-size:12.5px;color:var(--faint);margin-top:3px}
+.fa-band{margin-left:auto}
+.fa-tier{font-size:13.5px;color:var(--dim);margin-top:14px;
+  border-top:1px solid var(--edge);padding-top:13px}
+.fa-tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.8px;
+  text-transform:uppercase;padding:3px 9px;border-radius:99px;border:1px solid;margin-right:7px;
+  white-space:nowrap}
+.fa-tag.tv{color:var(--green);border-color:rgba(53,208,127,.45)}
+.fa-tag.tf{color:var(--blue); border-color:rgba(77,166,255,.45)}
+.fa-tag.tc{color:var(--amber);border-color:rgba(255,176,32,.45)}
+.fa-fleet{font-size:13.5px;color:var(--dim);margin-top:9px}
+.fa-links{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:13.5px;font-weight:700}
+.fa-links a{text-decoration:none}
+.fa-links a:hover{text-decoration:underline}
+.fa-ext{font-size:13.5px;color:var(--dim);margin-top:14px;
+  border-top:1px solid var(--edge);padding-top:12px}
+.fa-as{font-size:12px;color:var(--faint);font-family:var(--mono);margin-top:8px}
+
+/* the compact above-the-fold extension plug — a signpost to #extension, not the
+   pitch. One line by design; the sell is the section further down. */
+.extplug{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:18px;
+  font-size:14px;color:var(--dim);background:var(--surface);border:1px solid var(--edge);
+  border-radius:99px;padding:9px 9px 9px 17px}
+.extplug b{color:var(--ink)}
+.extplug-go{font-weight:700;text-decoration:none;background:rgba(105,179,231,.14);
+  border:1px solid var(--edge-strong);border-radius:99px;padding:5px 13px;white-space:nowrap}
+.extplug-go:hover{border-color:var(--sky)}
+.extplug-alt{font-size:13px;color:var(--faint);text-decoration:none;white-space:nowrap}
+.extplug-alt:hover{color:var(--accent)}
+@media(max-width:600px){.extplug{border-radius:var(--r-md);padding:13px 15px}}
+
+/* ═══ HOMEPAGE EXTENSION SECTION ═══════════════════════════════════════════
+   .extdemo is a DARK STAGE in BOTH themes, deliberately. The reel inside it is
+   the self-contained <section class="plc"> sliced out of
+   united/assets/plugin-carousel.html by build/lib/carousel.js; that block
+   declares its OWN light-on-dark palette on `.plc` (--ink:#e8eefb and friends),
+   so on the light theme it would be white text on white. Do not "fix" that by
+   editing the reel — it also ships as a standalone promo page on a dark
+   background. Give it the background it expects instead. Every `.plc*` rule
+   lives in that block; nothing here reaches inside it.
+   ═════════════════════════════════════════════════════════════════════════ */
+.extdemo{background:
+    radial-gradient(700px 420px at 78% -20%, #0b1b4d 0%, transparent 58%),
+    radial-gradient(520px 360px at 6% 116%, #071233 0%, transparent 62%),
+    #040816;
+  border:1px solid rgba(148,178,255,.16);border-radius:var(--r-xl);
+  padding:clamp(16px,3vw,30px);overflow:hidden;box-shadow:0 18px 50px rgba(2,8,32,.4)}
+.extfeat{margin-top:18px}
+.extfeat .card h3{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+/* live vs next-release, and the distinction is load-bearing: the store ships
+   1.5.1 today. See the claim rules in build/lib/pages.js extensionSection(). */
+.pill.soon{color:var(--amber);border-color:rgba(255,176,32,.4);font-size:11px;margin:0}
+.pill.live{color:var(--green);border-color:rgba(53,208,127,.45);font-size:11px;margin:0}
+.extwhere{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
+.extwhere .micro{flex:0 0 92px}
+@media(max-width:520px){.extwhere .micro{flex:1 0 100%}}
+.extwhere .pill{margin:0}
+.extwhere .pill em{font-style:normal;color:var(--faint);font-size:11px}
+.extwhy{margin-top:10px;max-width:80ch}
+.extfine{margin-top:16px;font-size:12.5px;color:var(--faint);max-width:90ch;
+  border-top:1px solid var(--edge);padding-top:14px}
+.extfine b{color:var(--dim)}
+
 /* ═══ ANIMATION — every rule below is scoped under html.anim ═══════════════
    site.js adds .anim to <html> only when matchMedia('(prefers-reduced-motion:
    no-preference)') matches. No JS, or reduced motion => none of this exists and

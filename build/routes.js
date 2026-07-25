@@ -54,6 +54,10 @@ var REQUIRED = [
   'assets/airlines.js',
   'assets/site.css',
   'assets/site.js',
+  /* the homepage flight check. Its absence would not break a build or a 200 — the
+     hero form would just sit there doing nothing, which is exactly the class of
+     silent failure this list exists to catch. */
+  'assets/flightcheck.js',
   'assets/og.png',
   'assets/selectors.json'
 ];

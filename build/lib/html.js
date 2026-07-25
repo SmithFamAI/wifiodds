@@ -22,9 +22,19 @@ function ld(obj) {
 var FAVICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2369B3E7'/%3E%3Cstop offset='1' stop-color='%230033A0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Cpath d='M9 21c3-9 11-9 14-13' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='11' cy='22' r='2.6' fill='%23fff'/%3E%3C/svg%3E";
 
 /* Set data-theme BEFORE first paint or the dark default flashes on a light
-   preference. localStorage.woTheme is the only key this site ever writes. */
-var THEME_BOOT = '<script>(function(){try{var t=localStorage.getItem("woTheme");' +
-  'if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>';
+   preference. localStorage.woTheme is the only key this site ever writes.
+ *
+ * It also sets html.js here rather than leaving that to site.js. site.js is
+ * `defer`, so it lands after the document is parsed — which meant `.needs-js`
+ * content was hidden and `.no-js-only` content was VISIBLE for the first paint of
+ * every page. Invisible on the old pages (a filter chip row appearing late is
+ * nothing); very visible now that the homepage's above-the-fold answer box is
+ * `.needs-js` and its fallback is a list of 18 airline links. One statement, in
+ * the <head>, before paint. site.js still adds the class — it is idempotent, and
+ * site.js must keep working if this tag is ever dropped. */
+var THEME_BOOT = '<script>(function(){var r=document.documentElement;r.classList.add("js");' +
+  'try{var t=localStorage.getItem("woTheme");' +
+  'if(t==="light"||t==="dark")r.setAttribute("data-theme",t);}catch(e){}})();</script>';
 
 var MARK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round">' +
   '<path d="M4.5 10.5a11 11 0 0 1 15 0"/><path d="M7.6 14a7 7 0 0 1 8.8 0"/>' +
