@@ -35,6 +35,7 @@ var R = require('./routes.js');
 var DL = require('./lib/data.js');
 var H = require('./lib/html.js');
 var Render = require('./lib/render.js');
+var SlopGate = require('./slop-gate.js');
 
 var ORIGIN = H.ORIGIN;
 var t0 = Date.now();
@@ -1014,6 +1015,23 @@ function main() {
   var knownHtml = assertNoStrayPages();
   var projUnits = assertProjectedRender(m.A);
 
+  /* ── THE PROSE RATCHET ──────────────────────────────────────────────────
+   * Every other tripwire in this file guards a number. This one guards the
+   * writing, which used to be guarded by remembering to run a linter — and
+   * copy shipped at 19.4 em dashes per 1,000 words anyway, against a human
+   * mean of 3.23, because remembering is not a control.
+   *
+   * It compares each built surface with its own committed baseline in
+   * build/slop-baseline.json and fails only when a page gets WORSE than
+   * itself. Existing debt is grandfathered; an improvement rewrites the
+   * baseline DOWN in the same run, so a page can never slide back.
+   *
+   * It is safe to fail unattended at 04:32 because the numbers it compares are
+   * raw weighted POINTS, not per-100-word rates: the daily pull moves word
+   * counts, and only prose moves points. build/slop-gate.js carries the
+   * measurements behind that claim and the argument in full. */
+  var slop = SlopGate.gateBuild({ quiet: true });
+
   /* every route must actually be generated now — no `kind: 'hand'` left */
   var hand = R.ROUTES.concat(R.UNLISTED).filter(function (r) { return r.kind !== 'gen'; });
   if (hand.length) {
@@ -1034,6 +1052,7 @@ function main() {
     'no stray HTML (' + knownHtml + ' known .html files, incl. ' + EMBEDS.length + ' embed).');
   console.log('  projected: ' + projections + ' airlines carry one · ' + projUnits +
     ' fenced unit' + (projUnits === 1 ? '' : 's') + ' rendered · all five fencing rules hold.');
+  console.log(slop.summary);
 }
 
 /* Guarded so the fencing checks can be run against a tree on disk without
