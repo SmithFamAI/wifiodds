@@ -1,4 +1,39 @@
 'use strict';
+
+/* ── CACHE BUSTING, and the bug that made it necessary ────────────────────
+ * The Plate redesign shipped and returning visitors kept seeing the old one.
+ * The stylesheet was linked as a bare `/assets/site.css` and Cloudflare serves
+ * it with `cache-control: public, max-age=14400, must-revalidate` — four hours.
+ * So a warm browser paired the NEW markup with the OLD stylesheet, which is a
+ * worse state than either version on its own.
+ *
+ * curl said the deploy was fine, because curl has no cache. That is the same
+ * class of false green as a 200 with an empty body: the check was not looking
+ * at what a reader sees. It was caught by asking the browser for its COMPUTED
+ * `--brand`, which still read #0033A0 after the colour had been retired.
+ *
+ * So the URL carries a content hash. Change the file, change the URL, and every
+ * cache everywhere misses on the same build. Cheap, and it removes a whole
+ * category of "why am I still seeing the old site". */
+var _hcrypto = require('crypto');
+var _hfs = require('fs');
+var _hpath = require('path');
+var _hcache = {};
+function assetHash(rel) {
+  if (_hcache[rel]) return _hcache[rel];
+  var h;
+  try {
+    var buf = _hfs.readFileSync(_hpath.join(__dirname, '..', '..', rel));
+    h = _hcrypto.createHash('sha1').update(buf).digest('hex').slice(0, 8);
+  } catch (e) {
+    /* Never fail the build over a cache buster. A missing hash costs a stale
+     * cache; a thrown error costs the deploy. */
+    console.error('  cache-bust: could not hash ' + rel + ' (' + e.code + '), using the build date');
+    h = String(Date.now()).slice(-8);
+  }
+  _hcache[rel] = h;
+  return h;
+}
 /* build/lib/html.js — the shared shell every prerendered page is poured into.
  * One <head> builder, one credit strip, one footer, and TWO nav rows: a global
  * topnav that is byte-identical everywhere, plus an optional per-airline subnav.
@@ -271,7 +306,7 @@ function page(o) {
      * Nothing here, and nothing in site.css, points at a third party. */
     '<link rel="preload" href="/assets/b612-400.woff2" as="font" type="font/woff2" crossorigin>\n' +
     '<link rel="preload" href="/assets/b612mono-400.woff2" as="font" type="font/woff2" crossorigin>\n' +
-    '<link rel="stylesheet" href="/assets/site.css">\n' +
+    '<link rel="stylesheet" href="/assets/site.css?v=' + assetHash('assets/site.css') + '">\n' +
     (o.extraHead || '') +
     (o.jsonld || []).map(ld).join('\n') + '\n' +
     '</head>\n<body>\n' +
@@ -284,7 +319,7 @@ function page(o) {
     footer(o.updated) +
     '</div>\n' +
     (o.afterWrap || '') +
-    '<script src="/assets/site.js" defer></script>\n</body>\n</html>\n';
+    '<script src="/assets/site.js?v=' + assetHash('assets/site.js') + '" defer></script>\n</body>\n</html>\n';
 }
 
 module.exports = {
