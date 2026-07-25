@@ -17,14 +17,14 @@ ConnectScore is the chance of getting the GOOD system, not of any wifi at all. L
 6. Hawaiian (HA) — 69/100, good — Starlink, 42/61 equipped — https://wifiodds.com/airlines/hawaiian/
 7. Delta (DL) — 60/100, good — Viasat, fleetwide — https://wifiodds.com/airlines/delta/
 8. jetBlue (B6) — 60/100, good — Viasat, fleetwide — https://wifiodds.com/airlines/jetblue/
-9. American (AA) — 54/100, mixed — Viasat, 890/989 equipped — https://wifiodds.com/airlines/american/
-10. Qatar Airways (QR) — 49/100, mixed — Starlink, 140/241 equipped — https://wifiodds.com/airlines/qatar/
-11. SAS (SK) — 41/100, mixed — Starlink, 60/123 equipped — https://wifiodds.com/airlines/sas/
+9. Qatar Airways (QR) — 58/100, mixed — Starlink, 140/241 equipped — https://wifiodds.com/airlines/qatar/
+10. American (AA) — 54/100, mixed — Viasat, 890/989 equipped — https://wifiodds.com/airlines/american/
+11. SAS (SK) — 49/100, mixed — Starlink, 60/123 equipped — https://wifiodds.com/airlines/sas/
 12. Alaska (AS) — 28/100, long shot — Starlink, 99/350 equipped — https://wifiodds.com/airlines/alaska/
-13. United (UA) — 27/100, long shot — Starlink, 481/1807 equipped — https://wifiodds.com/airlines/united/
-14. Virgin Atlantic (VS) — 24/100, long shot — Starlink, 12/43 equipped — https://wifiodds.com/airlines/virginatlantic/
+13. Virgin Atlantic (VS) — 28/100, long shot — Starlink, 12/43 equipped — https://wifiodds.com/airlines/virginatlantic/
+14. United (UA) — 27/100, long shot — Starlink, 481/1807 equipped — https://wifiodds.com/airlines/united/
 15. Emirates (EK) — 16/100, rare — Starlink, 36/232 equipped — https://wifiodds.com/airlines/emirates/
-16. Air Canada (AC) — 5/100, rare — Starlink, 12/216 equipped — https://wifiodds.com/airlines/aircanada/
+16. Air Canada (AC) — 6/100, rare — Starlink, 12/216 equipped — https://wifiodds.com/airlines/aircanada/
 17. British Airways (BA) — 2/100, not yet — Starlink, 5/261 equipped — https://wifiodds.com/airlines/britishairways/
 18. Southwest (WN) — 0/100, not yet — Starlink, 1/817 equipped — https://wifiodds.com/airlines/southwest/
 
