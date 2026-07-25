@@ -102,17 +102,40 @@
        * So the observer watches BOTH edges (0 and 0.25) and reveals when either
        * "a quarter of it is showing" or "it is too tall for that to ever be true
        * and some of it is showing". Short elements keep the original feel. */
+      /* THE SECOND HALF OF THIS BUG, found on the day The Plate shipped.
+       *
+       * The try/catch wrapping this whole block CANNOT catch a throw in here.
+       * The observer callback runs later, on its own task, so an exception
+       * escapes to window.onerror and the fallback below never runs. Worse, a
+       * throw part-way through `entries.forEach` abandons every entry after it
+       * in the same batch, and those elements were already unobserved-or-not in
+       * an inconsistent state. One bad count-up silently froze 15 of the
+       * homepage's 16 sections at opacity 0 — a 923px leaderboard, seven airline
+       * cards and three FAQ blocks, all invisible on a page that scrolled fine
+       * and returned 200.
+       *
+       * So: reveal FIRST, decorate second, and give every entry its own
+       * try/catch. Making an element visible is the part that must not be
+       * skippable; the animated counter is the part that may fail. */
       var io = new IntersectionObserver(function (entries) {
         entries.forEach(function (en) {
-          if (!en.isIntersecting) return;
-          var el = en.target;
-          var tall = en.boundingClientRect.height >
-            (en.rootBounds ? en.rootBounds.height : window.innerHeight) * 0.9;
-          if (!tall && en.intersectionRatio < 0.25) return;
-          el.classList.add('in');
-          io.unobserve(el);
-          Array.prototype.forEach.call(el.querySelectorAll('.cu'), countUp);
-          if (el.classList.contains('cu')) countUp(el);
+          try {
+            if (!en.isIntersecting) return;
+            var el = en.target;
+            var tall = en.boundingClientRect.height >
+              (en.rootBounds ? en.rootBounds.height : window.innerHeight) * 0.9;
+            if (!tall && en.intersectionRatio < 0.25) return;
+            el.classList.add('in');
+            io.unobserve(el);
+            try {
+              Array.prototype.forEach.call(el.querySelectorAll('.cu'), countUp);
+              if (el.classList.contains('cu')) countUp(el);
+            } catch (inner) { /* a counter is decoration; the content is not */ }
+          } catch (outer) {
+            /* Last resort: if anything above failed, the element still becomes
+             * visible. Blank content is the only unacceptable outcome here. */
+            try { en.target.classList.add('in'); } catch (e3) {}
+          }
         });
       }, { threshold: [0, 0.25], rootMargin: '0px 0px -8% 0px' });
       Array.prototype.forEach.call(targets, function (el) { io.observe(el); });
@@ -120,6 +143,23 @@
       Array.prototype.forEach.call(doc.querySelectorAll('.cu'), function (el) {
         if (!el.closest(REVEAL)) countUp(el);
       });
+
+      /* THE DEAD-MAN SWITCH. Six seconds after load, anything still hidden gets
+       * revealed regardless of why. This site's one recurring failure is a page
+       * that returns 200 and shows nothing, and an animation is never worth a
+       * blank section. If this ever fires in the wild the cause is a bug worth
+       * finding, so it says so in the console rather than healing quietly. */
+      setTimeout(function () {
+        var stuck = doc.querySelectorAll(REVEAL.split(',').map(function (s) {
+          return s + ':not(.in)';
+        }).join(','));
+        if (!stuck.length) return;
+        Array.prototype.forEach.call(stuck, function (el) { el.classList.add('in'); });
+        if (window.console && console.warn) {
+          console.warn('wifiodds: revealed ' + stuck.length + ' element(s) the observer ' +
+            'never fired for. Content is visible, but that is a bug — please report it.');
+        }
+      }, 6000);
     }
   } catch (e) {
     try {
