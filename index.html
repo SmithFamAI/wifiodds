@@ -3,483 +3,101 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script>(function(){try{var t=localStorage.getItem("woTheme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2369B3E7'/%3E%3Cstop offset='1' stop-color='%230033A0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Cpath d='M9 21c3-9 11-9 14-13' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='11' cy='22' r='2.6' fill='%23fff'/%3E%3C/svg%3E">
-<title>WiFi Odds — know before you book</title>
-<meta name="description" content="Every airline's chance of good inflight WiFi in one number: the ConnectScore. Starlink, Amazon Leo and Viasat fleet coverage for 18 airlines, plus per-flight odds for United and Alaska while you book. Free, unofficial, no tracking.">
+<title>WiFi Odds — every airline’s inflight WiFi, scored</title>
+<meta name="description" content="ConnectScore for 18 airlines plus per-flight Starlink odds for United and Alaska. 481 of 1,807 United aircraft equipped. Free, unofficial, no tracking.">
 <link rel="canonical" href="https://wifiodds.com/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="WiFi Odds">
-<meta property="og:title" content="WiFi Odds — know before you book">
-<meta property="og:description" content="Every airline's chance of good inflight WiFi in one number: the ConnectScore. Plus per-flight odds for United and Alaska while you book.">
+<meta property="og:title" content="WiFi Odds — every airline’s inflight WiFi, scored">
+<meta property="og:description" content="ConnectScore for 18 airlines plus per-flight Starlink odds for United and Alaska. 481 of 1,807 United aircraft equipped. Free, unofficial, no tracking.">
 <meta property="og:url" content="https://wifiodds.com/">
-<meta property="og:image" content="https://wifiodds.com/assets/og.png?v=1">
+<meta property="og:image" content="https://wifiodds.com/assets/og.png?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="WiFi Odds — know before you book">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="WiFi Odds — know before you book">
-<meta name="twitter:description" content="Every airline's chance of good inflight WiFi in one number: the ConnectScore. Plus per-flight odds for United and Alaska while you book.">
-<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=1">
-<style>
-  /* ═══ WiFi Odds — light shell. Same design language as the United tool
-       (United blue, sky accents, mono numerals, 14–20px radii, chip/card/
-       verdict-pill vocabulary) rendered on a light, product-y surface. ═══ */
-  :root{
-    --brand:#0033A0;         /* United blue, carried over as the house blue */
-    --brand-deep:#001A57;
-    --brand-lift:#0a4fd6;
-    --sky:#0f79c4;
-    --sky-soft:#eaf3fd;
-    --ink:#0e1730;
-    --body:#3d4a68;
-    --dim:#68758f;
-    --faint:#8d97ac;
-    --bg:#f5f8fc;
-    --surface:#ffffff;
-    --edge:#e2e9f4;
-    --edge-strong:#cdd8ea;
-    --gold:#a97400;
-    --green:#0b7a45;
-    --blue:#0b5fa8;
-    --amber:#9a6400;
-    --red:#a32330;
-    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
-    --shadow:0 1px 2px rgba(14,23,48,.05),0 8px 24px rgba(14,23,48,.05);
-  }
-  *{margin:0;padding:0;box-sizing:border-box}
-  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-  body{
-    background:
-      radial-gradient(1100px 520px at 78% -12%, #e7f0fd 0%, transparent 60%),
-      radial-gradient(760px 460px at 4% 4%, #eef3fb 0%, transparent 55%),
-      var(--bg);
-    color:var(--body);
-    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
-    -webkit-font-smoothing:antialiased;min-height:100vh;
-    -webkit-tap-highlight-color:transparent;
-  }
-  .wrap{max-width:1040px;margin:0 auto;
-    padding:0 max(20px,env(safe-area-inset-right)) 0 max(20px,env(safe-area-inset-left))}
-  a{color:var(--blue)}
-  h1,h2,h3{color:var(--ink);letter-spacing:.2px}
-
-  /* ── top bar ─────────────────────────────── */
-  .topbar{display:flex;align-items:center;gap:18px;padding:18px 0 6px;flex-wrap:wrap}
-  .mark{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--ink)}
-  .mark .glyph{
-    width:38px;height:38px;border-radius:11px;flex:none;display:grid;place-items:center;
-    background:linear-gradient(135deg,#69B3E7 0%,var(--brand) 100%);
-    box-shadow:0 4px 14px rgba(0,51,160,.28);
-  }
-  .mark .glyph svg{width:22px;height:22px;display:block}
-  .mark .wm{font-weight:800;font-size:18px;letter-spacing:-.2px}
-  .topnav{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-  .topnav a{
-    font-size:14px;font-weight:600;text-decoration:none;color:var(--dim);
-    padding:7px 12px;border-radius:99px;transition:.15s;
-  }
-  .topnav a:hover{color:var(--brand);background:var(--sky-soft)}
-  .topnav a.cta{background:var(--brand);color:#fff}
-  .topnav a.cta:hover{background:var(--brand-lift);color:#fff}
-
-  /* ── hero ────────────────────────────────── */
-  .hero{padding:34px 0 6px}
-  .kicker{
-    display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;
-    letter-spacing:1.3px;text-transform:uppercase;color:var(--brand);
-    background:var(--sky-soft);border:1px solid #cfe3f8;border-radius:99px;padding:5px 12px;
-  }
-  .kicker .dot{width:7px;height:7px;border-radius:50%;background:#35b06f;flex:none}
-  .hero h1{font-size:clamp(30px,5.4vw,46px);font-weight:800;letter-spacing:-.9px;margin:16px 0 0;line-height:1.08}
-  .hero h1 .tag{
-    display:block;font-size:clamp(19px,3.2vw,26px);font-weight:700;letter-spacing:-.3px;margin-top:8px;
-    background:linear-gradient(90deg,var(--brand),#2b8fd8);-webkit-background-clip:text;background-clip:text;
-    -webkit-text-fill-color:transparent;
-  }
-  .lede{font-size:17.5px;color:var(--body);max-width:66ch;margin-top:16px}
-  .lede b{color:var(--ink)}
-  .cta-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:22px}
-  .btn{
-    display:inline-block;padding:12px 20px;border-radius:12px;font-weight:700;font-size:15px;
-    background:var(--brand);color:#fff;text-decoration:none;border:none;cursor:pointer;transition:.18s;
-    box-shadow:0 6px 18px rgba(0,51,160,.18);
-  }
-  .btn:hover{background:var(--brand-lift);box-shadow:0 8px 22px rgba(10,79,214,.26)}
-  .btn.ghost{background:var(--surface);color:var(--brand);border:1px solid var(--edge-strong);box-shadow:none}
-  .btn.ghost:hover{background:var(--sky-soft);border-color:#a9c9ec}
-  .microlinks{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:13.5px}
-  .microlinks a{color:var(--dim);text-decoration:none}
-  .microlinks a:hover{color:var(--brand);text-decoration:underline}
-
-  /* ── credit strip (credits are architecture, not a footnote) ── */
-  .credit{
-    display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;
-    margin-top:28px;padding:15px 18px;border-radius:16px;
-    background:linear-gradient(90deg,#eaf3fd,#f3f7fd);
-    border:1px solid #cfe3f8;color:var(--body);font-size:14.5px;
-  }
-  .credit .cb{
-    flex:none;font-size:10.5px;font-weight:800;letter-spacing:1.2px;color:var(--brand);
-    border:1px solid #b7d4f2;border-radius:99px;padding:5px 11px;background:#fff;margin-top:1px;
-  }
-  .credit b{color:var(--ink)}
-  .credit .cbody{flex:1;min-width:220px}
-
-  /* ── sections ────────────────────────────── */
-  section.blk{margin:44px 0}
-  .sec-h{display:flex;align-items:baseline;gap:12px;margin-bottom:6px;flex-wrap:wrap}
-  .sec-h h2{font-size:24px;font-weight:800;letter-spacing:-.4px}
-  .sec-h .sub{color:var(--faint);font-size:13px;font-family:var(--mono)}
-  .sec-lede{color:var(--dim);font-size:15px;max-width:74ch;margin-bottom:18px}
-
-  /* ── score bands ─────────────────────────── */
-  .legend{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 4px}
-  .band{
-    font-size:11.5px;font-weight:700;letter-spacing:.4px;padding:4px 11px;border-radius:99px;
-    border:1px solid;white-space:nowrap;
-  }
-  .sc-exc {color:#0b7a45;border-color:#9fdcbc;background:#e9f8f0}
-  .sc-good{color:#0b5fa8;border-color:#a8cff5;background:#eaf3fd}
-  .sc-mix {color:#8a5a00;border-color:#f0cd8a;background:#fdf5e5}
-  .sc-long{color:#9a4a10;border-color:#f3c3a4;background:#fdf0e8}
-  .sc-rare{color:#a32330;border-color:#f0b6bd;background:#fdecee}
-  .sc-no  {color:#5a6784;border-color:#d7dde8;background:#f2f4f8}
-
-  /* ── airline index ───────────────────────── */
-  .arows{display:grid;gap:9px}
-  .arow{
-    display:grid;grid-template-columns:74px 1fr auto;gap:16px;align-items:center;
-    background:var(--surface);border:1px solid var(--edge);border-radius:16px;
-    padding:14px 18px;box-shadow:var(--shadow);text-decoration:none;color:inherit;transition:.18s;
-  }
-  a.arow:hover{border-color:#a9c9ec;transform:translateY(-1px);box-shadow:0 2px 4px rgba(14,23,48,.05),0 12px 26px rgba(14,23,48,.08)}
-  .arow.instr{border-left:4px solid var(--brand);padding-left:15px}
-  .sco{text-align:center}
-  .sco .n{font-family:var(--mono);font-size:27px;font-weight:800;line-height:1;color:var(--ink)}
-  .sco .lb{font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-top:5px;
-    display:inline-block;padding:3px 9px;border-radius:99px;border:1px solid}
-  .amid{min-width:0}
-  .amid .an{font-size:17px;font-weight:800;color:var(--ink);letter-spacing:-.2px}
-  .amid .an .code{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--faint);margin-left:7px;letter-spacing:1px}
-  .amid .facts{font-family:var(--mono);font-size:12.5px;color:var(--dim);margin-top:4px}
-  .amid .facts .sys{color:var(--brand);font-weight:700}
-  .amid .note{font-size:13.5px;color:var(--dim);margin-top:6px;max-width:74ch}
-  .amid .fut{font-size:12.5px;color:var(--faint);margin-top:5px;font-style:italic}
-  .aend{justify-self:end;text-align:right;white-space:nowrap}
-  .pill-go{
-    display:inline-block;font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;
-    color:#fff;background:var(--brand);border-radius:99px;padding:6px 13px;
-  }
-  .pill-flat{
-    display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
-    color:var(--faint);border:1px solid var(--edge-strong);border-radius:99px;padding:5px 11px;
-  }
-  .aend .bar{margin-top:8px;width:96px;height:5px;border-radius:99px;background:#eef1f7;overflow:hidden;display:block;margin-left:auto}
-  .aend .bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#69B3E7,var(--brand))}
-  .aend .barlab{display:block;font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:4px}
-  @media(max-width:720px){
-    .arow{grid-template-columns:64px 1fr;gap:12px}
-    .aend{grid-column:1 / -1;justify-self:start;text-align:left;margin-top:2px}
-    .aend .bar{width:150px;margin-left:0}
-  }
-
-  /* ── tool cards ──────────────────────────── */
-  .cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  @media(max-width:720px){.cards{grid-template-columns:1fr}}
-  .card{
-    background:var(--surface);border:1px solid var(--edge);border-radius:20px;padding:22px;
-    box-shadow:var(--shadow);text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:10px;
-    transition:.18s;
-  }
-  a.card:hover{border-color:#a9c9ec;transform:translateY(-2px);box-shadow:0 2px 4px rgba(14,23,48,.05),0 14px 30px rgba(14,23,48,.09)}
-  .card .ct{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .card h3{font-size:19px;font-weight:800;letter-spacing:-.3px}
-  .card .cs{font-family:var(--mono);font-size:13px;color:var(--dim)}
-  .card p{font-size:14.5px;color:var(--dim)}
-  .card ul{margin:2px 0 0 18px;font-size:14px;color:var(--dim)}
-  .card li{margin:3px 0}
-  .card .go{margin-top:auto;font-weight:700;font-size:14.5px;color:var(--brand)}
-
-  /* ── method / caveat ────────────────────── */
-  .method{
-    background:var(--surface);border:1px solid var(--edge);border-radius:20px;padding:24px;box-shadow:var(--shadow);
-  }
-  .formula{
-    font-family:var(--mono);font-size:14.5px;color:var(--ink);background:#f6f8fc;border:1px solid var(--edge);
-    border-radius:12px;padding:13px 16px;margin:4px 0 16px;overflow-x:auto;white-space:nowrap;
-  }
-  .mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:4px}
-  @media(max-width:720px){.mgrid{grid-template-columns:1fr}}
-  .mgrid .m{border:1px solid var(--edge);border-radius:14px;padding:14px 16px;background:#fbfcfe}
-  .mgrid .m .mh{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--brand);margin-bottom:6px}
-  .mgrid .m p{font-size:13.5px;color:var(--dim)}
-  .caveat{
-    margin-top:16px;font-size:13.5px;color:var(--dim);border-left:3px solid #f0cd8a;
-    background:#fdf9ef;border-radius:0 12px 12px 0;padding:12px 16px;
-  }
-
-  /* ── footer ─────────────────────────────── */
-  footer{
-    margin:56px 0 60px;border-top:1px solid var(--edge);padding-top:22px;
-    color:var(--faint);font-size:13.5px;
-  }
-  footer a{color:var(--dim)}
-  footer .frow{margin-top:8px}
-  footer .flinks{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px}
-  footer .flinks a{font-weight:600;color:var(--blue);text-decoration:none}
-  footer .flinks a:hover{text-decoration:underline}
-  @media(prefers-reduced-motion:reduce){
-    html{scroll-behavior:auto}
-    .arow,.card,.btn{transition:none}
-  }
-</style>
+<meta name="twitter:title" content="WiFi Odds — every airline’s inflight WiFi, scored">
+<meta name="twitter:description" content="ConnectScore for 18 airlines plus per-flight Starlink odds for United and Alaska. 481 of 1,807 United aircraft equipped. Free, unofficial, no tracking.">
+<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=2">
+<link rel="stylesheet" href="/assets/site.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","@id":"https://wifiodds.com/#website","name":"WiFi Odds","url":"https://wifiodds.com/","description":"ConnectScore: every airline’s chance of good inflight WiFi in one number, plus per-flight Starlink odds for United and Alaska.","publisher":{"@id":"https://wifiodds.com/#org"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://wifiodds.com/#org","name":"WiFi Odds","url":"https://wifiodds.com/","logo":"https://wifiodds.com/assets/og.png","sameAs":["https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec","https://github.com/jeremyinthebay/united-starlink-companion"]}</script>
 </head>
 <body>
 <div class="wrap">
-
 <div class="topbar">
-  <a class="mark" href="/">
-    <span class="glyph" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round">
-        <path d="M4.5 10.5a11 11 0 0 1 15 0"/><path d="M7.6 14a7 7 0 0 1 8.8 0"/>
-        <circle cx="12" cy="18.2" r="1.5" fill="#fff" stroke="none"/>
-      </svg>
-    </span>
-    <span class="wm">WiFi Odds</span>
-  </a>
-  <nav class="topnav" aria-label="Sections">
-    <a href="#airlines">Airlines</a>
+  <a class="mark" href="/"><span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round"><path d="M4.5 10.5a11 11 0 0 1 15 0"/><path d="M7.6 14a7 7 0 0 1 8.8 0"/><circle cx="12" cy="18.2" r="1.5" fill="#fff" stroke="none"/></svg></span><span class="wm">WiFi Odds</span></a>
+  <nav class="topnav" aria-label="Main">
+    <a href="/airlines/">Airlines</a>
     <a href="/united/">United</a>
+    <a href="/united/fleet/">Fleet</a>
     <a href="/alaska/">Alaska</a>
-    <a href="#how">ConnectScore</a>
-    <a class="cta" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Add to Chrome — free</a>
+    <a href="/roadmap/">Roadmap</a>
+    <a class="cta" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Get the extension</a>
   </nav>
+  <button class="tt" type="button" aria-label="Switch theme" title="Switch theme">☽</button>
 </div>
-
 <header class="hero">
-  <span class="kicker"><span class="dot"></span>ConnectScore · data as of July 2026</span>
-  <h1>WiFi Odds<span class="tag">Know before you book.</span></h1>
-  <p class="lede">Inflight WiFi is a lottery: same airline, same route, and one aircraft has
-  <b>Starlink</b> while the next has a satellite dish from 2012. <b>ConnectScore</b> turns each airline's
-  fleet rollout into one number from 0 to 100 — your odds of getting the good system, and whether it's
-  free once you're on it. For <b>United</b> and <b>Alaska</b> we go a level deeper: per-flight odds, right
-  on the booking page.</p>
-  <div class="cta-row">
-    <a class="btn" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Add to Chrome — free ↗</a>
-    <a class="btn ghost" href="#airlines">See all airlines ranked ↓</a>
-  </div>
-  <div class="microlinks">
-    <a href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec/reviews" target="_blank" rel="noopener">★ Leave a review</a>
-    <a href="https://github.com/jeremyinthebay/united-starlink-companion/issues/new" target="_blank" rel="noopener">🐛 Feedback / request a feature</a>
-    <a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">⚙ Open source ↗</a>
-  </div>
+  <span class="kicker"><span class="dot"></span>ConnectScore · updated 2026-07-24</span>
+  <h1>Know your WiFi odds<span class="tag">before you book.</span></h1>
+  <p class="lede">Inflight WiFi is a lottery: same airline, same route, and one aircraft has <b>Starlink</b> while the next has a satellite dish from 2012. <b>ConnectScore</b> turns each airline’s fleet rollout into one number from 0 to 100 — your odds of getting the good system, and whether it’s free once you’re on it. For <b>United</b> and <b>Alaska</b> we go a level deeper: per-flight odds, right on the booking page.</p>
+  <div class="cta-row"><a class="btn" href="/airlines/">Check an airline →</a><a class="btn ghost" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Get the extension ↗</a></div>
+  <div class="microlinks"><a href="/united/fleet/">The United hangar floor →</a><a href="/roadmap/">Roadmap →</a><a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Open source ↗</a></div>
 </header>
 
-<div class="credit">
-  <span class="cb">DATA CREDIT</span>
-  <span class="cbody">Fleet verification for the two instrumented airlines comes from the independent
-  community trackers <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener"><b>unitedstarlinktracker.com</b></a>
-  and <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener"><b>alaskastarlinktracker.com</b></a>,
-  built by <b>@martinamps</b>, which verify every tail against the airline's own site. All credit for that
-  data goes to them — visit for live per-tail status and much more ↗. Every other airline below is
-  compiled from public airline announcements (July 2026). WiFi Odds is unofficial and not affiliated
-  with any airline, SpaceX/Starlink, Amazon, Viasat, or the trackers.</span>
-</div>
+<div class="chips"><div class="chip rv hero-kpi glow"><div class="n cu">481</div><div class="l">United aircraft equipped</div><div class="d"><span class="up">+3 today</span></div></div><div class="chip rv "><div class="n cu">27%</div><div class="l">Of the United fleet</div><div class="d">of 1,807 aircraft</div></div><div class="chip rv "><div class="n cu">18</div><div class="l">Airlines tracked</div><div class="d">one ConnectScore each</div></div><div class="chip rv "><div class="n cu">176</div><div class="l">Days of install history</div><div class="d">since Mar 2025</div></div></div>
 
-<section class="blk" id="airlines">
-  <div class="sec-h">
-    <h2>Every airline, ranked by ConnectScore</h2>
-    <span class="sub" id="acount">…</span>
-  </div>
-  <p class="sec-lede">Best odds of good WiFi first. The score credits only the modern high-speed system
-  (Starlink, Amazon Leo) at full weight — legacy satellite service counts for less, and
-  signed-but-not-yet-flying deals count zero until the hardware is in the air.</p>
-  <div class="legend">
-    <span class="band sc-exc">85–100 excellent</span><span class="band sc-good">60–84 good</span>
-    <span class="band sc-mix">35–59 mixed</span><span class="band sc-long">20–34 long shot</span>
-    <span class="band sc-rare">5–19 rare</span><span class="band sc-no">0–4 not yet</span>
-  </div>
-  <div class="arows" id="arows" style="margin-top:18px">
-    <div class="arow"><div class="sco"><div class="n">…</div></div><div class="amid"><div class="an">Loading the ConnectScore map…</div></div><div class="aend"></div></div>
+<section class="blk">
+  <div class="sec-h"><h2>ConnectScore leaderboard</h2><span class="sub">top 8 of 18</span><a class="more" href="/airlines/">all 18 airlines →</a></div>
+  <p class="sec-lede">Best odds of good WiFi first. The score credits only the modern high-speed system (Starlink, Amazon Leo) at full weight — legacy satellite service counts for less, and signed-but-not-yet-flying deals count zero until the hardware is in the air.</p>
+<div class="tbl-shell rv"><table class="tbl" id="lbTable">
+    <thead><tr><th data-k="rank" data-t="num">#</th><th data-k="name">Airline</th><th data-k="score" data-t="num">ConnectScore</th><th data-k="sys">System</th><th data-k="fleet" data-t="num">Fleet equipped</th><th data-k="free">Free</th><th class="hide-sm">Note</th></tr></thead>
+    <tbody>
+      <tr class="arow" data-f="starlink freeall" data-q="airbaltic bt"><td class="rank" data-s="1">1</td><td><a class="aname" href="/airlines/airbaltic/">airBaltic<span class="code">BT</span></a></td><td data-s="100"><span class="sco">100</span> <span class="band sc-exc">excellent</span></td><td data-s="Starlink"><span class="sysdot starlink"></span>Starlink</td><td data-s="1.0000"><span class="mono">55 / 55</span><span class="track mini"><i class="fill" style="--pct:100%"></i></span></td><td data-s="free">free onboard</td><td class="note hide-sm">Entire A220 fleet equipped — the first European airline to complete a Starlink fit.</td></tr>
+      <tr class="arow" data-f="starlink freeall" data-q="jsx xe"><td class="rank" data-s="2">2</td><td><a class="aname" href="/airlines/jsx/">JSX<span class="code">XE</span></a></td><td data-s="100"><span class="sco">100</span> <span class="band sc-exc">excellent</span></td><td data-s="Starlink"><span class="sysdot starlink"></span>Starlink</td><td data-s="1.0000"><span class="mono">75 / 75</span><span class="track mini"><i class="fill" style="--pct:100%"></i></span></td><td data-s="free">free onboard</td><td class="note hide-sm">Every aircraft in the fleet — the first airline anywhere to finish its Starlink rollout.</td></tr>
+      <tr class="arow" data-f="starlink freeall" data-q="zipair zg"><td class="rank" data-s="3">3</td><td><a class="aname" href="/airlines/zipair/">ZIPAIR<span class="code">ZG</span></a></td><td data-s="100"><span class="sco">100</span> <span class="band sc-exc">excellent</span></td><td data-s="Starlink"><span class="sysdot starlink"></span>Starlink</td><td data-s="1.0000"><span class="mono">9 / 9</span><span class="track mini"><i class="fill" style="--pct:100%"></i></span></td><td data-s="free">free onboard</td><td class="note hide-sm">All nine 787s equipped, free onboard.</td></tr>
+      <tr class="arow" data-f="starlink freeall" data-q="westjet ws"><td class="rank" data-s="4">4</td><td><a class="aname" href="/airlines/westjet/">WestJet<span class="code">WS</span></a></td><td data-s="95"><span class="sco">95</span> <span class="band sc-exc">excellent</span></td><td data-s="Starlink"><span class="sysdot starlink"></span>Starlink</td><td data-s="0.9497"><span class="mono">151 / 159</span><span class="track mini"><i class="fill" style="--pct:95%"></i></span></td><td data-s="free">free onboard</td><td class="note hide-sm">151 of 159 — fleetwide install all but finished.</td></tr>
+      <tr class="arow" data-f="starlink freeall" data-q="air france af"><td class="rank" data-s="5">5</td><td><a class="aname" href="/airlines/airfrance/">Air France<span class="code">AF</span></a></td><td data-s="75"><span class="sco">75</span> <span class="band sc-good">good</span></td><td data-s="Starlink"><span class="sysdot starlink"></span>Starlink</td><td data-s="0.7511"><span class="mono">172 / 229</span><span class="track mini"><i class="fill" style="--pct:75%"></i></span></td><td data-s="free">free onboard</td><td class="note hide-sm">172 of 229 done and free for all Flying Blue members.</td></tr>
+      <tr class="arow" data-f="starlink freeall" data-q="hawaiian ha"><td class="rank" data-s="6">6</td><td><a class="aname" href="/airlines/hawaiian/">Hawaiian<span class="code">HA</span></a></td><td data-s="69"><span class="sco">69</span> <span class="band sc-good">good</span></td><td data-s="Starlink"><span class="sysdot starlink"></span>Starlink</td><td data-s="0.6885"><span class="mono">42 / 61</span><span class="track mini"><i class="fill" style="--pct:69%"></i></span></td><td data-s="free">free onboard</td><td class="note hide-sm">42 of 61 — the widebody fit is nearly complete, the best Starlink odds of any US carrier.</td></tr>
+      <tr class="arow" data-f="viasat legacy leo freeall" data-q="delta dl"><td class="rank" data-s="7">7</td><td><a class="aname" href="/airlines/delta/">Delta<span class="code">DL</span></a></td><td data-s="60"><span class="sco">60</span> <span class="band sc-good">good</span></td><td data-s="Viasat"><span class="sysdot viasat"></span>Viasat <span style="color:var(--faint)">→ Amazon Leo 2028</span></td><td data-s="1.0000"><span class="mono">fleetwide</span></td><td data-s="free">free onboard</td><td class="note hide-sm">Free Viasat for SkyMiles members fleetwide today; Amazon Leo lands on 500 aircraft from 2028.</td></tr>
+      <tr class="arow" data-f="viasat legacy leo freeall" data-q="jetblue b6"><td class="rank" data-s="8">8</td><td><a class="aname" href="/airlines/jetblue/">jetBlue<span class="code">B6</span></a></td><td data-s="60"><span class="sco">60</span> <span class="band sc-good">good</span></td><td data-s="Viasat"><span class="sysdot viasat"></span>Viasat <span style="color:var(--faint)">→ Amazon Leo 2027</span></td><td data-s="1.0000"><span class="mono">fleetwide</span></td><td data-s="free">free onboard</td><td class="note hide-sm">Free “Fly-Fi” Viasat on the whole fleet; Amazon Leo arrives 2027.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="tblcap">ConnectScore = connectivity probability × system quality × free-for-you. Data: unitedstarlinktracker.com · alaskastarlinktracker.com · airline announcements (Jul 2026).</p>
+</section>
+
+<section class="blk">
+  <div class="sec-h"><h2>The United rollout, three ways</h2><span class="sub">176 install days baked at build time</span></div>
+  <div class="grid3">
+    <a class="card rv" href="/united/fleet/"><h3>Rollout curve</h3><svg class="spark" viewBox="0 0 300 80" role="img" aria-label="176 install days, rising to 481 equipped aircraft"><path class="f" d="M0,76 L0,75 L39.2,74.9 L40.4,74.7 L41.6,74.6 L66.4,74.4 L72.4,74.1 L73.6,74 L74.8,73.9 L76.7,73.7 L80.3,73.6 L82.7,73.4 L83.9,73.1 L86.3,72.9 L88.7,72.7 L89.3,72.6 L91.1,72.3 L91.8,72.2 L93,72 L93.6,71.7 L96.6,71.4 L97.2,71.3 L99,71.2 L99.6,70.9 L100.2,70.7 L101.4,70.4 L103.8,70.2 L105,69.9 L106.8,69.7 L107.4,69.6 L108.7,69.4 L109.3,69.2 L109.9,69 L110.5,68.9 L111.7,68.7 L112.3,68.6 L112.9,68.4 L113.5,68.3 L114.1,68.2 L115.3,67.9 L116.5,67.7 L117.1,67.6 L118.9,67 L120.7,66.9 L122.5,66.7 L126.2,66.6 L126.8,66.3 L127.4,66.2 L128,65.7 L129.8,65.6 L130.4,65.5 L131.6,65.2 L132.2,64.6 L134,64.5 L134.6,64.3 L135.2,64 L138.2,63.9 L140,63.6 L141.2,63.5 L144.3,61.9 L146.7,61.7 L147.9,61.6 L149.7,61.5 L150.9,60.9 L156.9,60.7 L159.4,43.5 L161.2,43.1 L163.6,42.6 L165.4,42.4 L166,40.9 L167.8,40.8 L169,40.5 L172,40.4 L173.2,38.5 L174.4,38.4 L175.1,37.7 L176.9,37.5 L177.5,36.5 L179.3,35.9 L179.9,35.7 L180.5,35.4 L181.1,35.2 L181.7,34.9 L182.3,34.7 L182.9,33.9 L185.3,33.7 L185.9,33.4 L187.1,33.1 L188.9,32.8 L192.6,32.7 L194.4,32.4 L195,32.2 L195.6,31.7 L197.4,31.5 L198,31.1 L199.2,31 L199.8,30.7 L201,30.5 L201.6,30.1 L202.2,30 L203.4,29.8 L204.6,29.4 L205.8,29.1 L207,29 L210.1,28.8 L211.9,28.5 L213.1,28.4 L213.7,28.2 L214.3,28.1 L214.9,27.1 L219.1,27 L222.7,26.7 L224.5,26.5 L225.2,26.4 L228.8,26.2 L231.8,26.1 L233,26 L240.2,25.8 L240.8,25.5 L241.4,25.2 L243.3,25.1 L243.9,25 L244.5,24.7 L245.1,24.5 L245.7,24.3 L246.9,24.1 L247.5,24 L248.7,23.8 L249.3,23.7 L249.9,23.5 L251.1,23.4 L252.3,23 L252.9,22.7 L254.1,22.5 L254.7,22.3 L256.5,22.1 L257.7,22 L258.4,21.7 L260.2,21.5 L261.4,21.3 L262.6,21.1 L263.2,21 L263.8,20.7 L264.4,20.3 L265.6,20.1 L266.2,20 L267.4,19.7 L269.2,19.3 L269.8,17.8 L270.4,17.7 L271,17.4 L271.6,17.1 L273.4,16.8 L274,16.7 L275.3,16.4 L277.1,16.1 L277.7,15.6 L278.3,15.1 L280.1,14.8 L280.7,14.7 L281.3,14.4 L285.5,14 L286.1,13.6 L286.7,13.4 L289.7,11 L290.3,10.6 L290.9,10.4 L291.5,10.1 L292.2,10 L293.4,9.7 L294,9.3 L294.6,9 L295.8,8.6 L296.4,8.3 L297.6,7.7 L298.8,7.6 L299.4,7.4 L300,7.4 L300,80 L0,80 Z"/><path class="s" d="M0,76 L0,75 L39.2,74.9 L40.4,74.7 L41.6,74.6 L66.4,74.4 L72.4,74.1 L73.6,74 L74.8,73.9 L76.7,73.7 L80.3,73.6 L82.7,73.4 L83.9,73.1 L86.3,72.9 L88.7,72.7 L89.3,72.6 L91.1,72.3 L91.8,72.2 L93,72 L93.6,71.7 L96.6,71.4 L97.2,71.3 L99,71.2 L99.6,70.9 L100.2,70.7 L101.4,70.4 L103.8,70.2 L105,69.9 L106.8,69.7 L107.4,69.6 L108.7,69.4 L109.3,69.2 L109.9,69 L110.5,68.9 L111.7,68.7 L112.3,68.6 L112.9,68.4 L113.5,68.3 L114.1,68.2 L115.3,67.9 L116.5,67.7 L117.1,67.6 L118.9,67 L120.7,66.9 L122.5,66.7 L126.2,66.6 L126.8,66.3 L127.4,66.2 L128,65.7 L129.8,65.6 L130.4,65.5 L131.6,65.2 L132.2,64.6 L134,64.5 L134.6,64.3 L135.2,64 L138.2,63.9 L140,63.6 L141.2,63.5 L144.3,61.9 L146.7,61.7 L147.9,61.6 L149.7,61.5 L150.9,60.9 L156.9,60.7 L159.4,43.5 L161.2,43.1 L163.6,42.6 L165.4,42.4 L166,40.9 L167.8,40.8 L169,40.5 L172,40.4 L173.2,38.5 L174.4,38.4 L175.1,37.7 L176.9,37.5 L177.5,36.5 L179.3,35.9 L179.9,35.7 L180.5,35.4 L181.1,35.2 L181.7,34.9 L182.3,34.7 L182.9,33.9 L185.3,33.7 L185.9,33.4 L187.1,33.1 L188.9,32.8 L192.6,32.7 L194.4,32.4 L195,32.2 L195.6,31.7 L197.4,31.5 L198,31.1 L199.2,31 L199.8,30.7 L201,30.5 L201.6,30.1 L202.2,30 L203.4,29.8 L204.6,29.4 L205.8,29.1 L207,29 L210.1,28.8 L211.9,28.5 L213.1,28.4 L213.7,28.2 L214.3,28.1 L214.9,27.1 L219.1,27 L222.7,26.7 L224.5,26.5 L225.2,26.4 L228.8,26.2 L231.8,26.1 L233,26 L240.2,25.8 L240.8,25.5 L241.4,25.2 L243.3,25.1 L243.9,25 L244.5,24.7 L245.1,24.5 L245.7,24.3 L246.9,24.1 L247.5,24 L248.7,23.8 L249.3,23.7 L249.9,23.5 L251.1,23.4 L252.3,23 L252.9,22.7 L254.1,22.5 L254.7,22.3 L256.5,22.1 L257.7,22 L258.4,21.7 L260.2,21.5 L261.4,21.3 L262.6,21.1 L263.2,21 L263.8,20.7 L264.4,20.3 L265.6,20.1 L266.2,20 L267.4,19.7 L269.2,19.3 L269.8,17.8 L270.4,17.7 L271,17.4 L271.6,17.1 L273.4,16.8 L274,16.7 L275.3,16.4 L277.1,16.1 L277.7,15.6 L278.3,15.1 L280.1,14.8 L280.7,14.7 L281.3,14.4 L285.5,14 L286.1,13.6 L286.7,13.4 L289.7,11 L290.3,10.6 L290.9,10.4 L291.5,10.1 L292.2,10 L293.4,9.7 L294,9.3 L294.6,9 L295.8,8.6 L296.4,8.3 L297.6,7.7 L298.8,7.6 L299.4,7.4 L300,7.4"/></svg><p>481 aircraft equipped since Mar 14, 2025 — express first, mainline catching up.</p><span class="go">See the timeline →</span></a>
+    <a class="card rv" href="/united/fleet/"><h3>Hangar floor</h3><div class="mini-waffle" aria-hidden="true"><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i class="eq"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><p class="vh">One cell per 10 United aircraft: 48 of 181 cells lit, 481 of 1807 aircraft equipped.</p><p>One cell per 10 aircraft · <b>481 of 1,807</b> equipped (27%). The full floor is one cell per aircraft.</p><span class="go">Open all 1,807 cells →</span></a>
+    <div class="card rv"><h3>Busiest Starlink routes</h3><div><a class="pill" href="/united/"><b>IND–ORD</b> · 13 Starlink departures/48h · next in 2h</a><a class="pill" href="/united/"><b>ORD–IND</b> · 13 Starlink departures/48h · next in 4h</a><a class="pill" href="/united/"><b>ORD–STL</b> · 12 Starlink departures/48h · next in 4h</a><a class="pill" href="/united/"><b>ORD–DEN</b> · 11 Starlink departures/48h · next in 59m</a><a class="pill" href="/united/"><b>EWR–DCA</b> · 11 Starlink departures/48h · next in 3m</a><a class="pill" href="/united/"><b>STL–ORD</b> · 11 Starlink departures/48h · next in 7h</a></div><p class="note">60-route leaderboard · 48 cached routes in the optimizer.</p><a class="go" href="/united/">Open the route optimizer →</a></div>
   </div>
 </section>
 
-<section class="blk" id="tools">
-  <div class="sec-h"><h2>Per-flight odds where we're instrumented</h2></div>
-  <p class="sec-lede">A fleet-level score tells you which airline to prefer. These two go one level
-  deeper — the actual flight you are about to book.</p>
-  <div class="cards">
-    <a class="card" href="/united/">
-      <div class="ct"><h3>United</h3><span class="band sc-good" id="uaBand">ConnectScore</span></div>
-      <div class="cs" id="uaFacts">Starlink · rollout in progress · verified by unitedstarlinktracker.com</div>
-      <p>The full toolkit, updated daily:</p>
-      <ul>
-        <li>Route optimizer — every flight on a route ranked by odds</li>
-        <li>Best routings, including connections</li>
-        <li>Confirmed Starlink tails and departures</li>
-        <li>Trip planner and a booking playbook</li>
-        <li>The whole rollout history, day by day</li>
-      </ul>
-      <span class="go">Open the United tools →</span>
-    </a>
-    <a class="card" href="/alaska/">
-      <div class="ct"><h3>Alaska</h3><span class="band sc-mix" id="asBand">ConnectScore</span></div>
-      <div class="cs" id="asFacts">Starlink · rollout in progress · verified by alaskastarlinktracker.com</div>
-      <p>Installing fast and free for everyone onboard — the regional jet fleet is already finished.</p>
-      <ul>
-        <li>ConnectScore and what drives it</li>
-        <li>Where the rollout stands, by fleet type</li>
-        <li>Per-flight odds on alaskaair.com, in the extension</li>
-      </ul>
-      <span class="go">See the Alaska rollout →</span>
-    </a>
-  </div>
-</section>
+<section class="blk">
+  <div class="sec-h"><h2>Get the odds while you book</h2></div>
+<div class="card rv"><h3>Odds while you book</h3><p>Colour-coded odds badges on every United flight on united.com and Navan, one-click sort by odds, a live route panel, and Alaska support behind an optional permission. The ConnectScore for all eighteen airlines rides along in the popup.</p><div class="cta-row"><a class="btn" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Add to Chrome — free ↗</a><a class="btn ghost" href="/airlines/">Check an airline →</a></div><p class="note" style="margin-top:12px">Free · no accounts · no tracking.</p></div></section>
 
-<section class="blk" id="how">
+<section class="blk">
+  <div class="sec-h"><h2>What’s coming</h2><a class="more" href="/roadmap/">full roadmap →</a></div>
+<div class="steps"><div class="step building rv"><div class="sh"><h3>Tail-swap Guardian</h3><span class="st">building</span></div><p>Watches your booked flight for equipment swaps, booking to boarding. Prototype built; ships with extension 2.1.</p></div><div class="step building rv"><div class="sh"><h3>More airlines, in rollout order</h3><span class="st">building</span></div><p>Hawaiian next (42 of 61 — the best US Starlink odds), then the near-complete fleets: WestJet, Air France, airBaltic, JSX. Each gets the United treatment as instrumentation lands.</p></div><div class="step planned rv"><div class="sh"><h3>PWA</h3><span class="st">planned</span></div><p>Installable, offline ConnectScores, and push notifications for Guardian alerts.</p></div></div></section>
+
+<section class="blk">
   <div class="sec-h"><h2>How ConnectScore works</h2><span class="sub">0–100</span></div>
-  <div class="method">
-    <div class="formula">ConnectScore = P(connectivity) × system quality × free-for-you</div>
-    <div class="mgrid">
-      <div class="m">
-        <div class="mh">P(connectivity)</div>
-        <p>The share of the fleet actually carrying the system today — equipped aircraft divided by
-        total aircraft, from the trackers where they exist and from airline announcements otherwise.</p>
-      </div>
-      <div class="m">
-        <div class="mh">System quality</div>
-        <p>Starlink and Amazon Leo (low-earth orbit) count 1.0. Viasat, Intelsat and Gogo 2Ku count
-        0.6. Older geostationary systems count 0.3.</p>
-      </div>
-      <div class="m">
-        <div class="mh">Free for you</div>
-        <p>Free for everyone, or free with a free-to-join loyalty program, counts 1.0. A paid status
-        tier, a partial rollout, or an unconfirmed free claim counts 0.85. Paid WiFi counts 0.7.</p>
-      </div>
-    </div>
-    <div class="caveat" id="caveat">…</div>
-    <p style="margin-top:16px;font-size:13.5px;color:var(--dim)">
-      No accounts, no analytics, no tracking — on this site or in the extension. See the
-      <a href="/privacy.html">privacy policy</a>.</p>
-  </div>
+  <div class="panel"><p style="font-family:var(--mono);font-size:14.5px;color:var(--ink)">ConnectScore = P(connectivity) × system quality × free-for-you</p><div class="caveat">ConnectScore is the chance of getting the GOOD system, not of any wifi at all. Legacy satellite service on the not-yet-converted part of a fleet is not credited. Signed-but-unflown deals (AA Starlink 2027, DL/B6 Amazon Leo) score zero until they fly.</div></div>
 </section>
 
+<div class="credit"><span class="cb">DATA CREDIT</span><span class="cbody">Fleet verification for the instrumented airlines comes from the independent community trackers <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener"><b>unitedstarlinktracker.com</b></a> and <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener"><b>alaskastarlinktracker.com</b></a>, built by <b>@martinamps</b>. All credit for that data goes to them ↗. Every other airline is compiled from public airline announcements (July 2026). WiFi Odds is unofficial and not affiliated with any airline, SpaceX/Starlink, Amazon, Viasat, or the trackers.</span></div>
 <footer>
-  <div class="flinks">
-    <a href="/united/">United</a><a href="/alaska/">Alaska</a><a href="/privacy.html">Privacy</a>
-    <a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Open source ↗</a>
-  </div>
-  <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a>
-  · <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a>
-  (independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>
-  <div class="frow">ConnectScores and per-flight odds are historical estimates, not guarantees —
-  aircraft assignments change until departure. WiFi Odds is an unofficial, free, open-source project
-  and is not affiliated with, endorsed by, or sponsored by any airline, SpaceX/Starlink, Amazon,
-  Viasat, or the community trackers. 🛰️</div>
+  <div class="flinks"><a href="/airlines/">Airlines</a><a href="/united/">United</a><a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a><a href="/privacy.html">Privacy</a><a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Open source ↗</a></div>
+  <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> · <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> (independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>
+  <div class="frow"><b>No accounts, no analytics, no tracking</b> — on this site or in the extension. The only thing stored in your browser is your light/dark choice. See the <a href="/privacy.html">privacy policy</a>.</div>
+  <div class="frow">Data updated <b>2026-07-24</b>. ConnectScores and per-flight odds are historical estimates, not guarantees — aircraft assignments change until departure. WiFi Odds is an unofficial, free, open-source project. 🛰️</div>
 </footer>
-
 </div>
-
-<script src="/assets/airlines.js"></script>
-<script>
-/* ── render the ConnectScore index from the shared airline map ───────────────
-   assets/airlines.js is a copy of the extension's airlines.js (the single
-   source of truth for now — see README). It exposes WIFI_AIRLINES, plus
-   rankAirlines() / scoreAirline() / SCORE_CAVEAT, as globals. ─────────────── */
-(function(){
-  var esc=function(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){
-    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});};
-  var num=function(n){return Number(n).toLocaleString("en-US");};
-  var rows=document.getElementById("arows");
-
-  if(typeof rankAirlines!=="function"){
-    rows.innerHTML='<div class="arow"><div class="sco"><div class="n">!</div></div><div class="amid">'+
-      '<div class="an">Couldn&rsquo;t load the airline map</div>'+
-      '<div class="note">assets/airlines.js did not load. The rest of the page still works.</div>'+
-      '</div><div class="aend"></div></div>';
-    return;
-  }
-
-  var BAND=function(score){
-    if(score>=85)return "sc-exc";
-    if(score>=60)return "sc-good";
-    if(score>=35)return "sc-mix";
-    if(score>=20)return "sc-long";
-    if(score>=5)return "sc-rare";
-    return "sc-no";
-  };
-  var FREE={
-    "free":"free onboard",
-    "loyalty-free":"free for loyalty members",
-    "loyalty-tier":"free on paid status tiers",
-    "partial":"free on some cabins/routes",
-    "unknown":"free status unconfirmed",
-    "paid":"paid"
-  };
-  var HREF={united:"/united/",alaska:"/alaska/"};
-
-  var list=rankAirlines();
-  document.getElementById("acount").textContent=list.length+" airlines · as of July 2026";
-  if(typeof SCORE_CAVEAT==="string")document.getElementById("caveat").textContent=SCORE_CAVEAT;
-
-  rows.innerHTML=list.map(function(a){
-    var href=HREF[a.key];
-    var open=href?'<a class="arow instr" href="'+href+'">':'<div class="arow">';
-    var close=href?'</a>':'</div>';
-    var entry=WIFI_AIRLINES[a.key]||{};
-
-    var facts=['<span class="sys">'+esc(a.systemLabel)+'</span>'];
-    if(a.fleet)facts.push(num(a.equipped)+" of "+num(a.fleet)+" aircraft");
-    else facts.push("fleetwide");
-    facts.push(FREE[String(entry.free||"unknown").toLowerCase()]||"—");
-
-    var fut=a.future
-      ? '<div class="fut">Signed for later, not scored: '+
-        esc(a.future.system==="leo"?"Amazon Leo":a.future.system)+" from "+esc(a.future.from)+
-        (a.future.detail?" — "+esc(a.future.detail):"")+'.</div>'
-      : "";
-    /* plain text, never a nested <a>: an anchor inside an anchor makes the HTML
-       parser split the row into several elements (it did — caught in test). */
-    var trk=a.tracker
-      ? '<div class="fut">Tails verified by '+esc(a.tracker)+' (@martinamps).</div>'
-      : "";
-
-    var barPct=Math.round(a.parts.pctEquipped*100);
-    var end=href?'<span class="pill-go">per-flight odds →</span>'
-                :'<span class="pill-flat">fleet score only</span>';
-
-    return open+
-      '<div class="sco"><div class="n">'+a.score+'</div>'+
-        '<span class="lb '+BAND(a.score)+'">'+esc(a.label)+'</span></div>'+
-      '<div class="amid">'+
-        '<div class="an">'+esc(a.name)+(a.code?'<span class="code">'+esc(a.code)+'</span>':"")+'</div>'+
-        '<div class="facts">'+facts.join(" · ")+'</div>'+
-        '<div class="note">'+esc(a.note)+'</div>'+trk+fut+
-      '</div>'+
-      '<div class="aend">'+end+
-        '<span class="bar"><i style="width:'+barPct+'%"></i></span>'+
-        '<span class="barlab">'+barPct+'% of fleet</span>'+
-      '</div>'+
-    close;
-  }).join("");
-
-  /* the two tool cards echo the live score so the numbers can never drift */
-  [["united","uaBand","uaFacts"],["alaska","asBand","asFacts"]].forEach(function(t){
-    var a=(typeof scoreAirline==="function")?scoreAirline(t[0]):null;
-    if(!a)return;
-    var b=document.getElementById(t[1]);
-    b.className="band "+BAND(a.score);
-    b.textContent="ConnectScore "+a.score+" · "+a.label;
-    document.getElementById(t[2]).textContent=
-      a.systemLabel+" · "+num(a.equipped)+" of "+num(a.fleet)+" aircraft"+
-      (a.tracker?" · verified by "+a.tracker:"");
-  });
-})();
-</script>
-<script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebSite","name":"WiFi Odds","url":"https://wifiodds.com/",
-"description":"ConnectScore: every airline's chance of good inflight WiFi in one number, plus per-flight odds for United and Alaska.",
-"publisher":{"@type":"Organization","name":"WiFi Odds","url":"https://wifiodds.com/"}}
-</script>
+<script src="/assets/site.js" defer></script>
 </body>
 </html>
