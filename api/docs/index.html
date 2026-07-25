@@ -186,6 +186,31 @@ curl -s https://wifiodds.com/api/score/AS15</div>
 </section>
 
 <section class="blk">
+  <div class="sec-h"><h2>MCP server</h2><span class="sub">for AI assistants</span></div>
+  <p class="sec-lede">There is also an <b>MCP</b> endpoint, so an AI assistant can look these numbers up itself instead of guessing from whatever it remembers about airline WiFi. It speaks streamable HTTP — JSON-RPC 2.0 over <span class="apip">POST /mcp</span>, no key, no account, CORS open, and no session required for a single call.</p>
+  <div class="tbl-shell"><table class="tbl">
+    <thead><tr><th>Tool</th><th>Arguments</th><th>Returns</th></tr></thead>
+    <tbody>
+      <tr><td class="mono"><b>get_airline_score</b></td><td class="mono">key</td><td>One airline: ConnectScore, system, fleet share, cost onboard, and the confidence tier the number comes from.</td></tr>
+      <tr><td class="mono"><b>list_airline_scores</b></td><td class="mono">—</td><td>All 18 airlines, best odds first. One call instead of eighteen.</td></tr>
+      <tr><td class="mono"><b>score_flight</b></td><td class="mono">flight_number</td><td>One flight. United returns a per-flight probability with its sample size; every other carrier returns the coarse airline score with <span class="mono">prob: null</span>.</td></tr>
+    </tbody>
+  </table></div>
+<div class="apic">curl -sS -X POST https://wifiodds.com/mcp -H 'content-type: application/json' \
+  -d '{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:1,&quot;method&quot;:&quot;tools/list&quot;}'
+
+curl -sS -X POST https://wifiodds.com/mcp -H 'content-type: application/json' \
+  -d '{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:2,&quot;method&quot;:&quot;tools/call&quot;,&quot;params&quot;:
+       {&quot;name&quot;:&quot;score_flight&quot;,&quot;arguments&quot;:{&quot;flight_number&quot;:&quot;UA212&quot;}}}'</div>
+  <p class="tblcap">Every tool result comes back twice: a text block for the model to relay and a <span class="mono">structuredContent</span> object for the client to parse. The data credits are in both, because the text is what usually reaches the user.</p>
+  <div class="faq" style="margin-top:16px">
+    <div class="q"><h3>The <span class="mono">instructions</span> field is the point</h3><p>What <span class="mono">initialize</span> returns is not a description of the endpoints — it is the decision layer: someone asking about flight WiFi is trying to maximise <b>hours of working WiFi</b>, so prefer the higher ConnectScore, use United's route history when there is a flight number, name which confidence tier you are quoting, never invent a per-flight number for a fleet we have no history for, and always pass the credits through. A data endpoint with no opinion gets averaged into mush by whichever model is holding it.</p></div>
+    <div class="q"><h3>It is the same code as the REST API</h3><p>Each tool is a thin wrapper around the very handler that serves <span class="mono">/api/**</span> — it builds a synthetic GET request and re-shapes the answer. So <span class="mono">score_flight("UA212")</span> and <span class="mono">GET /api/score/UA212</span> cannot disagree: they are the same call. The acceptance suite asserts exactly that.</p></div>
+    <div class="q"><h3>GET returns 405, on purpose</h3><p>This server opens no server-initiated SSE stream, so there is nothing for a GET to subscribe to. It answers with a 405 whose <i>body</i> tells you the POST to make instead — a bare 405 with no bytes is the kind of unhelpful signal this project has been bitten by before.</p></div>
+  </div>
+</section>
+
+<section class="blk">
   <div class="sec-h"><h2>Using it</h2></div>
   <div class="faq">
     <div class="q"><h3>Credit is the only condition</h3><p>The fleet numbers for United and Alaska are not ours — they come from unitedstarlinktracker.com and alaskastarlinktracker.com, the independent community trackers built by @martinamps. The <span class="mono">sources</span> array is in every response so that the credit travels with the data. Keep it, or reproduce it wherever you show the numbers.</p></div>
@@ -196,7 +221,7 @@ curl -s https://wifiodds.com/api/score/AS15</div>
   </div>
 </section>
 <footer>
-  <div class="flinks"><a href="/airlines/">Airlines</a><a href="/united/">United</a><a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a><a href="/api/docs/">API</a><a href="/privacy.html">Privacy</a><a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Open source ↗</a></div>
+  <div class="flinks"><a href="/airlines/">Airlines</a><a href="/united/">United</a><a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a><a href="/methodology/">Methodology</a><a href="/api/docs/">API</a><a href="/privacy.html">Privacy</a><a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Open source ↗</a></div>
   <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> · <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> (independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>
   <div class="frow"><b>No accounts, no analytics, no tracking</b> — on this site or in the extension. The only thing stored in your browser is your light/dark choice. See the <a href="/privacy.html">privacy policy</a>.</div>
   <div class="frow">Data updated <b>2026-07-24</b>. ConnectScores and per-flight odds are historical estimates, not guarantees — aircraft assignments change until departure. WiFi Odds is an unofficial, free, open-source project. 🛰️</div>

@@ -29,6 +29,10 @@ var ROUTES = [
   { url: '/united/fleet/', file: 'united/fleet/index.html', kind: 'gen', changefreq: 'daily', priority: '0.9' },
   { url: '/united/history/', file: 'united/history/index.html', kind: 'gen', tmpl: 'united-history', changefreq: 'daily', priority: '0.6' },
   { url: '/alaska/', file: 'alaska/index.html', kind: 'gen', tmpl: 'alaska-rollout', changefreq: 'weekly', priority: '0.8' },
+  /* The provenance page. changefreq daily because its freshness stamp and worked
+     examples are re-baked from data.json with everything else, and it is the page
+     an answer engine is most likely to re-check before quoting a number. */
+  { url: '/methodology/', file: 'methodology/index.html', kind: 'gen', changefreq: 'daily', priority: '0.7' },
   { url: '/roadmap/', file: 'roadmap/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.5' },
   { url: '/api/docs/', file: 'api/docs/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.5' },
   { url: '/privacy.html', file: 'privacy.html', kind: 'gen', tmpl: 'privacy', changefreq: 'yearly', priority: '0.3' }

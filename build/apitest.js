@@ -268,6 +268,164 @@ async function main() {
   eq(res.status, 405, 'POST → 405');
   eq((await body(res)).error.code, 'method_not_allowed', 'POST error code');
 
+  /* ── the MCP server, /mcp ─────────────────────────────────────────────────
+   * Same principle as the REST section: wrangler is not installed, so the only
+   * pre-ship test is to import the module and POST real JSON-RPC bodies at it
+   * with a mock Pages context, then assert on the parsed responses. The tools are
+   * wrappers around the handlers above, so the assertion that matters most is
+   * that they return the SAME numbers — a per-flight probability that disagrees
+   * with /api/score/ would mean there are two implementations again. */
+  var MCP = await import('../functions/_lib/mcp.mjs');
+
+  function mcpCtx(payload, method) {
+    var c = ctx('https://wifiodds.com/mcp', {}, method || 'POST');
+    c.request = new Request('https://wifiodds.com/mcp', {
+      method: method || 'POST',
+      headers: { 'content-type': 'application/json', accept: 'application/json' },
+      body: payload === undefined ? undefined : JSON.stringify(payload)
+    });
+    return c;
+  }
+  async function rpc(payload, method) {
+    var r = await MCP.mcpRequest(mcpCtx(payload, method));
+    return { res: r, j: r.status === 202 ? null : await body(r) };
+  }
+  /* every tool result must carry the credit in the TEXT block, because a model
+     will often relay only the text and drop structuredContent entirely */
+  function assertToolResult(r, label) {
+    ok(r && Array.isArray(r.content) && r.content[0] && r.content[0].type === 'text',
+      label + ': content[] text block');
+    ok(r && r.content && /martinamps/.test(r.content[0].text),
+      label + ': the credit line is in the text a model will relay');
+    ok(r && r.content && /wifiodds\.com\/methodology\//.test(r.content[0].text),
+      label + ': links the methodology page');
+  }
+
+  /* initialize — the instructions field IS the product, so assert it is really
+     carrying the opinion and not just a description of the endpoints */
+  var init = await rpc({ jsonrpc: '2.0', id: 1, method: 'initialize',
+    params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '0' } } });
+  eq(init.res.status, 200, 'MCP initialize HTTP 200');
+  eq(init.res.headers.get('access-control-allow-origin'), '*', 'MCP CORS is open');
+  eq(init.res.headers.get('cache-control'), 'no-store', 'MCP responses are never cached');
+  eq(init.j.jsonrpc, '2.0', 'MCP initialize is JSON-RPC 2.0');
+  eq(init.j.id, 1, 'MCP initialize echoes the id');
+  eq(init.j.result.protocolVersion, '2025-06-18', 'MCP echoes a protocol version it knows');
+  ok(init.j.result.capabilities && init.j.result.capabilities.tools, 'MCP declares the tools capability');
+  eq(init.j.result.serverInfo.name, 'wifiodds', 'MCP serverInfo.name');
+  var instr = init.j.result.instructions || '';
+  ok(instr.length > 1500, 'MCP instructions are substantial (they are the product)', instr.length);
+  [/HOURS OF WORKING WIFI/, /Prefer the higher ConnectScore/, /route-history/, /Never/,
+    /martinamps/, /methodology/].forEach(function (re) {
+    ok(re.test(instr), 'MCP instructions carry ' + re);
+  });
+  /* an unknown protocol revision must not be echoed back as if we spoke it */
+  var initOld = await rpc({ jsonrpc: '2.0', id: 2, method: 'initialize',
+    params: { protocolVersion: '1999-01-01' } });
+  eq(initOld.j.result.protocolVersion, MCP.PROTOCOL_VERSIONS[0],
+    'unknown protocol version falls back to ours');
+
+  /* tools/list */
+  var tl = await rpc({ jsonrpc: '2.0', id: 3, method: 'tools/list' });
+  eq(tl.res.status, 200, 'MCP tools/list HTTP 200');
+  eq(tl.j.result.tools.length, 3, 'MCP exposes exactly 3 tools');
+  eq(tl.j.result.tools.map(function (t) { return t.name; }).sort().join(','),
+    'get_airline_score,list_airline_scores,score_flight', 'MCP tool names');
+  tl.j.result.tools.forEach(function (t) {
+    ok(t.description && t.description.length > 40, t.name + ': has a real description');
+    eq(t.inputSchema.type, 'object', t.name + ': inputSchema is an object schema');
+    eq(t.inputSchema.additionalProperties, false, t.name + ': schema rejects stray properties');
+  });
+  var getTool = tl.j.result.tools.filter(function (t) { return t.name === 'get_airline_score'; })[0];
+  eq(getTool.inputSchema.properties.key.enum.length, 18,
+    'get_airline_score enumerates all 18 airline keys');
+
+  /* tools/call get_airline_score — and the parity assertion */
+  var t1 = await rpc({ jsonrpc: '2.0', id: 4, method: 'tools/call',
+    params: { name: 'get_airline_score', arguments: { key: 'qatar' } } });
+  var r1 = t1.j.result;
+  eq(r1.isError, false, 'get_airline_score(qatar) is not an error');
+  assertToolResult(r1, 'get_airline_score(qatar)');
+  eq(r1.structuredContent.airline.connectScore, qr.airline.connectScore,
+    'PARITY: MCP get_airline_score(qatar) equals /api/airlines/qatar');
+  ok(/Coarse/.test(r1.structuredContent.confidenceTier), 'qatar is the Coarse tier',
+    r1.structuredContent.confidenceTier);
+  ok(Array.isArray(r1.structuredContent.sources), 'get_airline_score carries sources[]');
+
+  /* an unknown key is a TOOL error, not a protocol error: the model must be able
+     to read what went wrong and retry rather than see the call fail */
+  var t1b = await rpc({ jsonrpc: '2.0', id: 5, method: 'tools/call',
+    params: { name: 'get_airline_score', arguments: { key: 'nope' } } });
+  ok(!t1b.j.error, 'unknown airline key is NOT a JSON-RPC error');
+  eq(t1b.j.result.isError, true, 'unknown airline key → isError:true');
+  ok(/Valid keys/.test(t1b.j.result.content[0].text), 'the error text lists the valid keys');
+
+  /* tools/call list_airline_scores */
+  var t2 = await rpc({ jsonrpc: '2.0', id: 6, method: 'tools/call',
+    params: { name: 'list_airline_scores', arguments: {} } });
+  var r2 = t2.j.result;
+  assertToolResult(r2, 'list_airline_scores');
+  eq(r2.structuredContent.count, 18, 'list_airline_scores returns 18 airlines');
+  eq(r2.structuredContent.airlines[0].key, ranked[0].key,
+    'list_airline_scores is ordered best-odds-first, like rankAirlines()');
+  ok(r2.structuredContent.airlines.every(function (a) { return !!a.confidenceTier; }),
+    'every airline in the list is labelled with its confidence tier');
+
+  /* tools/call score_flight — United, the Verified tier */
+  var t3 = await rpc({ jsonrpc: '2.0', id: 7, method: 'tools/call',
+    params: { name: 'score_flight', arguments: { flight_number: 'ua 212' } } });
+  var r3 = t3.j.result;
+  assertToolResult(r3, 'score_flight(UA212)');
+  eq(r3.structuredContent.flight, 'UA212', 'score_flight normalises the flight number');
+  eq(r3.structuredContent.prob, s.prob, 'PARITY: MCP score_flight prob equals /api/score/UA212');
+  eq(r3.structuredContent.method, 'route-history', 'UA212 keeps its route-history method');
+  ok(/Verified/.test(r3.structuredContent.confidenceTier), 'UA212 is the Verified tier');
+  ok(r3.content[0].text.indexOf(String(s.prob) + '%') >= 0,
+    'the per-flight probability is in the text, not only the structured payload');
+  ok(/change until departure/.test(r3.content[0].text),
+    'the tail-swap caveat rides along with every per-flight answer');
+
+  /* score_flight — no per-flight feed: prob must stay null in the payload AND the
+     text must not contain an invented number */
+  var t4 = await rpc({ jsonrpc: '2.0', id: 8, method: 'tools/call',
+    params: { name: 'score_flight', arguments: { flight_number: 'AS15' } } });
+  var r4 = t4.j.result;
+  eq(r4.structuredContent.prob, null, 'AS15 prob is null, never a guess');
+  eq(r4.structuredContent.method, 'airline-coarse', 'AS15 method');
+  ok(/do not turn this/i.test(r4.content[0].text), 'AS15 text tells the model not to invent precision');
+
+  /* score_flight — an airline we do not track at all */
+  var t5 = await rpc({ jsonrpc: '2.0', id: 9, method: 'tools/call',
+    params: { name: 'score_flight', arguments: { flight_number: 'XX999' } } });
+  eq(t5.j.result.isError, true, 'XX999 → isError:true');
+  ok(/do not track/i.test(t5.j.result.content[0].text), 'XX999 says we do not track it');
+
+  /* protocol edges */
+  var t6 = await rpc({ jsonrpc: '2.0', id: 10, method: 'tools/call',
+    params: { name: 'no_such_tool', arguments: {} } });
+  eq(t6.j.error.code, -32602, 'unknown tool → -32602');
+  var t7 = await rpc({ jsonrpc: '2.0', id: 11, method: 'resources/nope' });
+  eq(t7.j.error.code, -32601, 'unknown method → -32601');
+  var t8 = await rpc({ jsonrpc: '2.0', id: 12, method: 'ping' });
+  ok(t8.j.result && !t8.j.error, 'ping answers');
+  var note = await rpc({ jsonrpc: '2.0', method: 'notifications/initialized' });
+  eq(note.res.status, 202, 'a notification gets 202 and NO body');
+  var batch = await rpc([{ jsonrpc: '2.0', id: 20, method: 'ping' },
+    { jsonrpc: '2.0', id: 21, method: 'tools/list' }]);
+  ok(Array.isArray(batch.j) && batch.j.length === 2, 'a batch gets an array of two replies');
+  var opt = await MCP.mcpRequest(mcpCtx(undefined, 'OPTIONS'));
+  eq(opt.status, 204, 'MCP OPTIONS preflight → 204');
+  var g = await MCP.mcpRequest(mcpCtx(undefined, 'GET'));
+  var gj = await body(g);
+  eq(g.status, 405, 'MCP GET → 405 (no SSE stream offered)');
+  ok(/tools\/list/.test(gj.usage), 'the 405 body tells a human how to call it');
+  var badJson = await MCP.mcpRequest((function () {
+    var c = ctx('https://wifiodds.com/mcp', {}, 'POST');
+    c.request = new Request('https://wifiodds.com/mcp', { method: 'POST', body: 'not json' });
+    return c;
+  })());
+  eq((await body(badJson)).error.code, -32700, 'a non-JSON body → -32700 parse error');
+
   /* ── 3. PARITY: one formula, proved against the rendered HTML ─────────────
    * Not "both call the same function" — that is what we believe. This reads the
    * bytes of the page a visitor gets and demands the API agree with them. */

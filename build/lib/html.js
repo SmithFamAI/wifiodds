@@ -131,6 +131,11 @@ function footer(updated) {
   return '<footer>\n' +
     '  <div class="flinks"><a href="/airlines/">Airlines</a><a href="/united/">United</a>' +
     '<a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a>' +
+    /* Methodology is linked from the FOOTER and from the leaderboard's caveat, not
+       from the global topnav: NAV stays two items plus the CTA, and a provenance
+       page is something a reader goes looking for rather than something that
+       needs to compete with "Airlines" on every screen. */
+    '<a href="/methodology/">Methodology</a>' +
     '<a href="/api/docs/">API</a><a href="/privacy.html">Privacy</a>' +
     '<a href="' + REPO + '" target="_blank" rel="noopener">Open source ↗</a></div>\n' +
     '  <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> ' +

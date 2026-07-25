@@ -122,15 +122,91 @@ function home(m) {
         '@context': 'https://schema.org', '@type': 'Organization', '@id': ORIGIN + '/#org',
         name: 'WiFi Odds', url: ORIGIN + '/', logo: ORIGIN + '/assets/og.png',
         sameAs: [H.EXT, H.REPO]
+      },
+      /* The extension is the thing a person can actually install, and it was
+       * invisible to answer engines: the homepage described it in prose and
+       * declared nothing. SoftwareApplication is the type they look for, and
+       * price 0 is the fact that gets it quoted. */
+      {
+        '@context': 'https://schema.org', '@type': 'SoftwareApplication',
+        '@id': ORIGIN + '/#extension',
+        name: 'WiFi Odds for Flights',
+        applicationCategory: 'BrowserApplication',
+        applicationSubCategory: 'Browser extension',
+        operatingSystem: 'Chrome, Edge, Brave (Chromium)',
+        url: H.EXT, installUrl: H.EXT, downloadUrl: H.EXT,
+        softwareVersion: '2.0',
+        description: 'Shows Starlink WiFi odds on the airline booking page itself: colour-coded badges ' +
+          'on every United flight on united.com and Navan, one-click sort by odds, a live route panel, ' +
+          'optional Alaska support, and the ConnectScore for all ' + m.airlineCount +
+          ' airlines in the popup. No accounts, no analytics, no tracking.',
+        featureList: [
+          'Per-flight Starlink odds badges on united.com search results',
+          'Sort a whole page of flights by WiFi odds',
+          'ConnectScore for ' + m.airlineCount + ' airlines in the popup',
+          'Alaska Airlines support behind an optional permission',
+          'Works with no account and stores nothing but your theme choice'
+        ],
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        isAccessibleForFree: true,
+        publisher: { '@id': ORIGIN + '/#org' },
+        isBasedOn: {
+          '@type': 'WebSite', name: 'unitedstarlinktracker.com',
+          url: 'https://unitedstarlinktracker.com'
+        },
+        privacyPolicy: ORIGIN + '/privacy.html'
       }
     ]
   });
 }
 
-/* ═══ /airlines/ ════════════════════════════════════════════════════════ */
+/* ═══ /airlines/ ════════════════════════════════════════════════════════
+ * The leaderboard is the page an answer engine lands on for "which airline has
+ * the best wifi", and it declared only an ItemList — a ranked list of URLs with
+ * no answers in it. The FAQ below fixes that, and it follows the same rule as the
+ * airline pages: every Q/A is VISIBLE on the page and the JSON-LD is built from
+ * the same array. No hidden markup, and nothing typed twice. */
 function airlinesIndex(m) {
   var chips = [['all', 'All (' + m.airlineCount + ')'], ['starlink', 'Starlink'],
     ['leo', 'Amazon Leo (future)'], ['legacy', 'Viasat / legacy'], ['freeall', 'Free for everyone']];
+
+  var top3 = m.ranked.slice(0, 3);
+  var starlinks = m.ranked.filter(function (a) { return a.system === 'starlink'; });
+  var frees = m.ranked.filter(function (a) { return (m.A.WIFI_AIRLINES[a.key].free || '') === 'free'; });
+  var ua = m.A.scoreAirline('united');
+  var faqs = [
+    ['Which airline has the best inflight WiFi right now?',
+      top3.map(function (a, i) {
+        return (i === 0 ? '' : i === top3.length - 1 ? ' then ' : ', then ') + a.name +
+          ' (ConnectScore ' + a.score + '/100, ' + a.label + ')';
+      }).join('') + ' — as of ' + m.updated + '. ConnectScore is the chance of getting the good, ' +
+      'modern system on a random flight, multiplied by whether it is free once you are onboard, so ' +
+      'a small all-Starlink fleet can outrank a giant airline that is only part way through its rollout.'],
+    ['Which airlines have Starlink WiFi?',
+      starlinks.length + ' of the ' + m.airlineCount + ' airlines here fly Starlink on at least part of ' +
+      'the fleet: ' + starlinks.map(function (a) {
+        return a.name + ' (' + (a.fleet ? num(a.equipped) + ' of ' + num(a.fleet) : 'fleetwide') + ')';
+      }).join(', ') + '. Fleet share is what matters — being on the list is not the same as being ' +
+      'likely on your flight.'],
+    ['Which airlines give inflight WiFi away free?',
+      'Free for everyone onboard, no loyalty program and no purchase: ' +
+      frees.map(function (a) { return a.name; }).join(', ') + '. Others are free only for members or ' +
+      'only on some cabins, which scores lower — ConnectScore multiplies the fleet share by a ' +
+      'free-for-you factor rather than pretending a paywalled system is the same product.'],
+    ['How is ConnectScore calculated?',
+      m.A.SCORE_METHOD_LINE + ' Worked example — United: ' + num(ua.equipped) + ' of ' + num(ua.fleet) +
+      ' aircraft is a ' + ua.parts.pctEquipped.toFixed(4) + ' fleet share, × ' +
+      ua.parts.systemQuality.toFixed(1) + ' system quality (' + ua.systemLabel + ') × ' +
+      ua.parts.freeFactor.toFixed(2) + ' free-for-you = ' + ua.parts.raw.toFixed(4) +
+      ', so ConnectScore ' + ua.score + '. The full method, the three confidence tiers and the ' +
+      'things it cannot see are on the methodology page.'],
+    ['Can you tell me whether my specific flight will have Starlink?',
+      'For United, yes: we hold a per-flight history and can give the odds for that flight number. ' +
+      'For Alaska the tails are verified but there is no per-flight feed, so the honest answer is the ' +
+      'sub-fleet. For every other airline all we have is the fleet-wide score, and we say so rather ' +
+      'than inventing a number for one flight.']
+  ];
+
   var body =
     '<header class="hero" style="padding-top:18px">\n' +
     '  <h1 class="ph">Airline WiFi leaderboard</h1>\n' +
@@ -148,9 +224,15 @@ function airlinesIndex(m) {
     P.leaderboard(m) +
     '  <p class="tblcap"><span data-count-for="#lbTable">' + m.airlineCount + '</span> airlines shown · ' +
     'scores recomputed at build time · updated ' + esc(m.updated) + '</p>\n' +
-    '  <div class="caveat">' + esc(m.A.SCORE_CAVEAT) + '</div>\n' +
+    '  <div class="caveat">' + esc(m.A.SCORE_CAVEAT) +
+    ' <a href="/methodology/">How much to trust each number — the three confidence tiers →</a></div>\n' +
     '  <p class="note" style="margin-top:12px">' + esc(m.A.SCORE_METHOD_LINE) + '</p>\n' +
-    '</section>\n\n' + H.credit('all');
+    '</section>\n\n' +
+    '<section class="blk">\n  <div class="sec-h"><h2>Airline WiFi questions</h2>' +
+    '<a class="more" href="/methodology/">methodology →</a></div>\n' +
+    '  <div class="faq">' + faqs.map(function (f) {
+      return '<div class="q rv"><h3>' + esc(f[0]) + '</h3><p>' + esc(f[1]) + '</p></div>';
+    }).join('') + '</div>\n</section>\n\n' + H.credit('all');
 
   return H.page({
     title: 'Airline WiFi leaderboard — ' + m.airlineCount + ' ConnectScores',
@@ -167,6 +249,14 @@ function airlinesIndex(m) {
         return {
           '@type': 'ListItem', position: i + 1, name: a.name + ' — ConnectScore ' + a.score,
           url: ORIGIN + '/airlines/' + a.key + '/'
+        };
+      })
+    }, {
+      '@context': 'https://schema.org', '@type': 'FAQPage',
+      mainEntity: faqs.map(function (f) {
+        return {
+          '@type': 'Question', name: f[0],
+          acceptedAnswer: { '@type': 'Answer', text: f[1] }
         };
       })
     }, crumbLd([['/', 'Home'], ['/airlines/', 'Airlines']])]
@@ -462,6 +552,278 @@ function roadmapPage(m) {
   });
 }
 
+/* ═══ /methodology/ ══════════════════════════════════════════════════════
+ * The provenance page. It exists because "ConnectScore 27" is a number with no
+ * error bars attached, and every serious reader — a redditor, a journalist, an
+ * answer engine deciding whether to quote us — asks the same three questions:
+ * where did this come from, how sure are you, and what can't you see. Answering
+ * them in public is cheaper than being asked, and it is the page that gets
+ * linked to.
+ *
+ * THE TIER SPLIT IS DERIVED, NOT TYPED. `instrumented` in assets/airlines.js is
+ * the flag, and United is the only fleet with a per-flight route history in
+ * data.json — so Verified/Type-derived/Coarse fall out of the data rather than
+ * out of a hand-maintained list that would rot the day Hawaiian lands.
+ *
+ * Every number below comes from m. If you find yourself typing a figure into
+ * this page, that is the bug. */
+function methodologyPage(m) {
+  var crumbs = [['/', 'Home'], ['/methodology/', 'Methodology']];
+  var ua = m.A.scoreAirline('united');
+  var al = m.A.scoreAirline('alaska');
+
+  /* per-flight history exists only where we cache routes, i.e. United today */
+  var verified = m.ranked.filter(function (a) { return a.key === 'united'; });
+  var derived = m.ranked.filter(function (a) { return a.instrumented && a.key !== 'united'; });
+  var coarse = m.ranked.filter(function (a) { return !a.instrumented; });
+  function names(list) { return list.map(function (a) { return a.name; }).join(', '); }
+
+  /* a REAL worked per-flight example, pulled out of today's route cache */
+  var ex = (function () {
+    var rk = Object.keys(m.D.routes || {});
+    for (var i = 0; i < rk.length; i++) {
+      var r = m.D.routes[rk[i]];
+      var f = (r.flights || []).filter(function (x) {
+        return typeof x.prob === 'number' && typeof x.obs === 'number';
+      }).sort(function (a, b) { return b.obs - a.obs; })[0];
+      if (f) return { route: rk[i], label: r.label || rk[i], f: f };
+    }
+    var ck = Object.keys(m.D.routeCache || {});
+    for (var j = 0; j < ck.length; j++) {
+      var g = (m.D.routeCache[ck[j]].flights || [])[0];
+      if (g) return { route: ck[j], label: ck[j], f: g };
+    }
+    return null;
+  })();
+
+  var tiers = [
+    ['tier-v', 'Verified', 'Tracker-verified, tail by tail, with a per-flight history',
+      names(verified) || '—',
+      'Every equipped aircraft is confirmed against united.com by <a href="https://unitedstarlinktracker.com" ' +
+      'target="_blank" rel="noopener">unitedstarlinktracker.com</a>, and we additionally cache how often ' +
+      'each tracked flight number has actually been flown by an equipped aircraft. That is the only tier ' +
+      'where we will quote odds for <b>your specific flight</b>, and the API labels it ' +
+      '<span class="mono">method: "route-history"</span> with the observation count attached.',
+      'A number for one flight, with a sample size.'],
+    ['tier-d', 'Type-derived', 'Tails verified, but no per-flight feed exists',
+      names(derived) || '—',
+      'The roster is verified the same way, by <a href="https://alaskastarlinktracker.com" target="_blank" ' +
+      'rel="noopener">alaskastarlinktracker.com</a> — but nobody publishes which aircraft is scheduled ' +
+      'onto which Alaska flight, so there is no history to count. The honest answer is the sub-fleet: the ' +
+      'E175 regional fleet is finished and a mainline 737 mostly is not, so the aircraft type on your ' +
+      'itinerary tells you far more than the fleet average does.',
+      'A number for an aircraft type, not a flight.'],
+    ['tier-c', 'Coarse', 'A fleet-share model built from public announcements',
+      coarse.length + ' airlines — ' + names(coarse),
+      'No per-tail verification exists for these fleets, so the input is what the airline itself has ' +
+      'said publicly about how many aircraft are equipped, as of July 2026. Good enough to choose an ' +
+      'airline; not good enough to say anything about one departure. The API labels every one of these ' +
+      '<span class="mono">method: "airline-coarse"</span> and returns <span class="mono">prob: null</span> ' +
+      'rather than a number we would have had to invent.',
+      'A number for an airline. Nothing narrower.']
+  ];
+
+  var css = '<style>\n' +
+    '.tiers{display:grid;gap:14px;margin-top:14px}\n' +
+    '@media(min-width:900px){.tiers{grid-template-columns:repeat(3,1fr)}}\n' +
+    '.tier{border:1px solid var(--edge);border-radius:var(--r-md);padding:16px;background:var(--field-bg)}\n' +
+    '.tier .tn{display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px;color:var(--ink)}\n' +
+    '.tier .td{font-size:13px;color:var(--faint);margin-top:2px}\n' +
+    '.tier .tw{font-family:var(--mono);font-size:12.5px;color:var(--accent);margin:10px 0 8px}\n' +
+    '.tier p{font-size:14px;line-height:1.6;margin:8px 0 0}\n' +
+    '.tier .tg{margin-top:12px;padding-top:10px;border-top:1px solid var(--edge);font-size:13px;' +
+    'color:var(--body)}\n' +
+    '.tier .tg b{color:var(--ink)}\n' +
+    '.tdot{width:10px;height:10px;border-radius:50%;flex:none}\n' +
+    '.tier-v .tdot{background:#3ddc84}.tier-d .tdot{background:#f5c451}.tier-c .tdot{background:#8a93a6}\n' +
+    '.wex{background:var(--field-bg);border:1px solid var(--edge);border-radius:var(--r-md);' +
+    'padding:14px 16px;font-family:var(--mono);font-size:13.5px;line-height:1.7;color:var(--body);' +
+    'overflow-x:auto;margin-top:12px}\n' +
+    '.wex b{color:var(--accent)}\n' +
+    '.wex .r{color:var(--ink);font-weight:700}\n' +
+    '.blk h3.apih{font-size:17px;font-weight:800;margin-top:26px}\n' +
+    '</style>\n';
+
+  var body =
+    '<header class="hero" style="padding-top:18px">\n' +
+    '  <span class="kicker"><span class="dot"></span>Methodology · data as of ' + esc(m.updated) + '</span>\n' +
+    '  <h1 class="ph">How WiFi Odds knows what it knows</h1>\n' +
+    '  <p class="lede">Every number on this site is either verified tail by tail by an independent ' +
+    'community tracker, derived from an aircraft type, or modelled from what an airline said publicly — ' +
+    'and we label which. This page is the whole method: the three confidence tiers, the formula with a ' +
+    'worked example, what the score <b>cannot</b> see, and how fresh the data is.</p>\n' +
+    '  <div class="microlinks"><a href="/airlines/">The leaderboard →</a>' +
+    '<a href="/api/docs/">The API →</a><a href="/llms.txt">llms.txt →</a></div>\n' +
+    '</header>\n\n' + H.credit('all') + '\n' +
+
+    '<div class="chips">' +
+    P.kpi(esc(m.updated), 'Data as of', 'refreshed daily, re-baked on every build') +
+    P.kpi(num(m.registry.length), 'Verified United tails', 'each with its install date') +
+    P.kpi(String(m.archiveDays), 'Install days on record', 'since ' + esc(DL.prettyDate(m.firstDay))) +
+    P.kpi(String(m.airlineCount), 'Airlines scored', verified.length + ' verified · ' +
+      derived.length + ' type-derived · ' + coarse.length + ' coarse') +
+    '</div>\n\n' +
+
+    '<section class="blk">\n  <div class="sec-h"><h2>The three confidence tiers</h2>' +
+    '<span class="sub">say which one you are quoting</span></div>\n' +
+    '  <p class="sec-lede">The tiers are not a disclaimer, they are part of the answer. A ConnectScore ' +
+    'from the Coarse tier and a per-flight probability from the Verified tier are different kinds of ' +
+    'claim, and blurring them is the single most misleading thing this site could do. The API says which ' +
+    'tier every response came from; so does the extension.</p>\n' +
+    '  <div class="tiers">' + tiers.map(function (t) {
+      return '<div class="tier ' + t[0] + ' rv"><div class="tn"><span class="tdot"></span>' + t[1] +
+        '</div><div class="td">' + t[2] + '</div><div class="tw">' + esc(t[3]) + '</div><p>' + t[4] +
+        '</p><div class="tg">What you can conclude: <b>' + t[5] + '</b></div></div>';
+    }).join('') + '</div>\n' +
+    '  <p class="tblcap">The split is derived from the data, not maintained by hand: an airline moves up ' +
+    'a tier the moment a verified per-tail feed exists for it, and the build re-sorts these lists ' +
+    'automatically. That is the plan for Hawaiian next.</p>\n' +
+    '</section>\n\n' +
+
+    '<section class="blk">\n  <div class="sec-h"><h2>The formula, worked through</h2>' +
+    '<span class="sub">nothing here is typed by hand</span></div>\n' +
+    '  <p class="sec-lede">ConnectScore answers one question — <b>what are the odds I get the good ' +
+    'system, and is it free once I am on it?</b> Three factors, multiplied, rounded to an integer ' +
+    'from 0 to 100:</p>\n' +
+    '  <div class="wex">ConnectScore = <b>fleet share</b> × <b>system quality</b> × ' +
+    '<b>free-for-you</b> × 100</div>\n' +
+    '  <div class="grid3" style="margin-top:16px">\n' +
+    '    <div class="card"><h3>Fleet share</h3><p>Equipped aircraft ÷ total aircraft, from the verified ' +
+    'roster where one exists and from the airline’s own published counts otherwise. Where an airline ' +
+    'publishes no tail counts at all (only “fleetwide”), a stated coverage fraction is used and the ' +
+    'basis is reported as <span class="mono">fleetwide-coverage</span>.</p></div>\n' +
+    '    <div class="card"><h3>System quality</h3><p>Starlink and Amazon Leo score ' +
+    m.A.SYSTEM_QUALITY.starlink.toFixed(1) + '. Viasat and 2Ku score ' +
+    m.A.SYSTEM_QUALITY.viasat.toFixed(1) + '. Older geostationary hardware scores ' +
+    m.A.SYSTEM_QUALITY.geo.toFixed(1) + '. Low-earth-orbit is a different product from a satellite ' +
+    'dish pointed at the equator, and pretending otherwise would flatten the only distinction that ' +
+    'matters onboard.</p></div>\n' +
+    '    <div class="card"><h3>Free-for-you</h3><p>Free for everyone, or free with a free loyalty ' +
+    'signup, scores ' + m.A.FREE_FACTOR.free.toFixed(2) + '. A paid status tier, a partial rollout or ' +
+    'an unconfirmed claim scores ' + m.A.FREE_FACTOR['loyalty-tier'].toFixed(2) + '. Paid scores ' +
+    m.A.FREE_FACTOR.paid.toFixed(2) + '. Working WiFi you have to buy at 35,000 feet is not the same ' +
+    'product as working WiFi you just connect to.</p></div>\n' +
+    '  </div>\n' +
+    '  <h3 class="apih" style="margin-top:26px">Worked example — ' + esc(ua.name) +
+    ', the whole airline</h3>\n' +
+    '  <div class="wex">' +
+    'fleet share  = ' + num(ua.equipped) + ' equipped ÷ ' + num(ua.fleet) + ' aircraft = <b>' +
+    ua.parts.pctEquipped.toFixed(4) + '</b>\n' +
+    'system       = ' + esc(ua.systemLabel) + ' → quality <b>' + ua.parts.systemQuality.toFixed(1) +
+    '</b>\n' +
+    'cost onboard = ' + esc(P.freeText(m.A.WIFI_AIRLINES.united.free)) + ' → free-for-you <b>' +
+    ua.parts.freeFactor.toFixed(2) + '</b>\n\n' +
+    ua.parts.pctEquipped.toFixed(4) + ' × ' + ua.parts.systemQuality.toFixed(1) + ' × ' +
+    ua.parts.freeFactor.toFixed(2) + ' = ' + ua.parts.raw.toFixed(4) +
+    ' → <span class="r">ConnectScore ' + ua.score + ' (' + esc(ua.label) + ')</span></div>\n' +
+    '  <p class="tblcap">Those are the live numbers, generated at build time by the same function the ' +
+    'API and the extension call. <a href="/airlines/united/">Same figure on United’s page →</a></p>\n' +
+    (ex ? '  <h3 class="apih" style="margin-top:26px">Worked example — one flight, from the Verified ' +
+      'tier</h3>\n' +
+      '  <div class="wex">flight   = <b>' + esc(ex.f.fn) + '</b>' +
+      (ex.f.dep ? '  (' + esc(ex.f.dep) + ' departure)' : '') + '\n' +
+      'route    = ' + esc(ex.label) + '\n' +
+      'observed = ' + ex.f.obs + ' recent departures of that flight number' +
+      (ex.f.aircraft ? '\naircraft = ' + esc(ex.f.aircraft) : '') + '\n\n' +
+      'equipped on <b>' + ex.f.prob + '%</b> of those ' + ex.f.obs + ' departures → ' +
+      '<span class="r">per-flight odds ' + ex.f.prob + '%</span>, confidence ' +
+      esc(ex.f.conf || 'n/a') + '</div>\n' +
+      '  <p class="tblcap">This is what the Verified tier buys you, and why the fleet-wide ' + ua.score +
+      ' is the wrong number to quote for a specific flight in either direction. Confidence is the sample ' +
+      'size: low under 10 observations, medium 10–15, high 16 or more. ' +
+      '<a href="/united/">Rank a whole route →</a></p>\n' : '') +
+    '</section>\n\n' +
+
+    '<section class="blk">\n  <div class="sec-h"><h2>What we can’t know</h2>' +
+    '<span class="sub">the honest list</span></div>\n' +
+    '  <p class="sec-lede">These are real limits, not hedges. If one of them applies to your flight, no ' +
+    'number on this site can fix it — so here they are in plain language, with what to do instead.</p>\n' +
+    '  <div class="faq">\n' +
+    '    <div class="q rv"><h3>Tail swaps inside the last 48 hours</h3><p>Airlines reassign aircraft ' +
+    'until departure — for maintenance, weather, crew, a broken jet somewhere else. Our per-flight odds ' +
+    'are a <b>history</b> of what has flown that flight number, not a booking of what will. A flight with ' +
+    '80% odds can still board the one unequipped aircraft in the sub-fleet. Re-check the day before, ' +
+    'which is exactly what the extension’s Tail-swap Guardian is for.</p></div>\n' +
+    '    <div class="q rv"><h3>Airlines with no per-tail feed</h3><p>' + coarse.length + ' of the ' +
+    m.airlineCount + ' airlines here have no public, verifiable list of which aircraft are equipped. ' +
+    'For those we can only model the fleet share, and we will not pretend to more. If you need certainty ' +
+    'on one of those carriers, the aircraft type on your itinerary plus whatever the airline said about ' +
+    'which sub-fleet it converted first is genuinely better information than our score.</p></div>\n' +
+    '    <div class="q rv"><h3>Paid tiers and free-WiFi policy changes</h3><p>The free-for-you factor is ' +
+    'a snapshot of a commercial decision, and those change with a press release and no notice — a free ' +
+    'system can acquire a paywall, or a loyalty requirement can be dropped, weeks before we notice. ' +
+    'Cabin-level throttling and “free messaging only” tiers are not modelled at all. Treat the free ' +
+    'column as “what was true in July 2026”, and the airline’s own page as authoritative on price.</p></div>\n' +
+    '    <div class="q rv"><h3>Actual speed on the day</h3><p>We score the <b>hardware and the ' +
+    'policy</b>, never the throughput. A full Starlink cabin over the Atlantic is a different experience ' +
+    'from an empty one over Kansas, and nothing here measures that. ConnectScore is the chance of ' +
+    'getting the good system — not a bandwidth guarantee, and not a promise that any WiFi at all will ' +
+    'be working.</p></div>\n' +
+    '    <div class="q rv"><h3>The gap our own caveat names</h3><p>' + esc(m.A.SCORE_CAVEAT) +
+    ' That is deliberate: the question being answered is “what are my odds of the good WiFi”, not “is ' +
+    'there any WiFi at all”. It is why an airline with fleetwide legacy service can score near zero.</p></div>\n' +
+    '  </div>\n</section>\n\n' +
+
+    '<section class="blk">\n  <div class="sec-h"><h2>Data freshness</h2>' +
+    '<span class="sub">every figure on this page is from ' + esc(m.updated) + '</span></div>\n' +
+    '  <div class="tbl-shell"><table class="tbl">\n' +
+    '    <thead><tr><th>Input</th><th>Source</th><th>Cadence</th><th>Last refresh</th></tr></thead>\n' +
+    '    <tbody>\n' +
+    '      <tr><td>United fleet + per-tail roster</td><td>unitedstarlinktracker.com</td>' +
+    '<td>pulled daily</td><td class="mono">' + esc(m.updated) + '</td></tr>\n' +
+    '      <tr><td>United per-flight route history</td><td>unitedstarlinktracker.com check-flight pages</td>' +
+    '<td>daily, ' + m.routeCount + ' cached routes</td><td class="mono">' + esc(m.updated) + '</td></tr>\n' +
+    '      <tr><td>Alaska fleet</td><td>alaskastarlinktracker.com</td><td>pulled daily</td>' +
+    '<td class="mono">' + esc(al.asOf || m.updated) + '</td></tr>\n' +
+    '      <tr><td>The other ' + coarse.length + ' airlines</td><td>public airline announcements</td>' +
+    '<td>reviewed by hand</td><td class="mono">July 2026</td></tr>\n' +
+    '      <tr><td>Every page, score and chart on this site</td><td>this build</td>' +
+    '<td>re-baked on every data commit</td><td class="mono">' + esc(m.updated) + '</td></tr>\n' +
+    '    </tbody>\n  </table></div>\n' +
+    '  <p class="tblcap">Nothing on wifiodds.com is fetched live. The daily pull commits ' +
+    '<a href="/united/data.json">united/data.json</a>, that commit rebuilds every page, and the ' +
+    'ConnectScore API reads the same file out of the same deploy — so the page, the API and the ' +
+    'extension cannot disagree with each other. If the date above is stale, the data is stale ' +
+    'everywhere at once, visibly, rather than in one surface quietly.</p>\n' +
+    '</section>\n\n' +
+
+    '<section class="blk">\n  <div class="sec-h"><h2>Citing this</h2>' +
+    '<span class="sub">please do</span></div>\n' +
+    '  <p class="sec-lede">Quote the numbers freely, including in an article or an AI answer. The one ' +
+    'condition is that the credit travels with them, because the fleet verification is not ours.</p>\n' +
+    '  <div class="wex">ConnectScore and per-flight odds: WiFi Odds (wifiodds.com), data as of ' +
+    esc(m.updated) + '.\n' +
+    'United tail verification: unitedstarlinktracker.com (@martinamps).\n' +
+    'Alaska tail verification: alaskastarlinktracker.com (@martinamps).\n' +
+    'All other airlines: public airline announcements, July 2026.</div>\n' +
+    '  <p class="tblcap">Every API response carries the same credits in a ' +
+    '<span class="mono">sources</span> array so they cannot get separated from the data. ' +
+    '<a href="/api/docs/">API docs →</a> · <a href="/llms.txt">llms.txt →</a></p>\n' +
+    '</section>\n\n' + H.credit('all');
+
+  return H.page({
+    title: 'Methodology — how ConnectScore is calculated, and what it can’t see',
+    desc: 'The full WiFi Odds method: three confidence tiers (verified per-tail, type-derived, coarse ' +
+      'fleet-share), the ConnectScore formula worked through with live numbers, what the score cannot ' +
+      'know, data freshness and how to cite it.',
+    canonical: '/methodology/', here: '/', updated: m.updated, crumb: crumbs,
+    extraHead: css, body: body,
+    jsonld: [{
+      '@context': 'https://schema.org', '@type': 'TechArticle',
+      headline: 'How ConnectScore is calculated, and what it cannot see',
+      url: ORIGIN + '/methodology/',
+      dateModified: m.updated,
+      description: 'The confidence tiers, the ConnectScore formula with a worked example, the known ' +
+        'limits, the refresh cadence and the citation block for WiFi Odds.',
+      author: { '@type': 'Organization', name: 'WiFi Odds', url: ORIGIN + '/' },
+      publisher: { '@id': ORIGIN + '/#org' },
+      isPartOf: { '@type': 'WebSite', name: 'WiFi Odds', url: ORIGIN + '/' },
+      about: 'Inflight WiFi ConnectScore methodology and data provenance',
+      citation: ['https://unitedstarlinktracker.com', 'https://alaskastarlinktracker.com']
+    }, crumbLd(crumbs)]
+  });
+}
+
 /* ═══ /api/docs/ ════════════════════════════════════════════════════════
  * The ONE human page in the /api namespace. Everything else under /api is a
  * Cloudflare Pages Function in functions/api/** and has no file on disk, which
@@ -668,6 +1030,55 @@ function apiDocs(m) {
       '  "sources": [ … ]\n}') +
     '</section>\n\n' +
 
+    /* ── MCP ─────────────────────────────────────────────────────────────
+     * Documented on the API page rather than on a page of its own: it is the same
+     * data through a different door, and a reader who is already looking at the
+     * JSON is exactly the reader who wants the connector. */
+    '<section class="blk">\n  <div class="sec-h"><h2>MCP server</h2>' +
+    '<span class="sub">for AI assistants</span></div>\n' +
+    '  <p class="sec-lede">There is also an <b>MCP</b> endpoint, so an AI assistant can look these ' +
+    'numbers up itself instead of guessing from whatever it remembers about airline WiFi. It speaks ' +
+    'streamable HTTP — JSON-RPC 2.0 over <span class="apip">POST /mcp</span>, no key, no account, ' +
+    'CORS open, and no session required for a single call.</p>\n' +
+    '  <div class="tbl-shell"><table class="tbl">\n' +
+    '    <thead><tr><th>Tool</th><th>Arguments</th><th>Returns</th></tr></thead>\n' +
+    '    <tbody>\n' +
+    '      <tr><td class="mono"><b>get_airline_score</b></td><td class="mono">key</td>' +
+    '<td>One airline: ConnectScore, system, fleet share, cost onboard, and the confidence tier the ' +
+    'number comes from.</td></tr>\n' +
+    '      <tr><td class="mono"><b>list_airline_scores</b></td><td class="mono">—</td>' +
+    '<td>All ' + m.airlineCount + ' airlines, best odds first. One call instead of eighteen.</td></tr>\n' +
+    '      <tr><td class="mono"><b>score_flight</b></td><td class="mono">flight_number</td>' +
+    '<td>One flight. United returns a per-flight probability with its sample size; every other ' +
+    'carrier returns the coarse airline score with <span class="mono">prob: null</span>.</td></tr>\n' +
+    '    </tbody>\n  </table></div>\n' +
+    code('curl -sS -X POST ' + ORIGIN + '/mcp -H \'content-type: application/json\' \\\n' +
+      '  -d \'{"jsonrpc":"2.0","id":1,"method":"tools/list"}\'\n\n' +
+      'curl -sS -X POST ' + ORIGIN + '/mcp -H \'content-type: application/json\' \\\n' +
+      '  -d \'{"jsonrpc":"2.0","id":2,"method":"tools/call","params":\n' +
+      '       {"name":"score_flight","arguments":{"flight_number":"UA212"}}}\'') +
+    '  <p class="tblcap">Every tool result comes back twice: a text block for the model to relay and ' +
+    'a <span class="mono">structuredContent</span> object for the client to parse. The data credits are ' +
+    'in both, because the text is what usually reaches the user.</p>\n' +
+    '  <div class="faq" style="margin-top:16px">\n' +
+    '    <div class="q"><h3>The <span class="mono">instructions</span> field is the point</h3>' +
+    '<p>What <span class="mono">initialize</span> returns is not a description of the endpoints — it is ' +
+    'the decision layer: someone asking about flight WiFi is trying to maximise <b>hours of working ' +
+    'WiFi</b>, so prefer the higher ConnectScore, use United\'s route history when there is a flight ' +
+    'number, name which confidence tier you are quoting, never invent a per-flight number for a fleet ' +
+    'we have no history for, and always pass the credits through. A data endpoint with no opinion gets ' +
+    'averaged into mush by whichever model is holding it.</p></div>\n' +
+    '    <div class="q"><h3>It is the same code as the REST API</h3><p>Each tool is a thin wrapper ' +
+    'around the very handler that serves <span class="mono">/api/**</span> — it builds a synthetic GET ' +
+    'request and re-shapes the answer. So <span class="mono">score_flight("UA212")</span> and ' +
+    '<span class="mono">GET /api/score/UA212</span> cannot disagree: they are the same call. The ' +
+    'acceptance suite asserts exactly that.</p></div>\n' +
+    '    <div class="q"><h3>GET returns 405, on purpose</h3><p>This server opens no server-initiated ' +
+    'SSE stream, so there is nothing for a GET to subscribe to. It answers with a 405 whose <i>body</i> ' +
+    'tells you the POST to make instead — a bare 405 with no bytes is the kind of unhelpful signal this ' +
+    'project has been bitten by before.</p></div>\n' +
+    '  </div>\n</section>\n\n' +
+
     '<section class="blk">\n  <div class="sec-h"><h2>Using it</h2></div>\n' +
     '  <div class="faq">\n' +
     '    <div class="q"><h3>Credit is the only condition</h3><p>The fleet numbers for United and ' +
@@ -864,7 +1275,8 @@ function privacyPage(m) {
 
 module.exports = {
   home: home, airlinesIndex: airlinesIndex, airlinePage: airlinePage,
-  fleetPage: fleetPage, roadmapPage: roadmapPage, apiDocs: apiDocs, notFound: notFound,
+  fleetPage: fleetPage, roadmapPage: roadmapPage, methodologyPage: methodologyPage,
+  apiDocs: apiDocs, notFound: notFound,
   unitedOptimizer: unitedOptimizer, unitedHistory: unitedHistory,
   alaskaRollout: alaskaRollout, privacyPage: privacyPage,
   datasetLd: datasetLd, crumbLd: crumbLd, DATASET_ID: DATASET_ID

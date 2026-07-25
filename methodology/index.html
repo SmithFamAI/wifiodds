@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script>(function(){try{var t=localStorage.getItem("woTheme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2369B3E7'/%3E%3Cstop offset='1' stop-color='%230033A0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Cpath d='M9 21c3-9 11-9 14-13' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='11' cy='22' r='2.6' fill='%23fff'/%3E%3C/svg%3E">
+<title>Methodology — how ConnectScore is calculated, and what it can’t see</title>
+<meta name="description" content="The full WiFi Odds method: three confidence tiers (verified per-tail, type-derived, coarse fleet-share), the ConnectScore formula worked through with live numbers, what the score cannot know, data freshness and how to cite it.">
+<link rel="canonical" href="https://wifiodds.com/methodology/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="WiFi Odds">
+<meta property="og:title" content="Methodology — how ConnectScore is calculated, and what it can’t see">
+<meta property="og:description" content="The full WiFi Odds method: three confidence tiers (verified per-tail, type-derived, coarse fleet-share), the ConnectScore formula worked through with live numbers, what the score cannot know, data freshness and how to cite it.">
+<meta property="og:url" content="https://wifiodds.com/methodology/">
+<meta property="og:image" content="https://wifiodds.com/assets/og.png?v=2">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="WiFi Odds — know before you book">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Methodology — how ConnectScore is calculated, and what it can’t see">
+<meta name="twitter:description" content="The full WiFi Odds method: three confidence tiers (verified per-tail, type-derived, coarse fleet-share), the ConnectScore formula worked through with live numbers, what the score cannot know, data freshness and how to cite it.">
+<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=2">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+.tiers{display:grid;gap:14px;margin-top:14px}
+@media(min-width:900px){.tiers{grid-template-columns:repeat(3,1fr)}}
+.tier{border:1px solid var(--edge);border-radius:var(--r-md);padding:16px;background:var(--field-bg)}
+.tier .tn{display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px;color:var(--ink)}
+.tier .td{font-size:13px;color:var(--faint);margin-top:2px}
+.tier .tw{font-family:var(--mono);font-size:12.5px;color:var(--accent);margin:10px 0 8px}
+.tier p{font-size:14px;line-height:1.6;margin:8px 0 0}
+.tier .tg{margin-top:12px;padding-top:10px;border-top:1px solid var(--edge);font-size:13px;color:var(--body)}
+.tier .tg b{color:var(--ink)}
+.tdot{width:10px;height:10px;border-radius:50%;flex:none}
+.tier-v .tdot{background:#3ddc84}.tier-d .tdot{background:#f5c451}.tier-c .tdot{background:#8a93a6}
+.wex{background:var(--field-bg);border:1px solid var(--edge);border-radius:var(--r-md);padding:14px 16px;font-family:var(--mono);font-size:13.5px;line-height:1.7;color:var(--body);overflow-x:auto;margin-top:12px}
+.wex b{color:var(--accent)}
+.wex .r{color:var(--ink);font-weight:700}
+.blk h3.apih{font-size:17px;font-weight:800;margin-top:26px}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"How ConnectScore is calculated, and what it cannot see","url":"https://wifiodds.com/methodology/","dateModified":"2026-07-24","description":"The confidence tiers, the ConnectScore formula with a worked example, the known limits, the refresh cadence and the citation block for WiFi Odds.","author":{"@type":"Organization","name":"WiFi Odds","url":"https://wifiodds.com/"},"publisher":{"@id":"https://wifiodds.com/#org"},"isPartOf":{"@type":"WebSite","name":"WiFi Odds","url":"https://wifiodds.com/"},"about":"Inflight WiFi ConnectScore methodology and data provenance","citation":["https://unitedstarlinktracker.com","https://alaskastarlinktracker.com"]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://wifiodds.com/"},{"@type":"ListItem","position":2,"name":"Methodology","item":"https://wifiodds.com/methodology/"}]}</script>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a class="mark" href="/"><span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round"><path d="M4.5 10.5a11 11 0 0 1 15 0"/><path d="M7.6 14a7 7 0 0 1 8.8 0"/><circle cx="12" cy="18.2" r="1.5" fill="#fff" stroke="none"/></svg></span><span class="wm">WiFi Odds</span></a>
+  <nav class="topnav" aria-label="Main">
+    <a href="/airlines/">Airlines</a>
+    <a href="/roadmap/">Roadmap</a>
+    <a class="cta" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Get the extension</a>
+  </nav>
+  <button class="tt" type="button" aria-label="Switch theme" title="Switch theme">☽</button>
+</div>
+<nav class="crumb" aria-label="Breadcrumb"><a href="/">Home</a><span class="sep">→</span><span aria-current="page">Methodology</span></nav>
+<header class="hero" style="padding-top:18px">
+  <span class="kicker"><span class="dot"></span>Methodology · data as of 2026-07-24</span>
+  <h1 class="ph">How WiFi Odds knows what it knows</h1>
+  <p class="lede">Every number on this site is either verified tail by tail by an independent community tracker, derived from an aircraft type, or modelled from what an airline said publicly — and we label which. This page is the whole method: the three confidence tiers, the formula with a worked example, what the score <b>cannot</b> see, and how fresh the data is.</p>
+  <div class="microlinks"><a href="/airlines/">The leaderboard →</a><a href="/api/docs/">The API →</a><a href="/llms.txt">llms.txt →</a></div>
+</header>
+
+<div class="credit"><span class="cb">DATA CREDIT</span><span class="cbody">Fleet verification for the instrumented airlines comes from the independent community trackers <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener"><b>unitedstarlinktracker.com</b></a> and <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener"><b>alaskastarlinktracker.com</b></a>, built by <b>@martinamps</b>. All credit for that data goes to them ↗. Every other airline is compiled from public airline announcements (July 2026). WiFi Odds is unofficial and not affiliated with any airline, SpaceX/Starlink, Amazon, Viasat, or the trackers.</span></div>
+
+<div class="chips"><div class="chip rv "><div class="n cu">2026-07-24</div><div class="l">Data as of</div><div class="d">refreshed daily, re-baked on every build</div></div><div class="chip rv "><div class="n cu">481</div><div class="l">Verified United tails</div><div class="d">each with its install date</div></div><div class="chip rv "><div class="n cu">176</div><div class="l">Install days on record</div><div class="d">since Mar 14, 2025</div></div><div class="chip rv "><div class="n cu">18</div><div class="l">Airlines scored</div><div class="d">1 verified · 1 type-derived · 16 coarse</div></div></div>
+
+<section class="blk">
+  <div class="sec-h"><h2>The three confidence tiers</h2><span class="sub">say which one you are quoting</span></div>
+  <p class="sec-lede">The tiers are not a disclaimer, they are part of the answer. A ConnectScore from the Coarse tier and a per-flight probability from the Verified tier are different kinds of claim, and blurring them is the single most misleading thing this site could do. The API says which tier every response came from; so does the extension.</p>
+  <div class="tiers"><div class="tier tier-v rv"><div class="tn"><span class="tdot"></span>Verified</div><div class="td">Tracker-verified, tail by tail, with a per-flight history</div><div class="tw">United</div><p>Every equipped aircraft is confirmed against united.com by <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a>, and we additionally cache how often each tracked flight number has actually been flown by an equipped aircraft. That is the only tier where we will quote odds for <b>your specific flight</b>, and the API labels it <span class="mono">method: "route-history"</span> with the observation count attached.</p><div class="tg">What you can conclude: <b>A number for one flight, with a sample size.</b></div></div><div class="tier tier-d rv"><div class="tn"><span class="tdot"></span>Type-derived</div><div class="td">Tails verified, but no per-flight feed exists</div><div class="tw">Alaska</div><p>The roster is verified the same way, by <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> — but nobody publishes which aircraft is scheduled onto which Alaska flight, so there is no history to count. The honest answer is the sub-fleet: the E175 regional fleet is finished and a mainline 737 mostly is not, so the aircraft type on your itinerary tells you far more than the fleet average does.</p><div class="tg">What you can conclude: <b>A number for an aircraft type, not a flight.</b></div></div><div class="tier tier-c rv"><div class="tn"><span class="tdot"></span>Coarse</div><div class="td">A fleet-share model built from public announcements</div><div class="tw">16 airlines — airBaltic, JSX, ZIPAIR, WestJet, Air France, Hawaiian, Delta, jetBlue, Qatar Airways, American, SAS, Virgin Atlantic, Emirates, Air Canada, British Airways, Southwest</div><p>No per-tail verification exists for these fleets, so the input is what the airline itself has said publicly about how many aircraft are equipped, as of July 2026. Good enough to choose an airline; not good enough to say anything about one departure. The API labels every one of these <span class="mono">method: "airline-coarse"</span> and returns <span class="mono">prob: null</span> rather than a number we would have had to invent.</p><div class="tg">What you can conclude: <b>A number for an airline. Nothing narrower.</b></div></div></div>
+  <p class="tblcap">The split is derived from the data, not maintained by hand: an airline moves up a tier the moment a verified per-tail feed exists for it, and the build re-sorts these lists automatically. That is the plan for Hawaiian next.</p>
+</section>
+
+<section class="blk">
+  <div class="sec-h"><h2>The formula, worked through</h2><span class="sub">nothing here is typed by hand</span></div>
+  <p class="sec-lede">ConnectScore answers one question — <b>what are the odds I get the good system, and is it free once I am on it?</b> Three factors, multiplied, rounded to an integer from 0 to 100:</p>
+  <div class="wex">ConnectScore = <b>fleet share</b> × <b>system quality</b> × <b>free-for-you</b> × 100</div>
+  <div class="grid3" style="margin-top:16px">
+    <div class="card"><h3>Fleet share</h3><p>Equipped aircraft ÷ total aircraft, from the verified roster where one exists and from the airline’s own published counts otherwise. Where an airline publishes no tail counts at all (only “fleetwide”), a stated coverage fraction is used and the basis is reported as <span class="mono">fleetwide-coverage</span>.</p></div>
+    <div class="card"><h3>System quality</h3><p>Starlink and Amazon Leo score 1.0. Viasat and 2Ku score 0.6. Older geostationary hardware scores 0.3. Low-earth-orbit is a different product from a satellite dish pointed at the equator, and pretending otherwise would flatten the only distinction that matters onboard.</p></div>
+    <div class="card"><h3>Free-for-you</h3><p>Free for everyone, or free with a free loyalty signup, scores 1.00. A paid status tier, a partial rollout or an unconfirmed claim scores 0.85. Paid scores 0.70. Working WiFi you have to buy at 35,000 feet is not the same product as working WiFi you just connect to.</p></div>
+  </div>
+  <h3 class="apih" style="margin-top:26px">Worked example — United, the whole airline</h3>
+  <div class="wex">fleet share  = 481 equipped ÷ 1,807 aircraft = <b>0.2662</b>
+system       = Starlink → quality <b>1.0</b>
+cost onboard = free for loyalty members → free-for-you <b>1.00</b>
+
+0.2662 × 1.0 × 1.00 = 0.2662 → <span class="r">ConnectScore 27 (long shot)</span></div>
+  <p class="tblcap">Those are the live numbers, generated at build time by the same function the API and the extension call. <a href="/airlines/united/">Same figure on United’s page →</a></p>
+  <h3 class="apih" style="margin-top:26px">Worked example — one flight, from the Verified tier</h3>
+  <div class="wex">flight   = <b>UA2123</b>  (9:10 PM departure)
+route    = Denver → San Francisco
+observed = 20 recent departures of that flight number
+aircraft = A321neo / 737-800
+
+equipped on <b>33%</b> of those 20 departures → <span class="r">per-flight odds 33%</span>, confidence high</div>
+  <p class="tblcap">This is what the Verified tier buys you, and why the fleet-wide 27 is the wrong number to quote for a specific flight in either direction. Confidence is the sample size: low under 10 observations, medium 10–15, high 16 or more. <a href="/united/">Rank a whole route →</a></p>
+</section>
+
+<section class="blk">
+  <div class="sec-h"><h2>What we can’t know</h2><span class="sub">the honest list</span></div>
+  <p class="sec-lede">These are real limits, not hedges. If one of them applies to your flight, no number on this site can fix it — so here they are in plain language, with what to do instead.</p>
+  <div class="faq">
+    <div class="q rv"><h3>Tail swaps inside the last 48 hours</h3><p>Airlines reassign aircraft until departure — for maintenance, weather, crew, a broken jet somewhere else. Our per-flight odds are a <b>history</b> of what has flown that flight number, not a booking of what will. A flight with 80% odds can still board the one unequipped aircraft in the sub-fleet. Re-check the day before, which is exactly what the extension’s Tail-swap Guardian is for.</p></div>
+    <div class="q rv"><h3>Airlines with no per-tail feed</h3><p>16 of the 18 airlines here have no public, verifiable list of which aircraft are equipped. For those we can only model the fleet share, and we will not pretend to more. If you need certainty on one of those carriers, the aircraft type on your itinerary plus whatever the airline said about which sub-fleet it converted first is genuinely better information than our score.</p></div>
+    <div class="q rv"><h3>Paid tiers and free-WiFi policy changes</h3><p>The free-for-you factor is a snapshot of a commercial decision, and those change with a press release and no notice — a free system can acquire a paywall, or a loyalty requirement can be dropped, weeks before we notice. Cabin-level throttling and “free messaging only” tiers are not modelled at all. Treat the free column as “what was true in July 2026”, and the airline’s own page as authoritative on price.</p></div>
+    <div class="q rv"><h3>Actual speed on the day</h3><p>We score the <b>hardware and the policy</b>, never the throughput. A full Starlink cabin over the Atlantic is a different experience from an empty one over Kansas, and nothing here measures that. ConnectScore is the chance of getting the good system — not a bandwidth guarantee, and not a promise that any WiFi at all will be working.</p></div>
+    <div class="q rv"><h3>The gap our own caveat names</h3><p>ConnectScore is the chance of getting the GOOD system, not of any wifi at all. Legacy satellite service on the not-yet-converted part of a fleet is not credited. Signed-but-unflown deals (AA Starlink 2027, DL/B6 Amazon Leo) score zero until they fly. That is deliberate: the question being answered is “what are my odds of the good WiFi”, not “is there any WiFi at all”. It is why an airline with fleetwide legacy service can score near zero.</p></div>
+  </div>
+</section>
+
+<section class="blk">
+  <div class="sec-h"><h2>Data freshness</h2><span class="sub">every figure on this page is from 2026-07-24</span></div>
+  <div class="tbl-shell"><table class="tbl">
+    <thead><tr><th>Input</th><th>Source</th><th>Cadence</th><th>Last refresh</th></tr></thead>
+    <tbody>
+      <tr><td>United fleet + per-tail roster</td><td>unitedstarlinktracker.com</td><td>pulled daily</td><td class="mono">2026-07-24</td></tr>
+      <tr><td>United per-flight route history</td><td>unitedstarlinktracker.com check-flight pages</td><td>daily, 48 cached routes</td><td class="mono">2026-07-24</td></tr>
+      <tr><td>Alaska fleet</td><td>alaskastarlinktracker.com</td><td>pulled daily</td><td class="mono">2026-07</td></tr>
+      <tr><td>The other 16 airlines</td><td>public airline announcements</td><td>reviewed by hand</td><td class="mono">July 2026</td></tr>
+      <tr><td>Every page, score and chart on this site</td><td>this build</td><td>re-baked on every data commit</td><td class="mono">2026-07-24</td></tr>
+    </tbody>
+  </table></div>
+  <p class="tblcap">Nothing on wifiodds.com is fetched live. The daily pull commits <a href="/united/data.json">united/data.json</a>, that commit rebuilds every page, and the ConnectScore API reads the same file out of the same deploy — so the page, the API and the extension cannot disagree with each other. If the date above is stale, the data is stale everywhere at once, visibly, rather than in one surface quietly.</p>
+</section>
+
+<section class="blk">
+  <div class="sec-h"><h2>Citing this</h2><span class="sub">please do</span></div>
+  <p class="sec-lede">Quote the numbers freely, including in an article or an AI answer. The one condition is that the credit travels with them, because the fleet verification is not ours.</p>
+  <div class="wex">ConnectScore and per-flight odds: WiFi Odds (wifiodds.com), data as of 2026-07-24.
+United tail verification: unitedstarlinktracker.com (@martinamps).
+Alaska tail verification: alaskastarlinktracker.com (@martinamps).
+All other airlines: public airline announcements, July 2026.</div>
+  <p class="tblcap">Every API response carries the same credits in a <span class="mono">sources</span> array so they cannot get separated from the data. <a href="/api/docs/">API docs →</a> · <a href="/llms.txt">llms.txt →</a></p>
+</section>
+
+<div class="credit"><span class="cb">DATA CREDIT</span><span class="cbody">Fleet verification for the instrumented airlines comes from the independent community trackers <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener"><b>unitedstarlinktracker.com</b></a> and <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener"><b>alaskastarlinktracker.com</b></a>, built by <b>@martinamps</b>. All credit for that data goes to them ↗. Every other airline is compiled from public airline announcements (July 2026). WiFi Odds is unofficial and not affiliated with any airline, SpaceX/Starlink, Amazon, Viasat, or the trackers.</span></div>
+<footer>
+  <div class="flinks"><a href="/airlines/">Airlines</a><a href="/united/">United</a><a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a><a href="/methodology/">Methodology</a><a href="/api/docs/">API</a><a href="/privacy.html">Privacy</a><a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Open source ↗</a></div>
+  <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> · <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> (independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>
+  <div class="frow"><b>No accounts, no analytics, no tracking</b> — on this site or in the extension. The only thing stored in your browser is your light/dark choice. See the <a href="/privacy.html">privacy policy</a>.</div>
+  <div class="frow">Data updated <b>2026-07-24</b>. ConnectScores and per-flight odds are historical estimates, not guarantees — aircraft assignments change until departure. WiFi Odds is an unofficial, free, open-source project. 🛰️</div>
+</footer>
+</div>
+<script src="/assets/site.js" defer></script>
+</body>
+</html>
