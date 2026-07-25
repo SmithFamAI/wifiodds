@@ -59,7 +59,12 @@ var REQUIRED = [
      silent failure this list exists to catch. */
   'assets/flightcheck.js',
   'assets/og.png',
-  'assets/selectors.json'
+  'assets/selectors.json',
+  /* the two REAL captures the homepage extension demo is built from. Their
+     absence would render as broken images inside a section whose whole argument
+     is "these are real screenshots" — and a 200 would still be served. */
+  'assets/shot-united-1280x800.png',
+  'assets/shot-navan-1280x800.png'
 ];
 
 module.exports = { ROUTES: ROUTES, UNLISTED: UNLISTED, REQUIRED: REQUIRED, AIRLINE_KEYS: AIRLINE_KEYS };

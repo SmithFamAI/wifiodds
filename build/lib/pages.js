@@ -8,7 +8,7 @@
 var H = require('./html.js');
 var V = require('./viz.js');
 var DL = require('./data.js');
-var C = require('./carousel.js');
+var C = require('./reel.js');
 var esc = H.esc, num = DL.num;
 
 function band(s) {
@@ -250,13 +250,15 @@ function extPlug() {
 }
 
 /* ── the full extension section ───────────────────────────────────────────
- * The animated reel is NOT re-typed here: build/lib/carousel.js slices the
- * self-contained <section class="plc"> out of united/assets/plugin-carousel.html,
- * which already scopes every selector under `.plc`, ships scene 1 as `is-active`
- * in the markup (so no-JS gets a real static first frame) and goes still under
- * prefers-reduced-motion. The section only supplies the surround: a dark stage
- * for it — the reel declares its own light-on-dark palette and would be
- * invisible on the light theme otherwise — plus the feature detail.
+ * The demo is built by build/lib/reel.js: ONE sequence over the TWO REAL
+ * screenshots in assets/, with four captions — search → odds → sort → guard. It
+ * replaced 883 lines of hand-drawn fake united.com/Navan UI, two scenes of which
+ * demonstrated the same sort twice. Read the header of reel.js before touching
+ * it; the short version is that we already owned photographs of the product and
+ * were shipping a drawing of them instead.
+ *
+ * This function only supplies the surround: a dark stage (the reel declares its
+ * own light-on-dark palette, so it needs one in both themes) plus feature detail.
  *
  * ═══ WHAT THIS SECTION MAY CLAIM — READ BEFORE ADDING A FEATURE ═══════════
  * The repo's extension/manifest.json says 2.0.0 and lists alaskaair.com and
@@ -273,9 +275,9 @@ function extPlug() {
  *
  * So this section is split IN TWO on purpose, and the split is not cosmetic:
  *   LIVE TODAY (1.5.1)  united.com + app.navan.com badges, sort, route panel.
- *                       That is also exactly what the reel above demonstrates —
- *                       it is the 1.5.1-era promo asset and carries its own
- *                       "v1.5.1" badge, so the reel and the copy agree.
+ *                       That is also exactly what the reel above shows — the two
+ *                       screenshots are 1.5.1 captures and the reel says so on
+ *                       its own badge, so the pictures and the copy agree.
  *   NOT YET INSTALLABLE alaskaair.com + Google Flights + all-18 ConnectScores in
  *                       the popup (2.0, awaiting store review) and the tail-swap
  *                       Guardian (2.1, built and in test — see ROADMAP above).
@@ -291,7 +293,8 @@ function extensionSection(m) {
     '<a class="more" href="' + H.EXT + '" target="_blank" rel="noopener">Add to Chrome ↗</a></div>\n' +
     '  <p class="sec-lede">This site answers one flight at a time. The extension answers the page ' +
     'you are already looking at: every United result picks up a colour-coded Starlink odds badge, ' +
-    'and one click sorts the whole page by them — without leaving the booking flow.</p>\n' +
+    'and one click sorts the whole page by them — without leaving the booking flow. Below is what ' +
+    'that looks like, in real screenshots rather than a mockup.</p>\n' +
     '  <div class="extdemo">\n' + C.section() + '\n  </div>\n' +
     '  <div class="grid3 extfeat">\n' +
     '    <div class="card rv"><h3>Odds badges, in the row <span class="pill live">live</span></h3>' +

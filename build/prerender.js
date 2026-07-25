@@ -57,12 +57,14 @@ function exists(p) { try { return fs.statSync(abs(p)).isFile(); } catch (e) { re
  *
  * A page that genuinely should not be generated belongs in ROUTES, UNLISTED, or
  * EMBEDS below — never nowhere. */
-var EMBEDS = [
-  /* standalone <iframe>/inline embed, not a page: no chrome, no route, no sitemap
-     entry. It is included INTO /united/ from the template, so it must not be held
-     to the page contract. */
-  'united/assets/plugin-carousel.html'
-];
+/* Empty, and that is the goal state: every served .html file is a route. The one
+ * entry that used to live here was `united/assets/plugin-carousel.html`, the
+ * hand-DRAWN extension carousel — a standalone promo page that was neither a
+ * route nor an asset. It is deleted: the homepage demo is built from the two real
+ * screenshots now (build/lib/reel.js explains why in full). If you ever need this
+ * list again, an entry here must be a genuine embed, not a page you did not want
+ * to register. */
+var EMBEDS = [];
 /* skip dirs that Cloudflare Pages never serves (see .assetsignore / .gitignore) */
 var SKIP_DIRS = { '.git': 1, 'build': 1, 'node_modules': 1, '.claude': 1 };
 

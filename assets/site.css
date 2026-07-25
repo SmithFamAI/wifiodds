@@ -542,14 +542,15 @@ footer .flinks a:hover{text-decoration:underline}
 @media(max-width:600px){.extplug{border-radius:var(--r-md);padding:13px 15px}}
 
 /* ═══ HOMEPAGE EXTENSION SECTION ═══════════════════════════════════════════
-   .extdemo is a DARK STAGE in BOTH themes, deliberately. The reel inside it is
-   the self-contained <section class="plc"> sliced out of
-   united/assets/plugin-carousel.html by build/lib/carousel.js; that block
-   declares its OWN light-on-dark palette on `.plc` (--ink:#e8eefb and friends),
-   so on the light theme it would be white text on white. Do not "fix" that by
-   editing the reel — it also ships as a standalone promo page on a dark
-   background. Give it the background it expects instead. Every `.plc*` rule
-   lives in that block; nothing here reaches inside it.
+   .extdemo is a DARK STAGE in BOTH themes, deliberately. Inside it sits the
+   <section class="rlc"> emitted by build/lib/reel.js — the four-caption sequence
+   over the two REAL product screenshots. That block declares its own
+   light-on-dark palette (--rlc-ink and friends) rather than inheriting --ink,
+   because a screenshot of a white airline website needs a dark surround to read
+   as a screenshot; on the light theme, inheriting would give white on white.
+   Every `.rlc*` rule lives in that block's scoped <style>; nothing here reaches
+   inside it. (This slot previously held `.plc`, the hand-drawn fake united.com
+   carousel — deleted, see build/lib/reel.js.)
    ═════════════════════════════════════════════════════════════════════════ */
 .extdemo{background:
     radial-gradient(700px 420px at 78% -20%, #0b1b4d 0%, transparent 58%),
