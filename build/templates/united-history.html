@@ -1,56 +1,133 @@
 <!--@head-->
 <style>
-  /* Page-specific only — every colour comes from the shared tokens in site.css.
-     The day-log itself is still client-rendered from data.json (it is a 176-day
-     list of pills; baking it would double the page for no reader benefit), which
-     is why this is the one page besides /united/ allowed to say "Loading…". */
-  .wrap{max-width:860px}
-  .controls{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 6px}
-  .controls .f{font-size:13px;color:var(--dim);cursor:pointer;padding:6px 13px;
-    border:1px solid var(--edge);border-radius:99px;background:var(--surface);transition:.15s;user-select:none}
-  .controls .f:hover{color:var(--accent);border-color:var(--edge-strong)}
-  .controls .f.on{color:var(--accent);border-color:var(--sky);background:rgba(105,179,231,.12)}
-  /* #stat, not .stat — site.css owns a .stat card component and this is one line of text */
-  #stat{color:var(--faint);font-size:12.5px;margin:8px 0 18px;font-family:var(--mono)}
-  .clog-days{display:grid;gap:12px;padding-bottom:20px}
-  .cday{background:var(--surface);border:1px solid var(--edge);border-radius:var(--r-lg);padding:16px 18px}
-  .cday.today{border-color:rgba(53,208,127,.4);background:rgba(53,208,127,.05)}
-  .cday-top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
-  .cday-date{font-family:var(--mono);font-weight:700;font-size:15px;color:var(--ink)}
-  .cday-eq{font-family:var(--mono);font-size:13px;color:var(--dim)}
-  .cday-eq .up{color:var(--green);font-weight:700}
-  .cday-eq .flat{color:var(--faint)}
-  .cday-rows{display:grid;gap:8px;margin-top:8px}
-  .crow{display:flex;gap:10px;font-size:14px;align-items:flex-start;line-height:1.5}
-  .crow .k{color:var(--dim);flex:0 0 118px;font-size:12px;text-transform:uppercase;letter-spacing:.7px;padding-top:2px}
-  .crow .v{flex:1}
-  .cday-steady{color:var(--faint);font-size:13.5px;font-style:italic}
-  @media(max-width:560px){.crow{flex-direction:column;gap:3px}.crow .k{flex:none}}
+  /* Page-scoped only. Colour, type and rule weight come from /assets/site.css.
+     The day log is still client-rendered from data.json (a 176-day list of pills
+     baked into the HTML would roughly double the page for no reader benefit), so
+     everything below the filter row sits inside .needs-js and there is a real
+     no-JS answer next to it. Nothing here is rounded and nothing lifts. */
+  .wrap{max-width:900px}
+
+  /* the type filter row. Same grammar as .filters in site.css: hairline boxes
+     butted together with a -1px margin, inverted when the filter is on. The JS
+     writes <span class="f">, not <button>, so the rules are duplicated rather
+     than inherited. Do not rename .f — assets are not involved, this page's own
+     script reads it. */
+  .controls{display:flex;flex-wrap:wrap;gap:0;margin:16px 0 4px}
+  .controls .f{font:700 10px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ink-2);cursor:pointer;padding:8px 11px;border:1px solid var(--rule);
+    margin-left:-1px;user-select:none;white-space:nowrap}
+  .controls .f:hover{color:var(--ink);background:var(--bg-inset)}
+  .controls .f.on{color:var(--bg);background:var(--ink);border-color:var(--ink)}
+
+  #stat{margin:10px 0 18px}
+
+  /* one ruled row per update day. A day is a record, so it gets a rule, not a
+     card: no radius, no shadow, no hover lift. The current day is marked in the
+     margin the way a plate marks the row it wants read, and the mark is grey
+     because "most recent" is not a score. */
+  .clog-days{display:grid;gap:0;border-top:1px solid var(--rule-2);padding-bottom:12px}
+  .cday{background:transparent;border:0;border-bottom:1px solid var(--rule);padding:15px 0 15px 14px;
+    position:relative}
+  .cday:before{content:"";position:absolute;left:0;top:15px;bottom:15px;width:1px;
+    background:var(--rule)}
+  .cday.today{background:var(--bg-panel);padding-left:14px}
+  .cday.today:before{background:var(--ink-2);width:3px}
+  .cday-top{display:flex;align-items:baseline;gap:8px 14px;flex-wrap:wrap;margin-bottom:4px}
+  .cday-date{font-family:var(--mono);font-weight:700;font-size:14.5px;color:var(--ink);
+    letter-spacing:.02em}
+  .cday-eq{font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
+  .cday-eq .up{color:var(--good);font-weight:700}
+  .cday-eq .flat{color:var(--ink-3)}
+  .cday-rows{display:grid;gap:0;margin-top:8px;border-top:1px solid var(--rule)}
+  .crow{display:flex;gap:12px;font-size:13.5px;align-items:flex-start;line-height:1.5;
+    padding:8px 0;border-bottom:1px solid var(--rule)}
+  .crow:last-child{border-bottom:0}
+  .crow .k{flex:0 0 120px;font:700 9.5px/1.6 var(--mono);letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-3);padding-top:3px}
+  .crow .v{flex:1;min-width:0}
+  .cday-steady{color:var(--ink-3);font-size:13px;font-family:var(--mono);letter-spacing:.03em}
+  @media(max-width:560px){
+    .crow{flex-direction:column;gap:2px}
+    .crow .k{flex:none}
+  }
 </style>
 <!--@body-->
-<header class="hero" style="padding:18px 0 4px">
-  <h1 class="ph">Fleet history</h1>
-  <p class="lede">Every day of United's Starlink rollout, newest first: which aircraft types and tail
-  numbers went live, plus route-frequency and odds movements where we have a daily snapshot.
-  <b data-bake="united.days">176</b> install days and <b data-bake="united.tails">481</b> equipped tails,
-  back to <b data-bake="united.first">Mar 14, 2025</b>.</p>
+<header class="hero" style="padding:22px 0 4px">
+  <p class="micro">United · Install archive</p>
+  <h1 class="ph">Every day of the United rollout</h1>
+  <p class="lede">Newest first: which aircraft types and tail numbers went live on each date, plus
+  the route-frequency and odds movements for the days a snapshot exists.
+  <b data-bake="united.days">176</b> install days and <b data-bake="united.tails">481</b> equipped
+  tails, back to <b data-bake="united.first">Mar 14, 2025</b>.</p>
   <div class="cta-row" style="margin-top:16px">
-    <a class="btn ghost" href="/united/fleet/">The hangar floor &amp; full registry →</a>
-    <a class="btn ghost" href="/united/">Route optimizer →</a>
+    <a class="btn ghost" href="/united/fleet/">The hangar floor and full registry</a>
+    <a class="btn ghost" href="/united/">Route optimizer</a>
   </div>
 </header>
 
-<div class="credit"><span class="cb">DATA CREDIT</span><span class="cbody">Aircraft and tail numbers come
-from the equipped roster published by <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener"><b>unitedstarlinktracker.com</b></a>,
-the independent community tracker built by <b>@martinamps</b>, dated by each jet's install day. All credit
-for the data goes to them — visit for live per-tail status and much more ↗. WiFi Odds is unofficial and
-not affiliated with United Airlines, SpaceX/Starlink, or the tracker.</span></div>
+<div class="credit"><span class="cb">DATA CREDIT</span><span class="cbody">Aircraft and tail numbers
+come from the equipped roster published by <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener"><b>unitedstarlinktracker.com</b></a>,
+the independent community tracker built by <b>@martinamps</b>, dated by each jet's install day. All
+credit for the data goes to them. Visit for live per-tail status ↗. WiFi Odds is unofficial and not
+affiliated with United Airlines, SpaceX/Starlink, or the tracker.</span></div>
 
 <section class="blk">
-  <div class="sec-h"><h2>Day by day</h2><span class="sub"><span data-bake="united.equipped">481</span> of <span data-bake="united.total">1,808</span> equipped</span></div>
-  <div class="controls" id="filters"></div>
-  <div class="stat" id="stat">Loading…</div>
-  <div class="clog-days" id="hist"></div>
+  <div class="sec-h"><span class="sub">§1 · How to read a row</span><h2>What one day records</h2></div>
+  <p class="sec-lede">A row is one update day and it can carry up to four fields. Few days carry all
+  four. A day with none of them still gets its own row, because a week of quiet is a fact about the
+  rollout and hiding it would flatter the curve.</p>
+  <div class="kv kv-2">
+    <div><p class="micro">Planes added</p><span class="v">Type<small>Count by aircraft family, from that day's new tail records</small></span></div>
+    <div><p class="micro">Tail numbers</p><span class="v">Reg<small>The actual registrations, each tagged with its type</small></span></div>
+    <div><p class="micro">Routes gained</p><span class="v">Δ<small>Scheduled Starlink departures, against the previous snapshot</small></span></div>
+    <div><p class="micro">Odds moved</p><span class="v">Δ<small>Per-flight probability changes of five points or more</small></span></div>
+  </div>
+  <p class="src"><span class="cls">Reported</span> An install date here is the day a tail first
+  appears in the tracker's equipped roster. That is a publication date, so the aircraft may have
+  come out of the hangar a day or two before its row. The archive runs from
+  <b data-bake="united.first">Mar 14, 2025</b> to <b data-bake="site.updated">2026-07-24</b>.</p>
+</section>
+
+<section class="blk">
+  <div class="sec-h"><span class="sub">§2 · Why keep it</span><h2>What the archive is for</h2></div>
+  <p class="sec-lede">Two things, and both of them are arithmetic that only a long record can do.</p>
+  <div class="grid2">
+    <div class="card">
+      <h3>Pace, not promises</h3>
+      <p>Counting installs per week across the whole archive gives a rate, and a rate turns a fleet
+      count into a date. It also catches a programme that has stopped: three quiet weeks show up here
+      long before anybody issues a statement about them.</p>
+    </div>
+    <div class="card">
+      <h3>Priors for the next airline</h3>
+      <p>United is the only fleet with a per-flight route history, so it is the only place where the
+      shape of a Starlink rollout has been measured end to end. Every airline instrumented after it
+      starts from these numbers.</p>
+    </div>
+  </div>
+</section>
+
+<section class="blk">
+  <div class="sec-h"><span class="sub">§3 · The log</span><h2>Day by day</h2>
+    <span class="sub" style="position:static"><span data-bake="united.equipped">481</span> of
+    <span data-bake="united.total">1,808</span> equipped</span></div>
+  <div class="needs-js">
+    <div class="controls" id="filters"></div>
+    <p class="micro" id="stat">Loading the archive from data.json</p>
+    <div class="clog-days" id="hist"></div>
+  </div>
+  <div class="no-js-only">
+    <p class="note">The day log is built in the browser from
+    <a href="/united/data.json">united/data.json</a>, which is the same file the rest of this site is
+    baked from, so it needs JavaScript. Two prerendered pages carry the same material without it:
+    <a href="/united/fleet/">the full registry</a> lists every equipped tail with its type, and
+    <a href="/airlines/united/">the United score page</a> carries the fleet counts and the
+    ConnectScore arithmetic.</p>
+    <div class="cta-row">
+      <a class="btn ghost" href="/united/fleet/">Open the registry</a>
+      <a class="btn ghost" href="/united/data.json">Read data.json</a>
+    </div>
+  </div>
 </section>
 
 <!--@foot-->
@@ -78,7 +155,7 @@ function build(){
   document.querySelectorAll(".f").forEach(el=>el.onclick=()=>{curFilter=el.dataset.f;render(allDates,addByDate,histByDate,latest,roster);});
 
   render(allDates,addByDate,histByDate,latest,roster);
-  $("stat").textContent=`${roster.length} equipped tails · ${allDates.length} update days · ${fmt(allDates[allDates.length-1])} → ${fmt(latest)}`;
+  $("stat").textContent=`${roster.length} equipped tails · ${allDates.length} update days · ${fmt(allDates[allDates.length-1])} to ${fmt(latest)}`;
 }
 
 function render(allDates,addByDate,histByDate,latest,roster){
@@ -117,10 +194,10 @@ function render(allDates,addByDate,histByDate,latest,roster){
     const body=rows.length?`<div class="cday-rows">${rows.map(([k,v])=>`<div class="crow"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("")}</div>`
       :`<div class="cday-steady">No new tails or route gains logged this day.</div>`;
     return `<div class="cday${date===latest?" today":""}"><div class="cday-top"><span class="cday-date">${fmt(date)}</span>${eqHtml}</div>${body}</div>`;
-  }).join("")||`<div class="cday-steady" style="padding:20px">No days match this filter.</div>`;
+  }).join("")||`<div class="cday-steady" style="padding:20px 0">No days match this filter.</div>`;
 }
 
 fetch(`../data.json?cb=${Date.now()}`,{cache:"no-store"})
   .then(r=>r.json()).then(d=>{DATA=d;build();})
-  .catch(e=>{$("stat").textContent="Couldn't load data.json: "+e;});
+  .catch(e=>{$("stat").textContent="Could not load data.json: "+e;});
 </script>

@@ -18,6 +18,9 @@
 var fs = require('fs');
 var path = require('path');
 var ROOT = path.join(__dirname, '..', '..');
+/* Reader field reports, off assets/reports.json — a committed file, never a live
+ * query. build/pull-reports.js is what refreshes it. See build/lib/reports.js. */
+var RP = require('./reports.js');
 
 function loadData() { return JSON.parse(fs.readFileSync(path.join(ROOT, 'united', 'data.json'), 'utf8')); }
 function loadAirlines() { return require(path.join(ROOT, 'assets', 'airlines.js')); }
@@ -173,7 +176,13 @@ function build() {
     routeCount: Object.keys(D.routeCache || {}).length,
     leaderboardCount: (D.leaderboard || []).length,
     airlineCount: Object.keys(A.WIFI_AIRLINES).length,
-    ranked: A.rankAirlines()
+    ranked: A.rankAirlines(),
+    /* Published reader reports. `.present` is false and `.reports` is empty when
+     * nobody has published one yet, or when assets/reports.json is not there at
+     * all — a fresh clone builds fine without it. Class them FIELD REPORT
+     * wherever they render; they are one person on one flight, not the measured
+     * medians the methodology page cites, and they never touch a ConnectScore. */
+    reports: RP.load(A)
   };
 }
 

@@ -73,26 +73,26 @@ var STEPS = [
     key: 'search', shot: 'united', z: 1, ox: 50, oy: 50,
     label: 'Search',
     text: 'You search united.com the way you always do. The extension adds nothing to the page ' +
-      'until there are results on it — and it never touches the booking or payment steps.'
+      'until there are results on it, and it never touches the booking or the payment steps.'
   },
   {
     key: 'odds', shot: 'united', z: 2.1, ox: 24, oy: 88,
     label: 'Odds',
     text: 'Every result picks up its own badge: how often that flight number has actually drawn a ' +
-      'Starlink aircraft. 49% here, 44% on the next one — and a ✓ instead of a percentage once the ' +
-      'assigned tail is confirmed equipped.'
+      'Starlink aircraft. 49% here, 44% on the next one. Once the assigned tail is confirmed ' +
+      'equipped the badge shows a ✓ instead of a percentage.'
   },
   {
     key: 'sort', shot: 'navan', z: 1.7, ox: 100, oy: 75,
     label: 'Sort',
-    text: 'One click reorders the whole page best-odds-first — prices and times untouched — so you ' +
+    text: 'One click reorders the whole page best-odds-first, prices and times untouched, so you ' +
       'can see what the good connection actually costs you. Same panel on Navan as on united.com.'
   },
   {
     key: 'guard', shot: 'united', z: 1.8, ox: 100, oy: 100,
     label: 'Guard',
-    text: 'The panel is straight about what it cannot know yet: tails firm up around 48 hours out. ' +
-      'Watching that window after you book is the Tail-swap Guardian — built, in test, shipping in 2.1.'
+    text: 'The panel names what it cannot know yet: tails firm up around 48 hours out. Watching ' +
+      'that window after you book is the Tail-swap Guardian, which is built, in test, and ships in 2.1.'
   }
 ];
 
@@ -262,7 +262,7 @@ function section() {
     '  <div class="rlc-stage">\n' + shotHtml + '\n  </div>\n' +
     '  <ol class="rlc-cl">\n' + capHtml + '\n  </ol>\n' +
     '  <p class="rlc-foot">Captured on the real united.com and Navan with the store build. Nothing ' +
-    'here is a mockup — the percentages in the badges are the odds the extension actually computed ' +
+    'here is a mockup. The percentages in the badges are the odds the extension actually computed ' +
     'for that route.</p>\n' +
     script() +
     '</section>';

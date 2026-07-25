@@ -115,6 +115,44 @@
  * We do not promise video calls anywhere. "Streams, uploads, real work" is the
  * claim the hardware supports; a Zoom call at 35,000 feet over a full cabin is
  * not something this data set can underwrite.
+ * ═══════════════════════════════════════════════════════════════════════════
+ * THE PROJECTED SCORE — the number most likely to be misread, so it is fenced
+ *
+ * `projected` answers a different question from every field above it. Not what
+ * a fleet is, but what an airline has signed for. Four carriers have committed
+ * to a low-earth-orbit system that has not carried a single passenger yet.
+ *
+ *   projected = committed aircraft ÷ known fleet × 1.00 (LEO) × free-for-you
+ *
+ * That is the same denominator, the same quality weight and the same free factor
+ * as nextGenScore, so the two sit on one axis: "Delta 0 today, 38 projected from
+ * 2028" is a sentence a reader can check. Against a ConnectScore it would not be.
+ *
+ * The committed count is the FLOOR of what was announced. "500+ Airbus" scores
+ * 500, for the same reason the published ConnectScore is the floor.
+ *
+ * FIVE FENCING RULES, each with a tripwire in build/prerender.js. A projection is
+ * a promise somebody else made, and this file is where it could quietly turn into
+ * a fact about an aircraft you are sitting in:
+ *
+ *   1. It sorts nothing. rankAirlines() ranks on today's floor, and the build
+ *      asserts that deleting every projection changes no order and no score.
+ *   2. It never takes the score arc. assets/site.css gives it a grey outline
+ *      (.proj), and the build fails if a projected number ships inside an .sc-*
+ *      element or a [data-band].
+ *   3. The number never appears without its date. That is why projectionFor()
+ *      returns a composed object (`parts` and `line`) instead of an integer, and
+ *      why scoreAirline() carries no bare projected number anywhere.
+ *   4. It always carries FIRM or SOFT.
+ *   5. SLIPPED is COMPUTED from the build date and never stored. Once the
+ *      announced start has passed with zero aircraft of the committed system
+ *      flying, the confidence flips, the treatment greys out, and the original
+ *      promised date keeps showing. A date that was missed should be louder than
+ *      one that was met, and nobody should have to remember to make it so.
+ *
+ * Amazon Leo has no aircraft in the air and no passenger has measured it. A
+ * projection is a share of a committed fleet. It is not a throughput claim, and
+ * none of the strings below name a speed.
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 const WIFI_AIRLINES = {
@@ -164,7 +202,7 @@ const WIFI_AIRLINES = {
           "aircraft retire rather than when installs proceed." },
     ],
     unresolved: { n: 229, why: "the tracker publishes no system for these tails" },
-    note: "481 of 1,808 aircraft — free for MileagePlus members. Odds swing a lot by route and aircraft type.",
+    note: "481 of 1,808 aircraft, free for MileagePlus members. Odds swing a lot by route and aircraft type.",
   },
   alaska: {
     name: "Alaska", code: "AS", asOf: "2026-07",
@@ -206,7 +244,7 @@ const WIFI_AIRLINES = {
       { system: "starlink", n: 75, free: "free", as: "2026-07",
         src: "JSX fleet announcements", note: "The whole fleet, and the first anywhere to finish." },
     ],
-    note: "Every aircraft in the fleet — the first airline anywhere to finish its Starlink rollout.",
+    note: "Every aircraft in the fleet. The first airline anywhere to finish a Starlink rollout.",
   },
   airbaltic: {
     name: "airBaltic", code: "BT", asOf: "2026-07",
@@ -225,7 +263,7 @@ const WIFI_AIRLINES = {
         src: "airBaltic Starlink completion announcement",
         note: "Single-type A220 fleet, so every aircraft is the same aircraft." },
     ],
-    note: "Entire A220 fleet equipped — the first European airline to complete a Starlink fit.",
+    note: "Entire A220 fleet equipped. The first European airline to complete a Starlink fit.",
   },
   zipair: {
     name: "ZIPAIR", code: "ZG", asOf: "2026-07",
@@ -258,7 +296,7 @@ const WIFI_AIRLINES = {
         note: "WestJet Encore Q400s. About a fifth of the passenger fleet, with no announced plan." },
     ],
     unresolved: { n: 8, why: "the last mainline aircraft awaiting install; WestJet has not said what is on them today" },
-    note: "151 of 198 including WestJet Encore — the mainline fit is all but finished, the 39 Encore Q400s have nothing.",
+    note: "151 of 198 including WestJet Encore. The mainline fit is all but finished; the 39 Encore Q400s have nothing.",
   },
   airfrance: {
     name: "Air France", code: "AF", asOf: "2026-07",
@@ -300,7 +338,7 @@ const WIFI_AIRLINES = {
         src: "Hawaiian 787 Starlink announcement",
         note: "787-9s. Nothing today; Starlink from fall 2026." },
     ],
-    note: "42 of 66 — the A330 and A321neo fit is complete, the 19 Boeing 717s have never had wifi at all.",
+    note: "42 of 66. The A330 and A321neo fit is complete; the 19 Boeing 717s have never had wifi at all.",
   },
   qatar: {
     name: "Qatar Airways", code: "QR", asOf: "2026-07",
@@ -356,7 +394,7 @@ const WIFI_AIRLINES = {
           "publishes neither the split nor a current price, so this row takes the " +
           "0.85 unconfirmed factor rather than an assumed free." },
     ],
-    note: "36 of 232 so far, free onboard — the widebody retrofit is early, and the rest of the fleet is older Ku.",
+    note: "36 of 232 so far, free onboard. The widebody retrofit is early and the rest of the fleet is older Ku.",
   },
   virginatlantic: {
     name: "Virgin Atlantic", code: "VS", asOf: "2026-07",
@@ -391,7 +429,7 @@ const WIFI_AIRLINES = {
         note: "Mainline. Air Canada names no generation per airframe, so the row spans " +
           "legacy Ku to 2Ku, and it is paid per flight." },
     ],
-    note: "Just started — 12 Q400s equipped out of 216; free for Aeroplan members (free to join), per seatwifi.com/Runway Girl, Jun 2026.",
+    note: "Just started. 12 Q400s equipped out of 216; free for Aeroplan members (free to join), per seatwifi.com/Runway Girl, Jun 2026.",
   },
   britishairways: {
     name: "British Airways", code: "BA", asOf: "2026-07",
@@ -412,7 +450,7 @@ const WIFI_AIRLINES = {
         note: "Panasonic Ku on long-haul, Inmarsat on short-haul. Both are legacy GEO " +
           "on the measured numbers, so naming both does not widen the range. Paid." },
     ],
-    note: "Rollout paused summer 2026 — only 5 aircraft equipped; free for every customer in every cabin once fitted (BA mediacentre, Mar 2026 launch).",
+    note: "Rollout paused summer 2026, with only 5 aircraft equipped; free for every customer in every cabin once fitted (BA mediacentre, Mar 2026 launch).",
   },
   southwest: {
     name: "Southwest", code: "WN", asOf: "2026-07",
@@ -422,6 +460,23 @@ const WIFI_AIRLINES = {
     system: "starlink", equipped: 1, fleet: 803, free: "loyalty-free",
     resolution: "systems",
     serviceTier: "mixed", restTier: "unknown",
+    /* The one projection here that is a COMPLETION target rather than a start
+       date: installs are already running, one aircraft is in service, and the
+       published promise is 300+ of 803 by the end of 2026. That matters for rule
+       5 — the SLIPPED flip fires when a horizon passes with NOTHING installed, so
+       a fleet with one aircraft flying can never trip it. If Southwest reaches
+       2027 with 40 aircraft done, `horizonPassed` goes true and the confidence
+       does not. Read the note in build/prerender.js before "fixing" that. */
+    projected: {
+      system: "starlink", n: 300, free: "loyalty-free",
+      starts: null, by: "2026",
+      horizon: "300+ by end-2026, installs running",
+      confidence: "FIRM",
+      src: "Southwest: the 300-by-year-end target, restated when N8543Z entered service",
+      as: "2026-06-22",
+      note: "300 is the floor of “300+”, and it counts the aircraft already in service. " +
+        "Free for Rapid Rewards members, and joining is free.",
+    },
     segments: [
       { system: "starlink", n: 1, free: "loyalty-free", as: "2026-06-22",
         src: "Southwest; N8543Z entered service 2026-06-22",
@@ -442,6 +497,24 @@ const WIFI_AIRLINES = {
     name: "American", code: "AA", asOf: "2026-07",
     system: "viasat", equipped: 890, fleet: 989, free: "free",
     future: { system: "starlink", from: "2027-Q1", detail: "500+ Airbus aircraft signed" },
+    /* SIGNED, NOT FLYING. 500+ Airbus narrowbodies out of 989, installs from
+       2027-Q1. The Boeing narrowbodies stay on Viasat under this deal and the
+       Panasonic widebodies are not in it either, which caps American's
+       projection near half.
+       On `free`: American's free wifi is an AAdvantage-sponsored fleet product,
+       not a per-system offer, so an aircraft that swaps Viasat for Starlink stays
+       free. American has published no separate Starlink price. I am reading that
+       as free rather than unconfirmed; if a price appears this drops to "unknown"
+       and the projection falls from 51 to 43. */
+    projected: {
+      system: "starlink", n: 500, free: "free",
+      starts: "2027-Q1", by: null,
+      horizon: "installs begin 2027-Q1",
+      confidence: "FIRM",
+      src: "Runway Girl Network, 2026-05-26: American pivots to Starlink for 500+ Airbus narrowbodies",
+      as: "2026-05-26",
+      note: "500 is the floor of “500+”.",
+    },
     /* the only entry with a KNOWN rest tier: AA's free Viasat/Intelsat covers ~90%
        of the fleet and the Panasonic widebodies are explicitly excluded from it */
     resolution: "type",
@@ -455,7 +528,7 @@ const WIFI_AIRLINES = {
         src: "American onboard wifi page",
         note: "The widebodies, explicitly excluded from the free offer." },
     ],
-    note: "Free Viasat/Intelsat on ~90% of the fleet today. Airbus-only Starlink from 2027 — Boeing stays Viasat.",
+    note: "Free Viasat/Intelsat on ~90% of the fleet today. Airbus-only Starlink from 2027. Boeing stays Viasat.",
   },
   delta: {
     name: "Delta", code: "DL", asOf: "2026-07",
@@ -469,6 +542,21 @@ const WIFI_AIRLINES = {
        not Viasat alone. */
     system: "viasat", coverage: 0.86, free: "free",
     future: { system: "leo", from: "2028", detail: "Amazon Leo signed for 500 aircraft" },
+    /* SIGNED, NOT FLYING, and the deal with the largest gap between what it is
+       and what it sounds like. 500 aircraft out of the 1,330 the segments below
+       account for, from 2028. Delta also says "hundreds more over time"; that is
+       not a count, so it is not counted, and the projection is 38 rather than the
+       50-ish a reader might assume from the press release. */
+    projected: {
+      system: "leo", n: 500, free: "loyalty-free",
+      starts: "2028", by: null,
+      horizon: "begins 2028",
+      confidence: "FIRM",
+      src: "Delta news release and Amazon news release, both 2026-03-31",
+      as: "2026-03-31",
+      note: "Free for SkyMiles members, and joining is free. Delta keeps Viasat and " +
+        "Hughes alongside Leo, so this is not a fleet conversion.",
+    },
     /* "systems" rather than "type": the Sync count and the 717 count are both
        published, but the transpacific remainder is a lump with two possible
        systems and no split, which is what puts a range on this score. */
@@ -492,7 +580,7 @@ const WIFI_AIRLINES = {
           "“fall 2026”. They carry older service today and Delta does not say " +
           "which, so the row spans legacy Ku to 2Ku." },
     ],
-    note: "Delta Sync (Viasat + Hughes) on 1,150+ aircraft, free for SkyMiles members — but not fleetwide: the 80 Boeing 717s lost their legacy wifi in May 2026 awaiting the Hughes retrofit, and transpacific widebodies come online fall 2026. Amazon Leo lands on 500 aircraft from 2028.",
+    note: "Delta Sync (Viasat + Hughes) on 1,150+ aircraft, free for SkyMiles members, but not fleetwide: the 80 Boeing 717s lost their legacy wifi in May 2026 awaiting the Hughes retrofit, and transpacific widebodies come online fall 2026. Amazon Leo lands on 500 aircraft from 2028.",
   },
   jetblue: {
     name: "jetBlue", code: "B6", asOf: "2026-07",
@@ -509,6 +597,25 @@ const WIFI_AIRLINES = {
        Leo from 2027 explicitly targets the first-gen kit first. */
     system: "viasat", coverage: 1.0, free: "free",
     future: { system: "leo", from: "2027", detail: "Amazon Leo" },
+    /* SIGNED, NOT FLYING, and the only projection stored as a SHARE instead of a
+       count. JetBlue published a fraction — about a quarter of the fleet, the
+       airframes still on the original ViaSat-1 kit — and never a number. Which
+       airframes those are (older A321s out of JFK and BOS) is secondary
+       reporting. So the confidence is SOFT and the stored value stays 0.25 rather
+       than hardening into a tail count nobody published. projectionFor() still
+       reports 73 aircraft for a surface that needs a head count, but it flags it
+       with aircraftPublished:false, because 0.25 × 291 is 72.75 and the airline
+       never said 73. */
+    projected: {
+      system: "leo", n: null, share: 0.25, free: "free",
+      starts: "2027", by: "2028",
+      horizon: "begins 2027, complete 2028",
+      confidence: "SOFT",
+      src: "JetBlue press release, 2025-09-04; sub-fleet detail from secondary reporting",
+      as: "2025-09-04",
+      note: "Free for everyone onboard. JetBlue keeps GEO Fly-Fi alongside Leo, so " +
+        "the rest of the fleet does not go dark.",
+    },
     resolution: "type",
     serviceTier: "streaming", restTier: null,
     segments: [
@@ -680,6 +787,29 @@ const TIER_METHOD_LINE =
   "Next-gen odds = share of the fleet flying Starlink or Amazon Leo today × free-for-you. " +
   "Signed-but-unflown deals count zero. The second line is what the fleet actually " +
   "delivers today: next-gen, streaming-class, basic, or mixed.";
+
+/* ── the projected score ──────────────────────────────────────────────────
+ * The header carries the five fencing rules. These three constants are the data
+ * half; build/prerender.js is the enforcement half. */
+const PROJECTION_CONFIDENCE = {
+  FIRM: "signed, with the aircraft count and the date both published",
+  SOFT: "signed, but the count or the date is secondary reporting",
+  SLIPPED: "the announced date has passed and nothing is installed",
+};
+
+/* Stored confidence may only be one of these. SLIPPED is derived at build time,
+ * so it is deliberately absent. */
+const PROJECTION_STORED = ["FIRM", "SOFT"];
+
+const PROJECTION_METHOD_LINE =
+  "Projected score = committed aircraft ÷ the same known-fleet denominator the next-gen odds " +
+  "use × 1.00 for low-earth orbit × free-for-you. It is the next-gen number a fleet would carry " +
+  "if the announced deal lands as announced, so read it against next-gen odds and never against " +
+  "the ConnectScore. A projection never moves the leaderboard and it carries its date and its " +
+  "confidence wherever it appears. FIRM: count and date both published. SOFT: one of the two is " +
+  "secondary reporting. SLIPPED: the announced date has passed with nothing installed, computed " +
+  "from the build date rather than stored. A committed share of a fleet is not a measurement — " +
+  "nobody has measured Amazon Leo in a cabin, because nobody is flying it.";
 
 /* ── pure helpers ────────────────────────────────────────────────────────── */
 function clamp01(n) {
@@ -860,6 +990,129 @@ function nextGenScore(entry) {
   return Math.round(clamp01(nextGenShare(entry) * freeFactor(entry.free)) * 100);
 }
 
+/* ── the projected score ──────────────────────────────────────────────────
+ * Five small functions. Four are pure arithmetic on one entry; the fifth,
+ * projectionFor(), is the only one anything should render, and it is the fence
+ * for rules 3 and 4 — it composes the number, the promised date and the
+ * confidence word into one object so they cannot be separated by accident. */
+
+/* The last day a horizon can still be met, derived from however coarsely the
+ * airline announced it. Nothing here is stored. "2027-Q1" becomes 2027-03-31 on
+ * every build, and that is what lets SLIPPED fire without anyone editing a
+ * field. Returns null for a spec this cannot read, which fails the build. */
+function horizonEnd(spec) {
+  const s = String(spec || "");
+  let m;
+  if (/^\d{4}$/.test(s)) return s + "-12-31";
+  if ((m = /^(\d{4})-Q([1-4])$/.exec(s))) {
+    return m[1] + "-" + ["03-31", "06-30", "09-30", "12-31"][Number(m[2]) - 1];
+  }
+  if ((m = /^(\d{4})-(\d{2})$/.exec(s))) {
+    /* day 0 of the next month is the last day of this one, leap years included */
+    const last = new Date(Date.UTC(Number(m[1]), Number(m[2]), 0)).getUTCDate();
+    return s + "-" + (last < 10 ? "0" : "") + last;
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  return null;
+}
+
+/* Aircraft of the COMMITTED system flying today, counted off the segments. This
+ * is the "nothing is installed" half of rule 5, and it is a count rather than a
+ * flag so the surfaces can say 1 of 300 instead of "started". */
+function projectedInstalled(entry) {
+  const p = entry && entry.projected;
+  if (!p || !isSegmented(entry)) return 0;
+  const want = String(p.system || "").toLowerCase();
+  return entry.segments.reduce(function (t, seg) {
+    return segmentSystems(seg).indexOf(want) >= 0 ? t + (Number(seg.n) || 0) : t;
+  }, 0);
+}
+
+/* Committed share of the fleet. A projection stores either a count (`n`) or,
+ * where the airline published a fraction and no count, a `share`. JetBlue is the
+ * second case: 0.25 of 291 is 72.75 aircraft and rounding it would be inventing
+ * a number the source does not contain. */
+function projectedShare(entry) {
+  const p = entry && entry.projected;
+  if (!p) return 0;
+  const known = knownAircraft(entry) || (typeof entry.fleet === "number" ? entry.fleet : 0);
+  if (typeof p.n === "number" && known) return clamp01(p.n / known);
+  return clamp01(typeof p.share === "number" ? p.share : 0);
+}
+
+/* The bare integer. NOTHING THAT RENDERS SHOULD CALL THIS. It exists for
+ * arithmetic, for the tripwires and for the tests; scoreAirline() deliberately
+ * exposes no bare projected number, only projectionFor()'s composed object. */
+function projectedScore(entry) {
+  const p = entry && entry.projected;
+  if (!p) return null;
+  return Math.round(
+    clamp01(projectedShare(entry) * systemQuality(p.system) * freeFactor(p.free)) * 100);
+}
+
+/* The renderable shape, and the whole reason rules 3 and 4 hold: the score, the
+ * promised date and the confidence word arrive together or not at all.
+ *
+ * `now` is a YYYY-MM-DD string and defaults to the build date. It is a parameter
+ * only so the build can ask "what does this become the day after its horizon?"
+ * and fail if the answer is not SLIPPED — see build/prerender.js. */
+function projectionFor(entry, now) {
+  const p = entry && entry.projected;
+  if (!p) return null;
+  const known = knownAircraft(entry) || (typeof entry.fleet === "number" ? entry.fleet : 0);
+  const share = projectedShare(entry);
+  const score = projectedScore(entry);
+  const q = systemQuality(p.system);
+  const f = freeFactor(p.free);
+  const end = horizonEnd(p.starts || p.by);
+  const today = String(now || new Date().toISOString().slice(0, 10)).slice(0, 10);
+  const installed = projectedInstalled(entry);
+  const passed = !!end && today > end;
+  const slipped = passed && installed === 0;
+  const confidence = slipped ? "SLIPPED" : String(p.confidence || "");
+  const aircraft = typeof p.n === "number" ? p.n : Math.round(share * known);
+  /* The date in `horizon` is the ORIGINAL promise and it is never rewritten,
+     including after a slip. That is rule 5's second half. */
+  const value = String(score) + " projected";
+  return Object.freeze({
+    score: score,
+    share: share,
+    aircraft: aircraft,
+    aircraftPublished: typeof p.n === "number",
+    known: known,
+    system: p.system,
+    systemLabel: SYSTEM_LABEL[p.system] || p.system,
+    quality: q,
+    free: p.free,
+    freeFactor: f,
+    starts: p.starts || null,
+    by: p.by || null,
+    horizon: p.horizon,
+    horizonEnd: end,
+    horizonPassed: passed,
+    installed: installed,
+    confidence: confidence,
+    confidenceMeans: PROJECTION_CONFIDENCE[confidence] || "",
+    slipped: slipped,
+    /* three parts for a surface with three slots, one line for a surface with
+       one. Either way the date and the confidence travel with the number. */
+    parts: Object.freeze({ value: value, horizon: p.horizon, confidence: confidence }),
+    line: value + " · " + p.horizon + " · " + confidence,
+    basis: (typeof p.n === "number" ? p.n.toLocaleString("en-US") : Math.round(share * 100) + "%")
+      + " of " + known.toLocaleString("en-US")
+      + " aircraft committed × " + q.toFixed(2) + " low-earth orbit × "
+      + f.toFixed(2) + " free-for-you",
+    means: "A committed share of the fleet, not a measurement. " + (installed
+      ? installed + " of them " + (installed === 1 ? "is" : "are") + " flying it today."
+      : String(p.system || "").toLowerCase() === "leo"
+        ? "Amazon Leo has no aircraft in the air, and no passenger has measured it."
+        : "None of them are flying it yet."),
+    src: p.src || null,
+    as: p.as || null,
+    note: p.note || null,
+  });
+}
+
 /* Share-weighted quality across the fleet, at the floor. Only used to choose
  * between "streaming" and "basic" for a fleet with no next-gen hardware. */
 function fleetQuality(entry) {
@@ -1005,6 +1258,11 @@ function scoreAirline(key) {
     unresolvedWhy: L ? L.unresolvedWhy : null,
     resolution: s.resolution,
     resolutionLabel: s.resolution ? (RESOLUTION_LABEL[s.resolution] || s.resolution) : null,
+    /* ── the projected score. An OBJECT or null, and there is deliberately no
+       sibling integer: a surface that wants the number has to take the promised
+       date and the confidence word with it. See the fencing rules in the header
+       and the tripwires in build/prerender.js. ── */
+    projected: projectionFor(entry),
   };
 }
 
@@ -1033,5 +1291,7 @@ export {
   QUALITY_TIER, SYSTEM_TIER, QUALITY_TIER_LABEL, RESOLUTION_LABEL,
   RESOLUTION_BLURB, STREAMING_MIN_Q, isSegmented, segmentSystems,
   segmentQuality, segmentIsNextGen, knownAircraft, unresolvedAircraft,
-  resolutionOf, ledgerFor, fleetQuality
+  resolutionOf, ledgerFor, fleetQuality, PROJECTION_CONFIDENCE,
+  PROJECTION_STORED, PROJECTION_METHOD_LINE, horizonEnd, projectedInstalled,
+  projectedShare, projectedScore, projectionFor
 };

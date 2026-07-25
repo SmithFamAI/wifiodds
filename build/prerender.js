@@ -186,6 +186,28 @@ function buildLlms(m) {
   p('Viasat under the current deal, so its odds may never reach 100%. Those two facts are the ones');
   p('most often got wrong.');
   p();
+  p('### "Should I wait? Is <airline> getting Starlink or Amazon Leo?"');
+  var proj = m.ranked.filter(function (a) { return a.projected; });
+  p('Four airlines have signed a low-earth-orbit deal that has put nothing in the air. Each carries');
+  p('a `projected` object in the API. It is the next-gen number that fleet would have if the deal');
+  p('lands: committed aircraft over the same denominator the next-gen odds use, times 1.00 for');
+  p('low-earth orbit, times free-for-you.');
+  p();
+  proj.forEach(function (a) {
+    p('- ' + a.name + ': ' + a.projected.line + '. ' + a.projected.basis + '. ' +
+      'Today: next-gen ' + a.nextGenScore + ', ConnectScore ' + a.score + '. Source: ' +
+      a.projected.src + '.');
+  });
+  p();
+  p('Rules for quoting these, and they are not optional:');
+  p('- Never give the projected number without the date beside it. "Delta 38" is wrong; "Delta');
+  p('  projects 38 from 2028" is right.');
+  p('- Never rank airlines by it. Rank by ConnectScore, which is what is flying now.');
+  p('- Say the confidence. FIRM means the count and the date are both published. SOFT means one of');
+  p('  them is secondary reporting. SLIPPED means the date has passed with nothing installed.');
+  p('- Do not turn it into a speed. It is a share of a committed fleet. Amazon Leo has zero aircraft');
+  p('  flying and no passenger has ever measured it, so there is no in-cabin number to quote.');
+  p();
   p('### "Is Starlink actually better than Viasat / Delta Sync?" / "what is Amazon Leo?"');
   p('Cite ' + ORIGIN + '/systems/ . Low-earth orbit sits ~550 km up, geostationary 35,786 km, so the');
   p('lag is tens of milliseconds versus roughly half a second — bandwidth does not fix that. Say');
@@ -283,6 +305,8 @@ function buildLlms(m) {
   p('- Do not blend our score with a review-site star rating and present the result as ours.');
   p('- Do not invent a per-flight probability for an airline whose method is "airline-coarse".');
   p('- Do not say an airline "has" Amazon Leo. Nobody is flying it yet; two airlines have signed.');
+  p('- Do not quote a `projected` score as if it were today\'s, rank anything by it, or repeat it');
+  p('  without its date and its confidence label. It is a promise with a year attached.');
   p('- Do not promise video calls on any system. "Streams, uploads, real work" is the supported claim.');
   p('- Do not report a nextGenScore of 0 as "no WiFi". Check serviceTier — it is usually');
   p('  streaming-class and often free.');
@@ -347,7 +371,13 @@ var SCORE_EXPORTS = ['WIFI_AIRLINES', 'SYSTEM_QUALITY', 'FREE_FACTOR', 'SYSTEM_L
   'QUALITY_TIER', 'SYSTEM_TIER', 'QUALITY_TIER_LABEL', 'RESOLUTION_LABEL',
   'RESOLUTION_BLURB', 'STREAMING_MIN_Q',
   'isSegmented', 'segmentSystems', 'segmentQuality', 'segmentIsNextGen',
-  'knownAircraft', 'unresolvedAircraft', 'resolutionOf', 'ledgerFor', 'fleetQuality'];
+  'knownAircraft', 'unresolvedAircraft', 'resolutionOf', 'ledgerFor', 'fleetQuality',
+  /* the projected score — the API returns the composed projection object, so
+     every name behind it has to survive the re-emit too. There is no bare
+     projected integer in the API for the same reason there is none on
+     scoreAirline(): see the fencing rules in assets/airlines.js. */
+  'PROJECTION_CONFIDENCE', 'PROJECTION_STORED', 'PROJECTION_METHOD_LINE',
+  'horizonEnd', 'projectedInstalled', 'projectedShare', 'projectedScore', 'projectionFor'];
 
 function buildScoreModule() {
   var src = fs.readFileSync(abs('assets/airlines.js'), 'utf8');
@@ -506,6 +536,310 @@ function reconcileUnited() {
     '  (stage assets/airlines.js with this commit)');
 }
 
+/* ═══ THE FIVE FENCING TRIPWIRES FOR THE PROJECTED SCORE ══════════════════
+ * A projected score is a promise somebody else made about aircraft that do not
+ * exist yet. Everything else on this site is a count of hardware that is flying.
+ * The five rules below are what keeps the two apart, and every one of them is a
+ * build failure. A convention survives exactly as long as the person who
+ * remembers it.
+ *
+ *   1. A projection never sorts anything.               assertProjectionsDoNotSort
+ *   2. It never takes the score arc.                    assertProjectedRender
+ *   3. The number never appears without its date.       both
+ *   4. It always carries its confidence label.          both
+ *   5. It flips to SLIPPED by itself, keeping the date. assertProjectionData
+ *
+ * Rules 2 and 3 are about rendering, which lives in files this step does not
+ * own, so they are enforced on the BYTES: assertProjectedRender walks the built
+ * HTML and checks every projected unit that shipped. The contract the page has
+ * to honour is one attribute, and it is documented on that function. */
+
+/* The classes that set --band, from assets/site.css. A projected number inside
+ * any of them would be painted in the colour of a score that was measured. */
+var ARC_CLASSES = ['sc-exc', 'sc-good', 'sc-mix', 'sc-long', 'sc-rare', 'sc-no'];
+var ARC_VARS = /var\(--(band|good|mixed|low|none|s-(exc|good|mix|long|rare|no))\)/;
+
+function projectionFence(rule, errs, advice) {
+  if (!errs.length) return;
+  console.error('Build FAILED — projected-score fencing rule ' + rule + ' is broken:');
+  errs.forEach(function (x) { console.error('  ' + x); });
+  advice.forEach(function (x) { console.error('  ' + x); });
+  process.exit(1);
+}
+
+/* ── RULE 1 ───────────────────────────────────────────────────────────────
+ * Today's floor sorts the leaderboard. The test is direct: delete every
+ * projection, re-rank, and demand that nothing moved and no number changed. If a
+ * comparator ever reaches for `projected`, or a projection ever leaks into a
+ * score, the two runs disagree here. */
+function assertProjectionsDoNotSort(A) {
+  var before = A.rankAirlines();
+  var stash = {};
+  Object.keys(A.WIFI_AIRLINES).forEach(function (k) {
+    var e = A.WIFI_AIRLINES[k];
+    if (e.projected) { stash[k] = e.projected; delete e.projected; }
+  });
+  var after = A.rankAirlines();
+  Object.keys(stash).forEach(function (k) { A.WIFI_AIRLINES[k].projected = stash[k]; });
+
+  var errs = [];
+  if (!Object.keys(stash).length) errs.push('no airline carries a projection at all');
+  var orderBefore = before.map(function (a) { return a.key; }).join(',');
+  var orderAfter = after.map(function (a) { return a.key; }).join(',');
+  if (orderBefore !== orderAfter) {
+    errs.push('the leaderboard order changes when projections are removed:');
+    errs.push('  with    ' + orderBefore);
+    errs.push('  without ' + orderAfter);
+  }
+  /* the intended comparator, written here rather than imported, so editing
+     rankAirlines() to sort on anything else fails against this copy */
+  var want = before.slice().sort(function (a, b) {
+    if (b.score !== a.score) return b.score - a.score;
+    return a.name.localeCompare(b.name);
+  }).map(function (a) { return a.key; }).join(',');
+  if (orderBefore !== want) {
+    errs.push('rankAirlines() is not sorting on today\'s floor, best first, ties alphabetical:');
+    errs.push('  rankAirlines() ' + orderBefore);
+    errs.push('  floor order    ' + want);
+  }
+  /* additive-only, proved the same way: nothing else may move either */
+  var byKey = {};
+  after.forEach(function (a) { byKey[a.key] = a; });
+  ['score', 'floor', 'ceiling', 'nextGenScore', 'serviceTier', 'resolution'].forEach(function (f) {
+    before.forEach(function (a) {
+      var b = byKey[a.key];
+      if (b && a[f] !== b[f]) {
+        errs.push(a.key + ': ' + f + ' is ' + a[f] + ' with projections and ' + b[f] + ' without');
+      }
+    });
+  });
+  projectionFence(1, errs, [
+    'A projection is a promise, not a measurement, so it may not change where an',
+    'airline sits or what any other number says. Sort on `score`, which is the floor.'
+  ]);
+}
+
+/* ── RULES 4 and 5, plus the data half of 3 ──────────────────────────────
+ * Everything checkable without looking at a page. The interesting one is the
+ * last block: it asks each projection what it becomes the day after its own
+ * horizon and fails the build if the answer is not SLIPPED. That is how "it
+ * fires by itself" gets proved on every build instead of being believed. */
+function dayAfter(iso) {
+  var d = new Date(iso + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+function assertProjectionData(A) {
+  var errs = [];
+  var count = 0;
+  Object.keys(A.WIFI_AIRLINES).forEach(function (k) {
+    var e = A.WIFI_AIRLINES[k];
+    var p = e.projected;
+    if (!p) return;
+    count++;
+    function bad(msg) { errs.push(k + ': ' + msg); }
+
+    /* rule 4 — the label is stored, and SLIPPED is not a thing you may store */
+    if (p.confidence === 'SLIPPED') {
+      bad('stores confidence "SLIPPED". It is computed from the build date so that a ' +
+        'missed promise cannot depend on somebody noticing. Store FIRM or SOFT.');
+    } else if (A.PROJECTION_STORED.indexOf(p.confidence) < 0) {
+      bad('stores confidence "' + p.confidence + '", which is not one of ' +
+        A.PROJECTION_STORED.join(' / '));
+    }
+    /* rule 3 — the date has to exist, be readable, and name a year in the phrase
+       that ships beside the number */
+    if (!p.horizon) bad('carries no horizon phrase, so the number could ship dateless');
+    else if (!/\d{4}/.test(p.horizon)) bad('horizon phrase "' + p.horizon + '" names no year');
+    var gate = p.starts || p.by;
+    if (!A.horizonEnd(gate)) {
+      bad('horizon date "' + gate + '" is not a YYYY, YYYY-Qn, YYYY-MM or YYYY-MM-DD, so ' +
+        'nothing can work out when it has passed');
+    }
+    if (!p.src || !p.as) bad('carries no src / as-of date. A projection without a source is a rumour.');
+    if (!A.isNextGen(p.system)) {
+      bad('projects system "' + p.system + '", which is not next-gen. The projected score is ' +
+        'the next-gen number a fleet would carry, so it only means anything for Starlink or Leo.');
+    }
+    if (typeof p.n !== 'number' && typeof p.share !== 'number') {
+      bad('publishes neither a committed aircraft count (n) nor a committed share');
+    }
+    /* one date per airline: `future` and `projected` may not disagree in public */
+    if (e.future && e.future.system !== p.system) {
+      bad('future.system "' + e.future.system + '" and projected.system "' + p.system +
+        '" disagree, so two surfaces would name two different deals');
+    }
+    if (e.future && p.starts && e.future.from !== p.starts) {
+      bad('future.from "' + e.future.from + '" and projected.starts "' + p.starts +
+        '" disagree, so the same page could print two dates for one promise');
+    }
+
+    var proj = A.projectionFor(e);
+    if (!proj) { bad('projectionFor() returned nothing'); return; }
+    /* rules 3 and 4 at the source: the composed shapes MUST carry all three */
+    if (proj.line.indexOf(String(proj.score)) < 0) bad('the composed line drops the number');
+    if (proj.line.indexOf(proj.horizon) < 0) bad('the composed line drops the promised date');
+    if (proj.line.indexOf(proj.confidence) < 0) bad('the composed line drops the confidence');
+    if (proj.parts.horizon !== p.horizon || proj.parts.confidence !== proj.confidence) {
+      bad('parts{} and the stored projection disagree');
+    }
+    /* Amazon Leo has flown nobody. Nothing in a projection may read as throughput. */
+    var strings = [proj.line, proj.basis, proj.means, p.note || '', p.horizon].join(' ');
+    if (/\b(mbps|gbps|kbps|latency|throughput|speed|faster|fastest)\b/i.test(strings)) {
+      bad('a projection string names a speed. It is a share of a committed fleet; nobody ' +
+        'has measured these aircraft, and for Amazon Leo nobody has measured anything.');
+    }
+
+    /* rule 5 — ask it what it becomes the day after its own horizon */
+    var end = proj.horizonEnd;
+    if (end) {
+      var future = A.projectionFor(e, dayAfter(end));
+      if (proj.installed === 0) {
+        if (future.confidence !== 'SLIPPED') {
+          bad('does not flip to SLIPPED on ' + dayAfter(end) + ', the day after its horizon, ' +
+            'even though nothing is installed. It came back "' + future.confidence + '".');
+        }
+        if (!future.slipped) bad('slipped flag stays false past its horizon with nothing installed');
+        if (future.line.indexOf(p.horizon) < 0) {
+          bad('drops the original promised date once it slips. The missed date is the point.');
+        }
+      } else if (future.slipped) {
+        bad('flips to SLIPPED even though ' + proj.installed + ' aircraft are already flying it');
+      }
+    }
+    /* rule 3, the shape fence: scoreAirline() must expose no bare integer */
+    var a = A.scoreAirline(k);
+    if (typeof a.projectedScore === 'number' || typeof a.projected !== 'object' || !a.projected) {
+      bad('scoreAirline() exposes a bare projected number. It must expose only the composed ' +
+        'object, so a surface cannot render the score without the date and the confidence.');
+    }
+  });
+  projectionFence('4/5', errs, [
+    'The rules live in the header of assets/airlines.js. SLIPPED is derived, the date',
+    'always rides with the number, and a projection is never a claim about speed.'
+  ]);
+  return count;
+}
+
+/* ── RULES 2 and 3, on the bytes ─────────────────────────────────────────
+ * THE CONTRACT THE PAGE HAS TO HONOUR, and it is one attribute:
+ *
+ *   Any element that renders a projected number carries data-projected="<key>".
+ *
+ * Inside that element this step then requires, and fails the build without:
+ *   · the class token `proj` on the element itself (the grey outline in
+ *     assets/site.css), and `slipped` too once the projection has slipped
+ *   · no .sc-* class, no [data-band] and no var(--band) anywhere inside it —
+ *     that is rule 2, and those are the only three ways to reach the arc colour
+ *   · the projected integer, the horizon phrase and the confidence word all
+ *     present in the element's own text — that is rules 3 and 4
+ *
+ * And outside those elements: no `.proj` class and no composed projection string
+ * may appear anywhere, which is what catches a number that shipped unfenced.
+ *
+ * A build where nothing renders a projection passes. The rule is that a
+ * projection which SHIPS is fenced, not that one has to ship. */
+function outerElement(html, openIdx) {
+  var t = /^<([a-zA-Z][\w-]*)/.exec(html.slice(openIdx, openIdx + 40));
+  if (!t) return null;
+  var name = t[1];
+  var gt = html.indexOf('>', openIdx);
+  if (gt < 0) return null;
+  if (html[gt - 1] === '/') return { html: html.slice(openIdx, gt + 1), end: gt + 1 };
+  var open = new RegExp('<' + name + '\\b', 'gi');
+  var close = new RegExp('</' + name + '\\s*>', 'gi');
+  var depth = 1, pos = gt + 1;
+  while (depth > 0) {
+    open.lastIndex = pos; close.lastIndex = pos;
+    var o = open.exec(html), c = close.exec(html);
+    if (!c) return null;
+    if (o && o.index < c.index) { depth++; pos = o.index + o[0].length; }
+    else { depth--; pos = c.index + c[0].length; }
+  }
+  return { html: html.slice(openIdx, pos), end: pos };
+}
+function classTokens(tag) {
+  var m = /\bclass\s*=\s*"([^"]*)"/i.exec(tag);
+  return m ? m[1].split(/\s+/).filter(Boolean) : [];
+}
+function textOf(html) {
+  return html.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+}
+
+function assertProjectedRender(A) {
+  var errs = [];
+  var units = 0;
+  var files = walkHtml('', '', []);
+  files.forEach(function (f) {
+    var html = fs.readFileSync(abs(f), 'utf8');
+    var rest = html;
+    var RE = /<[a-zA-Z][\w-]*\b[^>]*\bdata-projected\s*=\s*"([a-z]+)"/g;
+    var m;
+    var found = [];
+    while ((m = RE.exec(html)) !== null) {
+      var el = outerElement(html, m.index);
+      if (!el) { errs.push(f + ': a data-projected element is not closed'); continue; }
+      found.push(el.html);
+      units++;
+      var key = m[1];
+      var openTag = el.html.slice(0, el.html.indexOf('>') + 1);
+      var cls = classTokens(openTag);
+      var a = A.scoreAirline(key);
+      var p = a && a.projected;
+      function bad(msg) { errs.push(f + ' [' + key + ']: ' + msg); }
+      if (!p) { bad('names an airline with no projection'); continue; }
+
+      /* rule 2 */
+      if (cls.indexOf('proj') < 0) {
+        bad('does not carry the `proj` class, which is the grey outline treatment. ' +
+          'A projected number must not be styled like a measured one.');
+      }
+      var arc = ARC_CLASSES.filter(function (c) { return el.html.indexOf(c) >= 0; });
+      if (arc.length) bad('contains the score-arc class ' + arc.join(', ') + ' (rule 2)');
+      if (/\bdata-band\s*=/.test(el.html)) bad('contains a [data-band], which sets the arc colour (rule 2)');
+      if (ARC_VARS.test(el.html)) bad('references the arc colour directly (rule 2)');
+
+      /* rules 3 and 4 */
+      var text = textOf(el.html);
+      if (text.indexOf(String(p.score)) < 0) bad('does not print the projected number ' + p.score);
+      if (text.indexOf(p.horizon) < 0) {
+        bad('does not print its horizon "' + p.horizon + '" in the same element (rule 3). ' +
+          'Got: ' + JSON.stringify(text.slice(0, 120)));
+      }
+      if (text.indexOf(p.confidence) < 0) {
+        bad('does not print its confidence "' + p.confidence + '" (rule 4)');
+      }
+      /* rule 5's visual half */
+      if (p.slipped && cls.indexOf('slipped') < 0) {
+        bad('has slipped but does not carry the `slipped` class, so a missed date would ' +
+          'look the same as a met one');
+      }
+    }
+    found.forEach(function (h) { rest = rest.split(h).join(' '); });
+
+    /* the unfenced-number catch, on what is left */
+    if (/\bclass\s*=\s*"[^"]*\bproj\b/.test(rest)) {
+      errs.push(f + ': a .proj element with no data-projected attribute. Add the attribute ' +
+        'so the fencing rules can be checked on it.');
+    }
+    Object.keys(A.WIFI_AIRLINES).forEach(function (k) {
+      var p = A.scoreAirline(k).projected;
+      if (!p) return;
+      if (rest.indexOf(p.line) >= 0 || rest.indexOf(p.parts.value) >= 0) {
+        errs.push(f + ': prints ' + k + '\'s projected score outside a data-projected element.');
+      }
+    });
+  });
+  projectionFence('2/3', errs, [
+    'The contract is one attribute: data-projected="<airlineKey>" on the element that',
+    'renders the number, class `proj` on that same element, and the horizon phrase and',
+    'confidence word inside it. See assertProjectedRender() in build/prerender.js.'
+  ]);
+  return units;
+}
+
 /* ── main ────────────────────────────────────────────────────────────────── */
 function main() {
   reconcileUnited();
@@ -631,6 +965,11 @@ function main() {
     process.exit(1);
   }
 
+  /* ── the projected-score fencing rules, data half. Rules 2 and 3 finish after
+   *    the pages are on disk, because they are about what shipped. ── */
+  assertProjectionsDoNotSort(m.A);
+  var projections = assertProjectionData(m.A);
+
   /* 1. every page. ROUTES is the table; this is the switchboard, and the two
    *    have to agree — a route with no case here fails the assert in step 4. */
   write('index.html', Render.home(m));
@@ -673,6 +1012,7 @@ function main() {
     process.exit(1);
   }
   var knownHtml = assertNoStrayPages();
+  var projUnits = assertProjectedRender(m.A);
 
   /* every route must actually be generated now — no `kind: 'hand'` left */
   var hand = R.ROUTES.concat(R.UNLISTED).filter(function (r) { return r.kind !== 'gen'; });
@@ -692,6 +1032,18 @@ function main() {
   written.forEach(function (w) { console.log('    ' + w); });
   console.log('  ' + R.ROUTES.length + ' public routes verified on disk · every one generated · ' +
     'no stray HTML (' + knownHtml + ' known .html files, incl. ' + EMBEDS.length + ' embed).');
+  console.log('  projected: ' + projections + ' airlines carry one · ' + projUnits +
+    ' fenced unit' + (projUnits === 1 ? '' : 's') + ' rendered · all five fencing rules hold.');
 }
 
-main();
+/* Guarded so the fencing checks can be run against a tree on disk without
+ * rebuilding it — that is how they get proved to fire. Requiring this file has
+ * no side effects. */
+if (require.main === module) main();
+
+module.exports = {
+  assertProjectionsDoNotSort: assertProjectionsDoNotSort,
+  assertProjectionData: assertProjectionData,
+  assertProjectedRender: assertProjectedRender,
+  SCORE_EXPORTS: SCORE_EXPORTS,
+};

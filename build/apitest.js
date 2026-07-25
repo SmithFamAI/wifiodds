@@ -76,19 +76,38 @@ function checkSyntax() {
   });
   fs.rmSync(tmp, { recursive: true, force: true });
 
-  /* Politeness, enforced on the source: the ONLY module allowed to call fetch is
-   * api.mjs (readAsset, which reads this deploy's own assets). If a handler ever
-   * starts calling a tracker, this fails before it ships. */
+  /* Politeness, enforced on the source. TWO modules may call fetch and nothing
+   * else may:
+   *   _lib/api.mjs      readAsset() — this deploy's own static assets
+   *   _lib/reports.mjs  the report intake's write to its own Supabase project
+   * If a handler ever starts calling a tracker, an analytics endpoint or a
+   * captcha vendor, this fails before it ships. */
+  var MAY_FETCH = { '_lib/api.mjs': 1, '_lib/reports.mjs': 1 };
   files.forEach(function (f) {
     var rel = path.relative(FN, f);
     var src = fs.readFileSync(f, 'utf8');
     var calls = (src.match(/\bfetch\s*\(/g) || []).length;
     checks++;
-    if (calls && rel !== '_lib/api.mjs') {
-      fails.push('functions/' + rel + ' calls fetch() — only _lib/api.mjs may, and only for our own ' +
-        'assets. This API must never make a third-party request.');
+    if (calls && !MAY_FETCH[rel]) {
+      fails.push('functions/' + rel + ' calls fetch() — only _lib/api.mjs and _lib/reports.mjs may, ' +
+        'and only to our own assets and our own database. This API must never make a third-party ' +
+        'request.');
     }
   });
+
+  /* reports.mjs gets the tighter version of the same rule: its one fetch target
+   * has to be built from env.SUPABASE_URL, so there is no hostname in the source
+   * at all. A literal URL in code is how a tracker gets added later without
+   * anybody noticing, and this is the check that would catch it. */
+  var rsrc = fs.readFileSync(path.join(FN, '_lib', 'reports.mjs'), 'utf8');
+  var code = rsrc.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  ok(/env\.SUPABASE_URL/.test(code), 'reports.mjs builds its endpoint from env.SUPABASE_URL');
+  var literalUrls = code.match(/['"`]https?:\/\/[^'"`]*/g) || [];
+  ok(literalUrls.length === 0,
+    'reports.mjs contains a hard-coded URL — every request it makes must come from env', literalUrls);
+  ok(!/turnstile|recaptcha|hcaptcha|google|analytics|gtag|plausible|fathom/i.test(code),
+    'reports.mjs names no captcha or analytics vendor');
+  ok(!/document\.cookie|set-cookie/i.test(code), 'reports.mjs sets no cookie');
   return files;
 }
 
@@ -284,6 +303,101 @@ async function main() {
   ok(/Starlink or Amazon Leo/.test(j.nextGenMethod || ''), '/api index explains next-gen odds');
   ok(j.serviceTiers && j.serviceTiers.streaming && j.serviceTiers['next-gen'],
     '/api index documents the service tiers');
+
+  /* ── the projected score ──────────────────────────────────────────────────
+   * Four carriers have signed a low-earth-orbit deal that has put nothing in the
+   * air. `projected` is what those deals would be worth as a next-gen number if
+   * they land, and it is fenced five ways — the fences are what these checks are
+   * for, not the arithmetic, which is one multiplication.
+   *
+   * The fence that matters most in an API is the shape: there is no top-level
+   * projected integer anywhere. A consumer that wants the number has to take the
+   * horizon and the confidence with it, which is the same contract the pages
+   * render under. */
+  ok(/committed aircraft/.test(j.projectedMethod || '') &&
+    /never against the ConnectScore/.test(j.projectedMethod || ''),
+    '/api index explains the projected score and what not to compare it to');
+  ok(/nobody has measured Amazon Leo/.test(j.projectedMethod || ''),
+    '/api index says outright that Amazon Leo has never been measured in a cabin');
+  ok(/computed\s+from the build date/.test(j.projectedMethod || ''),
+    '/api index says SLIPPED is computed, not stored');
+  ok(j.projectedConfidence && j.projectedConfidence.FIRM && j.projectedConfidence.SOFT &&
+    j.projectedConfidence.SLIPPED, '/api index documents the three confidence labels');
+
+  var projected = all.airlines.filter(function (a) { return a.projected; });
+  eq(projected.length, 4, 'exactly four airlines carry a projection');
+  eq(projected.map(function (a) { return a.key; }).sort().join(','),
+    'american,delta,jetblue,southwest', 'the four are American, Delta, jetBlue and Southwest');
+
+  all.airlines.forEach(function (a) {
+    var e = A.WIFI_AIRLINES[a.key];
+    ok(!('projectedScore' in a),
+      a.key + ': the API exposes no bare projected integer beside connectScore');
+    if (!e.projected) {
+      eq(a.projected, null, a.key + ': no signed deal ⇒ projected is null');
+      return;
+    }
+    var p = a.projected;
+    /* recomputed here from the entry, not read back from the same object */
+    eq(p.score, A.projectedScore(e), a.key + ': projected score is the committed share × 1.00 × free');
+    ok(A.isNextGen(p.system), a.key + ': projects a next-gen system', p.system);
+    eq(p.quality, 1, a.key + ': low-earth orbit weighs 1.00');
+    /* rule 3 and rule 4, on the bytes a consumer gets */
+    ok(p.line.indexOf(String(p.score)) >= 0, a.key + ': the composed line carries the number');
+    ok(p.line.indexOf(p.horizon) >= 0, a.key + ': the composed line carries the promised date');
+    ok(p.line.indexOf(p.confidence) >= 0, a.key + ': the composed line carries the confidence');
+    ok(/\d{4}/.test(p.horizon), a.key + ': the horizon phrase names a year', p.horizon);
+    ok(['FIRM', 'SOFT', 'SLIPPED'].indexOf(p.confidence) >= 0,
+      a.key + ': confidence is one of the three', p.confidence);
+    ok(p.confidenceMeans.length > 10, a.key + ': the confidence label explains itself');
+    /* a projection is a committed fleet share and never a claim about throughput */
+    ok(!/\b(mbps|gbps|latency|speed|faster|fastest)\b/i.test(JSON.stringify(p)),
+      a.key + ': the projection names no speed');
+    /* rule 5, proved rather than trusted: ask what it becomes the day after its
+       own horizon. Nothing installed ⇒ SLIPPED, and the original date stays. */
+    var after = new Date(p.horizonEnd + 'T00:00:00Z');
+    after.setUTCDate(after.getUTCDate() + 1);
+    var then = A.projectionFor(e, after.toISOString().slice(0, 10));
+    if (p.installed === 0) {
+      eq(then.confidence, 'SLIPPED', a.key + ': flips to SLIPPED the day after its horizon');
+      ok(then.line.indexOf(p.horizon) >= 0,
+        a.key + ': keeps showing the original promised date after it slips');
+    } else {
+      eq(then.slipped, false,
+        a.key + ': does not slip while aircraft are already flying the committed system');
+    }
+    /* today, nothing has slipped yet — and if this ever fails it is telling you
+       something true about an airline rather than something wrong about the code */
+    eq(p.slipped, false, a.key + ': has not slipped as of this build');
+  });
+
+  /* the four numbers by name. Each is committed aircraft over the same known-fleet
+     denominator the next-gen odds use, times 1.00 for LEO, times free-for-you. */
+  var byKey = {};
+  all.airlines.forEach(function (a) { byKey[a.key] = a; });
+  eq(byKey.american.projected.score, 51, 'American projects 51 — 500 Airbus of 989, free');
+  eq(byKey.american.projected.confidence, 'FIRM', 'American projection is FIRM');
+  eq(byKey.american.projected.horizon, 'installs begin 2027-Q1', 'American horizon');
+  eq(byKey.delta.projected.score, 38, 'Delta projects 38 — 500 Amazon Leo aircraft of 1,330');
+  eq(byKey.delta.projected.confidence, 'FIRM', 'Delta projection is FIRM');
+  eq(byKey.delta.projected.installed, 0, 'Delta has no Amazon Leo aircraft flying, because nobody does');
+  eq(byKey.southwest.projected.score, 37, 'Southwest projects 37 — 300 of 803');
+  eq(byKey.southwest.projected.installed, 1, 'Southwest already has one Starlink aircraft in service');
+  eq(byKey.jetblue.projected.score, 25, 'jetBlue projects 25 — a quarter of 291');
+  eq(byKey.jetblue.projected.confidence, 'SOFT',
+    'jetBlue projection is SOFT: the count is a published fraction, the sub-fleet is secondary reporting');
+  eq(byKey.jetblue.projected.aircraftPublished, false,
+    'jetBlue published a share, not a count, and the API says so');
+  /* rule 1, at the API boundary: today's floor orders the list, and a projection
+     that outranks a floor must not move anybody. American projects 51 against a
+     floor of 51; jetBlue projects 25 against a floor of 55. */
+  eq(all.order, 'connectScore desc, then name', '/api/airlines declares it sorts on the score');
+  var floorOrder = all.airlines.slice().sort(function (x, y) {
+    if (y.connectScore !== x.connectScore) return y.connectScore - x.connectScore;
+    return x.name.localeCompare(y.name);
+  }).map(function (x) { return x.key; }).join(',');
+  eq(all.airlines.map(function (x) { return x.key; }).join(','), floorOrder,
+    'PARITY: /api/airlines is ordered by today\'s floor, never by a projection');
 
   /* ── GET /api/airlines/{key} ── */
   res = await H.airlineOne(ctx('https://wifiodds.com/api/airlines/qatar', { key: 'qatar' }));
@@ -631,6 +745,293 @@ async function main() {
   ok(docs.indexOf('/api/score/{flightNumber}') !== -1, '/api/docs/ documents the score endpoint');
   ok(/href="\/api\/docs\/"/.test(docs), '/api/docs/ is linked from the shared footer');
 
+  /* ── POST /api/report — the field-report intake ───────────────────────────
+   * Same method as the MCP section above: wrangler is not installed, so the
+   * module is imported and called with a mock Pages context and we assert on the
+   * parsed response bodies.
+   *
+   * The one difference is that this endpoint WRITES, so the network call is
+   * stubbed at globalThis.fetch and we assert on the request it tried to make.
+   * That is the point, not a compromise: the assertions that matter most here
+   * are about what leaves the Worker. No raw address in the payload. No third
+   * party in the URL. published:false on the way in, every time. */
+  var RPT = await import('../functions/_lib/reports.mjs');
+  var checksBeforeIntake = checks;
+
+  var sent = [];
+  var canned = { ok: true, id: 'ffffffff-0000-4000-8000-000000000001', published: false,
+    remaining: 4, cap: 5 };
+  var realFetch = globalThis.fetch;
+  globalThis.fetch = async function (url, init) {
+    var rec = { url: String(url), init: init || {} };
+    try { rec.body = JSON.parse((init || {}).body); } catch (e) { rec.body = null; }
+    sent.push(rec);
+    var out = typeof canned === 'function' ? canned(sent.length) : canned;
+    if (out instanceof Response) return out;
+    return new Response(JSON.stringify(out), {
+      status: 200, headers: { 'content-type': 'application/json' }
+    });
+  };
+
+  var TEST_ENV = {
+    SUPABASE_URL: 'https://testproject.supabase.co',
+    SUPABASE_ANON_KEY: 'sb_publishable_testkey',
+    REPORT_IP_SALT: 'a-test-salt-that-is-not-the-real-one'
+  };
+  function reportCtx(payload, opts) {
+    opts = opts || {};
+    var method = opts.method || 'POST';
+    var c = ctx('https://wifiodds.com/api/report', {}, method);
+    var h = {};
+    if (opts.contentType !== null) h['content-type'] = opts.contentType || 'application/json';
+    if (opts.ip !== null) h['cf-connecting-ip'] = opts.ip || '203.0.113.7';
+    var init = { method: method, headers: h };
+    if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS' && payload !== undefined) {
+      init.body = typeof payload === 'string' ? payload : JSON.stringify(payload);
+    }
+    c.request = new Request('https://wifiodds.com/api/report', init);
+    c.env = Object.assign({}, c.env, TEST_ENV, opts.env || {});
+    if (opts.dropEnv) opts.dropEnv.forEach(function (k) { delete c.env[k]; });
+    return c;
+  }
+  var GOOD = {
+    flownOn: '2026-07-11', airline: 'United', flightNumber: 'ua 2447', route: 'den-dfw',
+    aircraft: '737 MAX 8', system: 'starlink', downMbps: 83.1, upMbps: 9.7, latencyMs: 58,
+    wasFree: true, note: 'Full 737 out of Denver and I still saw 83 down.', credit: 'Jeremy Smith'
+  };
+
+  /* ── a valid submission ── */
+  sent = [];
+  res = await RPT.submitReport(reportCtx(GOOD));
+  var rp = await body(res);
+  eq(res.status, 201, 'POST /api/report valid → 201');
+  eq(res.headers.get('access-control-allow-origin'), '*', '/api/report: CORS header');
+  eq(res.headers.get('content-type'), 'application/json; charset=utf-8', '/api/report: content-type');
+  eq(res.headers.get('cache-control'), 'no-store', '/api/report is never cached');
+  eq(res.headers.get('access-control-allow-methods'), 'POST, OPTIONS',
+    '/api/report advertises POST, not GET');
+  ok(Array.isArray(rp.sources) && rp.sources.length >= 3, '/api/report: sources[] in the body',
+    rp.sources && rp.sources.length);
+  ok(/unitedstarlinktracker\.com/.test(JSON.stringify(rp.sources)),
+    '/api/report: sources credit unitedstarlinktracker.com');
+  eq(rp.ok, true, '/api/report ok:true');
+  eq(rp.stored, true, '/api/report stored:true');
+  eq(rp.published, false, 'A STORED REPORT IS NEVER PUBLISHED — published:false in the response');
+  eq(rp.kind, 'FIELD REPORT', '/api/report classes the row FIELD REPORT');
+  eq(rp.id, canned.id, '/api/report returns the row id');
+  ok(/queue/.test(rp.whatHappensNext) && /nothing on the site changes yet/.test(rp.whatHappensNext),
+    '/api/report tells the reader nothing publishes itself');
+  /* normalisation, on the bytes that come back */
+  eq(rp.report.flightNumber, 'UA2447', '/api/report normalises "ua 2447" → UA2447');
+  eq(rp.report.route, 'DEN-DFW', '/api/report normalises "den-dfw" → DEN-DFW');
+  eq(rp.report.downMbps, 83.1, '/api/report keeps the download figure');
+  eq(rp.report.system, 'starlink', '/api/report keeps the system');
+
+  /* ── what actually left the Worker ── */
+  eq(sent.length, 1, 'a valid report makes exactly one outbound request');
+  eq(sent[0].url, 'https://testproject.supabase.co/rest/v1/rpc/submit_report',
+    'the outbound request goes to env.SUPABASE_URL and the submit_report RPC');
+  eq(sent[0].init.method, 'POST', 'the outbound request is a POST');
+  eq(sent[0].init.headers.apikey, TEST_ENV.SUPABASE_ANON_KEY, 'it sends the publishable key');
+  var outPayload = sent[0].body.p;
+  ok(/^[0-9a-f]{64}$/.test(outPayload.ipHash), 'the payload carries a 64-hex ipHash',
+    outPayload.ipHash);
+  /* THE assertion this endpoint exists to satisfy. */
+  ok(JSON.stringify(sent[0]).indexOf('203.0.113.7') < 0,
+    'NO RAW IP LEAVES THE WORKER — the address appears nowhere in the outbound request');
+  ok(!('published' in outPayload),
+    'the payload cannot even ask to be published — the RPC hardcodes published = false');
+  ok(!('ip' in outPayload) && !('address' in outPayload) && !('userAgent' in outPayload),
+    'the payload carries no address and no user-agent field');
+  eq(Object.keys(outPayload).sort().join(','),
+    'aircraft,airline,credit,downMbps,flightNumber,flownOn,ipHash,latencyMs,note,route,system,' +
+    'upMbps,wasFree',
+    'the payload is exactly the report plus the hash');
+
+  /* the hash is salted, hourly and per-address: same inputs same digest, a
+     different address a different digest, and neither is the address */
+  var stamp = RPT.hourStamp(new Date('2026-07-25T14:30:00Z'));
+  eq(stamp, '2026-07-25T14', 'the hash bucket is the UTC hour');
+  var h1 = await RPT.hashClientId('203.0.113.7', 'salt', stamp);
+  var h2 = await RPT.hashClientId('203.0.113.7', 'salt', stamp);
+  var h3 = await RPT.hashClientId('198.51.100.9', 'salt', stamp);
+  var h4 = await RPT.hashClientId('203.0.113.7', 'salt', '2026-07-25T15');
+  eq(h1, h2, 'the same address in the same hour hashes the same (the cap works)');
+  ok(h1 !== h3, 'a different address hashes differently');
+  ok(h1 !== h4, 'the SAME address hashes differently an hour later (the hash does not follow you)');
+  ok(h1.length === 64, 'the digest is a full sha-256', h1.length);
+
+  /* ── an invalid submission gets a useful message ── */
+  sent = [];
+  res = await RPT.submitReport(reportCtx({
+    flownOn: '2099-01-01', airline: '', flightNumber: 'not a flight', system: 'carrier pigeon',
+    downMbps: 99999, latencyMs: 12.5, hovercraft: 'full of eels'
+  }));
+  var badRep = await body(res);
+  eq(res.status, 400, 'an invalid report → 400');
+  eq(badRep.error.code, 'invalid_report', 'invalid report error code');
+  eq(sent.length, 0, 'an invalid report never reaches the store');
+  ok(/future/.test(badRep.fields.flownOn), 'it says the date is in the future', badRep.fields.flownOn);
+  ok(/flight number/.test(badRep.fields.flightNumber), 'it says what a flight number looks like');
+  ok(/starlink/.test(badRep.fields.system), 'it lists the systems it accepts');
+  ok(/5000/.test(badRep.fields.downMbps), 'it says the speed is out of range');
+  ok(/whole number/.test(badRep.fields.latencyMs), 'latency has to be whole milliseconds');
+  ok(/hovercraft/.test(badRep.fields._body), 'it names the field it did not recognise');
+  ok(/is required/.test(badRep.fields.airline), 'an empty airline counts as missing');
+  ok(badRep.error.message.length > 20 && /see `fields`/.test(badRep.error.message),
+    'the top-level message points at the per-field map', badRep.error.message);
+  assertEnvelope(res, badRep, '/api/report 400');
+
+  /* a report with no measurement in it is not a report */
+  res = await RPT.submitReport(reportCtx({
+    flownOn: '2026-07-11', airline: 'United', flightNumber: 'UA2447', system: 'starlink'
+  }));
+  var noMeas = await body(res);
+  eq(res.status, 400, 'a report with no numbers in it → 400');
+  ok(/at least one measurement/.test(noMeas.fields._body), 'it asks for a measurement');
+  /* unless the point of the report is that there was no wifi at all */
+  sent = [];
+  res = await RPT.submitReport(reportCtx({
+    flownOn: '2026-07-11', airline: 'Delta', flightNumber: 'DL717', system: 'none'
+  }));
+  eq(res.status, 201, 'system "none" needs no speed figure');
+  eq(sent.length, 1, 'the no-wifi report is stored');
+
+  /* ── the rate limit trips ── */
+  sent = [];
+  canned = function (n) {
+    return n <= 5 ? { ok: true, id: 'ffffffff-0000-4000-8000-00000000000' + n, published: false,
+      remaining: 5 - n, cap: 5 }
+      : { ok: false, code: 'rate_limited', cap: 5, seen: 5 };
+  };
+  var codes = [];
+  for (var i = 0; i < 6; i++) {
+    res = await RPT.submitReport(reportCtx(GOOD));
+    codes.push(res.status);
+  }
+  eq(codes.join(','), '201,201,201,201,201,429',
+    'five reports go through and the sixth is refused');
+  var limited = await body(res);
+  eq(limited.error.code, 'rate_limited', 'the sixth carries the rate_limited code');
+  eq(limited.cap, 5, 'the response says what the cap is');
+  ok(Number(res.headers.get('retry-after')) > 0 && Number(res.headers.get('retry-after')) <= 3600,
+    'a 429 carries a retry-after inside the hour', res.headers.get('retry-after'));
+  ok(/nothing was stored/i.test(limited.error.message), 'the 429 says nothing was stored');
+  ok(!/captcha|robot|prove/i.test(limited.error.message),
+    'the 429 does not ask the reader to prove they are human — there is no captcha here');
+  eq(sent.length, 6, 'all six attempts reached the store, which is where the count lives');
+  canned = { ok: true, id: 'ffffffff-0000-4000-8000-000000000001', published: false, remaining: 4, cap: 5 };
+
+  /* ── the honeypot: no third-party captcha, so a hidden field does the work ── */
+  sent = [];
+  res = await RPT.submitReport(reportCtx(Object.assign({}, GOOD, { website: 'http://spam.example' })));
+  var pot = await body(res);
+  eq(res.status, 202, 'a filled honeypot → 202');
+  eq(pot.stored, false, 'a filled honeypot stores nothing, and the response says so');
+  eq(sent.length, 0, 'a filled honeypot never reaches the store');
+  /* an empty honeypot is what a real form posts, and it must be invisible */
+  sent = [];
+  res = await RPT.submitReport(reportCtx(Object.assign({}, GOOD, { website: '' })));
+  eq(res.status, 201, 'an EMPTY honeypot field is fine — that is what a person sends');
+  eq(sent.length, 1, 'the empty-honeypot report is stored');
+
+  /* ── methods and content types ── */
+  res = await RPT.submitReport(reportCtx(undefined, { method: 'OPTIONS' }));
+  eq(res.status, 204, '/api/report OPTIONS preflight → 204');
+  eq(res.headers.get('access-control-allow-origin'), '*', '/api/report preflight CORS');
+  eq(res.headers.get('access-control-allow-headers'), 'content-type',
+    '/api/report preflight allows a JSON content-type');
+  res = await RPT.submitReport(reportCtx(undefined, { method: 'GET' }));
+  eq(res.status, 405, 'GET /api/report → 405');
+  eq((await body(res)).error.code, 'method_not_allowed', 'GET error code');
+  res = await RPT.submitReport(reportCtx('flownOn=2026-07-11', { contentType: 'text/plain' }));
+  eq(res.status, 415, 'a text/plain body → 415');
+  res = await RPT.submitReport(reportCtx('{not json', {}));
+  eq(res.status, 400, 'a broken JSON body → 400');
+  eq((await body(res)).error.code, 'unparseable_body', 'broken JSON error code');
+  res = await RPT.submitReport(reportCtx(JSON.stringify(['a', 'list']), {}));
+  eq(res.status, 400, 'a JSON array body → 400');
+
+  /* a plain <form> with no JavaScript posts urlencoded, and it has to work */
+  sent = [];
+  res = await RPT.submitReport(reportCtx(
+    'date=2026-07-11&airline=United&flight=UA+2447&system=starlink&down=83.1&free=yes&name=Jeremy+Smith',
+    { contentType: 'application/x-www-form-urlencoded' }));
+  var form = await body(res);
+  eq(res.status, 201, 'a urlencoded form post works with no JavaScript at all');
+  eq(form.report.flightNumber, 'UA2447', 'the form post normalises the flight number');
+  eq(form.report.wasFree, true, 'the form post reads free=yes as true');
+  eq(form.report.credit, 'Jeremy Smith', 'the form post credits by name');
+  eq(sent[0].body.p.flownOn, '2026-07-11', 'the alias date= maps to flownOn');
+
+  /* ── the store being down is not the reader's fault ── */
+  sent = [];
+  canned = new Response('gateway', { status: 502 });
+  res = await RPT.submitReport(reportCtx(GOOD));
+  eq(res.status, 503, 'the store answering 502 → 503');
+  eq((await body(res)).error.code, 'store_unavailable', 'store-down error code');
+  canned = { ok: true, id: 'ffffffff-0000-4000-8000-000000000001', published: false, remaining: 4, cap: 5 };
+
+  res = await RPT.submitReport(reportCtx(GOOD, { dropEnv: ['SUPABASE_URL', 'REPORT_IP_SALT'] }));
+  var unconf = await body(res);
+  eq(res.status, 503, 'an unconfigured deploy → 503');
+  eq(unconf.error.code, 'intake_unconfigured', 'unconfigured error code');
+  ok(/SUPABASE_URL/.test(unconf.error.message) && /REPORT_IP_SALT/.test(unconf.error.message),
+    'it names the variables that are missing');
+
+  /* ── length caps, on the bytes ── */
+  sent = [];
+  res = await RPT.submitReport(reportCtx(Object.assign({}, GOOD, { note: 'x'.repeat(501) })));
+  ok(/501 characters/.test((await body(res)).fields.note), 'a 501-character note is refused');
+  res = await RPT.submitReport(reportCtx(Object.assign({}, GOOD, { credit: 'y'.repeat(61) })));
+  ok(/cap is 60/.test((await body(res)).fields.credit), 'a 61-character credit is refused');
+  res = await RPT.submitReport(reportCtx('{"note":"' + 'z'.repeat(9000) + '"}'));
+  eq(res.status, 413, 'a 9 KB body → 413');
+  eq(sent.length, 0, 'none of the oversized attempts reached the store');
+
+  /* ── the same field twice under two names is ambiguous, so it is refused ── */
+  res = await RPT.submitReport(reportCtx(Object.assign({}, GOOD, { flight: 'UA1' })));
+  ok(/sent twice/.test((await body(res)).fields.flightNumber),
+    'flightNumber and its alias in one body is refused rather than guessed');
+
+  /* ── normaliseReport is pure, so the date fence can be tested against a fixed
+   *    day rather than against whatever today happens to be ── */
+  var fixed = '2026-07-25';
+  eq(RPT.normaliseReport(Object.assign({}, GOOD, { flownOn: fixed }), fixed).ok, true,
+    'a report flown TODAY is fine');
+  eq(RPT.normaliseReport(Object.assign({}, GOOD, { flownOn: '2026-07-26' }), fixed).ok, false,
+    'a report flown TOMORROW is not');
+  eq(RPT.normaliseReport(Object.assign({}, GOOD, { flownOn: '2017-12-31' }), fixed).ok, false,
+    'a report from 2017 is not');
+  eq(RPT.normaliseReport(Object.assign({}, GOOD, { flownOn: '2026-02-30' }), fixed).ok, false,
+    '30 February is not a date');
+  eq(RPT.SYSTEMS.join(','), 'starlink,leo,viasat,panasonic,intelsat,hughes,none,unsure',
+    'the eight systems the form has to offer');
+  eq(RPT.RATE_CAP, 5, 'the documented cap is five per hashed address per hour');
+
+  globalThis.fetch = realFetch;
+
+  /* ── the committed file the BUILD reads ───────────────────────────────────
+   * The site is prerendered, so nothing fetches reports at runtime. The path is
+   * Supabase → build/pull-reports.js → assets/reports.json → build/lib/reports.js
+   * → the build. The assertion that matters is the last link: the build must
+   * work when the file is absent, because that is what happens the first time
+   * anybody clones this repo, and it must never contain a hash. */
+  var RJ = require('../build/lib/reports.js');
+  var loaded = RJ.load();
+  ok(loaded.count >= 0, 'build/lib/reports.js loads without throwing');
+  ok(loaded.reports.every(function (r) { return r.kind === 'FIELD REPORT'; }),
+    'every committed report is classed FIELD REPORT');
+  ok(JSON.stringify(loaded).indexOf('ip_hash') < 0 && !/[0-9a-f]{64}/.test(JSON.stringify(loaded)),
+    'the committed file carries no hash and no address');
+  ok(loaded.reports.every(function (r) { return /^\d{4}-\d{2}-\d{2}$/.test(r.flownOn); }),
+    'every committed report carries an as-of date');
+  ok(loaded.reports.every(function (r) { return !!r.credit; }),
+    'every committed report credits somebody by name');
+  var seedDowns = loaded.reports.map(function (r) { return r.downMbps; }).filter(Boolean);
+  ok(seedDowns.every(function (n) { return n > 0 && n <= 5000; }),
+    'every committed download figure is physically possible', seedDowns);
+
   /* ── report ── */
   if (fails.length) {
     console.error('API acceptance FAILED — ' + fails.length + ' of ' + checks + ' checks:');
@@ -648,6 +1049,13 @@ async function main() {
     ', ' + s.evidence.observations + ' obs) · /api/score/AS15: ' + as.method + ', prob ' + as.prob);
   console.log('  tiers: Delta nextGenScore ' + dl.nextGenScore + ' / serviceTier ' + dl.serviceTier +
     ' / connectScore ' + dl.connectScore + ' — and the homepage card agrees (7 cards checked)');
+  console.log('  projected: ' + projected.map(function (a) {
+    return a.name + ' ' + a.projected.score + ' ' + a.projected.confidence;
+  }).join(' · ') + ' — none sorts anything, all four carry their date');
+  console.log('  POST /api/report: ' + (checks - checksBeforeIntake) + ' checks · no raw address in ' +
+    'the outbound payload · published:false on every stored row · the cap is ' + RPT.RATE_CAP +
+    ' per hashed address per hour · ' + loaded.count + ' published report' +
+    (loaded.count === 1 ? '' : 's') + ' committed in assets/reports.json');
 }
 
 main().catch(function (e) {

@@ -9,6 +9,8 @@ var H = require('./html.js');
 var V = require('./viz.js');
 var DL = require('./data.js');
 var C = require('./reel.js');
+/* the rollout phase words. market.js requires nothing, so this cannot cycle. */
+var MK = require('./market.js');
 var esc = H.esc, num = DL.num;
 
 function band(s) {
@@ -31,6 +33,107 @@ function tagsFor(e) {
   if (e.future && e.future.system === 'leo') t.push('leo');
   if (e.free === 'free') t.push('freeall');
   return t.join(' ');
+}
+
+/* ── PROVENANCE: every figure carries a class, a source and a date ────────
+ * Four words, and a figure on this site gets exactly one of them. VENDOR CLAIM
+ * is a spec sheet. MEASURED is somebody who ran the test and published the
+ * method. REPORTED is a press release or a trade outlet. FIELD REPORT is one
+ * reader on one flight.
+ *
+ * The chips are monochrome on purpose and the rule is not negotiable: colour on
+ * this site means score band, so a provenance tag in green would compete with
+ * the arc and break the one rule the whole palette rests on. They separate by
+ * border weight and border style instead. */
+var CLS = {
+  vendor: ['cls', 'Vendor claim'],
+  measured: ['cls cls-m', 'Measured'],
+  reported: ['cls', 'Reported'],
+  field: ['cls cls-f', 'Field report']
+};
+function cls(kind) {
+  var c = CLS[kind] || CLS.reported;
+  return '<span class="' + c[0] + '">' + c[1] + '</span>';
+}
+/* A source line. The class, then who said it, then when they said it. A figure
+ * without all three is an assertion, and this site does not publish those. */
+function srcLine(kind, text) {
+  return '<p class="src">' + cls(kind) + ' ' + text + '</p>';
+}
+
+/* ── THE PROJECTED SCORE, AND THE ONE WAY IT MAY BE RENDERED ──────────────
+ * This is the only function on the site that prints a projected number, and it
+ * exists so there is one place to check rather than a convention to remember.
+ * build/prerender.js walks the built HTML and fails the build on every unit it
+ * finds that does not honour the contract below.
+ *
+ *   <span class="proj" data-projected="american">
+ *     <span class="pv">51</span>
+ *     <span class="ph">installs begin 2027-Q1</span>
+ *     <span class="conf">FIRM</span>
+ *   </span>
+ *
+ * The value, the horizon phrase and the confidence word are one inseparable
+ * visual unit. Nothing inside it may set --band: no sc-* class, no [data-band],
+ * no var(--band) in an inline style. Green, amber and red mean measured, and
+ * nobody has measured an aircraft that has not been built yet.
+ *
+ * `slipped` adds a hatched ground and KEEPS SHOWING the date that was missed.
+ * It is derived from the build date inside assets/airlines.js, so a missed
+ * promise does not depend on anyone noticing it. */
+function projected(a) {
+  var p = a && a.projected;
+  if (!p) return '';
+  return '<span class="proj' + (p.slipped ? ' slipped' : '') +
+    '" data-projected="' + esc(a.key) + '">' +
+    '<span class="pv">' + p.score + '</span>' +
+    '<span class="ph">' + esc(p.horizon) + '</span>' +
+    '<span class="conf' + (p.slipped ? ' slip' : '') + '">' + esc(p.confidence) + '</span></span>';
+}
+/* The same unit in a table cell. Where an airline has published no forward date
+ * the cell says so in words. A dash there would read as a zero, and "nobody has
+ * announced anything" and "the projection is zero" are different claims. */
+function projCell(a, blank) {
+  return a && a.projected ? projected(a)
+    : '<span class="micro">' + esc(blank || 'No date published') + '</span>';
+}
+
+/* A score drawn as a length. The 40 and 60 ticks are the band thresholds, so a
+ * reader can see which side of them a fleet sits on without reading the word. */
+function tape(v) {
+  return '<div class="tape" style="margin:0"><i style="width:' + Math.max(0, Math.min(100, v)) +
+    '%"></i><span class="tk" style="left:40%"></span><span class="tk" style="left:60%"></span></div>';
+}
+
+/* ── §3 THE FIELD: all eighteen, in ONE view ──────────────────────────────
+ * The homepage used to carry three different pictures of the same field: a
+ * three-card race teaser, a systems teaser and the US card row. Three surfaces,
+ * one question, and a reader had to reconcile them. This is the single ranked
+ * view: every airline we score, the number, the number as a length, the phase
+ * it is in, and the forward figure where one exists.
+ *
+ * Ranked on ConnectScore, which is what is flying. The projected column carries
+ * "does not sort" in its own header and its <th> has no data-k, so the client
+ * sorter cannot reach it. */
+function fieldTable(m) {
+  var rows = m.ranked.map(function (a, i) {
+    var ph = MK.phaseOf(m.A, a);
+    return '      <tr data-f="' + ph + '">' +
+      '<td class="rank">' + (i + 1 < 10 ? '0' : '') + (i + 1) + '</td>' +
+      '<td><a class="aname" href="/airlines/' + a.key + '/">' + esc(a.name) +
+      '<span class="code">' + esc(a.code || '') + '</span></a></td>' +
+      '<td class="num ' + band(a.score) + '"><span class="sco">' + a.score + '</span></td>' +
+      '<td class="' + band(a.score) + '" style="width:22%;min-width:110px">' + tape(a.score) + '</td>' +
+      '<td class="micro">' + esc(MK.PHASE_LABEL[ph]) + '</td>' +
+      '<td class="num">' + projCell(a, ph === 'done' ? 'Rollout complete' : 'No date published') +
+      '</td></tr>';
+  }).join('\n');
+
+  return '<div class="tbl-shell rv"><table class="tbl">\n' +
+    '    <thead><tr><th>#</th><th>Airline</th><th class="num">ConnectScore</th>' +
+    '<th>Scale · 0 to 100</th><th>Programme state</th>' +
+    '<th class="num">Projected · does not sort</th></tr></thead>\n' +
+    '    <tbody>\n' + rows + '\n    </tbody>\n  </table></div>\n';
 }
 
 /* ── §3.2 ConnectScore leaderboard, baked <table> ───────────────────────── */
@@ -139,14 +242,14 @@ function nextGenLine(m, a) {
       ? num(a.equipped) + ' of ' + num(a.known) + ' with a published system'
       : a.fleet ? num(a.equipped) + ' of ' + num(a.fleet)
         : a.known ? num(a.equipped || 0) + ' of ' + num(a.known) : null;
-    return 'Next-gen: ' + a.nextGenScore + ' — ' + a.nextGenLabel +
+    return 'Next-gen: ' + a.nextGenScore + ' · ' + a.nextGenLabel +
       (count ? ' on ' + count + ' (' + pctText(a.nextGenShare) + ')' : ' on the whole fleet');
   }
   if (a.future) {
     return 'Next-gen: 0 (' + (m.A.SYSTEM_LABEL[a.future.system] || a.future.system) +
       ' signed, ' + a.future.from + ')';
   }
-  return 'Next-gen: 0 — nothing signed';
+  return 'Next-gen: 0 · nothing signed';
 }
 
 function todayLine(m, a, e) {
@@ -208,6 +311,157 @@ function usGlance(m) {
   }).join('') + '</div>\n';
 }
 
+/* ── §2 HOW WE KNOW: the instrumentation ladder ───────────────────────────
+ * The tier an answer was derived at is part of the answer, not a disclaimer
+ * under it. A 27 read off a tail record and a 27 read off a fleet percentage
+ * are different claims about the world.
+ *
+ * THE SPLIT IS DERIVED. `instrumented` in assets/airlines.js is the flag and
+ * United is the only fleet with a per-flight route history in data.json, so the
+ * three rows fall out of the data. A hand-maintained list would rot the day
+ * Hawaiian lands. */
+function tierRows(m) {
+  var verified = m.ranked.filter(function (a) { return a.key === 'united'; });
+  var derived = m.ranked.filter(function (a) { return a.instrumented && a.key !== 'united'; });
+  var coarse = m.ranked.filter(function (a) { return !a.instrumented; });
+  function names(list) { return list.map(function (a) { return a.name; }).join(', ') || 'none'; }
+  return [
+    ['A', 'Tail-verified', 'The aircraft on your flight is resolved to a registration, and that ' +
+      'registration to an install record.', names(verified),
+      'A number for one flight, with the sample size attached.'],
+    ['B', 'Type-derived', 'The tails are verified the same way and nobody publishes which aircraft ' +
+      'is scheduled onto which flight, so there is no history to count.', names(derived),
+      'A number for an aircraft type. Not for a departure.'],
+    ['C', 'Fleet-share', 'No per-tail verification exists, so the input is what the airline itself ' +
+      'said publicly about how many aircraft are equipped.', names(coarse),
+      'A number for an airline. Nothing narrower.'],
+    ['D', 'Announced only', 'A signed deal with nothing in the air. Today’s odds are zero and the ' +
+      'projected figure carries the forward view, fenced, in grey.',
+      m.ranked.filter(function (a) { return a.projected; })
+        .map(function (a) { return a.name; }).join(', ') || 'none',
+      'A promise with a year on it. Never a measurement.']
+  ];
+}
+function tierTable(m) {
+  var rows = tierRows(m).map(function (t) {
+    return '      <tr><td class="mono"><b>' + t[0] + '</b></td>' +
+      '<td><b>' + esc(t[1]) + '</b><div class="note" style="margin-top:3px">' + esc(t[2]) +
+      '</div></td><td class="micro">' + esc(t[3]) + '</td>' +
+      '<td class="hide-sm">' + esc(t[4]) + '</td></tr>';
+  }).join('\n');
+  return '<div class="tbl-shell rv"><table class="tbl">\n' +
+    '    <thead><tr><th>Tier</th><th>What was checked</th><th>Airlines</th>' +
+    '<th class="hide-sm">What you can conclude</th></tr></thead>\n' +
+    '    <tbody>\n' + rows + '\n    </tbody>\n  </table></div>\n';
+}
+
+/* ── FIELD REPORTS ────────────────────────────────────────────────────────
+ * One reader, one flight, one speed test. These sit BESIDE the peer-reviewed
+ * medians and never inside them, and no field report has ever moved a
+ * ConnectScore. Every row is attributed and dated so a reader can weigh it.
+ * See build/lib/reports.js for the read path. */
+function reportTable(list, caption) {
+  if (!list || !list.length) return '';
+  var rows = list.map(function (r) {
+    function n(v, unit) {
+      return v === null || v === undefined ? '<span class="micro">not run</span>'
+        : v + (unit || '');
+    }
+    return '      <tr><td class="mono">' + esc(r.flownOn) + '</td>' +
+      '<td class="mono">' + esc(r.flightNumber) + '</td>' +
+      '<td>' + esc(r.route || 'not given') + '</td>' +
+      '<td>' + esc(r.aircraft || 'not given') + '</td>' +
+      '<td><span class="sysdot ' + sysClass(r.system) + '"></span>' + esc(r.systemLabel) + '</td>' +
+      '<td class="num">' + n(r.downMbps) + '</td>' +
+      '<td class="num">' + n(r.upMbps) + '</td>' +
+      '<td class="num">' + n(r.latencyMs, ' ms') + '</td>' +
+      '<td>' + esc(r.credit || 'anonymous') + '</td></tr>';
+  }).join('\n');
+  return '<div class="tbl-shell rv"><table class="tbl">\n' +
+    (caption ? '    <caption class="micro" style="text-align:left;padding-bottom:10px">' +
+      esc(caption) + '</caption>\n' : '') +
+    '    <thead><tr><th>Flown</th><th>Flight</th><th>Route</th><th>Aircraft</th><th>System</th>' +
+    '<th class="num">Down</th><th class="num">Up</th><th class="num">Latency</th>' +
+    '<th>Reported by</th></tr></thead>\n' +
+    '    <tbody>\n' + rows + '\n    </tbody>\n  </table></div>\n';
+}
+
+/* ── THE INTAKE FORM ──────────────────────────────────────────────────────
+ * POSTs to /api/report (functions/_lib/reports.mjs). Read that file's header
+ * before changing a name here: the field table over there IS the contract, and
+ * a field this form invents is rejected by name rather than silently dropped.
+ *
+ * WORKS WITH JAVASCRIPT OFF. This is a real <form method="post">, so a browser
+ * with no script posts urlencoded and the endpoint accepts it. The script in
+ * methodologyPage()'s afterWrap only upgrades that to a fetch so the errors can
+ * land next to the inputs instead of replacing the page.
+ *
+ * THE HONEYPOT IS THE CAPTCHA. Turnstile, reCAPTCHA and hCaptcha are all
+ * third-party scripts and this site makes zero third-party requests, so the
+ * anti-abuse story is an off-screen empty field plus server-side rate limiting
+ * on a hashed address. A person never sees `website`; a bot fills everything. */
+var REPORT_SYSTEMS = [
+  ['starlink', 'Starlink'], ['leo', 'Amazon Leo'], ['viasat', 'Viasat'],
+  ['panasonic', 'Panasonic'], ['intelsat', 'Intelsat or 2Ku'], ['hughes', 'Hughes'],
+  ['none', 'There was no wifi to test'], ['unsure', 'The portal did not say']
+];
+function field(id, name, label, attrs, hint) {
+  return '      <div class="ff"><label for="' + id + '">' + esc(label) + '</label>' +
+    '<input id="' + id + '" name="' + name + '" ' + attrs +
+    ' aria-describedby="e-' + name + '">' +
+    (hint ? '<span class="fh">' + esc(hint) + '</span>' : '') +
+    '<p class="ferr" id="e-' + name + '" role="alert"></p></div>\n';
+}
+function reportForm(m) {
+  var opts = REPORT_SYSTEMS.map(function (s) {
+    return '<option value="' + s[0] + '">' + esc(s[1]) + '</option>';
+  }).join('');
+  return '  <form class="frm" id="rform" method="post" action="/api/report" ' +
+    'enctype="application/x-www-form-urlencoded">\n' +
+    /* off-screen, empty, and never focusable. See the note above. */
+    '    <div class="hp" aria-hidden="true"><label for="f-website">Leave this empty</label>' +
+    '<input id="f-website" name="website" type="text" value="" tabindex="-1" autocomplete="off">' +
+    '</div>\n' +
+    '    <p class="ferr frm-top" id="e-_body" role="alert"></p>\n' +
+    '    <div class="ffgrid">\n' +
+    field('f-flownon', 'flownOn', 'Date you flew', 'type="date" required max="' + esc(m.updated) + '"') +
+    field('f-airline', 'airline', 'Airline', 'type="text" required maxlength="60" placeholder="United"') +
+    field('f-flight', 'flightNumber', 'Flight number',
+      'type="text" required spellcheck="false" autocapitalize="characters" placeholder="UA2402"') +
+    '      <div class="ff"><label for="f-system">System</label>' +
+    '<select id="f-system" name="system" required aria-describedby="e-system">' +
+    '<option value="">Pick one</option>' + opts + '</select>' +
+    '<span class="fh">The captive portal usually names it.</span>' +
+    '<p class="ferr" id="e-system" role="alert"></p></div>\n' +
+    field('f-route', 'route', 'Route', 'type="text" spellcheck="false" placeholder="IAH-SFO"') +
+    field('f-aircraft', 'aircraft', 'Aircraft type or tail',
+      'type="text" spellcheck="false" placeholder="737-9 MAX or N27273"') +
+    field('f-down', 'downMbps', 'Download, Mbps', 'type="text" inputmode="decimal" placeholder="143"') +
+    field('f-up', 'upMbps', 'Upload, Mbps', 'type="text" inputmode="decimal" placeholder="18"') +
+    field('f-lat', 'latencyMs', 'Latency, ms', 'type="text" inputmode="numeric" placeholder="52"') +
+    '      <div class="ff"><label for="f-free">Cost onboard</label>' +
+    '<select id="f-free" name="wasFree" aria-describedby="e-wasFree">' +
+    '<option value="">Not saying</option><option value="true">It was free</option>' +
+    '<option value="false">I paid for it</option></select>' +
+    '<p class="ferr" id="e-wasFree" role="alert"></p></div>\n' +
+    field('f-credit', 'credit', 'Name or handle to credit',
+      'type="text" maxlength="60" placeholder="How the row should read"') +
+    '      <div class="ff full"><label for="f-note">Anything else worth knowing</label>' +
+    '<textarea id="f-note" name="note" maxlength="500" rows="3" aria-describedby="e-note" ' +
+    'placeholder="How full the cabin was, what the portal charged, what broke"></textarea>' +
+    '<p class="ferr" id="e-note" role="alert"></p></div>\n' +
+    '    </div>\n' +
+    '    <div class="frm-ft">\n' +
+    '      <p class="note">One measurement is enough: download, upload or latency. Pick ' +
+    '&ldquo;there was no wifi to test&rdquo; if there was nothing to measure. Every submission ' +
+    'lands unpublished and a person reads it before it appears here. No account, no cookie, no ' +
+    'analytics, and the only thing kept about you is the name you type in the credit box.</p>\n' +
+    '      <button class="btn" type="submit">Send the reading</button>\n' +
+    '    </div>\n' +
+    '    <p class="frm-ok" id="rform-ok" role="status"></p>\n' +
+    '  </form>\n';
+}
+
 /* ── §3.8 route-odds teaser ─────────────────────────────────────────────── */
 function routePills(m) {
   if (!m.leaderboard.length) {
@@ -228,7 +482,7 @@ function kpi(n, label, detail, cls) {
 var ROADMAP = [
   ['building', 'Tail-swap Guardian', 'Watches your booked flight for equipment swaps, booking to boarding. ' +
     'Prototype built; ships with extension 2.1.'],
-  ['building', 'More airlines, in rollout order', 'Hawaiian next (42 of 66 — the best US Starlink odds), ' +
+  ['building', 'More airlines, in rollout order', 'Hawaiian next, which has the best US Starlink odds at 42 of 66, ' +
     'then the near-complete fleets: WestJet, Air France, airBaltic, JSX. Each gets the United treatment ' +
     'as instrumentation lands.'],
   ['planned', 'PWA', 'Installable, offline ConnectScores, and push notifications for Guardian alerts.'],
@@ -236,7 +490,7 @@ var ROADMAP = [
      the endpoints below are real, the date-scoped variant in the original plan is
      not, so it stays out of the description rather than being implied by it. */
   ['shipped', 'Public ConnectScore API', 'Live now: <code>GET /api/airlines</code>, ' +
-    '<code>GET /api/airlines/qatar</code> and <code>GET /api/score/UA212</code> — free, no key, ' +
+    '<code>GET /api/airlines/qatar</code> and <code>GET /api/score/UA212</code>. Free, no key, ' +
     'CORS open, credits in every response body. <a href="/api/docs/">Read the API docs →</a>'],
   ['shipped', 'The rollout archive', 'The daily install history grows into the industry’s rollout record; ' +
     'every new airline inherits its priors.']
@@ -287,30 +541,19 @@ function flightCheck(m) {
     '        <button class="btn fchk-go" type="submit">Check the odds →</button>\n' +
     '      </div>\n' +
     '      <datalist id="fchk-air">' + opts + '</datalist>\n' +
-    '      <p class="fchk-hint" id="fchk-hint">Any flight number — <b>UA212</b>, <b>AS15</b>, ' +
-    '<b>AA1234</b> — or an airline name. Answered from our own daily-verified data, and the card ' +
-    'tells you which method it used. No account, nothing stored.</p>\n' +
+    '      <p class="fchk-hint" id="fchk-hint">Any flight number works: <b>UA212</b>, <b>AS15</b>, ' +
+    '<b>AA1234</b>. An airline name works too. The answer comes from our own daily-verified data ' +
+    'and the card names the method it used. No account, nothing stored.</p>\n' +
     '    </form>\n' +
     '    <div class="fchk-out" id="fchk-out" role="status" aria-live="polite"></div>\n' +
     '  </div>\n' +
     '  <div class="fchk-nojs no-js-only">\n' +
-    '    <p class="fchk-hint">The live check needs JavaScript. Pick your airline instead — every ' +
-    'page below carries the same ConnectScore, the method behind it, and how much to trust it:</p>\n' +
+    '    <p class="fchk-hint">The live check needs JavaScript. Pick your airline instead. Every ' +
+    'page below carries the same ConnectScore, the method behind it, and how much to trust it.</p>\n' +
     '    <div class="fchk-links">' + links + '</div>\n' +
     '    <p class="fchk-hint"><a href="/airlines/">All ' + m.airlineCount +
     ' airlines, ranked →</a> · <a href="/methodology/">How we know →</a></p>\n' +
     '  </div>\n';
-}
-
-/* The compact above-the-fold plug. Deliberately ONE line and deliberately not a
- * pitch: nobody installs software from a site that has not proven value yet, so
- * the real sell is extensionSection() further down, after the check has answered
- * something. This is just a signpost to it. */
-function extPlug() {
-  return '  <p class="extplug"><b>Get the odds where you book</b> — free Chrome extension: ' +
-    'odds badges and one-click sort on the airline’s own search results. ' +
-    '<a class="extplug-go" href="' + H.EXT + '" target="_blank" rel="noopener">Add to Chrome ↗</a>' +
-    '<a class="extplug-alt" href="#extension">see it work ↓</a></p>\n';
 }
 
 /* ── the full extension section ───────────────────────────────────────────
@@ -352,51 +595,44 @@ function extPlug() {
  * above to prove it — do not move them because the manifest says 2.0.0. */
 function extensionSection(m) {
   return '<section class="blk extblk" id="extension">\n' +
-    '  <div class="sec-h"><h2>Get the odds where you book</h2>' +
-    '<span class="sub">Chrome extension · free · v1.5.1 in the store</span>' +
-    '<a class="more" href="' + H.EXT + '" target="_blank" rel="noopener">Add to Chrome ↗</a></div>\n' +
+    '  <div class="sec-h"><span class="sub">§5 · Take it with you</span>' +
+    '<h2>The same odds, on the booking page</h2>' +
+    '<span class="sub" style="position:static">Chrome extension · free · v1.5.1 in the store</span>' +
+    '</div>\n' +
     '  <p class="sec-lede">This site answers one flight at a time. The extension answers the page ' +
-    'you are already looking at: every United result picks up a colour-coded Starlink odds badge, ' +
-    'and one click sorts the whole page by them — without leaving the booking flow. Below is what ' +
-    'that looks like, in real screenshots rather than a mockup.</p>\n' +
+    'you are already looking at. On united.com and Navan every result picks up an odds badge, and ' +
+    'one click sorts the whole page by them without leaving the booking flow. The pictures below ' +
+    'are captures of the shipped build.</p>\n' +
     '  <div class="extdemo">\n' + C.section() + '\n  </div>\n' +
-    '  <div class="grid3 extfeat">\n' +
-    '    <div class="card rv"><h3>Odds badges, in the row <span class="pill live">live</span></h3>' +
-    '<p>Every flight in the results gets its own badge — how often that flight number actually draws ' +
-    'a Starlink aircraft, with a ✓ when the assigned tail is already confirmed. Same data, same ' +
-    'honest tiers as this site.</p></div>\n' +
-    '    <div class="card rv"><h3>Sort the page by odds <span class="pill live">live</span></h3>' +
-    '<p>One click reorders United’s own result list best-WiFi-first, prices and times intact, so ' +
-    'you can see what the good connection actually costs you. Plus a floating route panel that ' +
-    'flips itself for the return leg.</p></div>\n' +
-    '    <div class="card rv"><h3>Tail-swap Guardian <span class="pill soon">2.1</span></h3>' +
-    '<p>Aircraft assignments change after you book. Guardian watches your booked flight from ' +
-    'booking to boarding and tells you if the equipment swaps. Built and in test — not in the store ' +
-    'build yet, so do not go looking for it there.</p></div>\n' +
+    '  <div class="kv" style="margin-top:18px">' +
+    '<div><p class="micro">In the store today</p><span class="v">1.5.1</span></div>' +
+    '<div><p class="micro">Staged, awaiting review</p><span class="v">2.0.0</span></div>' +
+    '<div><p class="micro">Account required</p><span class="v">None</span></div>' +
+    '<div><p class="micro">Third-party requests</p><span class="v">0</span></div></div>\n' +
+    '  <div class="faq" style="margin-top:18px">\n' +
+    '    <div class="q rv"><h3>Live today <span class="pill live">1.5.1</span></h3>' +
+    '<p>Odds badges on every united.com and app.navan.com result, a one-click sort that keeps the ' +
+    'prices and times where they were, and a route panel that flips itself for the return leg. ' +
+    'A badge carries a tick when the assigned tail is already confirmed, and it carries the same ' +
+    'tier label this site uses when it is not.</p></div>\n' +
+    '    <div class="q rv"><h3>Waiting on store review <span class="pill soon">2.0.0</span></h3>' +
+    '<p>alaskaair.com and Google Flights, both behind an optional permission you grant yourself, ' +
+    'plus all ' + m.airlineCount + ' ConnectScores in the popup. This build is not in the store, ' +
+    'so installing today does not get you any of it.</p></div>\n' +
+    '    <div class="q rv"><h3>Not in any store build <span class="pill soon">2.1</span></h3>' +
+    '<p>Aircraft assignments change after you book, and Tail-swap Guardian watches your booked ' +
+    'flight from booking to boarding to tell you when the equipment moves. It is built and in ' +
+    'test. Do not go looking for it in the store.</p></div>\n' +
     '  </div>\n' +
-    '  <div class="extwhere"><span class="micro">Live today</span>' +
-    '<span class="pill">united.com</span><span class="pill">app.navan.com</span></div>\n' +
-    '  <div class="extwhere"><span class="micro">Next release</span>' +
-    '<span class="pill soon">alaskaair.com <em>opt-in</em></span>' +
-    '<span class="pill soon">Google Flights <em>opt-in</em></span>' +
-    '<span class="pill soon">popup: all ' + m.airlineCount + ' ConnectScores</span>' +
-    '<span class="pill soon">Tail-swap Guardian</span></div>\n' +
-    '  <p class="note extwhy">Being straight about it: the version in the Chrome Web Store today is ' +
-    '<b>1.5.1</b>, and it covers united.com and Navan. Alaska, Google Flights and the ' +
-    'eighteen-airline popup are built and waiting on store review; Guardian follows in 2.1. Alaska ' +
-    'and Google Flights will arrive behind an <b>optional permission</b> you grant yourself — the ' +
-    'extension asks for nothing it is not using.</p>\n' +
     '  <div class="cta-row"><a class="btn" href="' + H.EXT + '" target="_blank" rel="noopener">' +
-    'Add to Chrome — free ↗</a>' +
-    '<a class="btn ghost" href="/privacy.html">What it can and cannot see →</a>' +
-    '<a class="btn ghost" href="' + H.REPO + '" target="_blank" rel="noopener">Read the source ↗</a></div>\n' +
-    '  <p class="note extfine"><b>No accounts, no analytics, no tracking</b> — it stores your ' +
-    'settings locally and phones nothing home. Odds come from the same data as this site: United ' +
-    'and Alaska tails verified by <a href="https://unitedstarlinktracker.com" target="_blank" ' +
-    'rel="noopener">unitedstarlinktracker.com</a> and <a href="https://alaskastarlinktracker.com" ' +
-    'target="_blank" rel="noopener">alaskastarlinktracker.com</a> (@martinamps); every other ' +
-    'airline from public announcements. Unofficial — not affiliated with any airline, Navan, ' +
-    'SpaceX/Starlink or the trackers.</p>\n' +
+    'Install from the Chrome Web Store ↗</a></div>\n' +
+    '  <p class="note extfine"><b>No accounts, no analytics, no tracking.</b> It stores your ' +
+    'settings locally and phones nothing home. The odds come from the same data as this site. ' +
+    'Unofficial, and not affiliated with any airline, Navan, SpaceX/Starlink or the trackers.</p>\n' +
+    '  <p class="src">' + cls('reported') + ' Store version and coverage read off the ' +
+    '<a href="' + H.EXT + '" target="_blank" rel="noopener">Chrome Web Store listing body</a>, ' +
+    '24 Jul 2026. Tail data: unitedstarlinktracker.com and alaskastarlinktracker.com, 25 Jul 2026. ' +
+    'Every other airline from public announcements, Jul 2026.</p>\n' +
     '</section>\n\n';
 }
 
@@ -406,6 +642,9 @@ module.exports = {
   US_MAJORS: US_MAJORS, usRanked: usRanked, usStatus: usStatus, usGlance: usGlance,
   nextGenLine: nextGenLine, todayLine: todayLine, pctText: pctText,
   roadmapSteps: roadmapSteps, ROADMAP: ROADMAP,
-  flightCheck: flightCheck, extPlug: extPlug, extensionSection: extensionSection,
+  flightCheck: flightCheck, extensionSection: extensionSection,
+  cls: cls, srcLine: srcLine, projected: projected, projCell: projCell, tape: tape,
+  fieldTable: fieldTable, tierRows: tierRows, tierTable: tierTable,
+  reportTable: reportTable, reportForm: reportForm, REPORT_SYSTEMS: REPORT_SYSTEMS,
   FREE: FREE
 };

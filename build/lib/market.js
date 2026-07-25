@@ -56,7 +56,7 @@ var ROLLOUT = {
   united: {
     target: '500+ mainline by end-2026, ~800 aircraft in total',
     detail: 'All 300-plus two-cabin regional jets were finished in February 2026, and United ran a ' +
-      'Super Bowl ad about it — this is a mass-market amenity now, not an avgeek curiosity. Mainline ' +
+      'Super Bowl ad about it. This is a mass-market amenity now, not an avgeek curiosity. Mainline ' +
       'is the long half and the one still moving daily.',
     source: 'United PR / Simple Flying, ' + VERIFIED
   },
@@ -69,7 +69,7 @@ var ROLLOUT = {
   hawaiian: {
     target: 'widebody fit nearly complete',
     detail: 'The highest next-gen share of any US carrier, and it went from no wifi at all straight ' +
-      'to Starlink in 2024 — Hawaiian never had Viasat. The 19 Boeing 717s flying about 150 ' +
+      'to Starlink in 2024, having never had Viasat. The 19 Boeing 717s flying about 150 ' +
       'interisland departures a day have never carried connectivity, and Alaska Air Group has said ' +
       'twice that they never will. Inherited into the Alaska group, which is why the two entries ' +
       'have to be read together rather than added up.',
@@ -82,7 +82,7 @@ var ROLLOUT = {
   },
   airbaltic: {
     target: 'complete',
-    detail: 'The entire A220 fleet — the first European airline to complete a Starlink fit.',
+    detail: 'The entire A220 fleet, and the first European airline to complete a Starlink fit.',
     source: 'starlinkflights.com list, ' + VERIFIED
   },
   zipair: {
@@ -107,7 +107,7 @@ var ROLLOUT = {
   },
   qatar: {
     target: null,
-    detail: 'Free for every passenger in every cabin with no sign-up at all — the most generous ' +
+    detail: 'Free for every passenger in every cabin with no sign-up at all, the most generous ' +
       'access policy in this set, on a fleet that is more than half converted.',
     source: 'OMAAT, ' + VERIFIED
   },
@@ -120,7 +120,7 @@ var ROLLOUT = {
   emirates: {
     target: 'full widebody fleet by mid-2027; 150 aircraft targeted by end-2026',
     detail: 'An early retrofit on an all-widebody fleet, which is the slowest kind of aircraft to take ' +
-      'out of service — the target is aggressive for the fleet type.',
+      'out of service, so the target is aggressive for the fleet type.',
     source: 'Gulf News / OMAAT, ' + VERIFIED
   },
   virginatlantic: {
@@ -147,23 +147,23 @@ var ROLLOUT = {
     target: 'ramping through summer 2026',
     detail: 'The largest single-fleet retrofit anyone has committed to. At any believable install ' +
       'rate this fleet takes years, which makes Southwest the biggest future odds market in the ' +
-      'world — and the one where a fleet-average number will be least useful for longest.',
+      'world, and the one where a fleet-average number will be least useful for longest.',
     source: 'Southwest / starlinkflights.com tracker, ' + VERIFIED
   },
   american: {
     target: 'installs begin Q1 2027',
     detail: 'Starlink on 500-plus Airbus narrowbodies, announced 26 May 2026, free for AAdvantage ' +
-      'members. The Boeing fleet stays Viasat under the current deal — so unlike United, American’s ' +
+      'members. The Boeing fleet stays Viasat under the current deal, so unlike United, American’s ' +
       'odds may never converge on 100%, and aircraft type will matter on every AA booking ' +
       'indefinitely. Free Viasat/Intelsat covers about 90% of the fleet meanwhile.',
     source: 'Via Satellite / AA newsroom, 26 May 2026'
   },
   delta: {
     target: 'Amazon Leo from 2028',
-    detail: 'Signed 31 March 2026 for 500 aircraft — the biggest bet against Starlink in the market. ' +
+    detail: 'Signed 31 March 2026 for 500 aircraft, the biggest bet against Starlink in the market. ' +
       'Nothing is flying, so the next-gen number is 0 and stays 0 until hardware is in the air. Delta ' +
       'Sync (Viasat and Hughes) is free for SkyMiles members on 1,150-plus aircraft meanwhile, and it ' +
-      'is genuinely streaming-class — which is why Delta’s ConnectScore is high while its next-gen ' +
+      'is genuinely streaming-class. That is why Delta’s ConnectScore is high while its next-gen ' +
       'odds are zero. It is not quite fleetwide: the 80 Boeing 717s had their legacy wifi switched ' +
       'off in May 2026 and are waiting on the Hughes retrofit, and transpacific widebodies come ' +
       'online in fall 2026.',
@@ -172,7 +172,7 @@ var ROLLOUT = {
   jetblue: {
     target: 'Amazon Leo from 2027',
     detail: 'Amazon Leo’s first airline, a year ahead of Delta. Free Fly-Fi (Viasat) on every ' +
-      'aircraft until then — though in two generations: the A220s and A321neo/LRs carry ViaSat-2, ' +
+      'aircraft until then, in two generations: the A220s and A321neo/LRs carry ViaSat-2, ' +
       'while most A320 and A321ceo airframes still run the original 2013-era ViaSat-1 kit, which is ' +
       'exactly the sub-fleet Leo is slated to replace first. If Leo delivers on schedule this is the ' +
       'first fleet where the two low-earth-orbit systems can be compared in service.',
@@ -200,21 +200,21 @@ var SYSTEMS = [
       'milliseconds of latency rather than hundreds.',
     reliability: 'Gate to gate, including mid-ocean and high-latitude routes where geostationary ' +
       'coverage thins out. Degrades with a full cabin like anything else.',
-    price: 'Free on every carrier in this set that has it — sometimes gated behind a free-to-join ' +
+    price: 'Free on every carrier in this set that has it, sometimes gated behind a free-to-join ' +
       'loyalty programme.',
     verdict: 'The reference case. Streams, uploads, real work.'
   },
   {
     key: 'leo', operator: 'Amazon', nextGen: true,
     orbit: 'Low-earth orbit',
-    how: 'The same physics class as Starlink — a large low-orbit constellation and a flat-panel ' +
+    how: 'The same physics class as Starlink: a large low-orbit constellation and a flat-panel ' +
       'aircraft antenna. Formerly Project Kuiper.',
     speed: 'No in-cabin measurement exists, because it is not flying on a passenger aircraft yet. We ' +
       'will not publish a number for it until there is one to publish.',
     reliability: 'Unproven in service. JetBlue is first, from 2027; Delta follows on 500 aircraft ' +
       'from 2028.',
     price: 'Announced as free on both launch carriers.',
-    verdict: 'Scored as next-gen quality — and as ZERO odds, on every airline, until hardware flies.'
+    verdict: 'Scored as next-gen quality, and as ZERO odds on every airline until hardware flies.'
   },
   {
     key: 'viasat', operator: 'Viasat', nextGen: false,
@@ -226,7 +226,7 @@ var SYSTEMS = [
     reliability: 'Coverage thins at high latitude and over open ocean, and a full cabin on a popular ' +
       'route feels it. Delta Sync and American’s free WiFi are both this.',
     price: 'Free for members on American, Delta and jetBlue.',
-    verdict: 'The honest middle. Streams, uploads, real work — with lag.'
+    verdict: 'The working middle. Streams, uploads, real work, with lag on every round trip.'
   },
   {
     key: '2ku', operator: 'Intelsat / Gogo', nextGen: false,
@@ -257,7 +257,7 @@ var SYSTEMS = [
     orbit: 'None. Ground towers, pointed up',
     how: 'An antenna under the fuselage talks to a network of cell towers on the ground. No satellite ' +
       'is involved, which is why it stops at the coastline.',
-    speed: '0.1 to 0.8 Mbps per device — an order of magnitude below legacy satellite. Latency is ' +
+    speed: '0.1 to 0.8 Mbps per device, an order of magnitude below legacy satellite. Latency is ' +
       '260 to 310 ms against geostationary’s 750, and three quarters of measured tests lose no ' +
       'packets at all.',
     reliability: 'Steady over the continental US and absent everywhere else.',

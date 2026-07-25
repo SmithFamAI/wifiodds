@@ -10,7 +10,8 @@
  */
 
 import { WIFI_AIRLINES } from './score.mjs';
-import { TIER_METHOD_LINE, SCORE_METHOD_LINE } from './score.mjs';
+import { TIER_METHOD_LINE, SCORE_METHOD_LINE, PROJECTION_METHOD_LINE,
+  PROJECTION_CONFIDENCE } from './score.mjs';
 import {
   API_VERSION, ORIGIN, DOCS, SOURCES,
   json, fail, guard, airlineJson, allAirlinesJson, parseFlight, findUnitedFlight, readAsset
@@ -34,6 +35,11 @@ export function apiIndex(context) {
     /* Two numbers per airline, and the difference between them is the point.
      * Read both before you quote either. */
     nextGenMethod: TIER_METHOD_LINE,
+    /* A third number, on `projected`, and the one a careless consumer will most
+     * want to quote as if it were today. It is a share of a committed fleet, it
+     * never sorts anything, and it carries its own date. */
+    projectedMethod: PROJECTION_METHOD_LINE,
+    projectedConfidence: PROJECTION_CONFIDENCE,
     serviceTiers: {
       'next-gen': 'Starlink or Amazon Leo across (effectively) the whole fleet.',
       streaming: 'Modern geostationary fleetwide — Viasat / 2Ku. Streams, uploads, real work.',

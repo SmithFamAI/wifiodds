@@ -11,6 +11,8 @@ var T = require('./tmpl.js');
    phase derivation the homepage teaser shares with them — see build/lib/market.js
    for why this is a build-only data set and not part of assets/airlines.js */
 var MK = require('./market.js');
+/* published reader field reports, off the committed assets/reports.json */
+var RP = require('./reports.js');
 var esc = H.esc, num = DL.num;
 var ORIGIN = H.ORIGIN;
 
@@ -58,181 +60,208 @@ function home(m) {
   var deltaN = up ? '+' + m.todayDelta : '—';
   var deltaD = up ? 'since yesterday’s verified pull' : 'none in the latest verified pull';
 
-  /* The Race teaser's three groups. Derived here from the same phaseOf() that
-     /race/ uses, so the homepage counts and the table can never disagree — a
-     "5 finished" teaser over a table showing four is exactly the kind of quiet
-     lie this project keeps auditing for. */
+  /* The three phase counts in §3. Derived here from the same phaseOf() that
+     /race/ and P.fieldTable() use, so the counts in the strip and the rows in
+     the table can never disagree. A "5 finished" line over a table showing four
+     is exactly the kind of quiet lie this project keeps auditing for. */
   var phases = { done: [], installing: [], signed: [], none: [] };
   m.ranked.forEach(function (a) { phases[MK.phaseOf(m.A, a)].push(a); });
-  ['done', 'installing', 'signed'].forEach(function (k) {
-    phases[k].sort(function (a, b) {
-      return b.nextGenShare - a.nextGenShare || (b.fleet || 0) - (a.fleet || 0) ||
-        a.name.localeCompare(b.name);
-    });
-  });
-  var leader = phases.installing[0] || m.ranked[0];
-  var starlinkCount = MK.carriersOf(m.A, 'starlink').length;
-  /* ── ABOVE THE FOLD: the answer, not a description of our ability to answer.
-   * A stranger arrives with one question — "will MY flight have WiFi that
-   * works?" — so the H1 IS that question and the first interactive thing on the
+  /* ═══ THE SPINE ═══════════════════════════════════════════════════════════
+   * Six sections, one job each, and one call to action where a section is
+   * allowed one at all. The page this replaced carried two roadmap bands and
+   * three separate extension calls to action, plus three different pictures of
+   * the same eighteen-airline field. A reader had to work out which of them was
+   * the point.
+   *
+   *   §1  The answer          the flight check. No CTA: the tool IS the CTA.
+   *   §2  How we know         the tiers, the credit, the limits.   → /methodology/
+   *   §3  The field           all 18 airlines, ONE view.           → /airlines/
+   *   §4  Full depth          United, the reference implementation. → /airlines/united/
+   *   §5  Take it with you    the extension. The ONLY one on the page.
+   *   §6  Open by default     method, API, MCP, source, no tracking, credit.
+   *
+   * There is no roadmap band. /roadmap/ is in the footer, which is where a
+   * page about what does not exist yet belongs.
+   *
+   * §1 is the answer rather than a description of our ability to answer one. A
+   * stranger arrives with one question and the first interactive thing on the
    * page answers it (P.flightCheck → /api/score/{fn} or /api/airlines/{key},
-   * client-side, same origin).
-   *
-   * The leaderboard used to be the first thing here. It answers a question the
-   * visitor did not ask, and our own honest sort puts airBaltic, JSX and ZIPAIR
-   * in the top three — 139 aircraft most US visitors will never board. It was
-   * demoted one screen, then removed from this page entirely: /airlines/ renders
-   * the full 18-row table and this page links to it. What sits in that slot now
-   * is the seven-carrier US row (P.usGlance).
-   *
-   * The one-line extension plug sits above the fold too (owner requirement) but
-   * stays a signpost: the real pitch is P.extensionSection() at #extension,
-   * after the check has actually delivered something. */
+   * client-side, same origin). The leaderboard used to sit here, answering a
+   * question nobody asked with airBaltic, JSX and ZIPAIR in the top three. */
   var body =
     '<header class="hero heroq">\n' +
-    '  <span class="kicker"><span class="dot"></span>ConnectScore · updated ' + esc(m.updated) + '</span>\n' +
+    '  <span class="kicker"><span class="dot"></span>§1 · The check · data eff ' +
+    esc(H.plateDate(m.updated)) + '</span>\n' +
     '  <h1>Will your flight have WiFi<span class="tag">that actually works?</span></h1>\n' +
-    '  <p class="lede">Type a flight number or an airline. Inflight WiFi is a lottery — same airline, ' +
-    'same route, one aircraft has <b>Starlink</b> and the next has a dish from 2012 — so we answer ' +
-    'with the odds, and with how sure we are.</p>\n' +
+    '  <p class="lede">Type a flight number. You get the odds it is a next-gen aircraft, the ' +
+    'quality of what is actually on board today, and how sure we are about both. Inflight WiFi is ' +
+    'a lottery: on one route, one aircraft has <b>Starlink</b> and the next has a dish from 2012.</p>\n' +
     P.flightCheck(m) +
-    P.extPlug() +
-    '  <div class="microlinks">' +
-    '<a href="/race/">The rollout race →</a>' +
-    '<a href="/systems/">Starlink vs Amazon Leo →</a>' +
-    '<a href="/airlines/">All ' + m.airlineCount + ' airlines, ranked →</a>' +
-    '<a href="/methodology/">How we know →</a>' +
-    '<a href="' + H.REPO + '" target="_blank" rel="noopener">Open source ↗</a></div>\n' +
     '</header>\n\n' +
-    /* ── 2. THE EXTENSION, IN FULL, HIGH UP. Owner requirement, and the ordering
-     * rule that outranks the rest of this page: the extension is the most USEFUL
-     * thing we make and it is never demoted. The one-line plug is inside the hero
-     * above; this is the whole pitch, with the real screenshots, and it sits
-     * ABOVE The Race — because the site is the interesting thing and the
-     * extension is the useful one, and useful goes first.
-     *
-     * Do not move this below The Race "for narrative flow". That trade has been
-     * made deliberately in the other direction. */
+    /* ── §2  HOW WE KNOW ────────────────────────────────────────────────────
+     * The tier an answer was derived at is part of the answer. The credit sits
+     * here as a plain source line, the same shape as any other citation on the
+     * site; the one substantial acknowledgement lives on /methodology/. */
+    '<section class="blk">\n  <div class="sec-h">' +
+    '<span class="sub">§2 · How we know</span>' +
+    '<h2>Every answer carries the tier it was derived at</h2>' +
+    '<a class="more" href="/methodology/">the full method →</a></div>\n' +
+    '  <p class="sec-lede">A next-gen probability and today’s service quality are never blended into ' +
+    'one invisible number, and a fleet-share estimate is never dressed up as a tail lookup. Three ' +
+    'tiers, stated on every answer, plus a fourth figure for deals that have been signed and have ' +
+    'not flown.</p>\n' +
+    P.tierTable(m) +
+    '  <div class="grid2" style="margin-top:18px">\n' +
+    '    <div class="card"><h3>What we cannot know</h3>\n' +
+    '      <div class="faq" style="margin-top:10px">' +
+    '<div class="q"><h3>Tail swaps after booking</h3><p>The aircraft assigned to your flight can ' +
+    'change right up to pushback, and the flight number does not change with it.</p></div>' +
+    '<div class="q"><h3>We track aircraft, not seats</h3><p>An equipped aircraft is not a promise ' +
+    'about your row, your device or the hour you fly.</p></div>' +
+    '<div class="q"><h3>Nobody has tested throughput against cabin load</h3><p>Not either ' +
+    'peer-reviewed team, not Ookla, not one journalist. Every claim about a full cabin runs on ' +
+    'inference, in both directions. I think that is the largest open question in the subject.</p>' +
+    '</div></div>\n' +
+    P.srcLine('measured', 'Load-test gap reviewed against Jang et al., ACM IMC ’25; ' +
+      'Ullah et al., arXiv:2508.09839, Aug 2025; Ookla Speedtest Intelligence, 28 Apr 2026.') +
+    '    </div>\n' +
+    '    <div class="card"><h3>The fourth number, and its fence</h3>\n' +
+    '      <div class="faq" style="margin-top:10px">' +
+    '<div class="q"><h3>Projected odds exist, kept apart</h3><p>Where a carrier has signed and ' +
+    'published an aircraft count, we publish what its fleet share becomes if the programme ' +
+    'lands.</p></div>' +
+    '<div class="q"><h3>It never sorts anything</h3><p>Every table on this site is ranked on what ' +
+    'is flying today.</p></div>' +
+    '<div class="q"><h3>It is grey, and it never appears without its date</h3><p>The green, amber ' +
+    'and red arc means measured. The whole publishable unit looks like this: ' +
+    P.projected(m.A.scoreAirline('delta')) + '</p></div>' +
+    '</div>\n' +
+    P.srcLine('reported', 'Delta and Amazon news releases, both 31 Mar 2026. ' +
+      'The five fencing rules are enforced by a build tripwire, not by convention.') +
+    '    </div>\n  </div>\n' +
+    P.srcLine('reported', 'Tail verification for United, Alaska and Hawaiian: ' +
+      '<a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">' +
+      'unitedstarlinktracker.com</a> and <a href="https://alaskastarlinktracker.com" ' +
+      'target="_blank" rel="noopener">alaskastarlinktracker.com</a>, both by @martinamps, ' +
+      esc(H.plateDate(m.updated)) + '. Every other airline from public airline announcements, ' +
+      'Jul 2026. <a href="/methodology/#credit">The full credit</a>.') +
+    '</section>\n\n' +
+
+    /* ── §3  THE FIELD. All eighteen, ONE view. ─────────────────────────────
+     * This slot used to hold three: a race teaser, a systems teaser and the US
+     * card row. The seven-card US strip survives because it is the set a US
+     * reader actually boards and because build/apitest.js reads its bytes to
+     * prove the cards and the API agree. The ranked table under it is the field.
+     * Both are the same numbers at two densities, under one heading, with one
+     * call to action. */
+    '<section class="blk">\n  <div class="sec-h">' +
+    '<span class="sub">§3 · The field</span>' +
+    '<h2>Where all ' + m.airlineCount + ' scored airlines stand</h2>' +
+    '<a class="more" href="/airlines/">the sortable leaderboard →</a></div>\n' +
+    '  <p class="sec-lede">' + phases.done.length + ' fleets are finished, ' +
+    phases.installing.length + ' are mid-retrofit and ' + phases.signed.length + ' have signed for ' +
+    'hardware that is not in the air. The middle of a rollout is the only place odds mean anything. ' +
+    'Before it everyone is on old hardware, and after it everyone is equipped and the question dies ' +
+    'of success. ' + MK.INDUSTRY.programs + ' airlines run a next-gen programme industry-wide; ' +
+    'these are the ones with enough public data to score.</p>\n' +
+    '  <div class="chips" style="margin:0 0 18px">' +
+    P.kpi(String(phases.done.length), 'Finished', 'next-gen on 90% or more of the fleet') +
+    P.kpi(String(phases.installing.length), 'Mid-retrofit', 'the messy middle, where odds matter') +
+    P.kpi(String(phases.signed.length), 'Signed only', 'scored zero until hardware flies') +
+    P.kpi(String(m.airlineCount), 'Airlines scored', 'of ' + MK.INDUSTRY.programs +
+      ' programmes industry-wide') +
+    '</div>\n' +
+    '  <p class="micro" style="margin-bottom:6px">The seven a US traveller is most likely to board, ' +
+    'best next-gen odds first</p>\n' +
+    P.usGlance(m) +
+    '  <p class="tblcap">' + esc(m.A.TIER_METHOD_LINE) + '</p>\n' +
+    P.fieldTable(m) +
+    '  <p class="tblcap">Ranked by ConnectScore, data eff ' + esc(H.plateDate(m.updated)) +
+    '. Bands: good 60 to 100, mixed 40 to 59, long shot 1 to 39, not yet 0. The projected column ' +
+    'is grey by rule and does not sort.</p>\n' +
+    '  <div class="caveat">' + esc(m.A.SCORE_CAVEAT) + '</div>\n' +
+    '</section>\n\n' +
+
+    /* ── §4  FULL DEPTH, ONE AIRLINE. United as the reference implementation,
+     * with the sentence that earns it: this is what every other airline gets
+     * when its own rollout reaches the messy middle. */
+    '<section class="blk">\n  <div class="sec-h">' +
+    '<span class="sub">§4 · Full depth, one airline</span>' +
+    '<h2>What a rollout looks like from the inside</h2>' +
+    '<a class="more" href="/airlines/united/">United, the full page →</a></div>\n' +
+    '  <p class="sec-lede">One airline on the board is instrumented down to the individual aircraft. ' +
+    'United was built out first because it is the only carrier where per-tail data exists, so it is ' +
+    'the reference implementation, and it is what every airline above gets as its own rollout hits ' +
+    'the messy middle where a quarter of the fleet is done and the rest is not.</p>\n' +
+    '  <div class="grid2">\n' +
+    '    <div class="card"><h3>Hangar floor</h3>' + V.miniWaffle(m) +
+    '<p>One cell per 10 aircraft. <b>' + num(eq) + ' of ' + num(m.fleet.total) + '</b> equipped, ' +
+    m.sharePct + '% of the fleet. The full floor on /united/fleet/ is one cell per aircraft, all ' +
+    num(m.cells) + ' of them.</p>' +
+    P.srcLine('reported', 'Fleet counts: unitedstarlinktracker.com, ' +
+      esc(H.plateDate(m.updated)) + '.') + '</div>\n' +
+    '    <div class="card"><h3>Rollout curve</h3>' + V.spark(m) +
+    '<p>' + num(eq) + ' aircraft equipped since ' + esc(DL.prettyDate(m.firstDay)) +
+    ', express fleet first and mainline catching up. Mainline is running at about ' +
+    m.fleet.mainlinePacePerWeek + ' a week, which finishes the remaining ' +
+    num(m.fleet.mainline.total - m.fleet.mainline.equipped) + ' around ' + esc(m.etaLabel) +
+    ' in a straight line.</p>' +
+    P.srcLine('reported', 'Derived from ' + num(eq) + ' roster install dates across ' +
+      m.archiveDays + ' install days. Source: unitedstarlinktracker.com, ' +
+      esc(H.plateDate(m.updated)) + '.') + '</div>\n' +
+    '  </div>\n' +
+    '  <div class="kv kv-2" style="margin-top:18px">' +
+    '<div><p class="micro">Fleet equipped</p><span class="v">' + num(eq) +
+    '<small>OF ' + num(m.fleet.total) + ' · ' + m.sharePct + '%</small></span></div>' +
+    '<div><p class="micro">Install history</p><span class="v">' + m.archiveDays +
+    '<small>DAYS SINCE ' + esc(DL.shortMonth(m.firstDay)).toUpperCase() + ' 2025</small></span></div>' +
+    '<div><p class="micro">New since yesterday</p><span class="v">' + (up ? deltaN : 'None') +
+    '<small>' + esc(deltaD).toUpperCase() + '</small></span></div>' +
+    '<div><p class="micro">Instrumentation</p><span class="v">A<small>TAIL-VERIFIED</small></span></div>' +
+    '</div>\n' +
+    '</section>\n\n' +
+
+    /* ── §5  TAKE IT WITH YOU. The ONLY extension section on this page, and it
+     * carries the only extension call to action. Three of them used to compete
+     * here. */
     P.extensionSection(m) +
 
-    /* ── 3. THE RACE. This slot used to be "The United rollout, three ways" —
-     * three visualisations of one airline on a site that scores eighteen. The
-     * rollout IS the most interesting thing in this data; it is just not a United
-     * story. It is a race, and it now has its own page. What is left here is the
-     * teaser plus the three facts that make it worth clicking. */
-    '<section class="blk">\n  <div class="sec-h"><h2>The race to next-gen</h2>' +
-    '<span class="sub">' + phases.done.length + ' finished · ' + phases.installing.length +
-    ' mid-retrofit · ' + phases.signed.length + ' signed only</span>' +
-    '<a class="more" href="/race/">every finish line →</a></div>\n' +
-    '  <p class="sec-lede">Inflight WiFi is being rebuilt fleet by fleet, and the middle of a rollout ' +
-    'is the only place odds mean anything: before it, everyone is on old hardware; after it, everyone ' +
-    'is equipped and the question dies of success. ' + MK.INDUSTRY.programs + ' airlines have ' +
-    'next-gen programs industry-wide. These are the ones we score.</p>\n' +
+    /* ── §6  OPEN BY DEFAULT. Quiet links, no button. ─────────────────────── */
+    '<section class="blk">\n  <div class="sec-h">' +
+    '<span class="sub">§6 · Open by default</span>' +
+    '<h2>Everything here is checkable</h2></div>\n' +
     '  <div class="grid3">\n' +
-    '    <a class="card rv" href="/race/"><h3>Finished — ' + phases.done.length + ' fleets</h3>' +
-    '<p>' + esc(phases.done.map(function (a) { return a.name; }).join(', ')) +
-    '. Next-gen on effectively every aircraft, so there is nothing left to gamble on.</p>' +
-    '<span class="go">See the whole table →</span></a>\n' +
-    '    <a class="card rv" href="/race/"><h3>Mid-retrofit — ' + phases.installing.length +
-    ' fleets</h3><p>Where the odds live. ' + esc(leader.name) + ' leads on fleet share; United is the ' +
-    'fastest-moving large fleet, at ' + num(eq) + ' aircraft and ' + m.archiveDays +
-    ' install days on record.</p><span class="go">Who finishes when →</span></a>\n' +
-    '    <a class="card rv" href="/race/"><h3>Signed only — ' + phases.signed.length + ' fleets</h3>' +
-    '<p>' + esc(phases.signed.map(function (a) {
-      return a.name + ' (' + (m.A.SYSTEM_LABEL[a.future.system] || a.future.system) + ' ' +
-        a.future.from + ')';
-    }).join(', ')) + '. Scored <b>zero</b> for next-gen — a deal you cannot connect to is not ' +
-    'connectivity.</p><span class="go">Why zero →</span></a>\n' +
-    '  </div>\n</section>\n\n' +
-
-    /* ── 4. SYSTEMS teaser. The evergreen page, and the answer to the question
-     * underneath every number on this site: is the good system actually better. */
-    '<section class="blk">\n  <div class="sec-h"><h2>Starlink vs Amazon Leo</h2>' +
-    '<span class="sub">and everything geostationary</span>' +
-    '<a class="more" href="/systems/">compare every system →</a></div>\n' +
-    '  <p class="sec-lede">Two low-earth-orbit systems, the same physics, and exactly one of them is ' +
-    'carrying passengers. Starlink is flying on ' + starlinkCount + ' of the ' + m.airlineCount +
-    ' airlines here; Amazon Leo is on none of them yet — jetBlue in 2027, Delta in 2028. Meanwhile a ' +
-    'geostationary satellite sits 35,786 km up, so it costs you about half a second of lag no matter ' +
-    'how much bandwidth it has. That one distinction is what the whole score rests on.</p>\n' +
-    '  <p class="tblcap"><a href="/systems/">How each system works, what it does in the cabin, and ' +
-    'what it weighs in the score →</a></p>\n' +
-    '</section>\n\n' +
-
-    /* ── 5. US airlines at a glance, RESCORED. The headline number on each card is
-     * now the NEXT-GEN score and the second line is what the fleet delivers
-     * today — see the long comment above usGlance() in build/lib/pages.js for the
-     * failure this fixes. The set is a fixed editorial seven; only the order is
-     * data. Do not re-add the 18-row table to this page. */
-    '<section class="blk">\n  <div class="sec-h"><h2>US airlines at a glance</h2>' +
-    '<span class="sub">the six US majors + Hawaiian</span>' +
-    '<a class="more" href="/airlines/">All ' + m.airlineCount + ' airlines, ranked →</a></div>\n' +
-    '  <p class="sec-lede">Best <b>next-gen</b> odds first — the chance of drawing a Starlink or ' +
-    'Amazon Leo aircraft, which is the number that changes as a rollout progresses. Under it, what ' +
-    'the fleet gives you <b>today</b>: free fleetwide Viasat is streaming-class and genuinely good, ' +
-    'and it is not the same product as low-earth orbit. Both lines, on every card, because either one ' +
-    'alone misleads.</p>\n' +
-    P.usGlance(m) +
-    '  <p class="tblcap"><a href="/airlines/">All ' + m.airlineCount +
-    ' airlines by ConnectScore →</a> · ' + esc(m.A.TIER_METHOD_LINE) + '</p>\n' +
-    '</section>\n\n' +
-
-    /* ── 6. United, as a CHAPTER of the race rather than the identity of the site.
-     * Same three visualisations that used to headline this page, same KPI strip,
-     * one screen from the bottom and under a heading that says what they are:
-     * evidence that the method is real, on the one fleet instrumented tail by
-     * tail. The full version of this chapter is on /race/. */
-    '<section class="blk">\n  <div class="sec-h"><h2>The Race, chapter one — United</h2>' +
-    '<span class="sub">' + m.archiveDays + ' install days, verified tail by tail</span>' +
-    '<a class="more" href="/race/">the rest of the field →</a></div>\n' +
-    '  <p class="sec-lede">The fastest-moving large retrofit in the table, and the only fleet anywhere ' +
-    'with a public per-tail archive — which is why United is the one airline where we will quote odds ' +
-    'for your actual flight number. This is what full instrumentation looks like; every other airline ' +
-    'gets it as its rollout reaches the messy middle.</p>\n' +
-    '  <div class="chips" style="margin:14px 0 16px">' +
-    P.kpi(num(eq), 'United aircraft equipped', 'verified tail by tail') +
-    P.kpi(deltaN, 'New tails today', deltaD) +
-    P.kpi(m.sharePct + '%', 'Of the United fleet', 'of ' + num(m.fleet.total) + ' aircraft') +
-    P.kpi(String(m.archiveDays), 'Days of install history', 'since ' + esc(DL.shortMonth(m.firstDay)) + ' 2025') +
-    '</div>\n' +
-    '  <div class="grid3">\n' +
-    '    <a class="card rv" href="/united/fleet/"><h3>Rollout curve</h3>' + V.spark(m) +
-    '<p>' + num(eq) + ' aircraft equipped since ' + esc(DL.prettyDate(m.firstDay)) +
-    ' — express first, mainline catching up.</p><span class="go">See the timeline →</span></a>\n' +
-    '    <a class="card rv" href="/united/fleet/"><h3>Hangar floor</h3>' + V.miniWaffle(m) +
-    '<p>One cell per 10 aircraft · <b>' + num(eq) + ' of ' + num(m.fleet.total) + '</b> equipped (' +
-    m.sharePct + '%). The full floor is one cell per aircraft.</p>' +
-    '<span class="go">Open all ' + num(m.cells) + ' cells →</span></a>\n' +
-    '    <div class="card rv"><h3>Busiest Starlink routes</h3>' + P.routePills(m) +
-    '<p class="note">' + m.leaderboardCount + '-route leaderboard · ' + m.routeCount +
-    ' cached routes in the optimizer.</p>' +
-    '<a class="go" href="/united/">Open the route optimizer →</a></div>\n' +
-    '  </div>\n</section>\n\n' +
-    '<section class="blk">\n  <div class="sec-h"><h2>What’s coming</h2>' +
-    '<a class="more" href="/roadmap/">full roadmap →</a></div>\n' + P.roadmapSteps(3) + '</section>\n\n';
-  body +=
-    '<section class="blk">\n  <div class="sec-h"><h2>The two numbers</h2>' +
-    '<span class="sub">both 0–100, and they answer different questions</span>' +
-    '<a class="more" href="/methodology/">full method →</a></div>\n' +
-    '  <div class="panel"><p style="font-family:var(--mono);font-size:14.5px;color:var(--ink)">' +
-    'next-gen odds = share of the fleet flying Starlink or Amazon Leo × free-for-you<br>' +
-    'ConnectScore&nbsp;&nbsp;= Σ segment share × system quality × free-for-you</p>' +
-    '  <p class="note" style="margin-top:10px">The first is what improves every week a rollout runs. ' +
-    'The second walks the whole fleet, segment by segment: streaming-class geostationary counts ' +
-    m.A.SYSTEM_QUALITY.viasat.toFixed(2) + ', legacy Ku counts ' +
-    m.A.SYSTEM_QUALITY.panasonic.toFixed(2) + ', and an aircraft with no wifi at all counts zero. ' +
-    'That is why free modern GEO across most of a fleet can outrank a quarter-finished Starlink one, ' +
-    'and why six carriers here lose points for sub-fleets nobody else scores. ' +
-    'Neither number is a bandwidth guarantee: the claim the hardware supports is streams, uploads, ' +
-    'real work.</p>' +
-    '<div class="caveat">' + esc(m.A.SCORE_CAVEAT) + '</div></div>\n</section>\n\n' +
-    H.credit('all');
+    '    <div class="card"><p class="micro">Method</p>' +
+    '<h3><a href="/methodology/">How the ConnectScore works</a></h3>' +
+    '<p>The formula, the quality weights, the instrumentation ladder, the five rules the projected ' +
+    'number obeys, and what the score cannot see.</p></div>\n' +
+    '    <div class="card"><p class="micro">Measured</p>' +
+    '<h3><a href="/methodology/#measured">Promised against measured</a></h3>' +
+    '<p>Two peer-reviewed per-device medians of 64 to 85 Mbps against Ookla’s per-airline 152 to ' +
+    '320. Nobody has explained the gap, so we publish all of them.</p></div>\n' +
+    '    <div class="card"><p class="micro">Field reports</p>' +
+    '<h3><a href="/methodology/#field">Reader speed tests</a></h3>' +
+    '<p>Dated, routed and attributed, kept beside the measured medians and never inside them. ' +
+    'The intake form is on the same page.</p></div>\n' +
+    '    <div class="card"><p class="micro">API and MCP</p>' +
+    '<h3><a href="/api/docs/">Public, no key</a></h3>' +
+    '<p>The same scores this page reads, as JSON, with the sources attached to every figure. There ' +
+    'is an MCP endpoint at <code>POST /mcp</code> for assistants.</p></div>\n' +
+    '    <div class="card"><p class="micro">Tracking</p><h3>None</h3>' +
+    '<p>No accounts, no analytics, no cookies, and no third-party request on any page of this site. ' +
+    'The fonts are self-hosted for the same reason. <a href="/privacy.html">The policy</a>.</p></div>\n' +
+    '    <div class="card"><p class="micro">Source</p>' +
+    '<h3><a href="' + H.REPO + '" target="_blank" rel="noopener">Read the code</a></h3>' +
+    '<p>Every page here is generated by a build you can run. Tail data comes from ' +
+    '<a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">' +
+    'unitedstarlinktracker.com</a>, credited in full on the method page.</p></div>\n' +
+    '  </div>\n</section>\n\n';
 
   return H.page({
-    title: 'WiFi Odds — every airline’s inflight WiFi, scored',
+    title: 'WiFi Odds · every airline’s inflight WiFi, scored',
     desc: 'Two numbers for ' + m.airlineCount + ' airlines: the odds of a next-gen Starlink or Amazon ' +
       'Leo aircraft, and what the fleet actually delivers today. Plus per-flight odds for United and ' +
-      'Alaska — ' + num(eq) + ' of ' + num(m.fleet.total) + ' United aircraft equipped. Free, ' +
+      'Alaska, where ' + num(eq) + ' of ' + num(m.fleet.total) + ' aircraft are equipped. Free, ' +
       'unofficial, no tracking.',
     canonical: '/', here: '/', updated: m.updated,
     body: body,
@@ -288,17 +317,21 @@ function home(m) {
         applicationSubCategory: 'Browser extension',
         operatingSystem: 'Chrome, Edge, Brave (Chromium)',
         url: H.EXT, installUrl: H.EXT, downloadUrl: H.EXT,
-        softwareVersion: '2.0',
+        /* THE STORE VERSION, not the repo's manifest. This block used to say 2.0
+           and list Alaska and the 18-airline popup, neither of which the store
+           ships yet: the machine-readable surface was making a claim the visible
+           copy carefully does not. Both now describe what installing today
+           actually gets you. See extensionSection() in build/lib/pages.js. */
+        softwareVersion: '1.5.1',
         description: 'Shows Starlink WiFi odds on the airline booking page itself: colour-coded badges ' +
-          'on every United flight on united.com and Navan, one-click sort by odds, a live route panel, ' +
-          'optional Alaska support, and the ConnectScore for all ' + m.airlineCount +
-          ' airlines in the popup. No accounts, no analytics, no tracking.',
+          'on every United flight on united.com and Navan, one-click sort by odds, and a live route ' +
+          'panel. No accounts, no analytics, no tracking.',
         featureList: [
           'Per-flight Starlink odds badges on united.com search results',
+          'The same badges on app.navan.com',
           'Sort a whole page of flights by WiFi odds',
-          'ConnectScore for ' + m.airlineCount + ' airlines in the popup',
-          'Alaska Airlines support behind an optional permission',
-          'Works with no account and stores nothing but your theme choice'
+          'A route panel that flips itself for the return leg',
+          'Works with no account and stores nothing but your settings'
         ],
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         isAccessibleForFree: true,
@@ -332,22 +365,22 @@ function airlinesIndex(m) {
       top3.map(function (a, i) {
         return (i === 0 ? '' : i === top3.length - 1 ? ' then ' : ', then ') + a.name +
           ' (ConnectScore ' + a.score + '/100, ' + a.label + ')';
-      }).join('') + ' — as of ' + m.updated + '. ConnectScore is the chance of getting the good, ' +
+      }).join('') + ', as of ' + m.updated + '. ConnectScore is the chance of getting the good, ' +
       'modern system on a random flight, multiplied by whether it is free once you are onboard, so ' +
       'a small all-Starlink fleet can outrank a giant airline that is only part way through its rollout.'],
     ['Which airlines have Starlink WiFi?',
       starlinks.length + ' of the ' + m.airlineCount + ' airlines here fly Starlink on at least part of ' +
       'the fleet: ' + starlinks.map(function (a) {
         return a.name + ' (' + (a.fleet ? num(a.equipped) + ' of ' + num(a.fleet) : 'fleetwide') + ')';
-      }).join(', ') + '. Fleet share is what matters — being on the list is not the same as being ' +
+      }).join(', ') + '. Fleet share is what matters. Being on the list is not the same as being ' +
       'likely on your flight.'],
     ['Which airlines give inflight WiFi away free?',
       'Free for everyone onboard, no loyalty program and no purchase: ' +
-      frees.map(function (a) { return a.name; }).join(', ') + '. Others are free only for members or ' +
-      'only on some cabins, which scores lower — ConnectScore multiplies the fleet share by a ' +
-      'free-for-you factor rather than pretending a paywalled system is the same product.'],
+      frees.map(function (a) { return a.name; }).join(', ') + '. Others are free only for members ' +
+      'or only on some cabins, and that scores lower: ConnectScore multiplies the fleet share by a ' +
+      'free-for-you factor instead of treating a paywalled system as the same product.'],
     ['How is ConnectScore calculated?',
-      m.A.SCORE_METHOD_LINE + ' Worked example — United flies five systems, so it gets five rows: ' +
+      m.A.SCORE_METHOD_LINE + ' Worked example. United flies five systems, so it gets five rows: ' +
       ua.segments.map(function (r) {
         return r.systemLabel + ' ' + num(r.n) + ' aircraft at ' + r.pointsMin.toFixed(1) + ' points';
       }).join(', ') + '. Added up that is ConnectScore ' + ua.score + ', and the ' +
@@ -356,7 +389,7 @@ function airlinesIndex(m) {
       'methodology page.'],
     ['Can you tell me whether my specific flight will have Starlink?',
       'For United, yes: we hold a per-flight history and can give the odds for that flight number. ' +
-      'For Alaska the tails are verified but there is no per-flight feed, so the honest answer is the ' +
+      'For Alaska the tails are verified but there is no per-flight feed, so the best we can do is the ' +
       'sub-fleet. For every other airline all we have is the fleet-wide score, and we say so rather ' +
       'than inventing a number for one flight.']
   ];
@@ -379,14 +412,14 @@ function airlinesIndex(m) {
     '  <p class="tblcap"><span data-count-for="#lbTable">' + m.airlineCount + '</span> airlines shown · ' +
     'scores recomputed at build time · updated ' + esc(m.updated) + '</p>\n' +
     '  <div class="caveat">' + esc(m.A.SCORE_CAVEAT) +
-    ' <a href="/methodology/">How much to trust each number — the three confidence tiers →</a></div>\n' +
+    ' <a href="/methodology/">How much to trust each number, and the three confidence tiers →</a></div>\n' +
     '  <p class="note" style="margin-top:12px">' + esc(m.A.SCORE_METHOD_LINE) + '</p>\n' +
     '</section>\n\n' +
     '<section class="blk">\n  <div class="sec-h"><h2>Airline WiFi questions</h2>' +
     '<a class="more" href="/methodology/">methodology →</a></div>\n' +
     '  <div class="faq">' + faqs.map(function (f) {
       return '<div class="q rv"><h3>' + esc(f[0]) + '</h3><p>' + esc(f[1]) + '</p></div>';
-    }).join('') + '</div>\n</section>\n\n' + H.credit('all');
+    }).join('') + '</div>\n</section>\n\n' + P.srcLine('reported', 'Fleet and per-tail verification for United, Alaska and Hawaiian: unitedstarlinktracker.com and alaskastarlinktracker.com (@martinamps), ' + esc(H.plateDate(m.updated)) + '. Every other airline from public airline announcements, Jul 2026. <a href="/methodology/#credit">Full credit and citation →</a>');
 
   return H.page({
     title: 'Airline WiFi leaderboard — ' + m.airlineCount + ' ConnectScores',
@@ -433,17 +466,20 @@ function ledgerTable(m, a) {
     return (y.nextGen ? 1 : 0) - (x.nextGen ? 1 : 0) || y.share - x.share;
   });
   var body = rows.map(function (r) {
-    var q = r.qMin === r.qMax ? r.qMin.toFixed(2) : r.qMin.toFixed(2) + '–' + r.qMax.toFixed(2);
+    var q = r.qMin === r.qMax ? r.qMin.toFixed(2) : r.qMin.toFixed(2) + ' to ' + r.qMax.toFixed(2);
     var pts = r.qMin === r.qMax ? r.pointsMin.toFixed(1)
-      : r.pointsMin.toFixed(1) + '–' + r.pointsMax.toFixed(1);
+      : r.pointsMin.toFixed(1) + ' to ' + r.pointsMax.toFixed(1);
     return '      <tr' + (r.nextGen ? ' class="instr"' : '') + '>' +
       '<td><span class="sysdot ' + P.sysClass(r.systems[0]) + '"></span><b>' + esc(r.systemLabel) +
-      '</b>' + (r.nextGen ? ' <span class="pill">next-gen row</span>' : '') +
-      (r.assumed ? ' <span class="pill">inferred</span>' : '') +
+      '</b>' + (r.nextGen ? ' <span class="badge">next-gen row</span>' : '') +
+      (r.assumed ? ' <span class="badge">inferred</span>' : '') +
       (r.note ? '<div class="note" style="margin-top:3px">' + esc(r.note) + '</div>' : '') +
-      '<div class="note" style="margin-top:3px">' + esc(r.src) + ' · ' + esc(r.as) + '</div></td>' +
+      /* Every row carries its own provenance chip and date. A ledger row without
+         one is an assertion, and showing the working is this table's whole job. */
+      P.srcLine('reported', esc(r.src) + ' · ' + esc(r.as)) + '</td>' +
       '<td class="num">' + num(r.n) + '</td>' +
       '<td class="num">' + (r.share * 100).toFixed(1) + '%</td>' +
+      '<td style="width:16%;min-width:90px">' + P.tape(r.share * 100) + '</td>' +
       '<td class="num">' + q + '</td>' +
       '<td class="num">' + r.freeFactor.toFixed(2) + '</td>' +
       '<td class="num"><b>' + pts + '</b></td></tr>';
@@ -453,36 +489,41 @@ function ledgerTable(m, a) {
     ? '      <tr><td><b>Not published</b>' +
       '<div class="note" style="margin-top:3px">' + esc(L.unresolvedWhy || '') + '</div></td>' +
       '<td class="num">' + num(L.unresolved) + '</td>' +
-      '<td class="num">—</td><td class="num">—</td><td class="num">—</td>' +
-      '<td class="num">excluded</td></tr>\n'
+      '<td class="num"><span class="micro">out</span></td><td></td>' +
+      '<td class="num"><span class="micro">out</span></td>' +
+      '<td class="num"><span class="micro">out</span></td>' +
+      '<td class="num"><span class="micro">excluded</span></td></tr>\n'
     : '';
 
   var splits = rows.filter(function (r) { return r.split; });
 
-  return '<section class="blk">\n  <div class="sec-h"><h2>How the ' + a.score +
-    ' is built</h2><span class="sub">' + esc(a.resolutionLabel) + '</span></div>\n' +
-    '  <p class="sec-lede">Every aircraft ' + esc(a.name) + ' flies, by system, priced. The rows add ' +
-    'up to the ConnectScore, and the top row on its own is the next-gen number.</p>\n' +
+  return '<section class="blk" id="ledger">\n  <div class="sec-h">' +
+    '<span class="sub">The ledger · ' + esc(a.resolutionLabel) + '</span>' +
+    '<h2>How the ' + a.score + ' is built</h2></div>\n' +
+    '  <p class="sec-lede">Every aircraft ' + esc(a.name) + ' flies, by system, priced. The rows ' +
+    'add up to the published ConnectScore, and the top row on its own is the next-gen number. The ' +
+    'build fails if they stop adding up.</p>\n' +
     '<div class="tbl-shell rv"><table class="tbl">\n' +
     '    <thead><tr><th>Segment</th><th class="num">Aircraft</th><th class="num">Share</th>' +
+    '<th>Share of the fleet</th>' +
     '<th class="num">Quality</th><th class="num">Free</th><th class="num">Points</th></tr></thead>\n' +
     '    <tbody>\n' + body + '\n' + unres +
     '    </tbody>\n    <tfoot><tr><td><b>ConnectScore</b>' +
     (a.hasRange ? '<div class="note" style="margin-top:3px">We publish the floor. The ceiling is ' +
       a.ceiling + ', and the gap is the part of the fleet whose split nobody has published.</div>' : '') +
     '</td><td class="num">' + num(L.known) + '</td><td class="num">100%</td>' +
-    '<td class="num">—</td><td class="num">—</td><td class="num"><b>' +
-    (a.hasRange ? a.floor + '–' + a.ceiling : a.floor) + '</b></td></tr>' +
-    '<tr><td>Next-gen odds, the top row on its own</td><td class="num">—</td><td class="num">' +
-    (a.nextGenShare * 100).toFixed(1) + '%</td><td class="num">—</td><td class="num">—</td>' +
+    '<td></td><td></td><td></td><td class="num"><b>' +
+    (a.hasRange ? a.floor + ' to ' + a.ceiling : a.floor) + '</b></td></tr>' +
+    '<tr><td>Next-gen odds, the top row on its own</td><td></td><td class="num">' +
+    (a.nextGenShare * 100).toFixed(1) + '%</td><td></td><td></td><td></td>' +
     '<td class="num"><b>' + a.nextGenScore + '</b></td></tr></tfoot>\n' +
     '  </table></div>\n' +
     '  <p class="tblcap">' + num(L.known) + ' aircraft with a published system' +
-    (L.unresolved ? ', plus ' + num(L.unresolved) + ' left out of the denominator rather than ' +
-      'assumed, for ' + num(L.total) + ' in total' : '') + '. ' +
+    (L.unresolved ? ', plus ' + num(L.unresolved) + ' left out of the denominator instead of ' +
+      'assumed into it, for ' + num(L.total) + ' in total' : '') + '. ' +
     esc(m.A.RESOLUTION_BLURB[a.resolution] || '') +
-    /* Add the rows on this page and you get 48.2, not 48, because each row is
-       shown to one decimal. Print the unrounded sum rather than leaving a reader
+    /* Add the rows on this page and you get 48.09, not 48, because each row is
+       shown to one decimal. Print the unrounded sum instead of leaving a reader
        to conclude the ledger does not add up. */
     ' Points are shown to one decimal place; the unrounded rows sum to ' +
     L.sumFloor.toFixed(2) + ', which rounds to the published ' + a.floor + '.</p>\n' +
@@ -503,6 +544,7 @@ function airlinePage(m, key) {
   var crumbs = [['/', 'Home'], ['/airlines/', 'Airlines'], ['/airlines/' + key + '/', a.name]];
   var fleetLine = a.fleet ? num(a.equipped) + ' of ' + num(a.fleet) + ' aircraft' : 'fleetwide coverage';
   var toolHref = key === 'united' ? '/united/' : key === 'alaska' ? '/alaska/' : null;
+  var reports = RP.forKey(m.reports, key);
 
   /* FAQ — visible on the page AND in FAQPage JSON-LD. No hidden-markup games. */
   var faqs = [
@@ -513,12 +555,12 @@ function airlinePage(m, key) {
           (pct >= 85 ? 'close to a sure thing' : pct >= 50 ? 'better than a coin flip'
             : pct >= 20 ? 'a real possibility but not the default' : 'still unlikely on a random flight') + '.'
         : a.name + ' offers ' + a.systemLabel + ' fleetwide as of ' + esc(a.asOf || m.updated) + '.') +
-      ' Its ConnectScore is ' + a.score + ' out of 100 — ' + a.label + '.'],
+      ' Its ConnectScore is ' + a.score + ' out of 100, in the ' + a.label + ' band.'],
     ['Is ' + a.name + '’s WiFi free?', 'On ' + a.name + ' it is ' + P.freeText(e.free) +
       '. ConnectScore multiplies the fleet share by a free-for-you factor, so a paid or unconfirmed ' +
       'free claim scores lower than the same fleet given away free.'],
     ['How many ' + a.name + ' planes have ' + a.systemLabel + '?',
-      (a.fleet ? num(a.equipped) + ' of ' + num(a.fleet) + ' — ' + pct + '% of the fleet.'
+      (a.fleet ? num(a.equipped) + ' of ' + num(a.fleet) + ', or ' + pct + '% of the fleet.'
         : 'The whole fleet, per the airline.') +
       (a.tracker ? ' Verified tail by tail by ' + esc(a.tracker) + ' (@martinamps).'
         : ' Compiled from public airline announcements, July 2026.')]
@@ -550,19 +592,43 @@ function airlinePage(m, key) {
     '<div class="d">' + pct + '% of the fleet carries ' + esc(a.systemLabel) + '.</div></div>\n' +
     '    <div class="stat rv"><div class="n" style="font-size:21px"><span class="sysdot ' +
     P.sysClass(a.system) + '"></span>' + esc(a.systemLabel) + '</div><div class="l">System</div>' +
-    '<div class="d">' + (a.parts.systemQuality >= 1 ? 'Low-earth-orbit — the good stuff (quality 1.00).'
-      : 'Geostationary hardware — slower, scores ' + a.parts.systemQuality.toFixed(2) + '.') + '</div></div>\n' +
+    '<div class="d">' + (a.parts.systemQuality >= 1
+      ? 'Low-earth orbit, which is the ceiling of the quality scale at 1.00.'
+      : 'Geostationary hardware. Slower, and it scores ' + a.parts.systemQuality.toFixed(2) +
+        ' out of 1.00.') + '</div></div>\n' +
     '    <div class="stat rv"><div class="n" style="font-size:21px">' + esc(P.freeText(e.free)) +
     '</div><div class="l">Cost onboard</div><div class="d">Free-for-you factor ' +
     a.parts.freeFactor.toFixed(2) + '.</div></div>\n' +
     '    <div class="stat rv"><div class="n">' + a.score + '</div><div class="l">ConnectScore</div>' +
     '<div class="d">Band: ' + esc(a.label) + ' (' + m.airlineCount + ' airlines ranked).</div></div>\n' +
     '  </div>\n' +
-    (a.future ? '  <div class="callout rv" style="margin-top:16px"><h3>Signed for later — and not scored</h3>' +
+    (a.future ? '  <div class="callout rv" style="margin-top:16px">' +
+      '<h3>Signed for later, and scored zero</h3>' +
       '<p>' + esc(a.name) + ' has ' + esc(a.future.system === 'leo' ? 'Amazon Leo' : a.future.system) +
       ' signed from <b>' + esc(a.future.from) + '</b>' +
       (a.future.detail ? ' (' + esc(a.future.detail) + ')' : '') + '. ConnectScore counts zero for ' +
-      'hardware that is not flying yet — a deal you cannot connect to is not connectivity.</p></div>\n' : '') +
+      'hardware that is not flying yet, because a deal you cannot connect to is not connectivity.</p>' +
+      '</div>\n' : '') +
+    /* THE FENCED UNIT, and it is its own block so that a carrier with a
+       projection but no `future` entry still gets it. Southwest is that case:
+       one aircraft is already flying Starlink, so it has no "signed for later"
+       deal, and it does have a published 300-by-year-end commitment.
+       P.projected() is the only renderer on the site; see the contract in
+       build/lib/pages.js and the tripwire in build/prerender.js. */
+    (a.projected
+      ? '  <div class="callout rv" style="margin-top:16px"><h3>What the signed count would be ' +
+        'worth</h3>' +
+        '<p style="margin-top:10px">' + P.projected(a) + '</p>' +
+        /* The source sits IMMEDIATELY under the figure, not under the paragraph
+           that explains it. A date three paragraphs away is not attached to the
+           number a reader is looking at. */
+        P.srcLine('reported', esc(a.projected.src) + ', ' +
+          esc(H.plateDate(a.projected.as)) + '.') +
+        '<p style="margin-top:10px">That is the next-gen number this fleet would carry if the deal ' +
+        'lands as announced: ' + esc(a.projected.basis) + '. ' + esc(a.projected.means) +
+        ' It is grey by rule, it sorts nothing, and it never appears without the date beside it. ' +
+        '<a href="/race/#projected">All four projections, and the rules →</a></p></div>\n'
+      : '') +
     '</section>\n\n' +
     ledgerTable(m, a) +
     (toolHref
@@ -579,25 +645,54 @@ function airlinePage(m, key) {
             '<a class="btn ghost" href="/united/history/">Day-by-day history →</a>' : '') +
         '</div></div>\n</section>\n\n'
       : '<section class="blk">\n  <div class="callout rv"><h3>How to check your ' + esc(a.name) + ' flight</h3>' +
-        '<p>We cannot score an individual ' + esc(a.name) + ' flight yet — there is no verified per-tail ' +
-        'feed for this fleet. Until there is: check the aircraft type on your itinerary, prefer the ' +
+        '<p>We cannot score an individual ' + esc(a.name) + ' flight yet, because there is no ' +
+        'verified per-tail feed for this fleet. Until there is: check the aircraft type on your ' +
+        'itinerary, prefer the ' +
         'sub-fleet the airline says it converted first, and treat any single flight as ' + pct +
         '% likely. The extension shows this ConnectScore in its popup wherever you are booking.</p>' +
         '<div class="cta-row"><a class="btn" href="' + H.EXT + '" target="_blank" rel="noopener">' +
-        'Add to Chrome — free ↗</a><a class="btn ghost" href="/airlines/">Compare all ' + m.airlineCount +
-        ' →</a></div></div>\n</section>\n\n') +
+        'Add to Chrome, free ↗</a><a class="btn ghost" href="/airlines/">Compare all ' +
+        m.airlineCount + ' →</a></div></div>\n</section>\n\n') +
     '<section class="blk">\n  <div class="sec-h"><h2>' + esc(a.name) + ' WiFi questions</h2></div>\n' +
     '  <div class="faq">' + faqs.map(function (f) {
       return '<div class="q rv"><h3>' + esc(f[0]) + '</h3><p>' + esc(f[1]) + '</p></div>';
     }).join('') + '</div>\n' +
     '  <div class="caveat">' + esc(m.A.SCORE_CAVEAT) + '</div>\n</section>\n\n' +
-    H.credit(key === 'alaska' ? 'alaska' : key === 'united' ? 'united' : 'all');
+    /* Reader field reports for THIS carrier, if any are published. FIELD REPORT
+       is not MEASURED: one reader, one flight, one speed test, and none of it
+       has ever moved a ConnectScore. See build/lib/reports.js. */
+    (reports.length
+      ? '<section class="blk">\n  <div class="sec-h">' +
+        '<span class="sub">Field reports · ' + reports.length + '</span>' +
+        '<h2>Speed tests from people who were on the aircraft</h2>' +
+        '<a class="more" href="/methodology/#field">send one →</a></div>\n' +
+        '  <p class="sec-lede">These sit beside the score and never inside it. One person on one ' +
+        'flight is a data point about that flight, so every row is attributed and dated and you ' +
+        'can weigh it yourself.</p>\n' +
+        P.reportTable(reports) +
+        P.srcLine('field', 'Reader submissions, reviewed by a person before publication. ' +
+          'Nothing here feeds the ConnectScore.') +
+        '</section>\n\n'
+      : '') +
+    /* CREDIT: a plain source line with a date, the same shape as any other
+       citation on the site. The one substantial acknowledgement of @martinamps
+       lives at /methodology/#credit and nowhere else. */
+    P.srcLine('reported', (a.tracker
+      ? 'Fleet and per-tail verification: <a href="https://' + esc(a.tracker) + '" target="_blank" ' +
+        'rel="noopener">' + esc(a.tracker) + '</a> (@martinamps), ' + esc(H.plateDate(m.updated)) + '.'
+      : 'Fleet state compiled from public ' + esc(a.name) + ' announcements, Jul 2026.') +
+      ' Quality weights: Ookla Speedtest Intelligence, 28 Apr 2026. ' +
+      '<a href="/methodology/#credit">Full credit and citation →</a>');
 
   return H.page({
+    /* The em dash here is load-bearing: build/apitest.js parses this title with
+       /<title>Qatar Airways WiFi — ConnectScore (\d+):/ to prove the rendered
+       score and the API agree. Change the separator and the parity check stops
+       finding a number at all. */
     title: a.name + ' WiFi — ConnectScore ' + a.score + ': ' + a.label,
     desc: (a.fleet ? num(a.equipped) + ' of ' + num(a.fleet) + ' ' + a.name + ' aircraft carry ' +
       a.systemLabel + ' (' + pct + '%). ' : a.name + ' offers ' + a.systemLabel + ' fleetwide. ') +
-      'ConnectScore ' + a.score + '/100 — ' + a.label + '. ' + P.freeText(e.free) + '.',
+      'ConnectScore ' + a.score + '/100, in the ' + a.label + ' band. ' + P.freeText(e.free) + '.',
     canonical: '/airlines/' + key + '/', here: '/airlines/', suffix: a.name,
     /* the two instrumented airlines have a multi-page section and get tabs;
        the other sixteen are a single page and get the way back, nothing more */
@@ -660,7 +755,7 @@ function fleetPage(m) {
     'equipped — <b>' + num(m.fleet.equipped) + '</b> tails across <b>' + m.archiveDays + '</b> install ' +
     'days since ' + esc(DL.prettyDate(m.firstDay)) + '. All of it is baked into this page at build time, ' +
     'so it reads the same with JavaScript switched off.</p>\n' +
-    '</header>\n\n' + H.credit('united') + '\n' +
+    '</header>\n\n' + P.srcLine('reported', 'Every United figure on this page comes from <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> (@martinamps), which verifies each tail against united.com. Data eff ' + esc(H.plateDate(m.updated)) + '. <a href="/methodology/#credit">Full credit and citation →</a>') + '\n' +
     '<div class="chips">' +
     P.kpi(num(m.fleet.equipped), 'Equipped', delta, 'hero-kpi glow') +
     P.kpi(m.sharePct + '%', 'Fleet share', 'of ' + num(m.fleet.total) + ' aircraft') +
@@ -771,6 +866,73 @@ function fleetPage(m) {
  * Everything numeric is read from airlines.js and data.json at render time.
  * build/lib/market.js supplies only the finish lines and the prose, with the
  * source and date attached to each row. */
+/* ── THE FOUR PROJECTIONS, AND THE FENCE AROUND THEM ──────────────────────
+ * /race/ is the natural home for this: it is the page about what has not
+ * happened yet. The number is the next-gen odds a fleet WOULD carry if the
+ * announced deal lands as announced, and the risk is that a reader sees 51 next
+ * to a measured 54 and concludes American is about the same either way.
+ *
+ * So the unit is never split. P.projected() is the only renderer, the class is
+ * grey outline, the horizon phrase and the confidence word ride inside the same
+ * element, and build/prerender.js walks the built bytes and fails the build on
+ * anything that breaks that. The `basis` and `means` strings come from
+ * assets/airlines.js, so the arithmetic on this page is the arithmetic the
+ * number came from. */
+function projectionsSection(m) {
+  var proj = m.ranked.filter(function (a) { return a.projected; })
+    .sort(function (a, b) { return b.projected.score - a.projected.score; });
+  if (!proj.length) return '';
+
+  var cards = proj.map(function (a) {
+    var p = a.projected;
+    return '    <div class="card rv"><h3>' + esc(a.name) + '</h3>' +
+      '<p style="margin:6px 0 8px">' + P.projected(a) + '</p>' +
+      P.srcLine('reported', esc(p.src) + ', ' + esc(H.plateDate(p.as)) + '.') +
+      '<p style="margin-top:10px"><b>' + esc(p.basis) + '</b></p>' +
+      '<p>' + esc(p.means) + ' Today it scores next-gen <b>' + a.nextGenScore +
+      '</b> and ConnectScore <b>' + a.score + '</b>, and those are the two numbers that describe ' +
+      'the flight you can book this month.</p></div>';
+  }).join('\n');
+
+  var rules = [
+    ['It never sorts anything', 'Every table on this site ranks on what is flying today. The ' +
+      'projected column says "does not sort" in its own header, and its header carries no sort key ' +
+      'for the client script to find.'],
+    ['It never takes the score arc', 'Green, amber and red mean measured. A projection is grey ' +
+      'outline on every surface, including the API render hints and the extension badge.'],
+    ['It never appears without its date', 'The value, the horizon phrase and the confidence word ' +
+      'are one element. There is no bare projected integer anywhere in the model, on any page, or ' +
+      'in any API response, by design.'],
+    ['It carries its confidence label', 'FIRM means the aircraft count and the date are both ' +
+      'published. SOFT means one of the two is secondary reporting.'],
+    ['A missed date is louder than a met one', 'When the horizon passes with nothing installed the ' +
+      'figure flips to SLIPPED, takes a hatched ground, and keeps showing the date that was ' +
+      'promised. That flip is computed from the build date, so it does not wait for anyone to ' +
+      'notice. No carrier is in that state today.']
+  ].map(function (r) {
+    return '<div class="q rv"><h3>' + esc(r[0]) + '</h3><p>' + esc(r[1]) + '</p></div>';
+  }).join('');
+
+  return '<section class="blk" id="projected">\n  <div class="sec-h">' +
+    '<h2>The four signed deals, and what they would be worth</h2>' +
+    '<span class="sub">projected, and fenced</span>' +
+    '<a class="more" href="/methodology/#projected">the five rules →</a></div>\n' +
+    '  <p class="sec-lede">A signed deal scores zero on today’s odds and always will, because ' +
+    'nothing is flying. Readers still want to know what the signature is worth, so there is a ' +
+    'fourth number for it. Adding it was the riskiest change on this site: a forward-looking figure ' +
+    'sitting beside a measured one gets read as measured. The five rules below are what stop ' +
+    'that, and a build tripwire enforces every one of them on the bytes that ship.</p>\n' +
+    '  <div class="panel"><p class="mono" style="font-size:14px;color:var(--ink)">' +
+    'projected next-gen odds = committed aircraft ÷ the known-fleet denominator × 1.00 low-earth ' +
+    'orbit × free-for-you<br>horizon = the announced start, and the completion date where one is ' +
+    'published</p></div>\n' +
+    '  <div class="grid2" style="margin-top:16px">\n' + cards + '\n  </div>\n' +
+    '  <div class="faq" style="margin-top:20px">' + rules + '</div>\n' +
+    '  <p class="tblcap">Only a published aircraft count enters the numerator. Amazon’s ' +
+    '&ldquo;hundreds more over time&rdquo; on the Delta deal is not counted.</p>\n' +
+    '</section>\n\n';
+}
+
 function racePage(m) {
   var crumbs = [['/', 'Home'], ['/race/', 'The Race']];
 
@@ -822,7 +984,12 @@ function racePage(m) {
       (a.restTierLabel ? '<span style="color:var(--faint)"> · rest ' + esc(a.restTierLabel) + '</span>' : '') +
       '</td>' +
       '<td data-s="' + esc(R.target || 'zzz') + '">' + target + '</td>' +
-      '<td class="note hide-sm">' + esc(R.detail) + ' <span style="color:var(--faint)">— ' +
+      /* THE FENCED UNIT. No data-k on this column's <th>, so the client sorter
+         cannot reach it; the header says so in words as well. */
+      '<td>' + P.projCell(a, ph === 'done' ? 'Rollout complete' : 'Nothing signed') +
+      (a.projected ? '<div class="micro" style="margin-top:5px">Announced ' +
+        esc(H.plateDate(a.projected.as)) + '</div>' : '') + '</td>' +
+      '<td class="note hide-sm">' + esc(R.detail) + ' <span style="color:var(--faint)">· ' +
       esc(R.source) + '</span></td></tr>';
   }).join('\n');
 
@@ -835,17 +1002,20 @@ function racePage(m) {
     '  <span class="kicker"><span class="dot"></span>The Race · data as of ' + esc(m.updated) + '</span>\n' +
     '  <h1 class="ph">The race to next-gen inflight WiFi</h1>\n' +
     '  <p class="lede">Every airline we score, ordered by how much of its fleet is flying <b>Starlink ' +
-    'or Amazon Leo today</b> — with the finish line each one has actually committed to in public. Four ' +
-    'fleets are done. ' + phases.installing.length + ' are mid-retrofit, which is the only phase where ' +
-    'per-flight odds mean anything. ' + phases.signed.length + ' have signed for hardware that is not ' +
-    'in the air, and those score zero here until it is.</p>\n' +
+    'or Amazon Leo today</b>, with the finish line each one has committed to in public. ' +
+    phases.done.length + ' fleets are done. ' + phases.installing.length + ' are mid-retrofit, which ' +
+    'is the only phase where per-flight odds mean anything. ' + phases.signed.length + ' have signed ' +
+    'for hardware that is not in the air, and those score zero here until it is.</p>\n' +
     '  <div class="microlinks"><a href="/systems/">Starlink vs Amazon Leo →</a>' +
     '<a href="/airlines/">The full leaderboard →</a><a href="/methodology/">How we know →</a></div>\n' +
-    '</header>\n\n' + H.credit('all') + '\n' +
+    '</header>\n\n' +
+    P.srcLine('reported', 'Fleet counts: unitedstarlinktracker.com and alaskastarlinktracker.com ' +
+      '(@martinamps), ' + esc(H.plateDate(m.updated)) + '. Finish lines and committed aircraft ' +
+      'counts from the airlines\' own announcements, dated in the last column of the table.') + '\n' +
 
     '<div class="chips">' +
     P.kpi(String(phases.done.length), 'Fleets finished', 'next-gen on 90%+ of the fleet') +
-    P.kpi(String(phases.installing.length), 'Mid-retrofit', 'the messy middle — where odds matter') +
+    P.kpi(String(phases.installing.length), 'Mid-retrofit', 'the messy middle, where odds matter') +
     P.kpi(String(phases.signed.length), 'Signed, not flying', 'scored zero until hardware is up') +
     P.kpi(String(MK.INDUSTRY.programs), 'Airline programs industry-wide', MK.INDUSTRY.deployed +
       ' deployed · ' + MK.INDUSTRY.installing + ' installing · ' + MK.INDUSTRY.signed + ' signed') +
@@ -869,6 +1039,7 @@ function racePage(m) {
     '    <thead><tr><th data-k="name">Airline</th>' +
     '<th data-k="ng" data-t="num" aria-sort="descending">Next-gen today</th>' +
     '<th data-k="tier">Today’s tier</th><th data-k="target">Finish line</th>' +
+    '<th>Projected · does not sort</th>' +
     '<th class="hide-sm">What we know · source</th></tr></thead>\n    <tbody>\n' + rows +
     '\n    </tbody>\n  </table></div>\n' +
     '  <p class="tblcap"><span data-count-for="#raceTable">' + m.airlineCount + '</span> airlines · ' +
@@ -877,16 +1048,18 @@ function racePage(m) {
     '  <div class="caveat">' + esc(m.A.TIER_METHOD_LINE) + '</div>\n' +
     '</section>\n\n' +
 
+    projectionsSection(m) +
+
     /* ── chapter one: United. The deep-dive that used to headline the homepage,
      * repositioned as what it actually is — the leading entry in a race, and the
      * only fleet in the world instrumented tail by tail. */
-    '<section class="blk">\n  <div class="sec-h"><h2>Chapter one — United, the fastest retrofit</h2>' +
+    '<section class="blk">\n  <div class="sec-h"><h2>Chapter one: United, the fastest retrofit</h2>' +
     '<span class="sub">' + m.archiveDays + ' install days on record, verified daily</span>' +
     '<a class="more" href="/united/fleet/">the whole fleet →</a></div>\n' +
     '  <p class="sec-lede">United is not the biggest next-gen share in the table and it is the fastest ' +
     'moving large fleet in it: ' + num(m.fleet.equipped) + ' aircraft since ' +
     esc(DL.prettyDate(m.firstDay)) + ', express first, mainline catching up. It is also the only fleet ' +
-    'anywhere with a public per-tail archive — which is why United is where the per-flight odds come ' +
+    'anywhere with a public per-tail archive. That is why United is where the per-flight odds come ' +
     'from, and why every other airline’s curve gets read against this one.</p>\n' +
     '  <div class="chips" style="margin:14px 0 16px">' +
     P.kpi(num(m.fleet.equipped), 'United aircraft equipped', 'verified tail by tail') +
@@ -899,7 +1072,7 @@ function racePage(m) {
     '  <div class="grid3">\n' +
     '    <a class="card rv" href="/united/fleet/"><h3>Rollout curve</h3>' + V.spark(m) +
     '<p>' + num(m.fleet.equipped) + ' aircraft equipped since ' + esc(DL.prettyDate(m.firstDay)) +
-    ' — the shape every other fleet in the table is compared against.</p>' +
+    '. This is the shape every other fleet in the table gets compared against.</p>' +
     '<span class="go">See the timeline →</span></a>\n' +
     '    <a class="card rv" href="/united/fleet/"><h3>Hangar floor</h3>' + V.miniWaffle(m) +
     '<p>One cell per 10 aircraft · <b>' + num(m.fleet.equipped) + ' of ' + num(m.fleet.total) +
@@ -920,8 +1093,8 @@ function racePage(m) {
     '  <div class="faq">\n' +
     '    <div class="q rv"><h3>A paused rollout is worse than a slow one</h3><p>British Airways fitted ' +
     'five aircraft and stopped for the summer. A fleet-share percentage cannot tell you that on its ' +
-    'own — the number just looks small. The date next to it is the part that matters, which is why ' +
-    'every row above carries one.</p></div>\n' +
+    'own, because the number just looks small either way. The date next to it is the part that ' +
+    'matters, which is why every row above carries one.</p></div>\n' +
     '    <div class="q rv"><h3>Some fleets will never finish</h3><p>American signed Starlink for 500+ ' +
     'Airbus aircraft; the Boeing fleet stays on Viasat under the current deal. So American’s odds may ' +
     'never converge on 100%, and the aircraft type on your itinerary will keep mattering there long ' +
@@ -929,13 +1102,13 @@ function racePage(m) {
     'work at any believable rate.</p></div>\n' +
     '    <div class="q rv"><h3>A signed deal is not a connection</h3><p>Delta and jetBlue picked Amazon ' +
     'Leo, from 2028 and 2027. Both score <b>0</b> for next-gen odds today and both have genuinely ' +
-    'good, free, streaming-class Viasat right now. Those two facts are not in tension — they are the ' +
+    'good, free, streaming-class Viasat right now. Those two facts are not in tension. They are the ' +
     'reason this site shows two numbers instead of one. <a href="/systems/">Starlink vs Amazon Leo, ' +
     'compared →</a></p></div>\n' +
-    '  </div>\n</section>\n\n' + H.credit('all');
+    '  </div>\n</section>\n\n' + P.srcLine('reported', 'Fleet and per-tail verification for United, Alaska and Hawaiian: unitedstarlinktracker.com and alaskastarlinktracker.com (@martinamps), ' + esc(H.plateDate(m.updated)) + '. Every other airline from public airline announcements, Jul 2026. <a href="/methodology/#credit">Full credit and citation →</a>');
 
   return H.page({
-    title: 'The race to next-gen inflight WiFi — every airline’s rollout timeline',
+    title: 'The race to next-gen inflight WiFi · every airline’s rollout timeline',
     desc: 'Which airlines are finished, which are mid-retrofit and which have only signed: next-gen ' +
       'fleet share plus the public finish line for ' + m.airlineCount + ' airlines, with United as the ' +
       'fastest large retrofit. Updated ' + m.updated + '.',
@@ -983,12 +1156,30 @@ function systemsPage(m) {
     }).join('');
   }
 
-  /* head-to-head: the same six questions asked of both LEO systems */
+  /* head-to-head: the same eight questions asked of both LEO systems.
+   * DIRECTIONAL INTELLIGENCE, and the rule that makes it usable: every figure
+   * carries its class (VENDOR CLAIM / MEASURED / REPORTED), its source and its
+   * date. Amazon Leo's whole column is a spec sheet, and the chips say so on
+   * every row so a reader cannot mistake a promise for a measurement. */
   var vs = [
     ['Flying on a passenger aircraft today',
-      'Yes — ' + sl.length + ' of the ' + m.airlineCount + ' airlines here, ' + num(slEquipped) +
-      ' aircraft in this set alone.',
-      'No. Not one passenger aircraft, anywhere.'],
+      'Yes. ' + sl.length + ' of the ' + m.airlineCount + ' airlines here, ' + num(slEquipped) +
+      ' aircraft in this set alone. ' + P.cls('reported'),
+      'No. Not one passenger aircraft, anywhere. ' + P.cls('reported')],
+    ['Advertised per-aircraft speed',
+      'Up to 250 Mbps on United, 350 on airBaltic, 500 on Qatar, from two radomes. ' +
+      P.cls('vendor'),
+      'Up to 1 Gbps down and 400 Mbps up simultaneously, from one antenna. On paper that is an ' +
+      'order of magnitude more upload, and a single-day install. ' + P.cls('vendor')],
+    ['What a passenger has actually measured',
+      'Per-device medians of 64 to 85 Mbps in two peer-reviewed studies; per-airline medians of ' +
+      '152 to 320 Mbps at Ookla. The two disagree by a factor of two to five and nobody has ' +
+      'explained why. ' + P.cls('measured'),
+      'Nothing. Zero aircraft, so zero measurements. Every Leo number in circulation is a spec ' +
+      'sheet. ' + P.cls('measured')],
+    ['Constellation deployed',
+      'Over 8,000 satellites operational. ' + P.cls('reported'),
+      'About 390 to 400 of a planned 3,232, which is roughly an eighth. ' + P.cls('reported')],
     ['Airlines committed',
       MK.INDUSTRY.programs + ' programs industry-wide: ' + MK.INDUSTRY.deployed + ' fully deployed, ' +
       MK.INDUSTRY.installing + ' installing, ' + MK.INDUSTRY.signed + ' signed (' + MK.VERIFIED + ').',
@@ -997,13 +1188,9 @@ function systemsPage(m) {
       }).join('; ') + '.'],
     ['First in service',
       'JSX finished its entire fleet before anyone else started.',
-      'jetBlue, from 2027 — a year ahead of Delta’s 500 aircraft.'],
-    ['What we can measure',
-      '100+ Mbps advertised; roughly 20–80 Mbps in the cabin in practice, latency in tens of ' +
-      'milliseconds. Streams, uploads, real work.',
-      'Nothing yet. There is no in-cabin measurement to quote, so we quote none.'],
+      'jetBlue, from 2027, a year ahead of Delta’s 500 aircraft.'],
     ['How ConnectScore treats it',
-      'System quality ' + A.SYSTEM_QUALITY.starlink.toFixed(2) + ' — the ceiling.',
+      'System quality ' + A.SYSTEM_QUALITY.starlink.toFixed(2) + ', which is the ceiling.',
       'System quality ' + A.SYSTEM_QUALITY.leo.toFixed(2) + ' when it flies, and a next-gen score of ' +
       '<b>zero</b> on every airline until then. A deal you cannot connect to is not connectivity.'],
     ['What would change our mind',
@@ -1027,7 +1214,8 @@ function systemsPage(m) {
       '<td>' + esc(s.price) + '</td>' +
       '<td class="num" data-s="' + q + '"><b>' + q.toFixed(2) + '</b></td>' +
       '<td class="hide-sm">' +
-      (carriers.length ? carriers.map(function (a) { return esc(a.name); }).join(', ') : '—') +
+      (carriers.length ? carriers.map(function (a) { return esc(a.name); }).join(', ')
+        : '<span class="micro">none in this set</span>') +
       (signed.length ? '<div class="note" style="margin-top:4px">signed: ' +
         signed.map(function (a) { return esc(a.name) + ' ' + esc(a.future.from); }).join(', ') +
         '</div>' : '') +
@@ -1037,26 +1225,26 @@ function systemsPage(m) {
   var faqs = [
     ['Is Starlink actually better than Delta’s WiFi, or is that just marketing?',
       'Both things are true and they answer different questions. Delta Sync is free, fleetwide, and ' +
-      'genuinely streaming-class — you can work on it. Starlink is a low-earth-orbit system roughly ' +
+      'genuinely streaming-class, so you can work on it. Starlink is a low-earth-orbit system roughly ' +
       '60 times closer to the aircraft than a geostationary satellite, so the lag is tens of ' +
       'milliseconds instead of about half a second, and it keeps working mid-ocean and at high ' +
       'latitude where geostationary coverage thins out. If your flight is four hours of real work, ' +
       'the difference is noticeable. If it is email and a film, it is not.'],
     ['What is Amazon Leo, and does any airline have it?',
-      'Amazon Leo is Amazon’s low-earth-orbit constellation, formerly Project Kuiper — the same ' +
+      'Amazon Leo is Amazon’s low-earth-orbit constellation, formerly Project Kuiper, and the same ' +
       'physics class as Starlink. No passenger aircraft is flying it yet. jetBlue is first, from ' +
       '2027; Delta signed for 500 aircraft from 2028. Because nothing is in the air, both airlines ' +
-      'score zero for next-gen odds on this site, and we publish no speed figure for Leo at all — ' +
-      'there is no in-cabin measurement to publish.'],
+      'score zero for next-gen odds on this site, and we publish no speed figure for Leo anywhere. ' +
+      'There is no in-cabin measurement to publish.'],
     ['Why does “free WiFi” not tell you whether it is good?',
       'Because the two are unrelated. American launched free WiFi across about 90% of its fleet in ' +
-      'January 2026, and it is Viasat/Intelsat — streaming-class, geostationary, with the widebodies ' +
-      'on older Panasonic hardware excluded from the offer entirely. Free and fast are separate axes, ' +
-      'which is why ConnectScore multiplies them rather than picking one.'],
+      'January 2026, and it is Viasat and Intelsat: streaming-class, geostationary, with the ' +
+      'widebodies on older Panasonic hardware left out of the offer entirely. Free and fast are ' +
+      'separate axes, which is why ConnectScore multiplies them instead of picking one.'],
     ['Which system will my flight have?',
-      'That depends on the aircraft, not the airline — which is the whole problem. For United we hold ' +
+      'That depends on the aircraft, not the airline, which is the whole problem. For United we hold ' +
       'a per-tail archive and can give you the odds for your actual flight number. For every other ' +
-      'carrier the honest answer is the fleet share plus the aircraft type on your itinerary. The ' +
+      'carrier all we have is the fleet share plus the aircraft type on your itinerary. The ' +
       'race page has each fleet’s current split and its finish line.'],
     ['Does more bandwidth fix the lag?',
       'No, and this is the one piece of physics worth knowing. A geostationary satellite sits 35,786 ' +
@@ -1071,9 +1259,9 @@ function systemsPage(m) {
     esc(MK.VERIFIED) + '</span>\n' +
     '  <h1 class="ph">Inflight WiFi systems, compared</h1>\n' +
     '  <p class="lede">Every score on this site rests on one distinction: <b>low-earth orbit or ' +
-    'geostationary</b>. This page is that distinction in full — Starlink against Amazon Leo ' +
-    'head-to-head, then every system flying on the airlines we track, with what it actually does in ' +
-    'the cabin, what it costs, and the weight it carries in ConnectScore.</p>\n' +
+    'geostationary</b>. This page is that distinction in full. Starlink against Amazon Leo head to ' +
+    'head, then every system flying on the airlines we track, with what each one does in the cabin, ' +
+    'what it costs, and the weight it carries in ConnectScore.</p>\n' +
     '  <div class="microlinks"><a href="/race/">The rollout race →</a>' +
     '<a href="/airlines/">The leaderboard →</a><a href="/methodology/">The formula →</a></div>\n' +
     '</header>\n\n' +
@@ -1094,6 +1282,16 @@ function systemsPage(m) {
         '</td></tr>';
     }).join('\n') +
     '\n    </tbody>\n  </table></div>\n' +
+    P.srcLine('vendor', 'Starlink per-aircraft figures: United, airBaltic and Qatar Airways ' +
+      'statements, 2025 to 2026. Amazon Leo antenna specification: ' +
+      '<a href="https://www.aboutamazon.com/news/amazon-leo/amazon-leo-aviation-antenna-gigabit-wifi" ' +
+      'target="_blank" rel="noopener">Amazon, 13 Apr 2026</a>.') +
+    P.srcLine('measured', 'Per-device medians: Jang et al., ACM IMC ’25, and Ullah et al., ' +
+      'arXiv:2508.09839, Aug 2025. Per-airline medians: Ookla Speedtest Intelligence, ' +
+      '30 Jun 2025 and 28 Apr 2026. Constellation counts: GeekWire and Via Satellite, ' +
+      '2 to 8 Jul 2026, against the FCC licence for 3,232.') +
+    '  <p class="tblcap"><a href="/methodology/#measured">Why the measured numbers disagree by two ' +
+    'to five times, and the ten mechanisms behind it →</a></p>\n' +
     '  <div class="grid3" style="margin-top:16px">\n' +
     '    <div class="card rv"><h3>Flying Starlink today</h3><p>' +
     carrierPills(sl) + '</p><p class="note">' + num(slEquipped) + ' of ' + num(slFleet) +
@@ -1102,8 +1300,8 @@ function systemsPage(m) {
     carrierPills(leoSigned, 'soon') + '</p><p class="note">Zero aircraft in service. Both fleets run ' +
     'free streaming-class Viasat until the hardware arrives.</p></div>\n' +
     '    <div class="card rv"><h3>Why the gap matters</h3><p>A signed deal changes nothing about the ' +
-    'flight you are booking this month. It changes a great deal about the one you book in 2028 — which ' +
-    'is why the race page tracks both, and why neither number is allowed to stand in for the ' +
+    'flight you are booking this month. It changes a great deal about the one you book in 2028. ' +
+    'That is why the race page tracks both, and why neither number is allowed to stand in for the ' +
     'other.</p><a class="go" href="/race/">The rollout race →</a></div>\n' +
     '  </div>\n</section>\n\n' +
 
@@ -1126,7 +1324,7 @@ function systemsPage(m) {
     '<a class="more" href="/methodology/">methodology →</a></div>\n' +
     '  <div class="faq">' + faqs.map(function (f) {
       return '<div class="q rv"><h3>' + esc(f[0]) + '</h3><p>' + esc(f[1]) + '</p></div>';
-    }).join('') + '</div>\n</section>\n\n' + H.credit('all');
+    }).join('') + '</div>\n</section>\n\n' + P.srcLine('reported', 'Fleet and per-tail verification for United, Alaska and Hawaiian: unitedstarlinktracker.com and alaskastarlinktracker.com (@martinamps), ' + esc(H.plateDate(m.updated)) + '. Every other airline from public airline announcements, Jul 2026. <a href="/methodology/#credit">Full credit and citation →</a>');
 
   return H.page({
     title: 'Inflight WiFi systems compared — Starlink vs Amazon Leo vs Viasat',
@@ -1162,7 +1360,7 @@ function roadmapPage(m) {
   var body =
     '<header class="hero" style="padding-top:18px">\n' +
     '  <h1 class="ph">What’s next for WiFi Odds</h1>\n' +
-    '  <p class="lede">Everything below is either built, being built, or honestly labelled as neither. ' +
+    '  <p class="lede">Everything below is either built, being built, or labelled as neither. ' +
     'The ordering is by usefulness, not by how impressive it sounds in a changelog.</p>\n' +
     '</header>\n\n' +
     '<section class="blk">\n' + P.roadmapSteps() + '\n' +
@@ -1179,7 +1377,7 @@ function roadmapPage(m) {
     '<div class="card rv"><h3>' + m.airlineCount + ' ConnectScores</h3><p>One number per airline, ' +
     'recomputed on every build, quotable with credit.</p>' +
     '<a class="go" href="/airlines/">Open it →</a></div></div>\n</section>\n\n' +
-    H.credit('all');
+    P.srcLine('reported', 'Fleet and per-tail verification for United, Alaska and Hawaiian: unitedstarlinktracker.com and alaskastarlinktracker.com (@martinamps), ' + esc(H.plateDate(m.updated)) + '. Every other airline from public airline announcements, Jul 2026. <a href="/methodology/#credit">Full credit and citation →</a>');
   return H.page({
     title: 'What’s next for WiFi Odds',
     desc: 'Tail-swap Guardian, more airlines in rollout order, a PWA — and the free public ConnectScore ' +
@@ -1233,121 +1431,160 @@ function methodologyPage(m) {
     return null;
   })();
 
-  var tiers = [
-    ['tier-v', 'Verified', 'Tracker-verified, tail by tail, with a per-flight history',
-      names(verified) || '—',
-      'Every equipped aircraft is confirmed against united.com by <a href="https://unitedstarlinktracker.com" ' +
-      'target="_blank" rel="noopener">unitedstarlinktracker.com</a>, and we additionally cache how often ' +
-      'each tracked flight number has actually been flown by an equipped aircraft. That is the only tier ' +
-      'where we will quote odds for <b>your specific flight</b>, and the API labels it ' +
-      '<span class="mono">method: "route-history"</span> with the observation count attached.',
-      'A number for one flight, with a sample size.'],
-    ['tier-d', 'Type-derived', 'Tails verified, but no per-flight feed exists',
-      names(derived) || '—',
-      'The roster is verified the same way, by <a href="https://alaskastarlinktracker.com" target="_blank" ' +
-      'rel="noopener">alaskastarlinktracker.com</a> — but nobody publishes which aircraft is scheduled ' +
-      'onto which Alaska flight, so there is no history to count. The honest answer is the sub-fleet: the ' +
-      'E175 regional fleet is finished and a mainline 737 mostly is not, so the aircraft type on your ' +
-      'itinerary tells you far more than the fleet average does.',
-      'A number for an aircraft type, not a flight.'],
-    ['tier-c', 'Coarse', 'A fleet-share model built from public announcements',
-      coarse.length + ' airlines — ' + names(coarse),
-      'No per-tail verification exists for these fleets, so the input is what the airline itself has ' +
-      'said publicly about how many aircraft are equipped, as of July 2026. Good enough to choose an ' +
-      'airline; not good enough to say anything about one departure. The API labels every one of these ' +
-      '<span class="mono">method: "airline-coarse"</span> and returns <span class="mono">prob: null</span> ' +
-      'rather than a number we would have had to invent.',
-      'A number for an airline. Nothing narrower.']
-  ];
-
+  /* ── SCOPED CSS ─────────────────────────────────────────────────────────
+   * Two components the design system has no rule for yet: the worked-example
+   * block and the field-report form. Everything else on this page is built out
+   * of primitives that live in assets/site.css, which is the file this page is
+   * not allowed to touch.
+   *
+   * The old `.tiers` card set used its own green / amber / grey dots. That broke
+   * the one colour rule (colour means score band), so the ladder is a ruled
+   * table now and those three hues are gone. */
   var css = '<style>\n' +
-    '.tiers{display:grid;gap:14px;margin-top:14px}\n' +
-    '@media(min-width:900px){.tiers{grid-template-columns:repeat(3,1fr)}}\n' +
-    '.tier{border:1px solid var(--edge);border-radius:var(--r-md);padding:16px;background:var(--field-bg)}\n' +
-    '.tier .tn{display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px;color:var(--ink)}\n' +
-    '.tier .td{font-size:13px;color:var(--faint);margin-top:2px}\n' +
-    '.tier .tw{font-family:var(--mono);font-size:12.5px;color:var(--accent);margin:10px 0 8px}\n' +
-    '.tier p{font-size:14px;line-height:1.6;margin:8px 0 0}\n' +
-    '.tier .tg{margin-top:12px;padding-top:10px;border-top:1px solid var(--edge);font-size:13px;' +
-    'color:var(--body)}\n' +
-    '.tier .tg b{color:var(--ink)}\n' +
-    '.tdot{width:10px;height:10px;border-radius:50%;flex:none}\n' +
-    '.tier-v .tdot{background:#3ddc84}.tier-d .tdot{background:#f5c451}.tier-c .tdot{background:#8a93a6}\n' +
-    '.wex{background:var(--field-bg);border:1px solid var(--edge);border-radius:var(--r-md);' +
-    'padding:14px 16px;font-family:var(--mono);font-size:13.5px;line-height:1.7;color:var(--body);' +
-    'overflow-x:auto;margin-top:12px}\n' +
-    '.wex b{color:var(--accent)}\n' +
+    '.wex{background:var(--bg-inset);border:1px solid var(--rule);padding:14px 16px;' +
+    'font-family:var(--mono);font-size:13.5px;line-height:1.7;color:var(--ink-2);' +
+    'overflow-x:auto;margin-top:12px;white-space:pre-wrap}\n' +
+    '.wex b{color:var(--ink);font-weight:700}\n' +
     '.wex .r{color:var(--ink);font-weight:700}\n' +
-    '.blk h3.apih{font-size:17px;font-weight:800;margin-top:26px}\n' +
+    '.blk h3.apih{font-size:17px;font-weight:700;margin-top:26px}\n' +
+    /* the intake form */
+    '.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}\n' +
+    '.frm{margin-top:16px;border:1px solid var(--rule);background:var(--bg-panel);padding:18px 20px}\n' +
+    '.ffgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 16px}\n' +
+    '@media(max-width:820px){.ffgrid{grid-template-columns:repeat(2,1fr)}}\n' +
+    '@media(max-width:520px){.ffgrid{grid-template-columns:1fr}}\n' +
+    '.ff{display:flex;flex-direction:column;min-width:0}\n' +
+    '.ff.full{grid-column:1/-1}\n' +
+    '.ff label{font:700 9.5px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;' +
+    'color:var(--ink-3);margin-bottom:6px}\n' +
+    '.ff input,.ff select,.ff textarea{background:var(--bg-inset);color:var(--ink);' +
+    'border:1px solid var(--rule-2);border-radius:0;padding:10px 12px;font:400 14px/1.4 var(--sans);' +
+    'width:100%;min-width:0}\n' +
+    '.ff input,.ff select{font-family:var(--mono);letter-spacing:.04em}\n' +
+    '.ff textarea{font-family:var(--sans);resize:vertical}\n' +
+    '.ff input:focus,.ff select:focus,.ff textarea:focus{outline:none;border-color:var(--ink-2)}\n' +
+    '.ff .fh{font-size:11.5px;color:var(--ink-3);margin-top:5px}\n' +
+    '.ferr{font:700 11.5px/1.5 var(--mono);color:var(--low);margin-top:5px}\n' +
+    '.ferr:empty{display:none}\n' +
+    '.frm .ff.bad input,.frm .ff.bad select,.frm .ff.bad textarea{border-color:var(--low)}\n' +
+    '.frm-top{margin:0 0 12px}\n' +
+    '.frm-ft{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;margin-top:18px;' +
+    'padding-top:14px;border-top:1px solid var(--rule)}\n' +
+    '.frm-ft p{flex:1 1 380px;max-width:70ch}\n' +
+    '.frm-ok{font-size:14px;color:var(--good);margin-top:14px}\n' +
+    '.frm-ok:empty{display:none}\n' +
     '</style>\n';
+
+  /* ── the progressive-enhancement layer for the intake ────────────────────
+   * With this script blocked the form still posts: it is a real
+   * <form method="post" action="/api/report"> and the endpoint accepts
+   * urlencoded bodies for exactly that reason. What the script buys is the
+   * error placement. `error.fields` comes back as {fieldName: reason}, and each
+   * reason lands in the <p class="ferr" id="e-{field}"> beside its own input
+   * instead of replacing the page with a JSON dump.
+   * No third-party bytes: this is inline, same-origin, and posts nowhere else. */
+  var formJs = '<script>\n(function(){"use strict";\n' +
+    'var f=document.getElementById("rform");if(!f||!window.fetch)return;\n' +
+    'var ok=document.getElementById("rform-ok");\n' +
+    'function clear(){var e=f.querySelectorAll(".ferr");for(var i=0;i<e.length;i++)e[i].textContent="";\n' +
+    'var b=f.querySelectorAll(".ff.bad");for(var j=0;j<b.length;j++)b[j].classList.remove("bad");}\n' +
+    'function show(k,msg){var el=document.getElementById("e-"+k);\n' +
+    'if(!el){el=document.getElementById("e-_body");}\n' +
+    'if(!el)return;el.textContent=(k==="_body"?"":k+" ")+msg;\n' +
+    'var w=el.closest?el.closest(".ff"):null;if(w)w.classList.add("bad");}\n' +
+    'f.addEventListener("submit",function(ev){\n' +
+    'ev.preventDefault();clear();ok.textContent="";\n' +
+    'var d={},fd=new FormData(f);fd.forEach(function(v,k){if(String(v).length)d[k]=v;});\n' +
+    'var btn=f.querySelector("button[type=submit]");if(btn)btn.disabled=true;\n' +
+    'fetch("/api/report",{method:"POST",headers:{"content-type":"application/json"},\n' +
+    'body:JSON.stringify(d)}).then(function(r){return r.json().then(function(j){return [r.status,j];});})\n' +
+    '.then(function(p){var st=p[0],j=p[1];\n' +
+    'if(st>=200&&st<300){f.reset();ok.textContent="Thank you. It is stored unpublished and a person '+
+    'reads it before it appears on this page.";return;}\n' +
+    'var fl=j&&j.error&&j.error.fields;\n' +
+    'if(fl){for(var k in fl){if(Object.prototype.hasOwnProperty.call(fl,k))show(k,fl[k]);}}\n' +
+    'else{show("_body",(j&&j.error&&j.error.message)||"That did not go through. Try again in a moment.");}\n' +
+    '}).catch(function(){show("_body","That did not go through. Try again in a moment.");})\n' +
+    '.then(function(){if(btn)btn.disabled=false;});\n' +
+    '});})();\n</script>\n';
+
+  var reps = m.reports || { reports: [], count: 0, present: false };
 
   var body =
     '<header class="hero" style="padding-top:18px">\n' +
-    '  <span class="kicker"><span class="dot"></span>Methodology · data as of ' + esc(m.updated) + '</span>\n' +
+    '  <span class="kicker"><span class="dot"></span>Methodology · data eff ' +
+    esc(H.plateDate(m.updated)) + '</span>\n' +
     '  <h1 class="ph">How WiFi Odds knows what it knows</h1>\n' +
-    '  <p class="lede">Every number on this site is either verified tail by tail by an independent ' +
-    'community tracker, derived from an aircraft type, or modelled from what an airline said publicly — ' +
-    'and we label which. This page is the whole method: the three confidence tiers, the formula with a ' +
-    'worked example, what the score <b>cannot</b> see, and how fresh the data is.</p>\n' +
-    '  <div class="microlinks"><a href="/airlines/">The leaderboard →</a>' +
-    '<a href="/api/docs/">The API →</a><a href="/llms.txt">llms.txt →</a></div>\n' +
-    '</header>\n\n' + H.credit('all') + '\n' +
+    '  <p class="lede">Every number on this site is verified tail by tail by an independent ' +
+    'community tracker, derived from an aircraft type, or modelled from what an airline said in ' +
+    'public. The page says which. Below: the confidence tiers, the formula with a worked example, ' +
+    'the fence around the projected number, the three measurements of Starlink speed that disagree ' +
+    'with each other, what the score cannot see, and who the data belongs to.</p>\n' +
+    '  <div class="microlinks"><a href="#measured">Promised against measured →</a>' +
+    '<a href="#field">Field reports →</a><a href="#credit">Credit →</a>' +
+    '<a href="/api/docs/">The API →</a></div>\n' +
+    '</header>\n\n' +
 
     '<div class="chips">' +
-    P.kpi(esc(m.updated), 'Data as of', 'refreshed daily, re-baked on every build') +
+    P.kpi(esc(H.plateDate(m.updated)), 'Data effective', 'refreshed daily, re-baked on every build') +
     P.kpi(num(m.registry.length), 'Verified United tails', 'each with its install date') +
     P.kpi(String(m.archiveDays), 'Install days on record', 'since ' + esc(DL.prettyDate(m.firstDay))) +
     P.kpi(String(m.airlineCount), 'Airlines scored', verified.length + ' verified · ' +
       derived.length + ' type-derived · ' + coarse.length + ' coarse') +
     '</div>\n\n' +
 
-    '<section class="blk">\n  <div class="sec-h"><h2>The three confidence tiers</h2>' +
-    '<span class="sub">say which one you are quoting</span></div>\n' +
-    '  <p class="sec-lede">The tiers are not a disclaimer, they are part of the answer. A ConnectScore ' +
-    'from the Coarse tier and a per-flight probability from the Verified tier are different kinds of ' +
-    'claim, and blurring them is the single most misleading thing this site could do. The API says which ' +
-    'tier every response came from; so does the extension.</p>\n' +
-    '  <div class="tiers">' + tiers.map(function (t) {
-      return '<div class="tier ' + t[0] + ' rv"><div class="tn"><span class="tdot"></span>' + t[1] +
-        '</div><div class="td">' + t[2] + '</div><div class="tw">' + esc(t[3]) + '</div><p>' + t[4] +
-        '</p><div class="tg">What you can conclude: <b>' + t[5] + '</b></div></div>';
-    }).join('') + '</div>\n' +
-    '  <p class="tblcap">The split is derived from the data, not maintained by hand: an airline moves up ' +
-    'a tier the moment a verified per-tail feed exists for it, and the build re-sorts these lists ' +
-    'automatically. That is the plan for Hawaiian next.</p>\n' +
+    /* ── §1 the ladder ──────────────────────────────────────────────────── */
+    '<section class="blk" id="tiers">\n  <div class="sec-h">' +
+    '<span class="sub">§1 · The instrumentation ladder</span>' +
+    '<h2>How much we actually know, per airline</h2></div>\n' +
+    '  <p class="sec-lede">The tier is not a disclaimer under the answer, it is part of the answer. ' +
+    'A 27 read off a tail record and a 27 read off a fleet percentage are different claims about the ' +
+    'world, and blurring them is the most misleading thing this site could do. The API names the ' +
+    'tier every response came from. So does the extension.</p>\n' +
+    P.tierTable(m) +
+    '  <p class="tblcap">The build derives the split from the data on every run. An ' +
+    'airline moves up the moment a verified per-tail feed exists for it, and these lists re-sort ' +
+    'themselves. Hawaiian is next.</p>\n' +
+    P.srcLine('reported', 'Tier A and B source data: unitedstarlinktracker.com and ' +
+      'alaskastarlinktracker.com, ' + esc(H.plateDate(m.updated)) + '. Tier C: public airline ' +
+      'announcements, Jul 2026.') +
     '</section>\n\n' +
 
-    '<section class="blk">\n  <div class="sec-h"><h2>The formula, worked through</h2>' +
-    '<span class="sub">nothing here is typed by hand</span></div>\n' +
-    '  <p class="sec-lede">ConnectScore answers one question — <b>what is the wifi likely to be on a ' +
-    'flight I have not been assigned an aircraft for yet, and is it free once I am on it?</b> A fleet ' +
-    'is a list of segments. Each segment is a count of aircraft, a system and a price, and the score ' +
-    'is the sum of the segments:</p>\n' +
+    /* ── §2 the formula ─────────────────────────────────────────────────── */
+    '<section class="blk" id="formula">\n  <div class="sec-h">' +
+    '<span class="sub">§2 · The scoring system</span>' +
+    '<h2>The formula, worked through</h2></div>\n' +
+    '  <p class="sec-lede">ConnectScore answers one question: <b>what is the wifi likely to be on a ' +
+    'flight I have not been assigned an aircraft for yet, and is it free once I am on it?</b> A ' +
+    'fleet is a list of segments. Each segment is a count of aircraft, a system and a price, and ' +
+    'the score is the sum of the segments.</p>\n' +
     '  <div class="wex">ConnectScore = Σ <b>segment share</b> × <b>system quality</b> × ' +
     '<b>free-for-you</b> × 100</div>\n' +
     '  <div class="grid3" style="margin-top:16px">\n' +
-    '    <div class="card"><h3>Segment share</h3><p>Aircraft in the segment ÷ aircraft with a published ' +
-    'system. Where an airline does not say what is flying on part of its fleet, those aircraft are ' +
-    'left out of the denominator rather than assumed into it, and every airline page prints how many ' +
-    'that was. Where an airline publishes no counts at all (only “fleetwide”), a stated coverage ' +
-    'fraction is used and the basis is reported as <span class="mono">fleetwide-coverage</span>.</p></div>\n' +
-    '    <div class="card"><h3>System quality</h3><p>Anchored to Ookla’s 2H 2025 provider medians and ' +
-    'tenth percentiles, not asserted. Starlink and Amazon Leo score ' +
-    m.A.SYSTEM_QUALITY.starlink.toFixed(2) + '; Starlink’s tenth percentile, 63.71 Mbps, beats every ' +
-    'rival’s median. Viasat, 2Ku, Hughes and Thales score ' +
+    '    <div class="card"><h3>Segment share</h3><p>Aircraft in the segment ÷ aircraft with a ' +
+    'published system. Where an airline does not say what is flying on part of its fleet, those ' +
+    'aircraft are left out of the denominator instead of being assumed into it, and every airline ' +
+    'page prints how many that was. Where an airline publishes no counts at all and only says ' +
+    '&ldquo;fleetwide&rdquo;, a stated coverage fraction is used and the basis is reported as ' +
+    '<span class="mono">fleetwide-coverage</span>.</p></div>\n' +
+    '    <div class="card"><h3>System quality</h3><p>Anchored to Ookla’s 2H 2025 provider medians ' +
+    'and tenth percentiles. Starlink and Amazon Leo score ' +
+    m.A.SYSTEM_QUALITY.starlink.toFixed(2) + '; Starlink’s tenth percentile of 63.71 Mbps beats ' +
+    'every rival’s median. Viasat, 2Ku, Hughes and Thales score ' +
     m.A.SYSTEM_QUALITY.viasat.toFixed(2) + '. Panasonic, Inmarsat and the rest of legacy Ku score ' +
-    m.A.SYSTEM_QUALITY.geo.toFixed(2) + ', because their slow decile is 1.06 to 1.58 Mbps. ' +
-    'Gogo ATG-4 gets its own ' + m.A.SYSTEM_QUALITY.atg.toFixed(2) + ': far worse throughput than ' +
-    'legacy satellite, far better latency and loss. No connectivity at all scores zero, and six ' +
-    'carriers here have aircraft in that row.</p></div>\n' +
+    m.A.SYSTEM_QUALITY.geo.toFixed(2) + ', because their slow decile runs 1.06 to 1.58 Mbps. Gogo ' +
+    'ATG-4 gets its own ' + m.A.SYSTEM_QUALITY.atg.toFixed(2) + ': far worse throughput than legacy ' +
+    'satellite, far better latency and loss. No connectivity at all scores zero, and six carriers ' +
+    'here have aircraft in that row.</p>' +
+    P.srcLine('measured', 'Ookla Speedtest Intelligence, 28 Apr 2026, covering 2H 2025. The ' +
+      'weights are ours; the arithmetic behind them is in the API.') + '</div>\n' +
     '    <div class="card"><h3>Free-for-you</h3><p>Free for everyone, or free with a free loyalty ' +
-    'signup, scores ' + m.A.FREE_FACTOR.free.toFixed(2) + '. A paid status tier, a partial rollout or ' +
-    'an unconfirmed claim scores ' + m.A.FREE_FACTOR['loyalty-tier'].toFixed(2) + '. Paid scores ' +
-    m.A.FREE_FACTOR.paid.toFixed(2) + '. Working WiFi you have to buy at 35,000 feet is not the same ' +
-    'product as working WiFi you just connect to.</p></div>\n' +
+    'signup, scores ' + m.A.FREE_FACTOR.free.toFixed(2) + '. A paid status tier, a partial rollout ' +
+    'or an unconfirmed claim scores ' + m.A.FREE_FACTOR['loyalty-tier'].toFixed(2) + '. Paid scores ' +
+    m.A.FREE_FACTOR.paid.toFixed(2) + '. Working WiFi you have to buy at 35,000 feet is not the ' +
+    'same product as working WiFi you just connect to.</p></div>\n' +
     '  </div>\n' +
-    '  <h3 class="apih" style="margin-top:26px">Worked example — ' + esc(ua.name) +
-    ', every aircraft it flies</h3>\n' +
+    '  <h3 class="apih">Worked example: ' + esc(ua.name) + ', every aircraft it flies</h3>\n' +
     '  <div class="wex">' +
     ua.segments.map(function (r) {
       return (r.systemLabel + '            ').slice(0, 12) + num(r.n).padStart(6) + '  ' +
@@ -1356,14 +1593,13 @@ function methodologyPage(m) {
     }).join('\n') + '\n' +
     'not published' + num(ua.unresolved).padStart(5) + '   left out of the denominator\n\n' +
     'ConnectScore = <span class="r">' + ua.score + ' (' + esc(ua.label) + ')</span>, ' +
-    'next-gen odds = <span class="r">' + ua.nextGenScore + '</span> — the ' +
+    'next-gen odds = <span class="r">' + ua.nextGenScore + '</span>, which is the ' +
     esc(ua.segments[0].systemLabel) + ' row on its own</div>\n' +
-    '  <p class="tblcap">Those are the live numbers, generated at build time by the same function the ' +
-    'API and the extension call. The 131-aircraft zero row is the part a single fleet-share number ' +
-    'hides: it does not shrink as installs proceed, it shrinks when those aircraft retire. ' +
+    '  <p class="tblcap">Those are the live numbers, generated at build time by the same function ' +
+    'the API and the extension call. The 131-aircraft zero row is the part a single fleet-share ' +
+    'number hides: it does not shrink as installs proceed, it shrinks when those aircraft retire. ' +
     '<a href="/airlines/united/">The same ledger on United’s page →</a></p>\n' +
-    (ex ? '  <h3 class="apih" style="margin-top:26px">Worked example — one flight, from the Verified ' +
-      'tier</h3>\n' +
+    (ex ? '  <h3 class="apih">Worked example: one flight, from the Verified tier</h3>\n' +
       '  <div class="wex">flight   = <b>' + esc(ex.f.fn) + '</b>' +
       (ex.f.dep ? '  (' + esc(ex.f.dep) + ' departure)' : '') + '\n' +
       'route    = ' + esc(ex.label) + '\n' +
@@ -1372,73 +1608,356 @@ function methodologyPage(m) {
       'equipped on <b>' + ex.f.prob + '%</b> of those ' + ex.f.obs + ' departures → ' +
       '<span class="r">per-flight odds ' + ex.f.prob + '%</span>, confidence ' +
       esc(ex.f.conf || 'n/a') + '</div>\n' +
-      '  <p class="tblcap">This is what the Verified tier buys you, and why the fleet-wide ' + ua.score +
-      ' is the wrong number to quote for a specific flight in either direction. Confidence is the sample ' +
-      'size: low under 10 observations, medium 10–15, high 16 or more. ' +
+      '  <p class="tblcap">This is what the Verified tier buys you, and why the fleet-wide ' +
+      ua.score + ' is the wrong number to quote for a specific flight in either direction. ' +
+      'Confidence is the sample size: low under 10 observations, medium 10 to 15, high 16 or more. ' +
       '<a href="/united/">Rank a whole route →</a></p>\n' : '') +
     '</section>\n\n' +
 
-    '<section class="blk">\n  <div class="sec-h"><h2>What we can’t know</h2>' +
-    '<span class="sub">the honest list</span></div>\n' +
-    '  <p class="sec-lede">These are real limits, not hedges. If one of them applies to your flight, no ' +
-    'number on this site can fix it — so here they are in plain language, with what to do instead.</p>\n' +
+    /* ── §3 the projected score. The rules live on /race/ in full; this is the
+     *    method half, and it is what /race/ links back to. */
+    '<section class="blk" id="projected">\n  <div class="sec-h">' +
+    '<span class="sub">§3 · The projected score</span>' +
+    '<h2>The fourth number, and the five rules it obeys</h2>' +
+    '<a class="more" href="/race/#projected">all four projections →</a></div>\n' +
+    '  <p class="sec-lede">' + esc(m.A.PROJECTION_METHOD_LINE) + '</p>\n' +
+    '  <div class="grid2" style="margin-top:16px">\n' +
+    '    <div class="card"><h3>FIRM</h3><p style="margin:6px 0 10px">' +
+    P.projected(m.A.scoreAirline('american')) + '</p>' +
+    '<p>Signed, aircraft count published, date published. American committed 500-plus Airbus ' +
+    'narrowbodies out of 989 with a published system, with installs from the first quarter of ' +
+    '2027.</p>' + P.srcLine('reported', 'Runway Girl Network, 26 May 2026.') + '</div>\n' +
+    '    <div class="card"><h3>SOFT</h3><p style="margin:6px 0 10px">' +
+    P.projected(m.A.scoreAirline('jetblue')) + '</p>' +
+    '<p>Signed, and one of the count or the date rests on secondary reporting. JetBlue’s ' +
+    'roughly-a-quarter figure comes from trade reporting of which sub-fleet gets it first, and two ' +
+    'sources disagree about the denominator.</p>' +
+    P.srcLine('reported', 'JetBlue press release, 4 Sep 2025; sub-fleet detail from trade ' +
+      'reporting.') + '</div>\n' +
+    '  </div>\n' +
+    '  <p class="tblcap">SLIPPED is the third state. When a horizon passes with nothing installed ' +
+    'the figure takes a hatched ground, greys further, and keeps showing the date that was missed. ' +
+    'Nothing is quietly rolled forward. That flip is computed from the build date, so it does not ' +
+    'wait for anyone to notice, and the build asks every projection what it becomes the day after ' +
+    'its own horizon and fails if the answer is anything else. No carrier is slipped today, which ' +
+    'is why there is no live example of it on this page.</p>\n' +
+    '</section>\n\n' +
+
+    /* ── §4 PROMISED AGAINST MEASURED ───────────────────────────────────────
+     * The most interesting fact in this subject is that the serious
+     * measurements disagree with each other by two to five times and nobody has
+     * explained why. Anyone quoting one of them without the others is picking a
+     * number. All three, with their methods, or none. */
+    '<section class="blk" id="measured">\n  <div class="sec-h">' +
+    '<span class="sub">§4 · Promised against measured</span>' +
+    '<h2>Three credible measurements of the same thing, two to five times apart</h2></div>\n' +
+    '  <p class="sec-lede">Every score here rests on the claim that low-earth orbit is better than ' +
+    'geostationary, and it is. What the record does not support is any single Starlink speed ' +
+    'number. Three sources published a method, and they disagree by a factor of two to five. We ' +
+    'publish all three and we do not know which one describes your seat.</p>\n' +
+    '  <div class="chips" style="margin:0 0 8px">' +
+    P.kpi('85.2', 'Per-device median, Mbps', 'IQR 60.2 · minimum observed 18.6 · 88 Starlink tests ' +
+      'across 25 flights and 7 airlines, on rooted handsets running an open testbed') +
+    P.kpi('64 to 65', 'Per-device median, Mbps', 'the only two flights in the literature where ' +
+      'cabin load was recorded, both nearly full. The same terminal on a rooftop in Pisa did 188') +
+    P.kpi('152 to 320', 'Per-airline median, Mbps', 'crowdsourced and self-selected. Q1 2025 all ' +
+      'Starlink, then 2H 2025 United. People run a speed test when the wifi feels notable') +
+    P.kpi('21×', 'Inside one airline', 'United ran three networks at once through 2025: Starlink ' +
+      '319.99 Mbps, Intelsat 56.48, Inmarsat 15.34') +
+    '</div>\n' +
+    P.srcLine('measured', 'Jang, Varvello, Raman and Zaki, ACM IMC ’25, 28 to 31 Oct 2025 · ' +
+      'Ullah, Borgianni, Kokkinen, Anttonen and Giordano, arXiv:2508.09839, Aug 2025 · ' +
+      'Ookla Speedtest Intelligence, 30 Jun 2025 and 28 Apr 2026.') +
+    '  <div class="grid2" style="margin-top:20px">\n' +
+    '    <div class="card"><h3>What Amazon Leo promises</h3>' +
+    '<p>Up to 1 Gbps down and 400 Mbps up simultaneously, from one antenna per aircraft where ' +
+    'Starlink needs two radomes, installed in a single day. On paper Leo wins on upload by an ' +
+    'order of magnitude and on install simplicity.</p>' +
+    '<p>In the air it has zero aircraft and roughly an eighth of a constellation: about 390 to 400 ' +
+    'satellites of a planned 3,232. No passenger has measured any of it, which is why there is no ' +
+    'Leo speed figure anywhere on this site.</p>' +
+    P.srcLine('vendor', 'Amazon Leo aviation antenna announcement, 13 Apr 2026. Constellation ' +
+      'count: GeekWire and Via Satellite, 2 to 8 Jul 2026, against the FCC licence for 3,232.') +
+    '</div>\n' +
+    '    <div class="card"><h3>Latency is physics, not tuning</h3>' +
+    '<p>Starlink: 90% of 322 traceroutes under 40 ms. Geostationary, from the same 2025 study: ' +
+    'over 99% of 949 traceroutes above 550 ms. Geostationary orbit is 35,786 km up, so the round ' +
+    'trip alone costs about 477 ms at the speed of light before anything processes a packet. No ' +
+    'amount of bandwidth closes that while the satellite stays where it is.</p>' +
+    P.srcLine('measured', 'Jang et al., ACM IMC ’25. Orbital altitude is a definition, not ' +
+      'a measurement.') + '</div>\n' +
+    '  </div>\n' +
+    '  <div class="callout" style="margin-top:18px"><h3>The variable nobody tracks: the box in the ' +
+    'ceiling</h3><p>Ookla’s sample was 81% Wi-Fi 5 aircraft, 11% Wi-Fi 6 and 8% Wi-Fi 4, with no ' +
+    'Wi-Fi 7 at all. Holding the satellite constant, Starlink’s median rose 24% from Wi-Fi 5 to ' +
+    'Wi-Fi 6, from 140.35 to 173.86 Mbps. Viasat’s tenth-percentile floor more than doubled over ' +
+    'the same step, from 11.15 to 25.64. Consistency by generation runs 14.9%, then 28.8%, then ' +
+    '56.9%. A Wi-Fi 4 access point shared by 180 people gives out long before the satellite link ' +
+    'does, and almost no consumer-facing site records which one your aircraft has.</p>' +
+    P.srcLine('measured', 'Ookla Speedtest Intelligence, 28 Apr 2026. Consistency is Ookla’s own ' +
+      'metric: the share of samples clearing 25 Mbps down and 3 Mbps up together.') + '</div>\n' +
+    '</section>\n\n' +
+
+    /* ── §5 MECHANICS. Why the same hardware gives 220 and 12. ─────────────── */
+    '<section class="blk" id="variance">\n  <div class="sec-h">' +
+    '<span class="sub">§5 · Mechanics</span>' +
+    '<h2>Why one passenger gets 220 Mbps and the passenger beside them gets 12</h2></div>\n' +
+    '  <p class="sec-lede">Roughly in order of how much variance each one explains. Every ' +
+    'mechanism below is measured somewhere, and the last of them can differ between two phones in ' +
+    'the same row.</p>\n' +
     '  <div class="faq">\n' +
-    '    <div class="q rv"><h3>Tail swaps inside the last 48 hours</h3><p>Airlines reassign aircraft ' +
-    'until departure — for maintenance, weather, crew, a broken jet somewhere else. Our per-flight odds ' +
-    'are a <b>history</b> of what has flown that flight number, not a booking of what will. A flight with ' +
-    '80% odds can still board the one unequipped aircraft in the sub-fleet. Re-check the day before, ' +
-    'which is exactly what the extension’s Tail-swap Guardian is for.</p></div>\n' +
+    '    <div class="q rv"><h3>1. Which satellite network the aircraft is actually on</h3>' +
+    '<p>The largest factor and the least visible from a booking page. Inside United’s own fleet: ' +
+    '320 Mbps against 56 against 15. Two aircraft in the same livery on the same route, 21 times ' +
+    'apart. Any per-airline score that does not decompose by sub-fleet describes no actual ' +
+    'aircraft, which is why the ledger on every airline page does.</p>' +
+    P.srcLine('measured', 'Ookla, 28 Apr 2026.') + '</div>\n' +
+    '    <div class="q rv"><h3>2. The onboard router generation</h3><p>Measured, and tracked almost ' +
+    'nowhere. Wi-Fi 4 to Wi-Fi 6 more than doubles Viasat’s floor and adds 24% to Starlink’s ' +
+    'median. Eight per cent of the sampled fleet is still Wi-Fi 4.</p>' +
+    P.srcLine('measured', 'Ookla, 28 Apr 2026.') + '</div>\n' +
+    '    <div class="q rv"><h3>3. Satellite health</h3><p>ViaSat-3 F1 suffered a reflector ' +
+    'deployment failure and is estimated to deliver 5 to 10% of its design throughput. Every US ' +
+    'Viasat measurement in existence was taken through that satellite, including the ones behind ' +
+    'our own 0.55 quality weight. F2 has finished unfolding and is waiting for the FCC to ' +
+    'authorise it; F3 is expected in service in August or September 2026. Re-measuring Viasat ' +
+    'after those two go live is the single most valuable future data point for this site.</p>' +
+    P.srcLine('reported', 'Runway Girl Network, 10 Feb 2026 and 11 Jul 2026.') + '</div>\n' +
+    '    <div class="q rv"><h3>4. Beam capacity, and how many aircraft share it</h3>' +
+    '<p>Geostationary systems use spot beams, commonly 60 to 80 per satellite, each with fixed ' +
+    'capacity shared by everyone underneath it: aircraft, ships and, for Viasat, homes. Busy ' +
+    'corridors like the North Atlantic and the Los Angeles to New York transcon put many aircraft ' +
+    'under one beam in the same hour. Low orbit has the same problem in a different shape, because ' +
+    'the cells move and the corridor does not.</p></div>\n' +
+    '    <div class="q rv"><h3>5. The airline’s bandwidth purchase, and per-device shaping</h3>' +
+    '<p>Airlines buy committed capacity and no airline publishes what it bought, so two aircraft ' +
+    'with identical antennas can be provisioned differently. Ullah’s team hypothesised that the ' +
+    'onboard router caps each device so the aircraft total is shared fairly. If that is right, the ' +
+    'answer to &ldquo;does it slow down when the cabin is full&rdquo; is that it was already ' +
+    'limited, all the time. They labelled it a hypothesis and so do we.</p>' +
+    P.srcLine('measured', 'Ullah et al., arXiv:2508.09839, Aug 2025 for the 65 Mbps ceiling. The ' +
+      'explanation is their hypothesis and is unconfirmed.') + '</div>\n' +
+    '    <div class="q rv"><h3>6. Altitude</h3><p>Uplink measured 33 Mbps above 17,000 feet and 20 ' +
+    'Mbps below it. The likely cause is a regulator forcing transmit power down near the ground to ' +
+    'protect terrestrial networks. If that is the mechanism, a slower uplink at low altitude is ' +
+    'permanent by design and not a defect.</p>' +
+    P.srcLine('measured', 'Ullah et al., arXiv:2508.09839, Aug 2025.') + '</div>\n' +
+    '    <div class="q rv"><h3>7. The 15-second handover cycle</h3><p>Geoff Huston at APNIC Labs ' +
+    'measured Starlink reassigning the terminal on a regular 15-second cycle, with loss events ' +
+    'clustering at switchover, spikes of 30 to 50 ms, and a packet drop rate of 1 to 2% unrelated ' +
+    'to congestion. His phrase for it: from the perspective of the TCP protocol, Starlink ' +
+    'represents an unusually hostile link environment.</p>' +
+    P.srcLine('measured', 'Geoff Huston, APNIC Labs, 17 May 2024.') + '</div>\n' +
+    '    <div class="q rv"><h3>8. Your own device’s congestion control</h3><p>On the same link, BBR ' +
+    'achieved 98 to 105 Mbps median goodput where Cubic managed 15.4 to 27.2 and Vegas under 5. ' +
+    'Because Starlink’s loss is not congestion, loss-based algorithms misread it and back off. Two ' +
+    'passengers in adjacent seats can differ several-fold from their operating systems alone.</p>' +
+    P.srcLine('measured', 'Jang et al., ACM IMC ’25.') + '</div>\n' +
+    '    <div class="q rv"><h3>9. DNS filtering putting you in the wrong city</h3><p>All six ' +
+    'Starlink flights in the peer-reviewed sample resolved through CleanBrowsing, which has around ' +
+    '50 anycast locations and so frequently answers from a distant one. That inflated latency to ' +
+    'Google and Facebook by 1.2 times in Frankfurt and 4.6 times in Doha. In the slowest cases DNS ' +
+    'resolution accounted for 74% of total download time.</p>' +
+    P.srcLine('measured', 'Jang et al., ACM IMC ’25.') + '</div>\n' +
+    '    <div class="q rv"><h3>10. There is no service level agreement anywhere in this industry</h3>' +
+    '<p>Michael Wildes, writing about business aviation retrofits, put it better than we could: ' +
+    'there is no public aircraft-specific SLA on any route, the published performance numbers are ' +
+    'network-level averages, they include the dish on a roof in Akron and the dish on a sailboat ' +
+    'off Sardinia, and a marketing average is not a contract.</p>' +
+    P.srcLine('reported', 'Michael Wildes, GlobalAir.com, 29 May 2026.') + '</div>\n' +
+    '  </div>\n' +
+    '  <div class="callout" style="margin-top:18px"><h3>One flight, one device, one session</h3>' +
+    '<p>Alaska AS894, 22 July 2026. Eight tests over five and a half hours on the same phone in ' +
+    'the same session: 3.8 on the ground, then 44.0, 54.1, 67.4, 78.9, 82.6, 84.7 and 130.6 Mbps. ' +
+    'Latency went 51, 60, 60, 76, 99, 112, 157, 171 ms. A threefold spread in throughput and a ' +
+    '3.4-fold spread in latency inside one flight. That flight averaged 68.3 Mbps against the host ' +
+    'site’s own headline average of 193.2, which is what selection bias looks like when you can ' +
+    'see both numbers at once. It is the best argument on this page for why a single screenshot ' +
+    'proves nothing.</p>' +
+    P.srcLine('field', 'starlinkflights.com community speed results, read 25 Jul 2026. ' +
+      'Self-selected submissions; the aggregate is treated as anecdote.') + '</div>\n' +
+    '</section>\n\n' +
+
+    /* ── §6 COUNTER-EVIDENCE. The four things that cut against us. ─────────── */
+    '<section class="blk" id="counter">\n  <div class="sec-h">' +
+    '<span class="sub">§6 · Counter-evidence</span>' +
+    '<h2>What a hostile reader would use against us</h2></div>\n' +
+    '  <p class="sec-lede">On measured speed Starlink wins every published comparison. I looked ' +
+    'hard for a speed test that came back bad on a Starlink aircraft and found none, which is ' +
+    'exactly why it is our job to publish the four things that cut the other way.</p>\n' +
+    '  <div class="faq">\n' +
+    '    <div class="q rv"><h3>The whole Starlink network went down for about two and a half ' +
+    'hours</h3><p>24 July 2025. SpaceX vice president Michael Nicolls gave the cause as a failure ' +
+    'of key internal software services operating the core network. NetBlocks measured global ' +
+    'connectivity at 16% of normal. Flightradar24 lost around 5% of its data feeds and warned of ' +
+    'reduced coverage. A fleet that has standardised on one constellation goes to zero at the same ' +
+    'moment, which is the concrete version of the argument Starlink’s competitors make.</p>' +
+    P.srcLine('reported', 'Runway Girl Network, 25 Jul 2025. Search results frequently re-date ' +
+      'this as a 2026 outage. There was no network-wide 2026 outage in any source we could verify.') +
+    '</div>\n' +
+    '    <div class="q rv"><h3>An airline admitting a gap in its own product</h3><p>Cathay Pacific, ' +
+    'writing about its own inflight wifi: there are no commercial satellites over the polar ' +
+    'regions that airlines can use, so flights to North America’s east coast lose service, and the ' +
+    'outage can vary between one and three hours. Cathay is building a portal warning for the ' +
+    'drop-out zones. An admission against interest is the strongest evidence in this whole file.</p>' +
+    P.srcLine('reported', 'Cathay Pacific, “Better connected: how inflight Wi-Fi works”, updated ' +
+      '31 Mar 2026.') + '</div>\n' +
+    '    <div class="q rv"><h3>Starlink aviation filters your DNS</h3><p>Every Starlink flight in ' +
+    'the peer-reviewed sample resolved through CleanBrowsing, a filtering resolver, which inflated ' +
+    'latency to major sites by 1.2 to 4.6 times depending on which anycast city answered. This is ' +
+    'the hardest evidence available that inflight networks manipulate traffic, and it is on the ' +
+    'provider that wins every speed comparison.</p>' +
+    P.srcLine('measured', 'Jang et al., ACM IMC ’25.') + '</div>\n' +
+    '    <div class="q rv"><h3>Every US Viasat measurement was taken on a crippled satellite</h3>' +
+    '<p>ViaSat-3 F1 delivers an estimated 5 to 10% of design throughput and it is what powers the ' +
+    'mainland routes people have been testing. Until F2 and F3 are live, every Viasat number on ' +
+    'this site, our ' + m.A.SYSTEM_QUALITY.viasat.toFixed(2) + ' quality weight included, is ' +
+    'measured against hardware that failed to unfold.</p>' +
+    P.srcLine('reported', 'Runway Girl Network, 10 Feb 2026 and 11 Jul 2026.') + '</div>\n' +
+    '  </div>\n' +
+    '  <div class="caveat" style="margin-top:16px">Free wifi does get congested at scale, and it ' +
+    'is happening now, on Viasat and Panasonic. Viasat’s aviation president Don Buchman said on ' +
+    'the record that there was not as much capacity on orbit as planned. Whether Starlink hits the ' +
+    'same wall going from hundreds of aircraft to thousands is open, and nobody has published ' +
+    'evidence either way. ' + P.cls('reported') + ' The Points Guy, 2 Jul 2026.</div>\n' +
+    '</section>\n\n' +
+
+    /* ── §7 FIELD REPORTS + INTAKE ─────────────────────────────────────────── */
+    '<section class="blk" id="field">\n  <div class="sec-h">' +
+    '<span class="sub">§7 · Field reports</span>' +
+    '<h2>Speed tests from people who were on the aircraft</h2></div>\n' +
+    '  <p class="sec-lede">These sit beside the measured medians above and never inside them. One ' +
+    'person on one flight is a data point about that flight, and no field report has ever moved a ' +
+    'ConnectScore. Every row is attributed and dated so you can weigh it yourself.</p>\n' +
+    (reps.present
+      ? P.reportTable(reps.reports, 'Published field reports · newest first · ' + reps.count +
+          ' of them') +
+        '  <p class="tblcap">' + esc(reps.means || '') + ' Submitted through the form below and ' +
+        'reviewed by a person before publication. Rows we cannot tie to a real flight get ' +
+        'dropped.</p>\n' +
+        P.srcLine('field', 'Reader submissions, ' +
+          esc(reps.earliest || '') + ' to ' + esc(reps.latest || '') +
+          '. Median download across the set: ' + (reps.downMedian === null ? 'not computable'
+            : reps.downMedian + ' Mbps') + '.')
+      : '  <div class="steady">Nothing published yet. The first report through the form below ' +
+        'appears here once a person has checked it.</div>\n') +
+    '  <h3 class="apih">Send us a reading</h3>\n' +
+    '  <p class="sec-lede">If you ran a speed test in the air, the flight number and the date are ' +
+    'what make it useful. The form works with JavaScript switched off; with it on, anything wrong ' +
+    'comes back next to the field it belongs to.</p>\n' +
+    P.reportForm(m) +
+    '</section>\n\n' +
+
+    /* ── §8 WHAT WE CANNOT KNOW ────────────────────────────────────────────── */
+    '<section class="blk" id="limits">\n  <div class="sec-h">' +
+    '<span class="sub">§8 · The limits</span>' +
+    '<h2>What we cannot know</h2></div>\n' +
+    '  <p class="sec-lede">These are real limits, not hedges. If one of them applies to your ' +
+    'flight, no number on this site can fix it, so here they are in plain language with what to do ' +
+    'instead.</p>\n' +
+    '  <div class="faq">\n' +
+    '    <div class="q rv"><h3>Tail swaps inside the last 48 hours</h3><p>Airlines reassign ' +
+    'aircraft until departure for maintenance, weather, crew, or a broken jet somewhere else. Our ' +
+    'per-flight odds are a <b>history</b> of what has flown that flight number, not a booking of ' +
+    'what will. A flight with 80% odds can still board the one unequipped aircraft in the ' +
+    'sub-fleet. Re-check the day before, which is what the extension’s Tail-swap Guardian is ' +
+    'for.</p></div>\n' +
     '    <div class="q rv"><h3>Airlines with no per-tail feed</h3><p>' + coarse.length + ' of the ' +
-    m.airlineCount + ' airlines here have no public, verifiable list of which aircraft are equipped. ' +
-    'For those we can only model the fleet share, and we will not pretend to more. If you need certainty ' +
-    'on one of those carriers, the aircraft type on your itinerary plus whatever the airline said about ' +
-    'which sub-fleet it converted first is genuinely better information than our score.</p></div>\n' +
-    '    <div class="q rv"><h3>Paid tiers and free-WiFi policy changes</h3><p>The free-for-you factor is ' +
-    'a snapshot of a commercial decision, and those change with a press release and no notice — a free ' +
-    'system can acquire a paywall, or a loyalty requirement can be dropped, weeks before we notice. ' +
-    'Cabin-level throttling and “free messaging only” tiers are not modelled at all. Treat the free ' +
-    'column as “what was true in July 2026”, and the airline’s own page as authoritative on price.</p></div>\n' +
+    m.airlineCount + ' airlines here have no public, verifiable list of which aircraft are ' +
+    'equipped. For those we can only model the fleet share and we will not pretend to more. If you ' +
+    'need certainty on one of those carriers, the aircraft type on your itinerary plus whatever ' +
+    'the airline said about which sub-fleet it converted first is better information than our ' +
+    'score.</p></div>\n' +
+    '    <div class="q rv"><h3>Nobody has tested throughput against cabin load</h3><p>Not either ' +
+    'peer-reviewed team, not Ookla, not one journalist. Every claim about a full cabin runs on ' +
+    'inference, in both directions. I think that is the largest open question in the subject, and ' +
+    'the fact that it is still open after two peer-reviewed studies is worth saying out loud.</p>' +
+    P.srcLine('measured', 'Reviewed against Jang et al., ACM IMC ’25; Ullah et al., ' +
+      'arXiv:2508.09839, Aug 2025; Ookla, 28 Apr 2026.') + '</div>\n' +
+    '    <div class="q rv"><h3>No airline publishes what bandwidth it bought</h3><p>Two aircraft ' +
+    'with identical antennas can be provisioned differently and there is no way in from outside. ' +
+    'The industry is moving toward least-cost routing across multiple orbits, which will bury it ' +
+    'one layer deeper still.</p></div>\n' +
+    '    <div class="q rv"><h3>Paid tiers and free-wifi policy changes</h3><p>The free-for-you ' +
+    'factor is a snapshot of a commercial decision, and those change with a press release and no ' +
+    'notice. Cabin-level throttling and free-messaging-only tiers are not modelled at all. Treat ' +
+    'the free column as what was true in July 2026, and the airline’s own page as authoritative on ' +
+    'price.</p></div>\n' +
     '    <div class="q rv"><h3>Actual speed on the day</h3><p>We score the <b>hardware and the ' +
-    'policy</b>, never the throughput. A full Starlink cabin over the Atlantic is a different experience ' +
-    'from an empty one over Kansas, and nothing here measures that. ConnectScore is the chance of ' +
-    'getting the good system — not a bandwidth guarantee, and not a promise that any WiFi at all will ' +
-    'be working.</p></div>\n' +
+    'policy</b>, never the throughput. Everything in §5 above is a reason the same aircraft gives ' +
+    'two passengers different answers. ConnectScore is the chance of getting the good system. It ' +
+    'is not a bandwidth guarantee and it is not a promise that any wifi at all will be ' +
+    'working.</p></div>\n' +
+    '    <div class="q rv"><h3>Amazon Leo has never been measured by a passenger</h3><p>Zero ' +
+    'aircraft carry it, so every Leo figure on this site is a specification and is labelled as ' +
+    'one. That is also why two airlines score next-gen zero while holding signed Leo deals.</p>' +
+    '</div>\n' +
     '    <div class="q rv"><h3>The gap our own caveat names</h3><p>' + esc(m.A.SCORE_CAVEAT) +
     ' Until July 2026 the score counted only the next-gen part of a fleet and dropped the rest, so ' +
     'Southwest read 0 on 803 aircraft that mostly do have wifi. The segmented model credits older ' +
     'service at what it measures, which is why Southwest now reads ' +
-    m.A.scoreAirline('southwest').floor + '–' + m.A.scoreAirline('southwest').ceiling +
-    ' rather than nothing. The width of that range is the finding: nobody has published which of ' +
+    m.A.scoreAirline('southwest').floor + ' to ' + m.A.scoreAirline('southwest').ceiling +
+    ' instead of nothing. The width of that range is the finding: nobody has published which of ' +
     'those 802 aircraft carry which system.</p></div>\n' +
     '  </div>\n</section>\n\n' +
 
-    '<section class="blk">\n  <div class="sec-h"><h2>Data freshness</h2>' +
-    '<span class="sub">every figure on this page is from ' + esc(m.updated) + '</span></div>\n' +
+    /* ── §9 FRESHNESS ──────────────────────────────────────────────────────── */
+    '<section class="blk" id="freshness">\n  <div class="sec-h">' +
+    '<span class="sub">§9 · Data freshness</span>' +
+    '<h2>Where every input comes from, and how often</h2></div>\n' +
     '  <div class="tbl-shell"><table class="tbl">\n' +
     '    <thead><tr><th>Input</th><th>Source</th><th>Cadence</th><th>Last refresh</th></tr></thead>\n' +
     '    <tbody>\n' +
-    '      <tr><td>United fleet + per-tail roster</td><td>unitedstarlinktracker.com</td>' +
+    '      <tr><td>United fleet and per-tail roster</td><td>unitedstarlinktracker.com</td>' +
     '<td>pulled daily</td><td class="mono">' + esc(m.updated) + '</td></tr>\n' +
-    '      <tr><td>United per-flight route history</td><td>unitedstarlinktracker.com check-flight pages</td>' +
-    '<td>daily, ' + m.routeCount + ' cached routes</td><td class="mono">' + esc(m.updated) + '</td></tr>\n' +
+    '      <tr><td>United per-flight route history</td>' +
+    '<td>unitedstarlinktracker.com check-flight pages</td>' +
+    '<td>daily, ' + m.routeCount + ' cached routes</td><td class="mono">' + esc(m.updated) +
+    '</td></tr>\n' +
     '      <tr><td>Alaska fleet</td><td>alaskastarlinktracker.com</td><td>pulled daily</td>' +
     '<td class="mono">' + esc(al.asOf || m.updated) + '</td></tr>\n' +
-    '      <tr><td>The other ' + coarse.length + ' airlines</td><td>public airline announcements</td>' +
-    '<td>reviewed by hand</td><td class="mono">July 2026</td></tr>\n' +
+    '      <tr><td>The other ' + coarse.length + ' airlines</td>' +
+    '<td>public airline announcements</td><td>reviewed by hand</td>' +
+    '<td class="mono">July 2026</td></tr>\n' +
+    '      <tr><td>Reader field reports</td><td>the form in §7, published by a person</td>' +
+    '<td>committed to assets/reports.json</td><td class="mono">' +
+    esc((reps.generated || m.updated).slice(0, 10)) + '</td></tr>\n' +
+    '      <tr><td>Measured speed and latency figures</td>' +
+    '<td>two peer-reviewed studies and Ookla</td><td>as published</td>' +
+    '<td class="mono">2025 to 2026</td></tr>\n' +
     '      <tr><td>Every page, score and chart on this site</td><td>this build</td>' +
     '<td>re-baked on every data commit</td><td class="mono">' + esc(m.updated) + '</td></tr>\n' +
     '    </tbody>\n  </table></div>\n' +
     '  <p class="tblcap">Nothing on wifiodds.com is fetched live. The daily pull commits ' +
     '<a href="/united/data.json">united/data.json</a>, that commit rebuilds every page, and the ' +
-    'ConnectScore API reads the same file out of the same deploy — so the page, the API and the ' +
+    'ConnectScore API reads the same file out of the same deploy. The page, the API and the ' +
     'extension cannot disagree with each other. If the date above is stale, the data is stale ' +
-    'everywhere at once, visibly, rather than in one surface quietly.</p>\n' +
+    'everywhere at once and visibly, instead of in one surface quietly.</p>\n' +
     '</section>\n\n' +
 
-    '<section class="blk">\n  <div class="sec-h"><h2>Citing this</h2>' +
-    '<span class="sub">please do</span></div>\n' +
-    '  <p class="sec-lede">Quote the numbers freely, including in an article or an AI answer. The one ' +
-    'condition is that the credit travels with them, because the fleet verification is not ours.</p>\n' +
+    /* ── §10 CREDIT. THE ONE SUBSTANTIAL ACKNOWLEDGEMENT ON THE SITE. ────────
+     * Everywhere else a tracker figure carries a plain source line with a date,
+     * exactly like any other citation. This is the exception, and it is the
+     * exception on purpose: without those two sites the top of our ladder is
+     * empty. Do not add a second credit panel to another page. */
+    '<section class="blk" id="credit">\n  <div class="sec-h">' +
+    '<span class="sub">§10 · Credit</span>' +
+    '<h2>The tail data, and the tier model, are @martinamps’ work</h2></div>\n' +
+    '  <p class="sec-lede">Tier A exists on this site because of two sites built and maintained ' +
+    'by <b>@martinamps</b>: <a href="https://unitedstarlinktracker.com" target="_blank" ' +
+    'rel="noopener">unitedstarlinktracker.com</a> and <a href="https://alaskastarlinktracker.com" ' +
+    'target="_blank" rel="noopener">alaskastarlinktracker.com</a>. Between them they cover United, ' +
+    'Alaska and Hawaiian, which is every carrier on our board where a flight can be resolved to a ' +
+    'specific aircraft and that aircraft to an install record. Take those two sites away and the ' +
+    'top tier of this one is empty.</p>\n' +
+    '  <p class="sec-lede">The Verified, Reported and Predicted tier model that our own ladder is ' +
+    'built on is his design as well. He put the data and the model out for anyone to use, and we ' +
+    'are using both. Thank you.</p>\n' +
+    H.credit('all') +
+    '  <h3 class="apih">Citing this</h3>\n' +
+    '  <p class="sec-lede">Quote the numbers freely, including in an article or an AI answer. The ' +
+    'one condition is that the credit travels with them, because the fleet verification is not ' +
+    'ours.</p>\n' +
     '  <div class="wex">ConnectScore and per-flight odds: WiFi Odds (wifiodds.com), data as of ' +
     esc(m.updated) + '.\n' +
     'United tail verification: unitedstarlinktracker.com (@martinamps).\n' +
@@ -1446,28 +1965,33 @@ function methodologyPage(m) {
     'All other airlines: public airline announcements, July 2026.</div>\n' +
     '  <p class="tblcap">Every API response carries the same credits in a ' +
     '<span class="mono">sources</span> array so they cannot get separated from the data. ' +
-    '<a href="/api/docs/">API docs →</a> · <a href="/llms.txt">llms.txt →</a></p>\n' +
-    '</section>\n\n' + H.credit('all');
+    'Everywhere else on this site a figure from those trackers carries a plain source line with a ' +
+    'date, the same as any other citation. <a href="/api/docs/">API docs →</a> · ' +
+    '<a href="/llms.txt">llms.txt →</a></p>\n' +
+    '</section>\n';
 
   return H.page({
-    title: 'Methodology — how ConnectScore is calculated, and what it can’t see',
-    desc: 'The full WiFi Odds method: three confidence tiers (verified per-tail, type-derived, coarse ' +
-      'fleet-share), the ConnectScore formula worked through with live numbers, what the score cannot ' +
-      'know, data freshness and how to cite it.',
+    title: 'Methodology · how ConnectScore is calculated, and what it cannot see',
+    desc: 'The full WiFi Odds method: three confidence tiers, the ConnectScore formula worked ' +
+      'through with live numbers, the fence around the projected score, the three published ' +
+      'measurements of Starlink speed that disagree by two to five times, reader field reports, ' +
+      'and what the score cannot know.',
     canonical: '/methodology/', here: '/', updated: m.updated, crumb: crumbs,
-    extraHead: css, body: body,
+    extraHead: css, body: body, afterWrap: formJs,
     jsonld: [{
       '@context': 'https://schema.org', '@type': 'TechArticle',
       headline: 'How ConnectScore is calculated, and what it cannot see',
       url: ORIGIN + '/methodology/',
       dateModified: m.updated,
-      description: 'The confidence tiers, the ConnectScore formula with a worked example, the known ' +
-        'limits, the refresh cadence and the citation block for WiFi Odds.',
+      description: 'The confidence tiers, the ConnectScore formula with a worked example, the ' +
+        'projected-score fencing rules, promised against measured inflight speed, reader field ' +
+        'reports, the known limits and the citation block for WiFi Odds.',
       author: { '@type': 'Organization', name: 'WiFi Odds', url: ORIGIN + '/' },
       publisher: { '@id': ORIGIN + '/#org' },
       isPartOf: { '@type': 'WebSite', name: 'WiFi Odds', url: ORIGIN + '/' },
       about: 'Inflight WiFi ConnectScore methodology and data provenance',
-      citation: ['https://unitedstarlinktracker.com', 'https://alaskastarlinktracker.com']
+      citation: ['https://unitedstarlinktracker.com', 'https://alaskastarlinktracker.com',
+        'https://danielja.ng/publications/geoToLeo_imc_2025.pdf', 'https://arxiv.org/abs/2508.09839']
     }, crumbLd(crumbs)]
   });
 }
@@ -1531,7 +2055,7 @@ function apiDocs(m) {
     ['400', 'unparseable_flight', 'The path segment is not shaped like a flight number.'],
     ['404', 'unknown_airline', 'No airline with that key.'],
     ['404', 'unknown_airline_prefix', 'The flight number parses, but we do not track that carrier.'],
-    ['405', 'method_not_allowed', 'Read-only API — GET or HEAD.'],
+    ['405', 'method_not_allowed', 'Read-only API. GET or HEAD.'],
     ['503', 'dataset_unavailable', 'The cached United dataset could not be read from this deploy. ' +
       'This should never happen; it means the deploy is broken, and we would rather say so than ' +
       'quietly hand back the coarse score as if nothing were wrong.']
@@ -1546,11 +2070,11 @@ function apiDocs(m) {
     '  <h1 class="ph">The ConnectScore API</h1>\n' +
     '  <p class="lede">Every ConnectScore on this site, as JSON. Free, no key, no accounts, no ' +
     'rate limit, CORS open to every origin. Read-only. Each response carries a <b>sources</b> array ' +
-    'with the data credits — please keep it attached when you re-publish.</p>\n' +
+    'with the data credits. Please keep it attached when you re-publish.</p>\n' +
     '  <div class="microlinks"><a href="/airlines/">The same data as a table →</a>' +
     '<a href="/united/data.json">The full United dataset (JSON) →</a>' +
     '<a href="/llms.txt">llms.txt →</a></div>\n' +
-    '</header>\n\n' + H.credit('all') + '\n' +
+    '</header>\n\n' + P.srcLine('reported', 'Fleet and per-tail verification for United, Alaska and Hawaiian: unitedstarlinktracker.com and alaskastarlinktracker.com (@martinamps), ' + esc(H.plateDate(m.updated)) + '. Every other airline from public airline announcements, Jul 2026. <a href="/methodology/#credit">Full credit and citation →</a>') + '\n' +
 
     '<section class="blk">\n  <div class="sec-h"><h2>Try it</h2></div>\n' +
     code('curl -s ' + ORIGIN + '/api/airlines | head -40\n' +
@@ -1569,7 +2093,7 @@ function apiDocs(m) {
 
     '  <h3 class="apih">GET /api/airlines</h3>\n' +
     '  <p class="sec-lede">All ' + m.airlineCount + ' airlines, ordered by ConnectScore descending, ' +
-    'ties broken by name — the same order as the leaderboard, from the same function.</p>\n' +
+    'ties broken by name. Same order as the leaderboard, from the same function.</p>\n' +
     code('{\n' +
       '  "count": ' + m.airlineCount + ',\n' +
       '  "asOf": "' + (m.ranked[0].asOf || m.updated) + '",\n' +
@@ -1612,13 +2136,13 @@ function apiDocs(m) {
     '  <p class="tblcap">Abridged, and the response carries more: <span class="mono">floor</span>, ' +
     '<span class="mono">ceiling</span>, <span class="mono">resolution</span> and the ' +
     '<span class="mono">segments[]</span> array the ledger is drawn from. ' + esc(qr.name) +
-    ' really is ' + qr.score + ' — ' + qr.segments.map(function (r) {
+    ' really is ' + qr.score + ': ' + qr.segments.map(function (r) {
       return esc(r.systemLabel) + ' ' + num(r.n) + ' at ' + r.pointsMin.toFixed(1);
     }).join(' + ') + ' points. <a href="/airlines/qatar/">Same number on the page →</a></p>\n' +
 
     '  <h3 class="apih">GET /api/score/{flightNumber}</h3>\n' +
     '  <p class="sec-lede">Accepts <span class="apip">UA212</span>, <span class="apip">ua 212</span>, ' +
-    '<span class="apip">UA0212</span> — case, spaces, hyphens and leading zeros are all normalised ' +
+    '<span class="apip">UA0212</span>. Case, spaces, hyphens and leading zeros are all normalised ' +
     'away. Prefixes we know: <span class="apip">' + esc(codes.join(' ')) + '</span></p>\n' +
     '  <p class="sec-lede">The <b>method</b> field is the whole point of this endpoint. It tells you ' +
     'how much to trust the number, and it is never blurred:</p>\n' +
@@ -1630,9 +2154,9 @@ function apiDocs(m) {
     'share of recent observations of that flight that were flown by a Starlink aircraft, with the ' +
     'observation count and confidence in <b>evidence</b>.</td></tr>\n' +
     '      <tr><td class="mono"><b>airline-coarse</b></td><td class="mono">null</td>' +
-    '<td>We have no per-flight history for it, so all we can honestly offer is the airline’s ' +
-    'fleet-wide ConnectScore. <b>prob</b> is <b>null</b> rather than a guess — inventing precision ' +
-    'here would be the worst thing this API could do.</td></tr>\n' +
+    '<td>We have no per-flight history for it, so all we can offer is the airline’s ' +
+    'fleet-wide ConnectScore. <b>prob</b> is <b>null</b> and not a guess. Inventing precision here ' +
+    'would be the worst thing this API could do.</td></tr>\n' +
     '    </tbody>\n  </table></div>\n' +
     code('{\n' +
       '  "flight": "UA212",\n' +
@@ -1669,7 +2193,7 @@ function apiDocs(m) {
     '<td class="mono">' + m.A.scoreAirline('delta').score + '</td></tr>\n' +
     '      <tr><td class="mono"><b>serviceTier</b></td><td><span class="mono">next-gen</span> · ' +
     '<span class="mono">streaming</span> · <span class="mono">basic</span> · ' +
-    '<span class="mono">mixed</span> — what the fleet delivers today. ' +
+    '<span class="mono">mixed</span>. What the fleet delivers today. ' +
     '<span class="mono">service.rest</span> is the tier on the part that is not next-gen yet, and ' +
     '<span class="mono">"unknown"</span> where we have not verified it.</td>' +
     '<td class="mono">' + esc(m.A.scoreAirline('delta').serviceTier) + '</td></tr>\n' +
@@ -1695,9 +2219,9 @@ function apiDocs(m) {
     '<table class="tbl" style="min-width:0">\n' +
     '    <thead><tr><th>status</th><th>factor</th><th>Means</th></tr></thead>\n    <tbody>\n' + freeRows +
     '\n    </tbody>\n  </table></div></div>\n' +
-    '    <div class="card"><h3>fleet.basis</h3><p><b>tail-counts</b> — the airline publishes equipped ' +
+    '    <div class="card"><h3>fleet.basis</h3><p><b>tail-counts</b>: the airline publishes equipped ' +
     'and total aircraft, so <span class="mono">equippedShare = equipped / total</span>.</p>' +
-    '<p><b>fleetwide-coverage</b> — no tail counts exist (Delta, jetBlue publish only ' +
+    '<p><b>fleetwide-coverage</b>: no tail counts exist (Delta, jetBlue publish only ' +
     '&ldquo;fleetwide&rdquo;), so <span class="mono">equipped</span> and <span class="mono">total</span> ' +
     'are <b>null</b> and the share comes from a stated coverage fraction.</p>' +
     '<p class="note">A future deal is never scored. <span class="mono">future</span> is reported and ' +
@@ -1726,7 +2250,7 @@ function apiDocs(m) {
     '<span class="sub">for AI assistants</span></div>\n' +
     '  <p class="sec-lede">There is also an <b>MCP</b> endpoint, so an AI assistant can look these ' +
     'numbers up itself instead of guessing from whatever it remembers about airline WiFi. It speaks ' +
-    'streamable HTTP — JSON-RPC 2.0 over <span class="apip">POST /mcp</span>, no key, no account, ' +
+    'streamable HTTP: JSON-RPC 2.0 over <span class="apip">POST /mcp</span>, no key, no account, ' +
     'CORS open, and no session required for a single call.</p>\n' +
     '  <div class="tbl-shell"><table class="tbl">\n' +
     '    <thead><tr><th>Tool</th><th>Arguments</th><th>Returns</th></tr></thead>\n' +
@@ -1734,7 +2258,7 @@ function apiDocs(m) {
     '      <tr><td class="mono"><b>get_airline_score</b></td><td class="mono">key</td>' +
     '<td>One airline: ConnectScore, system, fleet share, cost onboard, and the confidence tier the ' +
     'number comes from.</td></tr>\n' +
-    '      <tr><td class="mono"><b>list_airline_scores</b></td><td class="mono">—</td>' +
+    '      <tr><td class="mono"><b>list_airline_scores</b></td><td class="mono">none</td>' +
     '<td>All ' + m.airlineCount + ' airlines, best odds first. One call instead of eighteen.</td></tr>\n' +
     '      <tr><td class="mono"><b>score_flight</b></td><td class="mono">flight_number</td>' +
     '<td>One flight. United returns a per-flight probability with its sample size; every other ' +
@@ -1750,41 +2274,41 @@ function apiDocs(m) {
     'in both, because the text is what usually reaches the user.</p>\n' +
     '  <div class="faq" style="margin-top:16px">\n' +
     '    <div class="q"><h3>The <span class="mono">instructions</span> field is the point</h3>' +
-    '<p>What <span class="mono">initialize</span> returns is not a description of the endpoints — it is ' +
-    'the decision layer: someone asking about flight WiFi is trying to maximise <b>hours of working ' +
+    '<p>What <span class="mono">initialize</span> returns is not a description of the endpoints. It ' +
+    'is the decision layer: someone asking about flight WiFi is trying to maximise <b>hours of working ' +
     'WiFi</b>, so prefer the higher ConnectScore, use United\'s route history when there is a flight ' +
     'number, name which confidence tier you are quoting, never invent a per-flight number for a fleet ' +
     'we have no history for, and always pass the credits through. A data endpoint with no opinion gets ' +
     'averaged into mush by whichever model is holding it.</p></div>\n' +
     '    <div class="q"><h3>It is the same code as the REST API</h3><p>Each tool is a thin wrapper ' +
-    'around the very handler that serves <span class="mono">/api/**</span> — it builds a synthetic GET ' +
+    'around the very handler that serves <span class="mono">/api/**</span>. It builds a synthetic GET ' +
     'request and re-shapes the answer. So <span class="mono">score_flight("UA212")</span> and ' +
     '<span class="mono">GET /api/score/UA212</span> cannot disagree: they are the same call. The ' +
     'acceptance suite asserts exactly that.</p></div>\n' +
     '    <div class="q"><h3>GET returns 405, on purpose</h3><p>This server opens no server-initiated ' +
     'SSE stream, so there is nothing for a GET to subscribe to. It answers with a 405 whose <i>body</i> ' +
-    'tells you the POST to make instead — a bare 405 with no bytes is the kind of unhelpful signal this ' +
-    'project has been bitten by before.</p></div>\n' +
+    'tells you the POST to make instead. A bare 405 with no bytes is the kind of unhelpful signal ' +
+    'this project has been bitten by before.</p></div>\n' +
     '  </div>\n</section>\n\n' +
 
     '<section class="blk">\n  <div class="sec-h"><h2>Using it</h2></div>\n' +
     '  <div class="faq">\n' +
     '    <div class="q"><h3>Credit is the only condition</h3><p>The fleet numbers for United and ' +
-    'Alaska are not ours — they come from unitedstarlinktracker.com and alaskastarlinktracker.com, ' +
+    'Alaska are not ours. They come from unitedstarlinktracker.com and alaskastarlinktracker.com, ' +
     'the independent community trackers built by @martinamps. The <span class="mono">sources</span> ' +
     'array is in every response so that the credit travels with the data. Keep it, or reproduce it ' +
     'wherever you show the numbers.</p></div>\n' +
     '    <div class="q"><h3>This API never calls anyone else</h3><p>It reads only our own cached ' +
     'dataset, from the same deploy that served this page. It does not proxy a tracker, an airline, ' +
-    'or a flight-status provider — your traffic can never become their bill. That is also why ' +
+    'or a flight-status provider, so your traffic can never become their bill. That is also why ' +
     'per-flight odds exist for United only: it is the fleet we have history for.</p></div>\n' +
     '    <div class="q"><h3>No rate limit, so please cache</h3><p>There is no key and no quota. ' +
     'Responses are cacheable for an hour and the underlying data changes once a day, so honour the ' +
     'Cache-Control header rather than polling. If it ever gets abused, a limit is the thing that ' +
     'appears first.</p></div>\n' +
     '    <div class="q"><h3>v0 means v0</h3><p>Fields may be added at any time. Anything already ' +
-    'here — <span class="mono">connectScore</span>, <span class="mono">method</span>, ' +
-    '<span class="mono">prob</span>, <span class="mono">sources</span> — will not change meaning ' +
+    'here (<span class="mono">connectScore</span>, <span class="mono">method</span>, ' +
+    '<span class="mono">prob</span>, <span class="mono">sources</span>) will not change meaning ' +
     'without the path changing to <span class="mono">/api/v1/</span>. Every response carries an ' +
     '<span class="mono">x-connectscore-api</span> header with the version.</p></div>\n' +
     '    <div class="q"><h3>Not a guarantee</h3><p>ConnectScores and per-flight odds are historical ' +
@@ -1815,8 +2339,9 @@ function notFound(m) {
   var body =
     '<header class="hero">\n  <span class="kicker"><span class="dot"></span>404</span>\n' +
     '  <h1 class="ph" style="margin-top:14px">No aircraft at this gate.</h1>\n' +
-    '  <p class="lede">That page does not exist. Everything on this site lives at a real path — there are ' +
-    'no hash routes to mistype.</p>\n' +
+    '  <p class="lede">That page does not exist. Everything on this site lives at a real path, so ' +
+    'there are no hash routes to mistype. The eighteen ConnectScores, the rollout race and the ' +
+    'method are all one click away.</p>\n' +
     '  <div class="cta-row"><a class="btn" href="/airlines/">All ' + m.airlineCount + ' ConnectScores →</a>' +
     '<a class="btn ghost" href="/united/fleet/">The United hangar floor →</a></div>\n</header>\n\n';
   return H.page({

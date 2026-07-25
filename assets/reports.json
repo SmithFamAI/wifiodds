@@ -1,0 +1,8 @@
+{
+  "generated": "2026-07-25T21:20:13.872Z",
+  "source": "supabase field_reports view (published rows only)",
+  "kind": "FIELD REPORT",
+  "means": "One reader, one flight, one speed test. Field reports are not the measured medians the methodology page cites and they are never mixed into a ConnectScore.",
+  "count": 0,
+  "reports": []
+}

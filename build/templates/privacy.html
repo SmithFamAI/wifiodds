@@ -1,97 +1,155 @@
 <!--@head-->
 <style>
-  /* Page-specific only — colours all come from the shared tokens in site.css. */
-  .wrap{max-width:780px}
-  body{line-height:1.65}
-  h1{font-size:29px;letter-spacing:-.5px;margin:24px 0 4px}
-  h2{font-size:17px;margin:30px 0 8px}
-  p,li{color:var(--body)}
-  ul{margin:8px 0 0 20px}
-  li{margin:5px 0}
-  .sub{color:var(--dim);font-size:15px}
-  .date{color:var(--faint);font-size:13px;font-family:var(--mono);margin-top:6px}
-  .box{background:var(--surface);border:1px solid var(--edge);border-radius:var(--r-lg);
-    padding:18px 20px;margin-top:14px}
-  .box b{color:var(--ink)}
+  /* Page-scoped only. Every colour, every rule weight and every type size comes
+     from the tokens in /assets/site.css. What is here is the reading measure and
+     one list shape: a ruled row per item, which is the plate's answer to a
+     bulleted list. Radius stays 0 and nothing lifts on hover. */
+  .wrap{max-width:820px}
+  .pol p{color:var(--ink-2);font-size:15px;max-width:72ch}
+  .pol p+p{margin-top:11px}
+  .pol b{color:var(--ink);font-weight:700}
+  .pol a{color:inherit}
+  .rows{list-style:none;margin:15px 0 0;display:grid;gap:0;
+    border-top:1px solid var(--rule-2)}
+  .rows li{position:relative;font-size:14.5px;color:var(--ink-2);
+    padding:11px 0 11px 24px;border-bottom:1px solid var(--rule)}
+  .rows li:before{content:"";position:absolute;left:3px;top:19px;
+    width:7px;height:7px;background:var(--ink-3)}
+  .rows li b{color:var(--ink);font-weight:700}
+  /* the permission table stays a table down to 390px, inside .tscroll */
+  table.perms{width:100%;border-collapse:collapse;min-width:520px}
+  table.perms th,table.perms td{text-align:left;padding:9px 14px 9px 0;font-size:14px;
+    border-bottom:1px solid var(--rule);vertical-align:top}
+  table.perms thead th{font:700 9.5px/1.35 var(--mono);letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-3);border-bottom:1px solid var(--rule-2)}
+  table.perms td.mono{font-family:var(--mono);font-size:13px;color:var(--ink);
+    white-space:nowrap}
 </style>
 <!--@body-->
-<h1>Privacy Policy</h1>
-<p class="sub"><b>WiFi Odds for Flights</b> browser extension and the <b>wifiodds.com</b> website</p>
-<p class="date">Effective July 24, 2026</p>
+<header class="hero pol" style="padding:26px 0 4px">
+  <p class="micro">WiFi Odds · Policy</p>
+  <h1 class="ph">Privacy policy</h1>
+  <p class="lede">This covers the <b>WiFi Odds for Flights</b> browser extension and the
+  <b>wifiodds.com</b> website. Effective <b>24 Jul 2026</b>. Earlier versions stay in the
+  public git history of the repository linked at the foot of this page.</p>
+</header>
 
-<div class="box">
-  <b>The short version:</b> no accounts, no analytics, no tracking, no advertising, no cookies, and no
-  server of our own. Nothing about you is collected, stored, sold, or shared — by the extension or by
-  this site. The only network requests the extension makes on your behalf are anonymous route or
-  flight-number lookups to public community trackers.
+<div class="kv kv-2" style="margin-top:22px">
+  <div><p class="micro">Accounts</p><span class="v">0</span></div>
+  <div><p class="micro">Cookies set</p><span class="v">0</span></div>
+  <div><p class="micro">Analytics scripts</p><span class="v">0</span></div>
+  <div><p class="micro">Off-origin requests from a page</p><span class="v">0</span></div>
 </div>
 
-<h2>What the extension does</h2>
-<p>It shows the historical probability that a given flight is operated by an aircraft with modern
-high-speed satellite WiFi (Starlink, Amazon Leo) rather than legacy service — as colour-coded badges on
-airline search results, and as a ConnectScore in its popup.</p>
+<div class="plate-box ticked pol" style="margin-top:18px;padding:18px 20px">
+  <p class="micro">The short version</p>
+  <p style="margin-top:9px">No accounts. No analytics. No advertising. No cookies. Nothing about
+  you is sold or shared. The extension's only outbound calls are anonymous route and flight-number
+  lookups to two public community trackers. The one thing this site ever writes to your browser is
+  your light or dark preference, under the key <b>woTheme</b>.</p>
+</div>
 
-<h2>Data collection: none</h2>
-<p>The extension and this website do not collect, store, transmit, sell, or share any personal
-information. There are no analytics, no tracking pixels, no accounts, no sign-in, and no server we
-operate that receives your data.</p>
+<section class="blk pol">
+  <div class="sec-h"><span class="sub">§1 · The product</span><h2>What the extension does</h2></div>
+  <p>It shows the historical probability that a given flight is operated by an aircraft carrying
+  modern high-speed satellite wifi, meaning Starlink or Amazon Leo, rather than legacy service. The
+  odds appear as colour-coded badges on airline search results and as a ConnectScore in the popup.</p>
+</section>
 
-<h2>What actually happens</h2>
-<ul>
-<li><b>Reading pages, locally.</b> When you view a flight search on <b>united.com</b>,
-<b>alaskaair.com</b>, or <b>Navan</b>, the extension reads the route and flight numbers already
-displayed on the page you are on. That parsing happens entirely in your browser; nothing about the page
-is uploaded anywhere.</li>
-<li><b>Odds lookups.</b> To attach odds to a flight, the extension requests statistics from the public
-APIs of the independent community trackers
-<a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> and
-<a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a>.
-Those requests contain only a route (for example "DEN to SFO"), or a flight number and a date. They
-contain no personal information, no booking details, no passenger names, no fare or payment data, and
-nothing that identifies you or your account.</li>
-<li><b>Caching, locally.</b> Responses are cached for about six hours in your browser's local extension
-storage, alongside a small number of UI preferences (panel collapsed, keep-sorted, and whether you have
-enabled Alaska support). This data never leaves your machine, and clearing the extension's storage or
-uninstalling it removes it.</li>
-<li><b>Selector updates.</b> Roughly once a day the extension fetches a small configuration file from
-<b>wifiodds.com</b> that describes where the relevant elements sit on the airline pages, so a site
-redesign does not break it. That request carries no data about you beyond what any web request
-necessarily reveals (your IP address, to the hosting provider), and it is not logged or joined to
-anything.</li>
-<li><b>This website.</b> wifiodds.com is a static site served by Cloudflare Pages. It sets no cookies,
-runs no analytics, and embeds no third-party scripts or trackers. Cloudflare processes standard,
-short-lived request logs as our hosting provider; we neither read nor retain them.</li>
-</ul>
+<section class="blk pol">
+  <div class="sec-h"><span class="sub">§2 · Collection</span><h2>Nothing personal is collected</h2></div>
+  <p>The extension and this website do not collect, store, transmit, sell or share personal
+  information. There are no analytics, no tracking pixels, no accounts, no sign-in, and no server of
+  ours that receives your data. The list below is the complete set of things that happen.</p>
+  <ul class="rows">
+    <li><b>Reading pages, locally.</b> On a flight search at <b>united.com</b>, <b>alaskaair.com</b>
+    or <b>Navan</b>, the extension reads the routes and flight numbers already displayed on the page
+    in front of you. That parsing happens in your browser. Nothing about the page is uploaded.</li>
+    <li><b>Odds lookups.</b> To attach odds to a flight the extension asks the public APIs of the
+    independent community trackers
+    <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a>
+    and <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a>.
+    Each request carries a route such as DEN to SFO, or a flight number and a date. No booking
+    details, no passenger names, no fare or payment data, nothing that identifies you.</li>
+    <li><b>Caching, locally.</b> Responses are cached for about six hours in the browser's extension
+    storage, next to a handful of interface preferences: panel collapsed, keep-sorted, and whether
+    you turned Alaska support on. Clearing that storage or uninstalling removes all of it.</li>
+    <li><b>Selector updates.</b> Roughly once a day the extension fetches a small configuration file
+    from <b>wifiodds.com</b> that says where the relevant elements sit on the airline pages, so a
+    site redesign does not break it. That request carries nothing about you beyond what any web
+    request reveals to a host, which is your IP address. It is not logged and not joined to
+    anything.</li>
+  </ul>
+</section>
 
-<h2>Permissions, and why each one exists</h2>
-<ul>
-<li><b>united.com content script</b> — to display odds badges on United search results.</li>
-<li><b>alaskaair.com (optional)</b> — off by default. Grant it only if you want Alaska badges; the
-extension registers that content script at the moment you enable it, and stops when you revoke it.</li>
-<li><b>Navan content script</b> — to display badges on Navan corporate-travel search results.</li>
-<li><b>unitedstarlinktracker.com, alaskastarlinktracker.com</b> — to fetch route and flight statistics.</li>
-<li><b>wifiodds.com</b> — the daily selector-configuration file described above.</li>
-<li><b>storage</b> — the local cache and preferences described above.</li>
-<li><b>activeTab</b> — so the popup can read the route of the tab you invoke it on.</li>
-<li><b>scripting</b> — to register the optional Alaska content script when, and only when, you grant
-that permission.</li>
-</ul>
+<section class="blk pol">
+  <div class="sec-h"><span class="sub">§3 · Intake</span><h2>Field reports you send us</h2></div>
+  <p>This site has one form. It sits on the
+  <a href="/methodology/">methodology page</a>, it posts to <b>/api/report</b>, and it asks what you
+  flew, when you flew it, and what your speed test read. There is no account step and no email
+  field, so a report is the only thing that arrives.</p>
+  <p>Something has to stop one connection filing a thousand rows, and a captcha cannot do it here:
+  Turnstile, reCAPTCHA and hCaptcha are all third-party scripts, which this site does not load. The
+  cap is server-side instead. Your network address goes into a SHA-256 digest along with a secret
+  salt and the current UTC hour, and the digest is what gets stored. The address itself is hashed in
+  memory. It is never written down, never logged and never sent back to you.</p>
+  <p>Because the hour is part of the input, the digest changes on the hour. Two hours of submissions
+  from one connection cannot be joined to each other. Five reports per digest per hour is the limit.
+  No cookie is set and nothing is measured about your browser.</p>
+  <p>Every submission lands unpublished and a person reads it before it appears on the site. The
+  only thing about you that can ever be published is the name or handle you type into the credit
+  box, and that box can be left empty.</p>
+</section>
 
-<h2>Children</h2>
-<p>The extension and the site are general-audience tools that collect no data at all, and therefore
-collect no data from children.</p>
+<section class="blk pol">
+  <div class="sec-h"><span class="sub">§4 · Permissions</span><h2>Every permission, and the reason for it</h2></div>
+  <div class="tscroll">
+    <table class="perms">
+      <thead><tr><th>Permission</th><th>Why the extension asks</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">united.com</td><td>Draw odds badges on United search results.</td></tr>
+        <tr><td class="mono">alaskaair.com</td><td>Optional and off until you grant it. The Alaska
+          content script is registered at the moment you turn it on and stops when you revoke it.</td></tr>
+        <tr><td class="mono">app.navan.com</td><td>Draw badges on Navan corporate-travel results.</td></tr>
+        <tr><td class="mono">unitedstarlinktracker.com<br>alaskastarlinktracker.com</td>
+          <td>Fetch route and flight statistics.</td></tr>
+        <tr><td class="mono">wifiodds.com</td><td>The daily selector-configuration file described in §2.</td></tr>
+        <tr><td class="mono">storage</td><td>The local cache and the interface preferences described in §2.</td></tr>
+        <tr><td class="mono">activeTab</td><td>Let the popup read the route of the tab you opened it on.</td></tr>
+        <tr><td class="mono">scripting</td><td>Register the optional Alaska content script, and only
+          once you have granted that permission.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
 
-<h2>Changes</h2>
-<p>If this policy ever changes, the effective date above changes with it and the previous version stays
-in the public git history of the repository below.</p>
+<section class="blk pol">
+  <div class="sec-h"><span class="sub">§5 · The website</span><h2>What wifiodds.com does</h2></div>
+  <p>wifiodds.com is a static site on Cloudflare Pages. It sets no cookies, runs no analytics and
+  embeds no third-party script. Every page is prerendered, so the pages hold their numbers rather
+  than fetching them. The fonts are served from this origin. Cloudflare processes standard
+  short-lived request logs as the hosting provider, and we neither read nor keep them.</p>
+</section>
 
-<h2>Affiliation</h2>
-<p>WiFi Odds is an unofficial, free, open-source hobby project
-(<a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">source code</a>).
-It is not affiliated with, endorsed by, or sponsored by United Airlines, Alaska Airlines, any other
-airline, Navan, SpaceX/Starlink, Amazon, Viasat, or the community trackers whose data it credits.</p>
+<section class="blk pol">
+  <div class="sec-h"><span class="sub">§6 · Children</span><h2>Data from children</h2></div>
+  <p>The extension and the site are general-audience tools that collect no personal data from
+  anyone, so they collect none from children.</p>
+</section>
 
-<h2>Contact</h2>
-<p>Questions: open an issue on the
-<a href="https://github.com/jeremyinthebay/united-starlink-companion/issues" target="_blank" rel="noopener">GitHub repository</a>.</p>
+<section class="blk pol">
+  <div class="sec-h"><span class="sub">§7 · Revisions</span><h2>When this policy changes</h2></div>
+  <p>The effective date at the top changes with it, and the version it replaced stays in the public
+  git history of the repository below.</p>
+</section>
+
+<section class="blk pol">
+  <div class="sec-h"><span class="sub">§8 · Affiliation</span><h2>Who runs this</h2></div>
+  <p>WiFi Odds is an unofficial, free, open-source hobby project
+  (<a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">source code</a>).
+  It is not affiliated with, endorsed by or sponsored by United Airlines, Alaska Airlines, any other
+  airline, Navan, SpaceX/Starlink, Amazon, Viasat, or the community trackers whose data it credits.</p>
+  <p>Questions go on the
+  <a href="https://github.com/jeremyinthebay/united-starlink-companion/issues" target="_blank" rel="noopener">issue tracker</a>.</p>
+</section>
 

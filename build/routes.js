@@ -72,7 +72,17 @@ var REQUIRED = [
      absence would render as broken images inside a section whose whole argument
      is "these are real screenshots" — and a 200 would still be served. */
   'assets/shot-united-1280x800.png',
-  'assets/shot-navan-1280x800.png'
+  'assets/shot-navan-1280x800.png',
+  /* B612, self-hosted. A missing face is the quietest possible failure: the page
+     still returns 200, still renders, and silently falls back to whatever the
+     device has — which is the one outcome the zero-third-party rule exists to
+     prevent, because nobody would notice. Regenerate with
+     `python3 build/make-brand.py fonts`. */
+  'assets/b612-400.woff2',
+  'assets/b612-700.woff2',
+  'assets/b612mono-400.woff2',
+  'assets/b612mono-700.woff2',
+  'assets/B612-OFL.txt'
 ];
 
 module.exports = { ROUTES: ROUTES, UNLISTED: UNLISTED, REQUIRED: REQUIRED, AIRLINE_KEYS: AIRLINE_KEYS };

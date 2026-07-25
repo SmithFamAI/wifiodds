@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <script>(function(){var r=document.documentElement;r.classList.add("js");try{var t=localStorage.getItem("woTheme");if(t==="light"||t==="dark")r.setAttribute("data-theme",t);}catch(e){}})();</script>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2369B3E7'/%3E%3Cstop offset='1' stop-color='%230033A0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Cpath d='M9 21c3-9 11-9 14-13' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='11' cy='22' r='2.6' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230a0c0d'/%3E%3Cg fill='%23444d50'%3E%3Crect x='2' y='2' width='2.5' height='2.5'/%3E%3Crect x='2' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='2' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='9' y='2' width='2.5' height='2.5'/%3E%3Crect x='9' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='2' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='9' width='2.5' height='2.5'/%3E%3Crect x='9' y='9' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='9' width='2.5' height='2.5'/%3E%3C/g%3E%3Cg fill='%233fcf8e'%3E%3Crect x='2' y='9' width='2.5' height='2.5'/%3E%3Crect x='2' y='12.5' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='12.5' width='2.5' height='2.5'/%3E%3Crect x='9' y='12.5' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='12.5' width='2.5' height='2.5'/%3E%3C/g%3E%3C/svg%3E">
 <title>United Starlink install history — day by day</title>
 <meta name="description" content="176 days of United Starlink install history: every tail, every aircraft type, and every route and odds movement since Mar 2025. Data by unitedstarlinktracker.com.">
 <link rel="canonical" href="https://wifiodds.com/united/history/">
@@ -13,42 +13,68 @@
 <meta property="og:title" content="United Starlink install history — day by day">
 <meta property="og:description" content="176 days of United Starlink install history: every tail, every aircraft type, and every route and odds movement since Mar 2025. Data by unitedstarlinktracker.com.">
 <meta property="og:url" content="https://wifiodds.com/united/history/">
-<meta property="og:image" content="https://wifiodds.com/assets/og.png?v=2">
+<meta property="og:image" content="https://wifiodds.com/assets/og.png?v=3">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="WiFi Odds — know before you book">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="United Starlink install history — day by day">
 <meta name="twitter:description" content="176 days of United Starlink install history: every tail, every aircraft type, and every route and odds movement since Mar 2025. Data by unitedstarlinktracker.com.">
-<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=2">
+<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=3">
+<link rel="preload" href="/assets/b612-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/b612mono-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/site.css">
 <style>
-  /* Page-specific only — every colour comes from the shared tokens in site.css.
-     The day-log itself is still client-rendered from data.json (it is a 176-day
-     list of pills; baking it would double the page for no reader benefit), which
-     is why this is the one page besides /united/ allowed to say "Loading…". */
-  .wrap{max-width:860px}
-  .controls{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 6px}
-  .controls .f{font-size:13px;color:var(--dim);cursor:pointer;padding:6px 13px;
-    border:1px solid var(--edge);border-radius:99px;background:var(--surface);transition:.15s;user-select:none}
-  .controls .f:hover{color:var(--accent);border-color:var(--edge-strong)}
-  .controls .f.on{color:var(--accent);border-color:var(--sky);background:rgba(105,179,231,.12)}
-  /* #stat, not .stat — site.css owns a .stat card component and this is one line of text */
-  #stat{color:var(--faint);font-size:12.5px;margin:8px 0 18px;font-family:var(--mono)}
-  .clog-days{display:grid;gap:12px;padding-bottom:20px}
-  .cday{background:var(--surface);border:1px solid var(--edge);border-radius:var(--r-lg);padding:16px 18px}
-  .cday.today{border-color:rgba(53,208,127,.4);background:rgba(53,208,127,.05)}
-  .cday-top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
-  .cday-date{font-family:var(--mono);font-weight:700;font-size:15px;color:var(--ink)}
-  .cday-eq{font-family:var(--mono);font-size:13px;color:var(--dim)}
-  .cday-eq .up{color:var(--green);font-weight:700}
-  .cday-eq .flat{color:var(--faint)}
-  .cday-rows{display:grid;gap:8px;margin-top:8px}
-  .crow{display:flex;gap:10px;font-size:14px;align-items:flex-start;line-height:1.5}
-  .crow .k{color:var(--dim);flex:0 0 118px;font-size:12px;text-transform:uppercase;letter-spacing:.7px;padding-top:2px}
-  .crow .v{flex:1}
-  .cday-steady{color:var(--faint);font-size:13.5px;font-style:italic}
-  @media(max-width:560px){.crow{flex-direction:column;gap:3px}.crow .k{flex:none}}
+  /* Page-scoped only. Colour, type and rule weight come from /assets/site.css.
+     The day log is still client-rendered from data.json (a 176-day list of pills
+     baked into the HTML would roughly double the page for no reader benefit), so
+     everything below the filter row sits inside .needs-js and there is a real
+     no-JS answer next to it. Nothing here is rounded and nothing lifts. */
+  .wrap{max-width:900px}
+
+  /* the type filter row. Same grammar as .filters in site.css: hairline boxes
+     butted together with a -1px margin, inverted when the filter is on. The JS
+     writes <span class="f">, not <button>, so the rules are duplicated rather
+     than inherited. Do not rename .f — assets are not involved, this page's own
+     script reads it. */
+  .controls{display:flex;flex-wrap:wrap;gap:0;margin:16px 0 4px}
+  .controls .f{font:700 10px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ink-2);cursor:pointer;padding:8px 11px;border:1px solid var(--rule);
+    margin-left:-1px;user-select:none;white-space:nowrap}
+  .controls .f:hover{color:var(--ink);background:var(--bg-inset)}
+  .controls .f.on{color:var(--bg);background:var(--ink);border-color:var(--ink)}
+
+  #stat{margin:10px 0 18px}
+
+  /* one ruled row per update day. A day is a record, so it gets a rule, not a
+     card: no radius, no shadow, no hover lift. The current day is marked in the
+     margin the way a plate marks the row it wants read, and the mark is grey
+     because "most recent" is not a score. */
+  .clog-days{display:grid;gap:0;border-top:1px solid var(--rule-2);padding-bottom:12px}
+  .cday{background:transparent;border:0;border-bottom:1px solid var(--rule);padding:15px 0 15px 14px;
+    position:relative}
+  .cday:before{content:"";position:absolute;left:0;top:15px;bottom:15px;width:1px;
+    background:var(--rule)}
+  .cday.today{background:var(--bg-panel);padding-left:14px}
+  .cday.today:before{background:var(--ink-2);width:3px}
+  .cday-top{display:flex;align-items:baseline;gap:8px 14px;flex-wrap:wrap;margin-bottom:4px}
+  .cday-date{font-family:var(--mono);font-weight:700;font-size:14.5px;color:var(--ink);
+    letter-spacing:.02em}
+  .cday-eq{font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
+  .cday-eq .up{color:var(--good);font-weight:700}
+  .cday-eq .flat{color:var(--ink-3)}
+  .cday-rows{display:grid;gap:0;margin-top:8px;border-top:1px solid var(--rule)}
+  .crow{display:flex;gap:12px;font-size:13.5px;align-items:flex-start;line-height:1.5;
+    padding:8px 0;border-bottom:1px solid var(--rule)}
+  .crow:last-child{border-bottom:0}
+  .crow .k{flex:0 0 120px;font:700 9.5px/1.6 var(--mono);letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-3);padding-top:3px}
+  .crow .v{flex:1;min-width:0}
+  .cday-steady{color:var(--ink-3);font-size:13px;font-family:var(--mono);letter-spacing:.03em}
+  @media(max-width:560px){
+    .crow{flex-direction:column;gap:2px}
+    .crow .k{flex:none}
+  }
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","@id":"https://wifiodds.com/united/fleet/#dataset","name":"United Airlines Starlink rollout archive","description":"Every United Airlines aircraft confirmed to carry Starlink, with the date each tail was first seen equipped: 481 of 1808 aircraft across 176 distinct install days.","url":"https://wifiodds.com/united/fleet/","temporalCoverage":"2025-03-14/2026-07-25","dateModified":"2026-07-25","keywords":["Starlink","United Airlines","inflight WiFi","fleet rollout","aircraft registry"],"creator":{"@type":"Organization","name":"WiFi Odds","url":"https://wifiodds.com/"},"isBasedOn":{"@type":"WebSite","name":"unitedstarlinktracker.com","url":"https://unitedstarlinktracker.com"},"license":"Personal and research use; credit unitedstarlinktracker.com (@martinamps) when quoting fleet numbers.","distribution":[{"@type":"DataDownload","contentUrl":"https://wifiodds.com/united/data.json","encodingFormat":"application/json"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://wifiodds.com/"},{"@type":"ListItem","position":2,"name":"United","item":"https://wifiodds.com/united/"},{"@type":"ListItem","position":3,"name":"History","item":"https://wifiodds.com/united/history/"}]}</script>
@@ -56,7 +82,8 @@
 <body>
 <div class="wrap">
 <div class="topbar">
-  <a class="mark" href="/"><span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round"><path d="M4.5 10.5a11 11 0 0 1 15 0"/><path d="M7.6 14a7 7 0 0 1 8.8 0"/><circle cx="12" cy="18.2" r="1.5" fill="#fff" stroke="none"/></svg></span><span class="wm">WiFi Odds <em>· United</em></span></a>
+  <a class="mark" href="/"><span class="glyph" aria-hidden="true"><svg width="26" height="17" viewBox="0 0 26 17" aria-hidden="true" focusable="false"><g fill="currentColor" opacity=".55"><rect x="0" y="0" width="3" height="3"/><rect x="0" y="4.6" width="3" height="3"/><rect x="4.6" y="0" width="3" height="3"/><rect x="4.6" y="4.6" width="3" height="3"/><rect x="9.2" y="0" width="3" height="3"/><rect x="9.2" y="4.6" width="3" height="3"/><rect x="13.8" y="0" width="3" height="3"/><rect x="13.8" y="4.6" width="3" height="3"/><rect x="18.4" y="0" width="3" height="3"/><rect x="18.4" y="4.6" width="3" height="3"/><rect x="23" y="0" width="3" height="3"/><rect x="23" y="4.6" width="3" height="3"/><rect x="4.6" y="9.2" width="3" height="3"/><rect x="9.2" y="9.2" width="3" height="3"/><rect x="13.8" y="9.2" width="3" height="3"/><rect x="18.4" y="9.2" width="3" height="3"/><rect x="23" y="9.2" width="3" height="3"/></g><g fill="var(--good)"><rect x="0" y="9.2" width="3" height="3"/><rect x="0" y="13.8" width="3" height="3"/><rect x="4.6" y="13.8" width="3" height="3"/><rect x="9.2" y="13.8" width="3" height="3"/><rect x="13.8" y="13.8" width="3" height="3"/><rect x="18.4" y="13.8" width="3" height="3"/><rect x="23" y="13.8" width="3" height="3"/></g></svg></span><span class="wm">WiFi Odds <em>· United</em></span></a>
+  <p class="stripmeta">ConnectScore · Data eff <b>25 JUL 2026</b> · Amdt daily</p>
   <nav class="topnav" aria-label="Main">
     <a href="/airlines/">Airlines</a>
     <a href="/race/">The Race</a>
@@ -67,36 +94,89 @@
 </div>
 <nav class="subnav" aria-label="United pages"><span class="sn-air">United ·</span><a class="sn-tab" href="/airlines/united/">Overview</a><a class="sn-tab" href="/united/">Route optimizer</a><a class="sn-tab" href="/united/fleet/">Fleet</a><a class="sn-tab" href="/united/history/" aria-current="page">History</a><a class="sn-back" href="/airlines/">All airlines →</a></nav>
 <nav class="crumb" aria-label="Breadcrumb"><a href="/">Home</a><span class="sep">→</span><a href="/airlines/united/">United</a><span class="sep">→</span><span aria-current="page">History</span></nav>
-<header class="hero" style="padding:18px 0 4px">
-  <h1 class="ph">Fleet history</h1>
-  <p class="lede">Every day of United's Starlink rollout, newest first: which aircraft types and tail
-  numbers went live, plus route-frequency and odds movements where we have a daily snapshot.
-  <b data-bake="united.days">176</b> install days and <b data-bake="united.tails">481</b> equipped tails,
-  back to <b data-bake="united.first">Mar 14, 2025</b>.</p>
+<header class="hero" style="padding:22px 0 4px">
+  <p class="micro">United · Install archive</p>
+  <h1 class="ph">Every day of the United rollout</h1>
+  <p class="lede">Newest first: which aircraft types and tail numbers went live on each date, plus
+  the route-frequency and odds movements for the days a snapshot exists.
+  <b data-bake="united.days">176</b> install days and <b data-bake="united.tails">481</b> equipped
+  tails, back to <b data-bake="united.first">Mar 14, 2025</b>.</p>
   <div class="cta-row" style="margin-top:16px">
-    <a class="btn ghost" href="/united/fleet/">The hangar floor &amp; full registry →</a>
-    <a class="btn ghost" href="/united/">Route optimizer →</a>
+    <a class="btn ghost" href="/united/fleet/">The hangar floor and full registry</a>
+    <a class="btn ghost" href="/united/">Route optimizer</a>
   </div>
 </header>
 
-<div class="credit"><span class="cb">DATA CREDIT</span><span class="cbody">Aircraft and tail numbers come
-from the equipped roster published by <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener"><b>unitedstarlinktracker.com</b></a>,
-the independent community tracker built by <b>@martinamps</b>, dated by each jet's install day. All credit
-for the data goes to them — visit for live per-tail status and much more ↗. WiFi Odds is unofficial and
-not affiliated with United Airlines, SpaceX/Starlink, or the tracker.</span></div>
+<div class="credit"><span class="cb">DATA CREDIT</span><span class="cbody">Aircraft and tail numbers
+come from the equipped roster published by <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener"><b>unitedstarlinktracker.com</b></a>,
+the independent community tracker built by <b>@martinamps</b>, dated by each jet's install day. All
+credit for the data goes to them. Visit for live per-tail status ↗. WiFi Odds is unofficial and not
+affiliated with United Airlines, SpaceX/Starlink, or the tracker.</span></div>
 
 <section class="blk">
-  <div class="sec-h"><h2>Day by day</h2><span class="sub"><span data-bake="united.equipped">481</span> of <span data-bake="united.total">1,808</span> equipped</span></div>
-  <div class="controls" id="filters"></div>
-  <div class="stat" id="stat">Loading…</div>
-  <div class="clog-days" id="hist"></div>
+  <div class="sec-h"><span class="sub">§1 · How to read a row</span><h2>What one day records</h2></div>
+  <p class="sec-lede">A row is one update day and it can carry up to four fields. Few days carry all
+  four. A day with none of them still gets its own row, because a week of quiet is a fact about the
+  rollout and hiding it would flatter the curve.</p>
+  <div class="kv kv-2">
+    <div><p class="micro">Planes added</p><span class="v">Type<small>Count by aircraft family, from that day's new tail records</small></span></div>
+    <div><p class="micro">Tail numbers</p><span class="v">Reg<small>The actual registrations, each tagged with its type</small></span></div>
+    <div><p class="micro">Routes gained</p><span class="v">Δ<small>Scheduled Starlink departures, against the previous snapshot</small></span></div>
+    <div><p class="micro">Odds moved</p><span class="v">Δ<small>Per-flight probability changes of five points or more</small></span></div>
+  </div>
+  <p class="src"><span class="cls">Reported</span> An install date here is the day a tail first
+  appears in the tracker's equipped roster. That is a publication date, so the aircraft may have
+  come out of the hangar a day or two before its row. The archive runs from
+  <b data-bake="united.first">Mar 14, 2025</b> to <b data-bake="site.updated">2026-07-25</b>.</p>
+</section>
+
+<section class="blk">
+  <div class="sec-h"><span class="sub">§2 · Why keep it</span><h2>What the archive is for</h2></div>
+  <p class="sec-lede">Two things, and both of them are arithmetic that only a long record can do.</p>
+  <div class="grid2">
+    <div class="card">
+      <h3>Pace, not promises</h3>
+      <p>Counting installs per week across the whole archive gives a rate, and a rate turns a fleet
+      count into a date. It also catches a programme that has stopped: three quiet weeks show up here
+      long before anybody issues a statement about them.</p>
+    </div>
+    <div class="card">
+      <h3>Priors for the next airline</h3>
+      <p>United is the only fleet with a per-flight route history, so it is the only place where the
+      shape of a Starlink rollout has been measured end to end. Every airline instrumented after it
+      starts from these numbers.</p>
+    </div>
+  </div>
+</section>
+
+<section class="blk">
+  <div class="sec-h"><span class="sub">§3 · The log</span><h2>Day by day</h2>
+    <span class="sub" style="position:static"><span data-bake="united.equipped">481</span> of
+    <span data-bake="united.total">1,808</span> equipped</span></div>
+  <div class="needs-js">
+    <div class="controls" id="filters"></div>
+    <p class="micro" id="stat">Loading the archive from data.json</p>
+    <div class="clog-days" id="hist"></div>
+  </div>
+  <div class="no-js-only">
+    <p class="note">The day log is built in the browser from
+    <a href="/united/data.json">united/data.json</a>, which is the same file the rest of this site is
+    baked from, so it needs JavaScript. Two prerendered pages carry the same material without it:
+    <a href="/united/fleet/">the full registry</a> lists every equipped tail with its type, and
+    <a href="/airlines/united/">the United score page</a> carries the fleet counts and the
+    ConnectScore arithmetic.</p>
+    <div class="cta-row">
+      <a class="btn ghost" href="/united/fleet/">Open the registry</a>
+      <a class="btn ghost" href="/united/data.json">Read data.json</a>
+    </div>
+  </div>
 </section>
 
 <footer>
   <div class="flinks"><a href="/airlines/">Airlines</a><a href="/race/">The Race</a><a href="/systems/">Systems</a><a href="/united/">United</a><a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a><a href="/methodology/">Methodology</a><a href="/api/docs/">API</a><a href="/privacy.html">Privacy</a><a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Open source ↗</a></div>
   <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> · <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> (independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>
-  <div class="frow"><b>No accounts, no analytics, no tracking</b> — on this site or in the extension. The only thing stored in your browser is your light/dark choice. See the <a href="/privacy.html">privacy policy</a>.</div>
-  <div class="frow">Data updated <b>2026-07-25</b>. ConnectScores and per-flight odds are historical estimates, not guarantees — aircraft assignments change until departure. WiFi Odds is an unofficial, free, open-source project. 🛰️</div>
+  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension. The only thing stored in your browser is your light/dark choice. See the <a href="/privacy.html">privacy policy</a>.</div>
+  <div class="frow">Data updated <b>2026-07-25</b>. ConnectScores and per-flight odds are historical estimates, not guarantees. Aircraft assignments change until departure. WiFi Odds is an unofficial, free, open-source project. 🛰️</div>
 </footer>
 </div>
 <script>
@@ -123,7 +203,7 @@ function build(){
   document.querySelectorAll(".f").forEach(el=>el.onclick=()=>{curFilter=el.dataset.f;render(allDates,addByDate,histByDate,latest,roster);});
 
   render(allDates,addByDate,histByDate,latest,roster);
-  $("stat").textContent=`${roster.length} equipped tails · ${allDates.length} update days · ${fmt(allDates[allDates.length-1])} → ${fmt(latest)}`;
+  $("stat").textContent=`${roster.length} equipped tails · ${allDates.length} update days · ${fmt(allDates[allDates.length-1])} to ${fmt(latest)}`;
 }
 
 function render(allDates,addByDate,histByDate,latest,roster){
@@ -162,12 +242,12 @@ function render(allDates,addByDate,histByDate,latest,roster){
     const body=rows.length?`<div class="cday-rows">${rows.map(([k,v])=>`<div class="crow"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("")}</div>`
       :`<div class="cday-steady">No new tails or route gains logged this day.</div>`;
     return `<div class="cday${date===latest?" today":""}"><div class="cday-top"><span class="cday-date">${fmt(date)}</span>${eqHtml}</div>${body}</div>`;
-  }).join("")||`<div class="cday-steady" style="padding:20px">No days match this filter.</div>`;
+  }).join("")||`<div class="cday-steady" style="padding:20px 0">No days match this filter.</div>`;
 }
 
 fetch(`../data.json?cb=${Date.now()}`,{cache:"no-store"})
   .then(r=>r.json()).then(d=>{DATA=d;build();})
-  .catch(e=>{$("stat").textContent="Couldn't load data.json: "+e;});
+  .catch(e=>{$("stat").textContent="Could not load data.json: "+e;});
 </script>
 <script src="/assets/site.js" defer></script>
 </body>

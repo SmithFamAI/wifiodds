@@ -1,422 +1,367 @@
 <!--@head-->
 <style>
-  /* ═══ RESKIN SCOPE FENCE — read before editing anything on this page ═══════
-     This page's ~1400 lines of app JS are live-tested. The 2.0 reskin was
-     deliberately limited to the SHELL: this :root block, the body gradients, the
-     header/nav, and the tags at the bottom of the file. NOTHING below in this
-     stylesheet was renamed, no id or class the JS touches was renamed, and no
-     <script> body was edited.
+  /* ═══ /united/ — THE PAGE-SCOPED SHEET · READ THE FENCE FIRST ══════════════
+     Below this block sit ~1,400 lines of live-tested app JS. No id and no class
+     that script touches has been renamed. What changed in the A′ re-skin is the
+     SKIN, and it changed in three ways:
 
-     The colour migration is done with ALIAS custom properties, not a
-     find-replace across 1400 lines: the old names below now point at the shared
-     tokens in /assets/site.css, so every existing rule on this page keeps
-     working AND follows the light/dark theme for free. If you need a colour
-     here, add an alias — do not sed the file. ══════════════════════════════ */
-  :root{
-    --united:var(--brand);
-    --united-deep:var(--brand-deep);
-    --card:var(--surface);
-    --card-edge:var(--edge);
-  }
-  *{margin:0;padding:0;box-sizing:border-box}
-  html{scroll-behavior:smooth;overflow-x:hidden}
-  body{
-    background:radial-gradient(1200px 700px at 75% -10%, var(--bg-glow-a) 0%, transparent 55%),
-               radial-gradient(900px 600px at 10% 110%, var(--bg-glow-b) 0%, transparent 60%),
-               var(--bg);
-    color:var(--ink);
-    font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
-    min-height:100vh; overflow-x:hidden;
-    -webkit-tap-highlight-color:transparent;
-  }
-  #stars{position:fixed;inset:0;z-index:-1;pointer-events:none}
-  .wrap{max-width:1060px;margin:0 auto;
-    padding:0 max(20px,env(safe-area-inset-right)) 0 max(20px,env(safe-area-inset-left))}
+     1. United's blue left the page chrome. The --united and --united-deep
+        aliases, the bright-blue button hover, the glow shadows and the sky-blue
+        starfield are all gone, canvas and script with them. Grep the built page
+        for United's three hex values and every hit you get should now be inside
+        the .plc drawing; a hit anywhere else is a regression. There is no house
+        hue any more.
+     2. Every shared component was DELETED from here so it inherits
+        /assets/site.css: .btn, .badge, .pill, .panel, .credit, .chip, .track,
+        footer, body type. If a rule below duplicates one over there, delete the
+        one below rather than tuning it.
+     3. What is left is the handful of layouts this page alone owns, all of them
+        hairline-ruled, square, flat, and with nothing that lifts on hover.
 
-  /* ── credit strip ───────────────────────── */
-  .credit{
-    display:flex;gap:12px;align-items:center;flex-wrap:wrap;
-    margin-top:16px;padding:13px 18px;border-radius:14px;text-decoration:none;
-    background:linear-gradient(90deg,rgba(14,165,233,.14),rgba(0,51,160,.18));
-    border:1px solid rgba(105,179,231,.35);color:var(--dim);font-size:14px;
-    transition:.2s;
-  }
-  .credit:hover{border-color:var(--sky);background:linear-gradient(90deg,rgba(14,165,233,.2),rgba(0,51,160,.26))}
-  .credit .cb{
-    flex:none;font-size:10.5px;font-weight:800;letter-spacing:1.2px;color:#0ea5e9;
-    border:1px solid rgba(14,165,233,.5);border-radius:99px;padding:4px 10px;background:rgba(14,165,233,.08);
-  }
-  .credit b{color:var(--sky-bright)}
+     United's blue survives in exactly ONE place: the .plc-* block further down
+     the body, which is a DRAWING of united.com and Navan. A picture of somebody
+     else's website has to look like their website. Nothing outside that drawing
+     is allowed to use it.
 
-  /* ── header ─────────────────────────────── */
-  header{padding:34px 0 8px}
-  .brand{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  .globe{
-    width:52px;height:52px;border-radius:12px;flex:none;
-    background:linear-gradient(135deg,var(--united) 0%,#0a4fd6 100%);
-    display:grid;place-items:center;box-shadow:0 0 24px rgba(10,79,214,.55);
-  }
-  .globe svg{width:32px;height:32px}
-  .brand h1{font-size:clamp(22px,4vw,34px);font-weight:800;letter-spacing:.5px}
-  .brand h1 .x{color:var(--faint);font-weight:300;padding:0 6px}
-  .brand h1 .sl{background:linear-gradient(90deg,#fff,var(--sky-bright));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-  .tagline{color:var(--dim);margin-top:6px;font-size:15px}
-  .satline{position:relative;height:26px;margin-top:14px;overflow:hidden}
-  .satpath{position:absolute;left:0;right:0;top:13px;border-top:1px dashed rgba(148,178,255,.22)}
-  .sat{position:absolute;top:1px;font-size:15px;animation:orbit 26s linear infinite}
-  @keyframes orbit{from{left:-4%}to{left:102%}}
+     THE ONE COLOUR RULE holds here too. The only coloured things on this page
+     are odds: the ring, the verdict tag and the confirmed-tail chip, and they
+     take the score-arc stops from site.css. Chrome is grey. ══════════════════ */
 
-  /* ── stat chips ─────────────────────────── */
-  .chips{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0 8px}
-  .chip{
-    background:var(--card);border:1px solid var(--card-edge);border-radius:14px;
-    padding:12px 18px;min-width:150px;flex:1;
-  }
-  .chip .n{font-size:24px;font-weight:800;font-family:var(--mono)}
-  .chip .l{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-top:2px}
-  .chip.glow .n{color:var(--sky-bright)}
+  /* ── header ─────────────────────────────────────────────────────────────── */
+  .ustat{margin-top:15px;max-width:80ch}
+  .ustat b{color:var(--ink);font-family:var(--mono)}
+  .ustat a{color:inherit}
 
-  /* ── section frame ──────────────────────── */
-  section{margin:38px 0}
-  .sec-h{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;flex-wrap:wrap}
-  .sec-h h2{font-size:21px;font-weight:800;letter-spacing:.3px}
-  .sec-h .sub{color:var(--faint);font-size:13px}
-
-  /* ── route picker ───────────────────────── */
-  .picker{
-    background:linear-gradient(135deg,rgba(0,51,160,.28),rgba(105,179,231,.07));
-    border:1px solid rgba(105,179,231,.25);border-radius:20px;padding:26px;
-  }
-  .picker-row{display:flex;gap:14px;align-items:end;flex-wrap:wrap}
-  .field{flex:1;min-width:180px}
-  .field label{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
-  .field input{
-    width:100%;padding:13px 14px;border-radius:12px;font-size:16px;font-weight:600;
-    background:var(--field-bg);color:var(--ink);border:1px solid var(--card-edge);
-    text-transform:uppercase;
-  }
-  .field input:focus{outline:none;border-color:var(--sky)}
-  .swap{
-    flex:none;width:48px;height:48px;border-radius:50%;border:1px solid var(--card-edge);
-    background:var(--card);color:var(--sky-bright);font-size:20px;cursor:pointer;transition:.2s;
-  }
-  .swap:hover{background:var(--united);color:#fff;transform:rotate(180deg)}
-  .route-strip{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .route-strip .rt{font-family:var(--mono);font-size:26px;font-weight:800;letter-spacing:2px}
-  .badge{font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:99px;border:1px solid}
-  .badge.live{color:var(--green);border-color:rgba(53,208,127,.4);background:rgba(53,208,127,.08)}
-  .badge.cachetag{color:var(--sky-bright);border-color:rgba(105,179,231,.4);background:rgba(105,179,231,.08)}
-  .badge.offline{color:var(--amber);border-color:rgba(255,176,32,.4);background:rgba(255,176,32,.08)}
-  .lb{margin-top:18px}
-  .lb .lbt{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
-  .lb-chips{display:flex;gap:8px;flex-wrap:wrap}
-  .lb-chip{
-    font-family:var(--mono);font-size:13px;padding:7px 12px;border-radius:99px;cursor:pointer;
-    background:var(--card);border:1px solid var(--card-edge);color:var(--dim);transition:.15s;
-  }
-  .lb-chip:hover{border-color:var(--sky);color:var(--sky-bright)}
-  .lb-chip b{color:var(--sky-bright)}
-
-  /* ── loading / status ───────────────────── */
-  .loadbar{display:none;align-items:center;gap:10px;color:var(--dim);font-size:14px;margin:14px 0}
-  .loadbar.on{display:flex}
-  .orb{width:14px;height:14px;border-radius:50%;border:2px solid rgba(142,205,255,.25);border-top-color:var(--sky-bright);animation:spin 1s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-
-  /* ── flight cards ───────────────────────── */
-  .meta-row{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 18px}
-  .meta-pill{font-size:13px;color:var(--dim);background:var(--card);border:1px solid var(--card-edge);border-radius:99px;padding:6px 14px}
-  .meta-pill b{color:var(--ink)}
-  .flights{display:grid;gap:12px}
-  .fcard{
-    display:grid;grid-template-columns:86px 1fr auto;gap:16px;align-items:center;
-    background:var(--card);border:1px solid var(--card-edge);border-radius:16px;padding:16px 18px;
-    transition:.2s;position:relative;
-  }
-  .fcard:hover{border-color:rgba(148,178,255,.35);transform:translateY(-1px)}
-  .fcard.best{
-    border-color:rgba(255,209,102,.55);
-    background:linear-gradient(135deg,rgba(255,209,102,.09),var(--card));
-    box-shadow:0 0 26px rgba(255,209,102,.12);
-  }
-  .fcard.avoid{opacity:.62}
-  .ring{position:relative;width:76px;height:76px}
-  .ring svg{transform:rotate(-90deg);width:100%;height:100%;display:block}
-  .ring .pct{
-    position:absolute;inset:0;display:grid;place-items:center;
-    font-family:var(--mono);font-weight:800;font-size:19px;
-  }
-  .fmain .fn{font-family:var(--mono);font-weight:800;font-size:19px;letter-spacing:1px}
-  .fmain .star{color:var(--gold)}
-  .fmain .meta{color:var(--dim);font-size:13.5px;margin-top:3px}
-  .fmain .note{color:var(--faint);font-size:12px;margin-top:4px;font-style:italic}
-  .fmain .conf-tail{display:inline-block;font-size:11.5px;color:var(--green);border:1px solid rgba(53,208,127,.35);border-radius:99px;padding:2px 9px;margin-top:6px}
-  .verdict{justify-self:end;text-align:right}
-  .v-tag{font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;padding:6px 13px;border-radius:99px;border:1px solid;white-space:nowrap}
-  .v-best{color:var(--gold);border-color:rgba(255,209,102,.5);background:rgba(255,209,102,.1)}
-  .v-good{color:var(--green);border-color:rgba(53,208,127,.4);background:rgba(53,208,127,.08)}
-  .v-ok{color:var(--blue);border-color:rgba(77,166,255,.4);background:rgba(77,166,255,.08)}
-  .v-risky{color:var(--amber);border-color:rgba(255,176,32,.4);background:rgba(255,176,32,.08)}
-  .v-avoid{color:var(--red);border-color:rgba(255,90,110,.4);background:rgba(255,90,110,.08)}
-  .verdict .conf{display:block;color:var(--faint);font-size:11.5px;margin-top:6px}
-  .empty-state{
-    background:var(--card);border:1px dashed rgba(255,176,32,.4);border-radius:16px;
-    padding:26px;text-align:center;color:var(--dim);
-  }
-  .empty-state .btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
-
-  /* ── itineraries (best routings) ────────── */
-  .itins{display:grid;gap:12px}
-  .icard{
-    background:var(--card);border:1px solid var(--card-edge);border-radius:16px;padding:16px 18px;
-  }
-  .icard.top{border-color:rgba(53,208,127,.45);background:linear-gradient(135deg,rgba(53,208,127,.07),var(--card))}
-  .icard .ihead{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .icard .rank{font-family:var(--mono);font-weight:800;color:var(--faint);font-size:14px}
-  .icard .chain{font-family:var(--mono);font-weight:800;font-size:17px;letter-spacing:1px}
-  .icard .jp{margin-left:auto;font-family:var(--mono);font-weight:800;font-size:20px;color:var(--green)}
-  .cov{font-size:10.5px;letter-spacing:1px;text-transform:uppercase;padding:3px 9px;border-radius:99px;border:1px solid}
-  .cov.full{color:var(--green);border-color:rgba(53,208,127,.4)}
-  .cov.partial{color:var(--amber);border-color:rgba(255,176,32,.4)}
-  .cov.direct{color:var(--sky-bright);border-color:rgba(105,179,231,.4)}
-  .icard .legs{margin-top:10px;display:grid;gap:5px}
-  .icard .leg{display:flex;gap:10px;font-size:13.5px;color:var(--dim);font-family:var(--mono)}
-  .icard .leg b{color:var(--ink)}
-  .icard .leg .lp{margin-left:auto;color:var(--sky-bright)}
-  .icard .isub{color:var(--faint);font-size:12.5px;margin-top:8px}
-
-  /* ── confirmed departures ───────────────── */
-  .confirmed-list{display:grid;gap:8px}
-  .dep{
-    display:flex;gap:12px;align-items:center;flex-wrap:wrap;
-    background:rgba(53,208,127,.06);border:1px solid rgba(53,208,127,.2);border-radius:12px;
-    padding:10px 14px;font-family:var(--mono);font-size:13.5px;
-  }
-  .dep b{color:var(--green)}
-  .dep .tail{color:var(--dim);margin-left:auto}
-
-  /* ── trip builder ───────────────────────── */
-  .trip{
-    background:linear-gradient(135deg,rgba(0,51,160,.32),rgba(4,8,22,.4));
-    border:1px solid rgba(105,179,231,.3);border-radius:20px;padding:24px;
-  }
-  .trip-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  @media(max-width:640px){.trip-grid{grid-template-columns:1fr}}
-  .trip-col label{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);display:block;margin-bottom:6px}
-  .trip-col select{width:100%;padding:11px 12px;border-radius:10px;background:#0a122e;color:var(--ink);border:1px solid var(--card-edge);font-size:16px}
-  .trip-out{display:flex;gap:26px;flex-wrap:wrap;margin-top:20px;align-items:center}
-  .trip-big{font-family:var(--mono)}
-  .trip-big .v{font-size:42px;font-weight:800;color:var(--sky-bright)}
-  .trip-big .l{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--dim)}
-
-  /* ── playbook ───────────────────────────── */
-  .steps{display:grid;gap:0;position:relative}
-  .step{display:grid;grid-template-columns:52px 1fr;gap:16px;padding:16px 0;position:relative}
-  .step:not(:last-child):before{
-    content:"";position:absolute;left:25px;top:60px;bottom:-8px;width:2px;
-    background:linear-gradient(rgba(105,179,231,.5),rgba(105,179,231,.08));
-  }
-  .step .dot{
-    width:52px;height:52px;border-radius:50%;background:var(--united-deep);
-    border:1px solid rgba(105,179,231,.4);display:grid;place-items:center;
-    font-family:var(--mono);font-weight:800;font-size:12px;color:var(--sky-bright);z-index:1;
-  }
-  .step h3{font-size:16.5px;margin-bottom:4px}
-  .step p{color:var(--dim);font-size:14.5px;max-width:70ch}
-  .step a{color:var(--sky-bright)}
-  .checkbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center}
-  .checkbar select,.checkbar input{
-    padding:9px 12px;border-radius:10px;background:#0a122e;color:var(--ink);
-    border:1px solid var(--card-edge);font-size:16px;font-family:var(--mono);
-  }
-  .btn{
-    display:inline-block;padding:10px 18px;border-radius:10px;font-weight:700;font-size:14px;
-    background:var(--united);color:#fff;text-decoration:none;border:none;cursor:pointer;transition:.2s;
-  }
-  .btn:hover{background:#0a4fd6;box-shadow:0 0 18px rgba(10,79,214,.5)}
-  .btn.ghost{background:transparent;border:1px solid var(--card-edge);color:var(--sky-bright)}
-  .btn.ghost:hover{border-color:var(--sky);box-shadow:none}
-
-  /* ── fleet ──────────────────────────────── */
-  .fleet-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
-  @media(max-width:760px){.fleet-grid{grid-template-columns:1fr}}
-  .panel{background:var(--card);border:1px solid var(--card-edge);border-radius:16px;padding:20px}
-  .panel h3{font-size:15px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:14px}
-  .tbar{margin-bottom:12px}
-  .tbar .tl{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:4px}
-  .tbar .tl .nm{font-weight:700}
-  .tbar .tl .val{font-family:var(--mono);color:var(--dim)}
-  .track{height:9px;background:rgba(148,178,255,.09);border-radius:99px;overflow:hidden}
-  .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--united),var(--sky));transition:width 1s ease}
-  .fill.hot{background:linear-gradient(90deg,#0a8a4d,var(--green))}
-  .fill.zero{background:rgba(255,90,110,.35)}
-  .pace{color:var(--dim);font-size:14px;margin-top:14px;border-top:1px solid var(--card-edge);padding-top:12px}
-  .pace b{color:var(--sky-bright)}
-  #spark{width:100%;height:120px}
-  .targets{margin-top:10px}
-  .targets li{color:var(--dim);font-size:13.5px;margin-left:18px;margin-top:4px}
-
-  .callout{
-    display:flex;gap:12px;align-items:flex-start;background:rgba(105,179,231,.07);
-    border-left:3px solid var(--sky);border-radius:0 12px 12px 0;padding:14px 16px;margin-top:16px;
-    color:var(--dim);font-size:14.5px;
-  }
-  /* ── daily updates / changelog ──────────── */
-  .clog{margin:22px 0 10px}
-  .clog-h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
-  .clog-h h2{font-size:20px;letter-spacing:.3px}
-  .clog-h .sub{color:var(--faint);font-size:13px}
-  .clog-days{display:grid;gap:12px}
-  .cday{
-    background:var(--card);border:1px solid var(--card-edge);border-radius:16px;
-    padding:16px 18px;
-  }
-  .cday.today{border-color:rgba(53,208,127,.4);background:rgba(53,208,127,.05)}
-  .cday-top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
-  .cday-date{font-family:var(--mono);font-weight:700;color:var(--ink);font-size:15px}
-  .cday-eq{font-family:var(--mono);font-size:13px;color:var(--dim)}
-  .cday-eq .up{color:var(--green);font-weight:700}
-  .cday-eq .flat{color:var(--faint)}
-  .cday-rows{display:grid;gap:8px;margin-top:8px}
-  .crow{display:flex;gap:10px;font-size:14px;align-items:flex-start;line-height:1.5}
-  .crow .k{color:var(--dim);flex:0 0 118px;font-size:12px;text-transform:uppercase;letter-spacing:.7px;padding-top:2px}
-  .crow .v{flex:1;color:var(--ink)}
-  .pill{
-    display:inline-block;font-family:var(--mono);font-size:12.5px;
-    padding:3px 9px;border-radius:99px;margin:2px 5px 2px 0;
-    background:rgba(105,179,231,.1);border:1px solid rgba(105,179,231,.28);color:var(--sky-bright);
-  }
-  .pill.add{background:rgba(53,208,127,.1);border-color:rgba(53,208,127,.35);color:var(--green)}
-  .pill.tail{background:rgba(148,178,255,.08);border-color:var(--card-edge);color:var(--dim)}
-  .cday-steady{color:var(--faint);font-size:13.5px;font-style:italic}
-  .clog-foot{color:var(--faint);font-size:12px;margin-top:12px;line-height:1.5}
-  .clog-foot a{color:var(--dim)}
-  /* ── quick nav ──────────────────────────── */
-  .qnav{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 2px}
-  .qnav a{font-size:13px;color:var(--dim);text-decoration:none;padding:6px 13px;border:1px solid var(--card-edge);border-radius:99px;background:var(--card);transition:.15s;white-space:nowrap}
-  .qnav a:hover{color:var(--sky-bright);border-color:var(--sky)}
-  .qnav a.cta{color:var(--sky-bright);border-color:rgba(105,179,231,.4);background:rgba(105,179,231,.1)}
+  /* ── quick nav: the same tab grammar as .topnav ─────────────────────────── */
+  .qnav{display:flex;flex-wrap:wrap;gap:0;margin:18px 0 2px}
+  .qnav a{font:700 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-2);text-decoration:none;padding:8px 11px;border:1px solid var(--rule);
+    margin:0 -1px -1px 0;white-space:nowrap}
+  .qnav a:hover{color:var(--ink);background:var(--bg-inset)}
+  .qnav a.cta{color:var(--ink);border-color:var(--rule-2)}
+  .qnav a.cta:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
   section[id]{scroll-margin-top:14px}
-  .clog-foot a.clog-more{display:inline-flex;align-items:center;gap:8px;margin-top:16px;font-size:14px;font-weight:700;letter-spacing:.2px;color:#fff;text-decoration:none;padding:11px 20px;border:1px solid rgba(105,179,231,.45);border-radius:11px;background:var(--united);box-shadow:0 3px 16px rgba(0,51,160,.4);transition:.15s}
-  .clog-foot a.clog-more:hover{background:#0a4fd6;border-color:var(--sky);box-shadow:0 5px 22px rgba(10,79,214,.55);transform:translateY(-1px)}
 
-  /* ── extension promo ────────────────────── */
-  .ext{background:linear-gradient(135deg,rgba(0,51,160,.28),rgba(4,8,22,.35));border:1px solid rgba(105,179,231,.28);border-radius:20px;padding:26px}
-  .ext-copy{max-width:70ch}
-  .ext-copy p{color:var(--dim);font-size:15.5px;line-height:1.6;margin-bottom:8px}
-  .ext-copy p b{color:var(--ink)}
-  .ext-badges{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 18px}
-  .ext-badges .b{font-family:var(--mono);font-size:12px;padding:4px 10px;border-radius:99px;border:1px solid var(--card-edge)}
-  .ext-badges .b.gold{color:var(--gold);border-color:rgba(255,209,102,.4)}
-  .ext-badges .b.green{color:var(--green);border-color:rgba(53,208,127,.4)}
-  .ext-badges .b.blue{color:var(--blue);border-color:rgba(77,166,255,.4)}
-  .ext-badges .b.red{color:var(--red);border-color:rgba(255,90,110,.4)}
-  .ext-badges .b.gray{color:var(--faint)}
-  .ext-cta{font-size:15px;padding:12px 22px}
-  .ext-meta{color:var(--faint);font-size:12.5px;margin-top:12px}
-  .ext-demo{margin-top:22px}
+  /* The chips grid, the .n and the .l all come from site.css. Only .glow differs,
+     and it differs by NOT taking a colour: these four cells carry no score band,
+     so the lead figure is ink like its neighbours. */
+  .chips:empty{display:none}
+  .chip.glow .n{color:var(--ink)}
 
-  /* ── "just released" extension hero (above the fold) ── */
-  .xhero{margin:18px 0 8px;background:linear-gradient(135deg,rgba(0,51,160,.36),rgba(4,8,22,.4));border:1px solid rgba(105,179,231,.32);border-radius:22px;padding:24px 26px;position:relative;overflow:hidden}
-  .xhero:before{content:"";position:absolute;inset:0;background:radial-gradient(700px 220px at 88% -10%,rgba(105,179,231,.16),transparent);pointer-events:none}
-  .xhero-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;position:relative}
-  .xnew{display:inline-flex;align-items:center;gap:7px;font-weight:800;font-size:12.5px;letter-spacing:.6px;text-transform:uppercase;color:#04122e;background:linear-gradient(90deg,var(--gold),#ffe9a8);padding:5px 13px;border-radius:99px;box-shadow:0 2px 14px rgba(255,209,102,.35)}
-  .xnew .dot{width:7px;height:7px;border-radius:50%;background:#04122e;animation:xpulse 1.8s ease-in-out infinite}
-  @keyframes xpulse{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
-  .xver{font-family:var(--mono);font-size:12px;color:var(--dim)}
-  .xhero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:26px;align-items:center;position:relative}
+  /* ── route picker: one control, butted together ────────────────────────── */
+  .picker{background:var(--bg-panel);border:1px solid var(--rule);padding:20px}
+  .picker-row{display:flex;gap:0;align-items:flex-end;flex-wrap:wrap}
+  .field{flex:1 1 180px;min-width:0}
+  .field label{display:block;font:700 10px/1.4 var(--mono);letter-spacing:.155em;
+    text-transform:uppercase;color:var(--ink-3);margin-bottom:8px}
+  .field input{width:100%;padding:13px 14px;border-radius:0;font:700 17px/1 var(--mono);
+    letter-spacing:.12em;text-transform:uppercase;background:var(--bg-inset);color:var(--ink);
+    border:1px solid var(--rule-2);-webkit-appearance:none;appearance:none}
+  .field input:focus{outline:none;border-color:var(--ink-2)}
+  .swap{flex:none;width:46px;height:46px;border-radius:0;border:1px solid var(--rule-2);
+    background:var(--bg-inset);color:var(--ink-2);font-size:17px;line-height:1;cursor:pointer;
+    margin:0 -1px}
+  .swap:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .route-strip{margin-top:16px;padding-top:14px;border-top:1px solid var(--rule);
+    display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .route-strip .rt{font-family:var(--mono);font-size:24px;font-weight:700;letter-spacing:.1em;
+    color:var(--ink)}
+  .lb{margin-top:16px}
+  .lb .lbt{font:700 10px/1.4 var(--mono);letter-spacing:.155em;text-transform:uppercase;
+    color:var(--ink-3);margin-bottom:9px}
+  .lb-chips{display:flex;gap:0;flex-wrap:wrap}
+  .lb-chip{font-family:var(--mono);font-size:12.5px;padding:7px 11px;cursor:pointer;
+    background:transparent;border:1px solid var(--rule);color:var(--ink-2);margin:0 -1px -1px 0}
+  .lb-chip:hover{color:var(--ink);background:var(--bg-inset);border-color:var(--rule-2)}
+  .lb-chip b{color:var(--ink)}
+
+  /* ── loading ───────────────────────────────────────────────────────────── */
+  .loadbar{display:none;align-items:center;gap:10px;color:var(--ink-2);margin:16px 0;
+    font:700 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase}
+  .loadbar.on{display:flex}
+  .orb{width:9px;height:9px;background:var(--ink-2);flex:none}
+  html.anim .orb{animation:uoblink 1s steps(2,end) infinite}
+  @keyframes uoblink{50%{opacity:.2}}
+
+  /* ── the ranked flights ────────────────────────────────────────────────── */
+  .meta-row{display:flex;gap:0;flex-wrap:wrap;margin:14px 0 16px}
+  .meta-row:empty{display:none}
+  .meta-pill{font-size:13px;color:var(--ink-2);background:var(--bg-panel);
+    border:1px solid var(--rule);padding:9px 14px;margin:0 -1px -1px 0}
+  .meta-pill b{color:var(--ink)}
+  .meta-pill .k{font:700 9px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ink-3);margin-right:8px}
+  .flights{display:grid;gap:0;border-top:1px solid var(--rule-2)}
+  .flights:empty{display:none}
+  /* a flight is a record, so it is a ruled row with a tick in the margin, not a
+     card. The best row is marked by weight, never by a second hue. */
+  .fcard{display:grid;grid-template-columns:72px 1fr auto;gap:16px;align-items:center;
+    background:transparent;border:0;border-bottom:1px solid var(--rule);
+    padding:14px 0 14px 12px;position:relative}
+  .fcard:before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:1px;
+    background:var(--rule)}
+  .fcard.best{background:var(--bg-panel)}
+  .fcard.best:before{width:3px;background:var(--ink-2)}
+  .fcard.avoid{opacity:.66}
+  .ring{position:relative;width:72px;height:72px}
+  .ring svg{transform:rotate(-90deg);width:100%;height:100%;display:block}
+  .ring .pct{position:absolute;inset:0;display:grid;place-items:center;
+    font-family:var(--mono);font-weight:700;font-size:18px;letter-spacing:-.02em}
+  .fmain .fn{font-family:var(--mono);font-weight:700;font-size:18px;letter-spacing:.06em;
+    color:var(--ink)}
+  .fmain .meta{color:var(--ink-2);font-size:13px;margin-top:4px}
+  .fmain .note{color:var(--ink-3);font-size:12px;margin-top:4px}
+  .fmain .conf-tail{display:inline-block;font:700 9px/1.35 var(--mono);letter-spacing:.12em;
+    text-transform:uppercase;color:var(--good);border:1px solid var(--good);padding:4px 6px;
+    margin-top:8px}
+  .verdict{justify-self:end;text-align:right}
+  /* the verdict IS the score band, which is why it is allowed the colour. The
+     five stops are site.css's arc, so a tag and a ring never disagree. */
+  .v-tag{font:700 9.5px/1.35 var(--mono);letter-spacing:.13em;text-transform:uppercase;
+    padding:5px 8px;border:1px solid;white-space:nowrap;display:inline-block}
+  .v-best{color:var(--good);border-color:var(--good)}
+  .v-good{color:var(--s-good);border-color:var(--s-good)}
+  .v-ok{color:var(--s-mix);border-color:var(--s-mix)}
+  .v-risky{color:var(--s-long);border-color:var(--s-long)}
+  .v-avoid{color:var(--s-rare);border-color:var(--s-rare)}
+  .verdict .conf{display:block;font:700 9px/1 var(--mono);letter-spacing:.13em;
+    text-transform:uppercase;color:var(--ink-3);margin-top:9px}
+  .verdict .conf a{text-decoration:none}
+  .empty-state{background:var(--bg-panel);border:1px dashed var(--rule-2);padding:20px;
+    color:var(--ink-2);font-size:14px}
+  .empty-state .k{font:700 9.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-3);display:block;margin-bottom:9px}
+  .empty-state .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+
+  /* ── best routings ─────────────────────────────────────────────────────── */
+  .itins{display:grid;gap:0;border-top:1px solid var(--rule-2)}
+  .icard{background:transparent;border:0;border-bottom:1px solid var(--rule);
+    padding:14px 0 14px 12px;position:relative}
+  .icard:before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:1px;
+    background:var(--rule)}
+  .icard.top{background:var(--bg-panel)}
+  .icard.top:before{width:3px;background:var(--ink-2)}
+  .icard .ihead{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .icard .rank{font-family:var(--mono);font-weight:700;color:var(--ink-3);font-size:12px}
+  .icard .chain{font-family:var(--mono);font-weight:700;font-size:16px;letter-spacing:.08em;
+    color:var(--ink)}
+  .icard .jp{margin-left:auto;font-family:var(--mono);font-weight:700;font-size:19px;
+    color:var(--ink);letter-spacing:-.02em}
+  /* coverage is a CATEGORY, not a score: monochrome, separated by border style */
+  .cov{font:700 9px/1.35 var(--mono);letter-spacing:.13em;text-transform:uppercase;
+    padding:4px 6px;border:1px solid var(--rule-2);color:var(--ink-3);white-space:nowrap}
+  .cov.full{color:var(--ink);border-color:var(--ink-2)}
+  .cov.partial{border-style:dashed}
+  .cov.direct{color:var(--ink-2)}
+  .icard .legs{margin-top:10px;display:grid;gap:0}
+  .icard .leg{display:flex;gap:10px;font-size:13px;color:var(--ink-2);font-family:var(--mono);
+    padding:6px 0;border-top:1px solid var(--rule)}
+  .icard .leg b{color:var(--ink)}
+  .icard .leg .lp{margin-left:auto}
+  .icard .isub{color:var(--ink-3);font-size:12.5px;margin-top:9px}
+
+  /* ── confirmed departures ──────────────────────────────────────────────── */
+  .confirmed-list{display:grid;gap:0;border-top:1px solid var(--rule-2)}
+  .dep{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:transparent;
+    border:0;border-bottom:1px solid var(--rule);padding:10px 0;
+    font-family:var(--mono);font-size:13px;color:var(--ink-2)}
+  .dep b{color:var(--good)}
+  .dep .tail{color:var(--ink-3);margin-left:auto}
+
+  /* ── round-trip builder ────────────────────────────────────────────────── */
+  .trip{background:var(--bg-panel);border:1px solid var(--rule);padding:20px}
+  .trip-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:640px){.trip-grid{grid-template-columns:1fr}}
+  .trip-col label{display:block;font:700 10px/1.4 var(--mono);letter-spacing:.155em;
+    text-transform:uppercase;color:var(--ink-3);margin-bottom:8px}
+  .trip-col select{width:100%;padding:11px 12px;border-radius:0;background:var(--bg-inset);
+    color:var(--ink);border:1px solid var(--rule-2);font-size:15px;font-family:var(--mono)}
+  .trip-out{display:flex;gap:1px;flex-wrap:wrap;margin-top:18px;background:var(--rule);
+    border:1px solid var(--rule)}
+  .trip-big{background:var(--bg-panel);padding:14px 16px;flex:1 1 150px}
+  .trip-big .v{font-family:var(--mono);font-size:32px;font-weight:700;line-height:1;
+    color:var(--ink);letter-spacing:-.02em}
+  .trip-big .l{font:700 9.5px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-3);margin-top:8px}
+  .trip-note{background:var(--bg-panel);padding:14px 16px;flex:2 1 250px;
+    color:var(--ink-2);font-size:13px}
+
+  /* ── the playbook ──────────────────────────────────────────────────────── */
+  .steps{display:grid;gap:0;border-top:1px solid var(--rule-2)}
+  .step{display:grid;grid-template-columns:70px 1fr;gap:18px;padding:16px 0;
+    border-bottom:1px solid var(--rule)}
+  .step .dot{width:70px;height:26px;border:1px solid var(--rule-2);display:grid;place-items:center;
+    font:700 9px/1 var(--mono);letter-spacing:.12em;color:var(--ink-2)}
+  .step h3{font-size:16px;margin-bottom:5px}
+  .step p{color:var(--ink-2);font-size:14px;max-width:74ch}
+  .step p b{color:var(--ink)}
+  .step a{color:inherit}
+  .checkbar{display:flex;gap:0;flex-wrap:wrap;margin-top:12px;align-items:stretch}
+  .checkbar select,.checkbar input{padding:11px 12px;border-radius:0;background:var(--bg-inset);
+    color:var(--ink);border:1px solid var(--rule-2);font-size:15px;font-family:var(--mono);
+    margin:0 -1px 0 0}
+  .checkbar .btn{margin-left:0}
+
+  /* ── fleet pulse ───────────────────────────────────────────────────────── */
+  .fleet-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);
+    border:1px solid var(--rule)}
+  @media(max-width:760px){.fleet-grid{grid-template-columns:1fr}}
+  .fleet-grid .panel{border:0}
+  .fleet-grid .wide{grid-column:1/-1}
+  .panel h3{font:700 10px/1.4 var(--mono);letter-spacing:.155em;text-transform:uppercase;
+    color:var(--ink-3);margin-bottom:14px}
+  .tbar{margin-bottom:12px}
+  .tbar .tl{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin-bottom:5px}
+  .tbar .tl .nm{font-weight:700;color:var(--ink)}
+  .tbar .tl .val{font-family:var(--mono);color:var(--ink-2)}
+  /* site.css wraps its own fill selector in :where() so these win. The app JS
+     sets the width inline; all that is set here is the ink. */
+  .track .fill{background:var(--ink-2)}
+  .track .fill.hot{background:var(--good)}
+  .track .fill.zero{background:var(--rule-2)}
+  .pace{color:var(--ink-2);font-size:13.5px;margin-top:14px;padding-top:12px;
+    border-top:1px solid var(--rule)}
+  .pace b{color:var(--ink);font-family:var(--mono)}
+  #spark{width:100%;height:120px}
+  .spark-note{font-size:12.5px;color:var(--ink-3);margin-top:8px}
+  /* .targets, not .tgts — site.css scopes its own bullet to .tgts precisely so
+     that it cannot give these items a second marker. */
+  .targets{margin-top:12px;list-style:none}
+  .targets li{color:var(--ink-2);font-size:13px;padding:7px 0 7px 22px;position:relative;
+    border-top:1px solid var(--rule)}
+  .targets li:before{content:"";position:absolute;left:2px;top:14px;width:7px;height:7px;
+    background:var(--ink-3)}
+
+  /* ── the route note ────────────────────────────────────────────────────── */
+  .callout{display:flex;gap:12px;align-items:flex-start;background:var(--bg-panel);
+    border:1px solid var(--rule);border-left:3px solid var(--rule-2);border-radius:0;
+    padding:13px 16px;margin-top:16px;color:var(--ink-2);font-size:13.5px}
+  .callout .k{flex:none;font:700 9px/1.5 var(--mono);letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ink-3)}
+
+  /* ── daily updates ─────────────────────────────────────────────────────── */
+  .clog{margin:38px 0 10px;border-top:1px solid var(--rule-2);padding-top:30px;position:relative}
+  .clog-h{display:flex;align-items:baseline;gap:8px 16px;flex-wrap:wrap;margin-bottom:12px}
+  .clog-h h2{font-size:22px;font-weight:700;letter-spacing:-.005em}
+  .clog-h .sub{font:700 10px/1.4 var(--mono);letter-spacing:.155em;text-transform:uppercase;
+    color:var(--ink-3)}
+  .clog-h .sub.tab{position:absolute;top:-7px;left:0;background:var(--bg);padding-right:13px}
+  .clog-days{display:grid;gap:0;border-top:1px solid var(--rule-2)}
+  .cday{background:transparent;border:0;border-bottom:1px solid var(--rule);
+    padding:14px 0 14px 12px;position:relative}
+  .cday:before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:1px;
+    background:var(--rule)}
+  .cday.today{background:var(--bg-panel)}
+  .cday.today:before{width:3px;background:var(--ink-2)}
+  .cday-top{display:flex;align-items:baseline;gap:8px 14px;flex-wrap:wrap;margin-bottom:4px}
+  .cday-date{font-family:var(--mono);font-weight:700;font-size:14.5px;color:var(--ink)}
+  .cday-eq{font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
+  .cday-eq .up{color:var(--good);font-weight:700}
+  .cday-eq .flat{color:var(--ink-3)}
+  .cday-rows{display:grid;gap:0;margin-top:8px;border-top:1px solid var(--rule)}
+  .crow{display:flex;gap:12px;font-size:13.5px;align-items:flex-start;line-height:1.5;
+    padding:8px 0;border-bottom:1px solid var(--rule)}
+  .crow:last-child{border-bottom:0}
+  .crow .k{flex:0 0 120px;font:700 9.5px/1.6 var(--mono);letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-3);padding-top:3px}
+  .crow .v{flex:1;min-width:0}
+  .cday-steady{color:var(--ink-3);font-size:13px;font-family:var(--mono);letter-spacing:.03em}
+  .clog-foot{color:var(--ink-3);font-size:12.5px;margin-top:14px;line-height:1.6}
+  .clog-foot a{color:var(--ink-2)}
+  .clog-foot a.clog-more{display:inline-flex;align-items:center;gap:8px;margin-top:14px;
+    font:700 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink);
+    text-decoration:none;padding:11px 16px;border:1px solid var(--rule-2)}
+  .clog-foot a.clog-more:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+  /* ── the extension block ───────────────────────────────────────────────── */
+  .xhero{margin:22px 0 8px;background:var(--bg-panel);border:1px solid var(--rule);padding:22px}
+  .xhero-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;
+    padding-bottom:12px;border-bottom:1px solid var(--rule)}
+  .xnew{font:700 9.5px/1 var(--mono);letter-spacing:.15em;text-transform:uppercase;
+    color:var(--ink);border:1px solid var(--ink-2);padding:6px 9px}
+  .xver{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);letter-spacing:.06em}
+  .xhero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:24px;
+    align-items:center}
   @media(max-width:820px){.xhero-grid{grid-template-columns:1fr;gap:18px}}
-  .xhero-copy h2{font-size:24px;line-height:1.25;letter-spacing:.2px;margin-bottom:10px}
-  .xhero-copy h2 em{color:var(--sky-bright);font-style:normal}
-  .xhero-copy p{color:var(--dim);font-size:15px;line-height:1.6;margin-bottom:14px;max-width:52ch}
-  .xhero-cta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:16px 0 12px}
-  .xbtn{font-size:15.5px;font-weight:800;padding:13px 24px;border-radius:12px;box-shadow:0 4px 18px rgba(10,79,214,.45)}
-  .xbtn:hover{transform:translateY(-1px)}
-  .xhero-cta .xlink{color:var(--sky-bright);font-size:14px;font-weight:600;text-decoration:none}
-  .xhero-cta .xlink:hover{text-decoration:underline}
-  .xhero-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-  .xhero-links a{font-size:12.5px;color:var(--dim);text-decoration:none;padding:6px 12px;border:1px solid var(--card-edge);border-radius:99px;background:rgba(148,178,255,.05);transition:.15s}
-  .xhero-links a:hover{color:var(--sky-bright);border-color:var(--sky)}
+  .xhero-copy h2{font-size:22px;line-height:1.24;letter-spacing:-.012em;margin-bottom:10px}
+  .xhero-copy p{color:var(--ink-2);font-size:14.5px;margin-bottom:14px;max-width:54ch}
+  .xbands{display:flex;flex-wrap:wrap;gap:0;margin:14px 0 18px}
+  .xbands .b{font:700 9.5px/1.35 var(--mono);letter-spacing:.1em;text-transform:uppercase;
+    padding:5px 8px;border:1px solid var(--rule);color:var(--ink-2);margin:0 -1px -1px 0;
+    white-space:nowrap}
+  .xhero-cta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:16px 0 12px}
+  .xhero-cta .xlink{font:700 10px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ink-2);text-decoration:none}
+  .xhero-cta .xlink:hover{color:var(--ink)}
+  .xhero-links{display:flex;flex-wrap:wrap;gap:0;margin-top:12px}
+  .xhero-links a{font:700 9.5px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ink-2);text-decoration:none;padding:9px 10px;border:1px solid var(--rule);
+    margin:0 -1px -1px 0}
+  .xhero-links a:hover{color:var(--ink);background:var(--bg-inset)}
   .xhero-demo{min-width:0}
-  .xcredit{margin-top:16px;font-size:12.5px;color:var(--faint);position:relative}
-  .xcredit a{color:var(--dim)}
+  .xcredit{margin-top:16px;padding-top:13px;border-top:1px solid var(--rule);
+    font-size:12.5px;color:var(--ink-3)}
+  .xcredit a{color:var(--ink-2)}
 
-  footer{margin:60px 0 40px;border-top:1px solid var(--card-edge);padding-top:22px;color:var(--faint);font-size:13.5px}
-  footer a{color:var(--dim)}
-  .updated{font-family:var(--mono);color:var(--sky-bright)}
+  .updated{font-family:var(--mono);color:var(--ink)}
   .hidden{display:none!important}
-  html{scroll-behavior:smooth}
 
-  /* ── mobile ─────────────────────────────── */
+  /* ── responsive, down to 390px ─────────────────────────────────────────── */
   @media(max-width:620px){
-    header{padding-top:24px}
-    .picker{padding:18px}
-    .picker-row{flex-direction:column;align-items:stretch;gap:10px}
+    .picker{padding:16px}
+    .picker-row{flex-direction:column;align-items:stretch;gap:0}
     .field{min-width:0}
-    .swap{align-self:center;transform:rotate(90deg)}
-    .swap:hover{transform:rotate(90deg)}
-    .route-strip .rt{font-size:21px;letter-spacing:1px}
-    .fcard{grid-template-columns:60px 1fr;gap:12px;padding:14px}
+    .swap{align-self:flex-start;margin:9px 0;transform:rotate(90deg)}
+    .route-strip .rt{font-size:20px;letter-spacing:.06em}
+    .fcard{grid-template-columns:60px 1fr;gap:12px}
     .ring{width:60px;height:60px}
     .ring .pct{font-size:15px}
-    .fmain .fn{font-size:17px}
-    .fmain .meta{font-size:13px}
-    .verdict{
-      grid-column:1/-1;justify-self:stretch;text-align:left;
-      display:flex;align-items:center;justify-content:space-between;gap:10px;
-      border-top:1px solid var(--card-edge);padding-top:10px;
-    }
+    .fmain .fn{font-size:16px}
+    .verdict{grid-column:1/-1;justify-self:stretch;text-align:left;display:flex;
+      align-items:center;justify-content:space-between;gap:10px;
+      border-top:1px solid var(--rule);padding-top:10px}
     .verdict .conf{margin-top:0}
-    .icard .chain{font-size:14.5px}
+    .icard .chain{font-size:14px}
     .icard .jp{font-size:17px}
-    .trip{padding:18px}
-    .trip-big .v{font-size:32px}
-    .step{grid-template-columns:40px 1fr;gap:12px}
-    .step .dot{width:40px;height:40px;font-size:10px}
-    .step:not(:last-child):before{left:19px;top:48px}
-    .btn{padding:12px 18px}
-    .checkbar{width:100%}
-    .checkbar select,.checkbar input{flex:1;min-width:130px}
-    .checkbar .btn{flex-basis:100%;text-align:center}
-    .panel{padding:16px}
+    .trip{padding:16px}
+    .trip-big .v{font-size:27px}
+    .step{grid-template-columns:1fr;gap:9px}
+    .checkbar select,.checkbar input{flex:1 1 130px;min-width:0}
+    .checkbar .btn{flex:1 0 100%;justify-content:center;margin-top:-1px}
+    .xhero{padding:16px}
   }
-  @media(prefers-reduced-motion:reduce){
-    .sat{animation:none}
-    .orb{animation:none}
-    .swap,.fcard,.fill{transition:none}
-    html{scroll-behavior:auto}
+  @media(max-width:430px){
+    .clog-h h2{font-size:19px}
+    .lb-chip{font-size:11.5px;padding:6px 9px}
+    .crow{flex-direction:column;gap:2px}
+    .crow .k{flex:none}
   }
 </style>
-<!--@prewrap-->
-<canvas id="stars"></canvas>
 <!--@body-->
-<header>
-  <div class="brand">
-    <div class="globe" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6">
-        <circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="9" ry="3.6"/>
-        <path d="M12 3a17 17 0 0 1 0 18M12 3a17 17 0 0 0 0 18"/>
-      </svg>
-    </div>
-    <div>
-      <h1>WiFi Odds<span class="x">·</span><span class="sl">UNITED</span> Route Optimizer</h1>
-      <div class="tagline">Any United route: every flight ranked by live Starlink odds, the smartest routings, and a booking playbook.</div>
-    </div>
-  </div>
-  <a class="credit" href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">
-    <span class="cb">DATA &amp; INSPIRATION</span>
-    <span>Powered by <b>UnitedStarlinkTracker.com</b> — the independent community tracker (by
-    <b>@martinamps</b>) that verifies every United tail against united.com. This page is a companion
-    built on their work; visit them for live per-tail status, the full route planner, and much more ↗</span>
-  </a>
-  <div class="satline"><div class="satpath"></div><div class="sat">🛰️</div></div>
-  <p class="tagline" style="margin-top:10px"><b data-bake="united.equipped">481</b> of
+<header class="hero">
+  <p class="micro">United · Route optimizer</p>
+  <h1 class="ph">Every United flight on your route, ranked by Starlink odds</h1>
+  <p class="lede">Give it a city pair. The page ranks each flight number by how often that departure
+  has drawn a Starlink-equipped tail, scores the connections against the non-stops, lists the tails
+  already assigned for the next 72 hours, and ends with the four moves that turn a coin flip into a
+  booking.</p>
+  <p class="note ustat"><b data-bake="united.equipped">481</b> of
   <b data-bake="united.total">1,808</b> United aircraft carry Starlink as of
-  <b data-bake="site.updated">2026-07-24</b> — baked into this page at build time, so it is true even
-  before the live sections below load. <a href="/united/fleet/">See every equipped tail →</a></p>
+  <b data-bake="site.updated">2026-07-24</b>. That line is baked in at build time, so it is right
+  before any of the live sections below have loaded.
+  <a href="/united/fleet/">See every equipped tail</a>.</p>
 </header>
 
-<div class="chips" id="chips"></div>
+<a class="credit" href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">
+  <span class="cb">DATA CREDIT</span>
+  <span class="cbody">Route-level odds and tail records come from <b>unitedstarlinktracker.com</b>,
+  the independent community tracker built by <b>@martinamps</b>, which checks every United tail
+  against united.com. This page is a companion built on their work. Visit them for live per-tail
+  status and the full route planner ↗. WiFi Odds is unofficial and not affiliated with United
+  Airlines, SpaceX/Starlink, or the tracker.</span>
+</a>
+
+<div class="needs-js"><div class="chips" id="chips"></div></div>
 
 <nav class="qnav" aria-label="Jump to section">
   <a href="#changelog-sec">Daily updates</a>
@@ -424,69 +369,87 @@
   <a href="#trip-sec">Trip planner</a>
   <a href="#fleet">Fleet pulse</a>
   <a href="/united/fleet/">Hangar floor ↗</a>
-  <a class="cta" href="#plugin">Get the extension ↗</a>
+  <a class="cta" href="#plugin">Get the extension</a>
 </nav>
 
-<!-- JUST RELEASED: CHROME EXTENSION (above the fold) -->
+<div class="no-js-only">
+  <div class="caveat">The optimizer queries the tracker as you type, so it needs JavaScript. Three
+  prerendered pages carry the same underlying data without it:
+  <a href="/united/fleet/">the hangar floor and full registry</a>,
+  <a href="/united/history/">the day-by-day install archive</a>, and
+  <a href="/airlines/united/">the United score page</a> with the ConnectScore arithmetic on it.</div>
+</div>
+
+<!-- THE CHROME EXTENSION, above the fold -->
 <section id="plugin" class="xhero">
   <div class="xhero-top">
-    <span class="xnew"><span class="dot"></span>Just released</span>
-    <span class="xver">Chrome extension · now on united.com &amp; Navan</span>
+    <span class="xnew">In the store now</span>
+    <span class="xver">Chrome extension · v1.5.1 · united.com and Navan</span>
   </div>
   <div class="xhero-grid">
     <div class="xhero-copy">
-      <h2>See every flight's Starlink WiFi odds while you book — on united.com <em>and</em> Navan.</h2>
-      <p>Color-coded odds badges on every United flight, one-click <em>(or fully automatic)</em> sort by odds,
-      a live route panel, and it's round-trip aware. Free — no accounts, no analytics, no tracking.</p>
-      <div class="ext-badges">
-        <span class="b gold">gold ≥50%</span><span class="b green">green ≥35%</span>
-        <span class="b blue">blue ≥20%</span><span class="b red">red &lt;20%</span>
-        <span class="b gray">gray n/a</span>
+      <h2>The same odds, on the page you are already booking from</h2>
+      <p>Every United result picks up an odds badge. One click sorts the whole page by them and
+      leaves the prices and times where they were, and the route panel flips itself for the return
+      leg. It works on united.com and on app.navan.com. Free, with no account, no analytics and no
+      tracking.</p>
+      <div class="xbands">
+        <span class="b">50%+ best</span><span class="b">35%+ good</span><span class="b">20%+ fair</span><span class="b">Under 20% unlikely</span><span class="b">No history</span>
       </div>
       <div class="xhero-cta">
-        <a class="btn xbtn" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Add to Chrome — free ↗</a>
-        <a class="xlink" href="#route">or try the route optimizer ↓</a>
+        <a class="btn" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Add to Chrome, free ↗</a>
+        <a class="xlink" href="#route">Or try the route optimizer</a>
       </div>
       <div class="xhero-links">
-        <a href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec/reviews" target="_blank" rel="noopener">★ Leave a review</a>
-        <a href="https://github.com/jeremyinthebay/united-starlink-companion/issues/new" target="_blank" rel="noopener">🐛 Feedback / request a feature</a>
-        <a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">⚙ Contribute — it's open source ↗</a>
+        <a href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec/reviews" target="_blank" rel="noopener">Leave a review ↗</a>
+        <a href="https://github.com/jeremyinthebay/united-starlink-companion/issues/new" target="_blank" rel="noopener">Report a bug ↗</a>
+        <a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Read the source ↗</a>
       </div>
     </div>
     <div class="xhero-demo">
-<section class="plc" aria-roledescription="carousel" aria-label="How Starlink Odds for United Flights works" tabindex="0">
+<section class="plc" aria-roledescription="carousel" aria-label="How the WiFi Odds extension works" tabindex="0">
 <style>
-/* ═══ Starlink Odds — "how it works" carousel · all selectors scoped under .plc ═══ */
+/* ═══ THE DRAWING · every selector scoped under .plc ═══════════════════════════
+   This is a picture of united.com and of Navan with the extension running in
+   them, drawn in CSS. It is the one place on this site where United's blue is
+   correct, because a drawing of somebody's website has to look like their
+   website, and it is why the A′ re-skin stopped at the frame. Everything OUTSIDE
+   the .plc-viewport is plate: square, hairline, unglazed. Everything inside is
+   somebody else's UI and stays as it is.
+
+   Do not lift a colour out of this block for use elsewhere on the page. ═════ */
 .plc{
   --united:#0033A0;--united-deep:#001A57;--sky:#69B3E7;--sky-bright:#8ecdff;
   --ink:#e8eefb;--dim:#93a1c0;--faint:#5c688a;--bg:#040816;
   --card:rgba(148,178,255,.055);--card-edge:rgba(148,178,255,.14);
   --gold:#ffd166;--green:#35d07f;--blue:#4da6ff;--red:#ff5a6e;
-  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  /* B612 Mono, like every other numeral on the site. The drawing keeps a system
+     sans for the emulated UI, because that is what those sites look like. */
+  --mono:"B612 Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   display:block;max-width:920px;margin:0 auto;color:var(--ink);
   font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;outline:none;
 }
 .plc *,.plc *::before,.plc *::after{margin:0;padding:0;box-sizing:border-box;font-family:inherit}
-.plc:focus-visible{outline:2px solid var(--sky);outline-offset:6px;border-radius:18px}
+.plc:focus-visible{outline:2px solid var(--sky);outline-offset:6px}
 
-/* ── header row ── */
-.plc-head{display:flex;align-items:center;gap:13px;margin-bottom:15px;flex-wrap:wrap}
-.plc-mark{position:relative;width:34px;height:34px;flex:0 0 34px}
-.plc-mark .plc-orbit{position:absolute;inset:0;border:1.5px solid rgba(142,205,255,.45);border-radius:50%;transform:rotate(-24deg) scaleY(.62)}
-.plc-mark .plc-planet{position:absolute;left:9px;top:9px;width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 32% 30%,#8ecdff,#0033A0 72%)}
-.plc-mark .plc-sat{position:absolute;right:-1px;top:5px;width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px 2px rgba(255,209,102,.55)}
-.plc-titles h2{font-size:18px;font-weight:800;letter-spacing:-.01em;color:var(--ink)}
-.plc-titles p{font-size:12px;color:var(--dim);margin-top:1px}
-.plc-ver{font-family:var(--mono);font-size:10px;color:var(--sky);border:1px solid var(--card-edge);background:var(--card);border-radius:999px;padding:1px 7px;margin-left:5px;letter-spacing:.03em}
-.plc-sitetab{margin-left:auto;display:flex;gap:2px;background:var(--card);border:1px solid var(--card-edge);border-radius:999px;padding:3px}
-.plc-site{font-size:11.5px;font-weight:600;color:var(--faint);padding:5px 14px;border-radius:999px;transition:color .45s ease,background .45s ease,box-shadow .45s ease;white-space:nowrap}
-.plc-site.on{color:#fff;background:linear-gradient(180deg,#13296b,#0a1a4a);box-shadow:inset 0 1px 0 rgba(142,205,255,.25),0 2px 8px rgba(3,10,40,.4)}
+/* ── header row: OUTSIDE the drawing, so it is plate ── */
+.plc-head{display:flex;align-items:baseline;gap:8px 13px;margin-bottom:14px;flex-wrap:wrap;
+  padding-bottom:11px;border-bottom:1px solid var(--card-edge)}
+.plc-titles h2{font-size:17px;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
+.plc-titles p{font-size:12px;color:var(--dim);margin-top:2px}
+.plc-ver{font-family:var(--mono);font-size:10px;color:var(--dim);border:1px solid var(--card-edge);
+  padding:2px 6px;margin-left:6px;letter-spacing:.06em}
+.plc-sitetab{margin-left:auto;display:flex;gap:0}
+.plc-site{font:700 9.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--faint);padding:7px 11px;border:1px solid var(--card-edge);margin-left:-1px;
+  transition:color .45s ease,background .45s ease;white-space:nowrap}
+.plc-site.on{color:var(--bg);background:var(--ink);border-color:var(--ink)}
 
 /* ── viewport & scaling stage (scenes designed at 720×440, scaled by JS) ── */
-.plc-viewport{position:relative;aspect-ratio:720/440;border-radius:16px;overflow:hidden;
-  border:1px solid var(--card-edge);background:#04091c;
-  box-shadow:0 24px 60px rgba(2,8,32,.55),0 4px 14px rgba(2,8,32,.4),inset 0 1px 0 rgba(142,205,255,.08)}
+/* the frame is plate: square, one hairline, no lift off the page */
+.plc-viewport{position:relative;aspect-ratio:720/440;border-radius:0;overflow:hidden;
+  border:1px solid var(--card-edge);background:#04091c;box-shadow:none}
 .plc-scale{position:absolute;left:0;top:0;width:720px;height:440px;transform-origin:0 0}
 
 .plc-scene{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;visibility:hidden;
@@ -577,7 +540,6 @@
 
 /* satellite dots breathe while their scene is live (header sat too) */
 .plc-scene.is-active .plc-satdot{animation:plc-breathe 2s ease-in-out .6s infinite}
-.plc-mark .plc-sat{animation:plc-breathe 2.6s ease-in-out infinite}
 @keyframes plc-breathe{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.35);opacity:.72}}
 
 /* glimmer sweep across gold/green badges (base opacity 0 → invisible under reduced motion) */
@@ -760,8 +722,8 @@
 .plc-pfoot b{color:var(--dim);font-weight:600}
 
 /* ── prev/next arrows ── */
-.plc-nav{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;
-  border:1px solid var(--card-edge);background:rgba(4,9,28,.72);color:var(--ink);font-size:17px;line-height:1;
+.plc-nav{position:absolute;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:0;
+  border:1px solid var(--card-edge);background:rgba(4,9,28,.82);color:var(--ink);font-size:17px;line-height:1;
   cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5;opacity:0;
   transition:opacity .25s ease,border-color .25s ease;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 .plc-nav:hover{border-color:var(--sky)}
@@ -777,13 +739,13 @@
   transition:opacity .5s ease,transform .5s ease;pointer-events:none;padding:0 8px}
 .plc-cap b{color:var(--ink);font-weight:600}
 .plc-cap.is-active{opacity:1;transform:none}
-.plc-dots{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:2px}
-.plc-dot{position:relative;width:9px;height:9px;border-radius:999px;border:0;padding:0;
+.plc-dots{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:2px}
+.plc-dot{position:relative;width:9px;height:9px;border-radius:0;border:0;padding:0;
   background:rgba(148,178,255,.25);cursor:pointer;overflow:hidden;flex:0 0 auto;
   transition:width .35s ease,background .35s ease}
 .plc-dot:hover{background:rgba(148,178,255,.45)}
 .plc-dot.is-active{width:34px;background:rgba(148,178,255,.18)}
-.plc-fillbar{position:absolute;inset:0;width:0;border-radius:999px;background:linear-gradient(90deg,var(--sky),var(--sky-bright))}
+.plc-fillbar{position:absolute;inset:0;width:0;border-radius:0;background:var(--dim)}
 .plc-dot.is-active .plc-fillbar{animation:plc-prog var(--plc-dur,4.2s) linear forwards}
 .plc.is-paused .plc-fillbar{animation-play-state:paused}
 .plc-dot:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
@@ -811,10 +773,9 @@
 </style>
 
 <div class="plc-head">
-  <div class="plc-mark" aria-hidden="true"><i class="plc-orbit"></i><i class="plc-planet"></i><i class="plc-sat"></i></div>
   <div class="plc-titles">
-    <h2>How it works</h2>
-    <p>Starlink Odds for United Flights<span class="plc-hidesm"> — live WiFi odds while you book</span><span class="plc-ver">v1.5.1</span></p>
+    <h2>The extension on united.com and Navan</h2>
+    <p>WiFi Odds for Flights<span class="plc-hidesm">, odds on the results page as you book</span><span class="plc-ver">v1.5.1</span></p>
   </div>
   <div class="plc-sitetab" aria-hidden="true">
     <span class="plc-site plc-site-united on">United.com</span>
@@ -1294,33 +1255,40 @@
 })();
 </script>
 </section>
-
     </div>
   </div>
-  <div class="xcredit">Unofficial — not affiliated with United, Navan, or Starlink. Route-level odds and tail data come from
-  <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener"><b>UnitedStarlinkTracker.com</b></a>, the independent community tracker (by @martinamps) — all credit to them for the data.</div>
+  <p class="xcredit">Unofficial, and not affiliated with United, Navan or Starlink. Route-level odds
+  and tail data come from
+  <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener"><b>unitedstarlinktracker.com</b></a>,
+  the independent community tracker by @martinamps. All credit for the data goes to them.</p>
 </section>
 
 
-<!-- DAILY UPDATES / CHANGELOG -->
+<!-- DAILY UPDATES / CHANGELOG. The `hidden` attribute is the no-JS answer here:
+     the section carries nothing but empty containers until renderChangelog()
+     fills them, so it stays hidden until it has something to say. -->
 <section class="clog" id="changelog-sec" hidden>
   <div class="clog-h">
-    <h2>Daily fleet updates</h2>
-    <span class="sub">what changed each day — new Starlink aircraft types, routes that gained flights, and odds movers</span>
+    <span class="sub tab">Fleet log</span>
+    <h2>What changed each day</h2>
+    <span class="sub">New tails · routes that gained flights · odds movers</span>
   </div>
   <div class="clog-days" id="changelog"></div>
   <div class="clog-foot" id="changelog-foot"></div>
 </section>
 
 <!-- ROUTE PICKER -->
-<section id="route">
+<section class="blk needs-js" id="route">
+  <div class="sec-h"><span class="sub">§1 · The route</span><h2>Pick a city pair</h2></div>
+  <p class="sec-lede">Three letters each way. The busiest Starlink routes are listed under the
+  fields, and clicking one loads it.</p>
   <div class="picker">
     <div class="picker-row">
       <div class="field">
-        <label for="orig">From (any airport code)</label>
+        <label for="orig">From, any airport code</label>
         <input id="orig" list="airports" maxlength="3" autocapitalize="characters" autocomplete="off" spellcheck="false" value="DEN">
       </div>
-      <button class="swap" id="swap" title="Swap direction">⇄</button>
+      <button class="swap" id="swap" type="button" title="Swap direction" aria-label="Swap direction">⇄</button>
       <div class="field">
         <label for="dest">To</label>
         <input id="dest" list="airports" maxlength="3" autocapitalize="characters" autocomplete="off" spellcheck="false" value="SFO">
@@ -1332,168 +1300,164 @@
       <span class="badge live hidden" id="rt-badge">live</span>
     </div>
     <div class="lb" id="lb">
-      <div class="lbt">Hottest Starlink routes right now (scheduled Starlink departures, next 48h)</div>
+      <div class="lbt">Busiest Starlink routes · scheduled departures, next 48h</div>
       <div class="lb-chips" id="lb-chips"></div>
     </div>
   </div>
 </section>
 
 <!-- ROUTE RESULTS -->
-<section id="results">
-  <div class="loadbar" id="loadbar"><span class="orb"></span><span id="load-msg">Querying live tracker data…</span></div>
+<section class="blk needs-js" id="results">
+  <div class="sec-h"><span class="sub">§2 · The answer</span><h2>Every flight, ranked</h2>
+    <span class="sub" style="position:static" id="rank-sub"></span></div>
+  <div class="loadbar" id="loadbar"><span class="orb"></span><span id="load-msg">Querying the tracker</span></div>
 
   <div id="flights-sec">
-    <div class="sec-h">
-      <h2>Every flight, ranked</h2>
-      <span class="sub" id="rank-sub"></span>
-    </div>
     <div class="meta-row" id="route-meta"></div>
     <div class="flights" id="flights"></div>
     <div class="callout hidden" id="notimes-note">
-      <span>ℹ️</span>
-      <span>Rankings show how often each flight number draws a Starlink-equipped tail (per
-      <a href="https://unitedstarlinktracker.com/methodology" target="_blank" rel="noopener" style="color:var(--sky-bright)">tracker history</a>).
-      Flights with no Starlink history on this route don't appear — check schedules for the full timetable, then verify any flight below at T-48h.</span>
+      <span class="k">Read as</span>
+      <span>The ranking is how often each flight number draws a Starlink-equipped tail, per
+      <a href="https://unitedstarlinktracker.com/methodology" target="_blank" rel="noopener">the tracker's history</a>.
+      A flight with no Starlink history on this route does not appear at all, so check the schedule
+      for the full timetable and then verify the one you booked at T-48h.</span>
     </div>
   </div>
 
-  <div id="itins-sec" style="margin-top:34px">
-    <div class="sec-h">
-      <h2>Best routings</h2>
-      <span class="sub">direct vs. connections, ranked by full-trip Starlink coverage</span>
-    </div>
+  <div id="itins-sec" style="margin-top:32px">
+    <div class="sec-h"><span class="sub">§2.1 · Connections</span><h2>Best routings</h2></div>
+    <p class="sec-lede">Non-stops and connections on one scale, ranked by the odds that every leg of
+    the trip is equipped.</p>
     <div class="itins" id="itins"></div>
   </div>
 
-  <div id="confirmed-sec" style="margin-top:34px">
-    <div class="sec-h">
-      <h2>Confirmed Starlink departures</h2>
-      <span class="sub">tail assignments already published for this route (~next 72h)</span>
-    </div>
+  <div id="confirmed-sec" style="margin-top:32px">
+    <div class="sec-h"><span class="sub">§2.2 · Assigned</span><h2>Confirmed Starlink departures</h2></div>
+    <p class="sec-lede">Tail assignments already published for this route, roughly the next 72
+    hours. These are records, not estimates.</p>
     <div class="confirmed-list" id="confirmed"></div>
   </div>
 </section>
 
 <!-- TRIP BUILDER -->
-<section id="trip-sec">
-  <div class="sec-h"><h2>Round-trip builder</h2><span class="sub">pick both legs, see your combined odds</span></div>
+<section class="blk needs-js" id="trip-sec">
+  <div class="sec-h"><span class="sub">§3 · Both legs</span><h2>Round-trip builder</h2></div>
+  <p class="sec-lede">Pick an outbound and a return and the two probabilities combine.</p>
   <div class="trip">
     <div class="trip-grid">
       <div class="trip-col">
-        <label id="out-label">Outbound</label>
+        <label id="out-label" for="trip-out-sel">Outbound</label>
         <select id="trip-out-sel"></select>
       </div>
       <div class="trip-col">
-        <label id="ret-label">Return</label>
+        <label id="ret-label" for="trip-ret-sel">Return</label>
         <select id="trip-ret-sel"></select>
       </div>
     </div>
     <div class="trip-out">
-      <div class="trip-big"><div class="v" id="odds-any">–</div><div class="l">Starlink on ≥ 1 leg</div></div>
+      <div class="trip-big"><div class="v" id="odds-any">–</div><div class="l">Starlink on at least one leg</div></div>
       <div class="trip-big"><div class="v" id="odds-both">–</div><div class="l">Starlink on both legs</div></div>
-      <div style="color:var(--dim);font-size:14px;max-width:34ch" id="odds-note"></div>
+      <div class="trip-note" id="odds-note"></div>
     </div>
   </div>
 </section>
 
 <!-- PLAYBOOK -->
-<section>
-  <div class="sec-h"><h2>The playbook</h2><span class="sub">four moves from booking to boarding — works on any route</span></div>
+<section class="blk" id="playbook">
+  <div class="sec-h"><span class="sub">§4 · The playbook</span><h2>Four moves, booking to boarding</h2></div>
+  <p class="sec-lede">This part works on any route and it is the part that actually moves your odds.
+  The T-48h check is worth more than the booking choice.</p>
   <div class="steps">
     <div class="step">
       <div class="dot">BOOK</div>
       <div>
         <h3>Book the high-probability flight</h3>
-        <p id="playbook-book">Book the top-ranked flight above; keep the runners-up as backups. Avoid flights that
-        typically draw 737 MAX, A319/A320 or 757 equipment — those fleets have zero Starlink installs today.</p>
+        <p id="playbook-book">Take the top-ranked flight above and keep the runners-up as backups.
+        Avoid the departures that usually draw 737 MAX, A319, A320 or 757 equipment. Those four
+        fleets have no Starlink installs at all today.</p>
       </div>
     </div>
     <div class="step">
-      <div class="dot">T-48h</div>
+      <div class="dot">T-48H</div>
       <div>
-        <h3>Verify your actual tail — the single highest-leverage move</h3>
-        <p>Aircraft assignments publish ~2 days out. Check your flight for a firm yes/no, or open the United app →
-        flight status → <b>inflight amenities</b> (equipped flights list "Starlink Wi-Fi").</p>
-        <div class="checkbar">
-          <input id="cf-flight" list="cf-flights" placeholder="UA1234" size="8" autocapitalize="characters" spellcheck="false">
-          <datalist id="cf-flights"></datalist>
-          <input type="date" id="cf-date">
-          <a class="btn" id="cf-go" href="#" target="_blank" rel="noopener">Check this flight ↗</a>
+        <h3>Verify the tail you actually drew</h3>
+        <p>Aircraft assignments publish about two days out, which turns an estimate into a yes or a
+        no. Check the flight here, or open the United app, then flight status, then
+        <b>inflight amenities</b>. An equipped flight lists Starlink Wi-Fi by name.</p>
+        <div class="needs-js">
+          <div class="checkbar">
+            <input id="cf-flight" list="cf-flights" placeholder="UA1234" size="8" autocapitalize="characters" spellcheck="false" aria-label="Flight number">
+            <datalist id="cf-flights"></datalist>
+            <input type="date" id="cf-date" aria-label="Departure date">
+            <a class="btn" id="cf-go" href="#" target="_blank" rel="noopener">Check this flight ↗</a>
+          </div>
         </div>
       </div>
     </div>
     <div class="step">
-      <div class="dot">T-24h</div>
+      <div class="dot">T-24H</div>
       <div>
         <h3>Re-check, and switch if you drew a dud</h3>
-        <p>Swaps happen. If your flight drew a non-Starlink tail, the confirmed-departures list above shows which
-        flights on your route already have Starlink tails — a same-day change (free with Gold+, else $75, waived to
-        standby) converts a coin-flip booking into near-certainty.</p>
+        <p>Swaps happen. If your flight lost its Starlink tail, the confirmed-departures list above
+        names the flights on your route that already have one. A same-day change costs nothing on
+        Gold and above, and $75 otherwise, waived to standby. That is how a coin flip becomes a
+        near-certainty.</p>
       </div>
     </div>
     <div class="step">
       <div class="dot">FLY</div>
       <div>
-        <h3>Connect free via MileagePlus</h3>
-        <p>Starlink is free but you sign in with your MileagePlus account — make sure everyone traveling has one.
-        Gate-to-gate, ~100–250 Mbps — streams, uploads, real work. While you shop, the
-        <a href="https://chromewebstore.google.com/detail/google-flights-starlink-i/jjfljoifenkfdbldliakmmjhdkbhehoi" target="_blank" rel="noopener">Google Flights Starlink extension</a>
-        badges equipped flights inline.</p>
+        <h3>Connect with MileagePlus</h3>
+        <p>Starlink is free onboard, and the sign-in is a MileagePlus account, so make sure everyone
+        travelling with you has one. Expect roughly 100 to 250 Mbps gate to gate.</p>
       </div>
     </div>
   </div>
+  <p class="src"><span class="cls">Reported</span> Same-day-change pricing and the MileagePlus
+  sign-in requirement from United's published policy, read 24 Jul 2026. Speed range from the
+  tracker's <a href="https://unitedstarlinktracker.com/methodology" target="_blank" rel="noopener">methodology page</a>,
+  same date.</p>
 </section>
 
 <!-- FLEET PULSE -->
-<section id="fleet">
-  <div class="sec-h"><h2>Fleet pulse</h2><span class="sub">why your odds improve every month</span></div>
+<section class="blk needs-js" id="fleet">
+  <div class="sec-h"><span class="sub">§5 · The programme</span><h2>Fleet pulse</h2></div>
+  <p class="sec-lede">Why the odds on your route improve every month, and which sub-fleets are
+  driving it.</p>
   <div class="fleet-grid">
     <div class="panel">
       <h3>Rollout by aircraft type</h3>
       <div id="type-bars"></div>
     </div>
-    <div>
-      <div class="panel">
-        <h3>Mainline vs Express</h3>
-        <div id="seg-bars"></div>
-        <div class="pace" id="pace"></div>
-        <ul class="targets" id="targets"></ul>
-      </div>
-      <div class="panel" style="margin-top:22px">
-        <h3>Fleet equipped over time</h3>
-        <canvas id="spark"></canvas>
-        <div style="color:var(--faint);font-size:12.5px;margin-top:6px" id="spark-note"></div>
-      </div>
+    <div class="panel">
+      <h3>Mainline against Express</h3>
+      <div id="seg-bars"></div>
+      <div class="pace" id="pace"></div>
+      <ul class="targets" id="targets"></ul>
+    </div>
+    <div class="panel wide">
+      <h3>Fleet equipped over time</h3>
+      <canvas id="spark"></canvas>
+      <div class="spark-note" id="spark-note"></div>
     </div>
   </div>
   <!-- #updated is written by this page's app JS ($("updated").textContent=d.updated).
        It used to sit in the page's own hand-written footer; the footer is generated
        by build/lib/html.js now, so the element lives here instead. Do NOT remove it:
        the data.json handler sets it and would throw on null, killing the whole app. -->
-  <p class="tagline" style="margin-top:18px">Live per-route queries plus the daily snapshot · last snapshot
-  <span class="updated" id="updated">…</span> ·
-  <a href="https://unitedstarlinktracker.com/methodology" target="_blank" rel="noopener">tracker methodology ↗</a></p>
+  <p class="src"><span class="cls cls-m">Measured</span> Live per-route queries plus the daily
+  snapshot. Last snapshot <span class="updated" id="updated">…</span>. Method at
+  <a href="https://unitedstarlinktracker.com/methodology" target="_blank" rel="noopener">unitedstarlinktracker.com/methodology</a>.</p>
 </section>
 
 <!--@foot-->
 
 <script>
-/* ── starfield ── */
-(function(){
-  const c=document.getElementById('stars'),x=c.getContext('2d');let stars=[];
-  function size(){c.width=innerWidth;c.height=innerHeight;
-    stars=Array.from({length:Math.min(190,innerWidth/6)},()=>({
-      x:Math.random()*c.width,y:Math.random()*c.height,
-      r:Math.random()*1.3+.2,p:Math.random()*Math.PI*2,s:.008+Math.random()*.02}));}
-  size();addEventListener('resize',size);
-  const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  (function draw(){
-    x.clearRect(0,0,c.width,c.height);
-    for(const s of stars){s.p+=s.s;
-      x.globalAlpha=.35+.6*Math.abs(Math.sin(s.p));
-      x.fillStyle='#cfe1ff';x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill();}
-    if(!still)requestAnimationFrame(draw);})();
-})();
+/* The starfield that used to run here is gone, canvas and all: it was a
+   fixed-position <canvas id="stars"> painting pale-blue dots behind the whole
+   document, which was the last of United's sky on this page. Nothing replaced it.
+   site.css still carries `[data-theme="light"] #stars{display:none}`; that rule
+   now matches nothing, and it is not this file's to remove. */
 
 /* ── constants ── */
 const AIRPORTS={DEN:"Denver",SFO:"San Francisco",ORD:"Chicago O'Hare",IAH:"Houston",EWR:"Newark",
@@ -1517,8 +1481,12 @@ let DATA=null,orig="DEN",dest="SFO",cur={},reqSeq=0;
 
 const $=id=>document.getElementById(id);
 const pct=n=>Math.round(n)+"%";
-const probColor=p=>p>=50?"var(--gold)":p>=35?"var(--green)":p>=20?"var(--blue)":"var(--red)";
-const VTAG={best:["⭐ Best bet","v-best"],good:["Good","v-good"],ok:["OK","v-ok"],risky:["Risky","v-risky"],avoid:["⛔ Avoid","v-avoid"]};
+/* THE ONE COLOUR RULE, in the app layer. These four stops are site.css's score
+   arc, so the ring, the verdict tag and every other coloured thing on this page
+   agree with the bands used on /airlines/. The old gold/green/blue/red set was
+   this page's own palette and did not. */
+const probColor=p=>p>=50?"var(--good)":p>=35?"var(--s-good)":p>=20?"var(--s-long)":"var(--s-rare)";
+const VTAG={best:["Best bet","v-best"],good:["Good","v-good"],ok:["Fair","v-ok"],risky:["Risky","v-risky"],avoid:["Avoid","v-avoid"]};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 /* ── live tracker calls ── */
@@ -1611,15 +1579,16 @@ function renderChips(){
 }
 function ring(p){
   const R=32,C=2*Math.PI*R,off=C*(1-p/100),col=probColor(p);
-  return `<div class="ring"><svg width="76" height="76" viewBox="0 0 76 76">
-    <circle cx="38" cy="38" r="${R}" fill="none" stroke="rgba(148,178,255,.12)" stroke-width="7"/>
-    <circle cx="38" cy="38" r="${R}" fill="none" stroke="${col}" stroke-width="7"
-      stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}"/>
+  /* butt caps, not round: an arc on an instrument ends where the value ends */
+  return `<div class="ring"><svg width="72" height="72" viewBox="0 0 76 76" aria-hidden="true">
+    <circle cx="38" cy="38" r="${R}" fill="none" stroke="var(--bg-inset)" stroke-width="6"/>
+    <circle cx="38" cy="38" r="${R}" fill="none" stroke="${col}" stroke-width="6"
+      stroke-linecap="butt" stroke-dasharray="${C}" stroke-dashoffset="${off}"/>
   </svg><div class="pct" style="color:${col}">${pct(p)}</div></div>`;
 }
 function renderBadge(m){
   const b=$("rt-badge");b.classList.remove("hidden");
-  if(m.source==="live"){b.className="badge live";b.textContent="● live tracker data";}
+  if(m.source==="live"){b.className="badge live";b.textContent="live tracker data";}
   else if(m.source==="cache"){b.className="badge cachetag";b.textContent="cached "+Math.round((Date.now()-m.ts)/36e5*10)/10+"h ago";}
   else if(m.source==="snapshot"){b.className="badge cachetag";b.textContent="daily snapshot · "+DATA.updated;}
   else{b.className="badge offline";b.textContent="no data yet";}
@@ -1629,14 +1598,14 @@ function renderFlights(m){
   $("rank-sub").textContent=m.flights.length?
     `${m.flights.length} flight number${m.flights.length>1?"s":""} with Starlink history · ${orig} → ${dest}`:"";
   $("route-meta").innerHTML=m.curated?
-    `<span class="meta-pill">🕑 Sweet spot: <b>${esc(m.curated.sweetSpot)}</b></span>
-     <span class="meta-pill">⚠️ <b>${esc(m.curated.avoidNote)}</b></span>`:"";
+    `<span class="meta-pill"><span class="k">Sweet spot</span><b>${esc(m.curated.sweetSpot)}</b></span>
+     <span class="meta-pill"><span class="k">Watch for</span><b>${esc(m.curated.avoidNote)}</b></span>`:"";
   if(!m.flights.length){
     list.innerHTML=`<div class="empty-state">
-      <div style="font-size:30px">🛰️</div>
-      <p style="margin-top:8px">No Starlink history for <b>${orig} → ${dest}</b> yet — either the route has no
-      United service, or its flights haven't drawn Starlink tails. If the route exists, the routings below may
-      still find covered connections.</p>
+      <span class="k">No history</span>
+      <p>Nothing on record for <b>${orig} → ${dest}</b>. Either United does not fly the pair, or its
+      flights on it have never drawn a Starlink tail. The routings below may still find a covered
+      connection.</p>
       <div class="btns">
         <a class="btn" href="${TRACKER}/route-planner/${orig}/${dest}" target="_blank" rel="noopener">Tracker route planner ↗</a>
         <a class="btn ghost" href="${TRACKER}/routes" target="_blank" rel="noopener">Where Starlink flies ↗</a>
@@ -1651,10 +1620,10 @@ function renderFlights(m){
     return `<div class="fcard ${f.verdict==="best"?"best":""} ${f.verdict==="avoid"?"avoid":""}">
       ${ring(f.prob)}
       <div class="fmain">
-        <div class="fn">${f.verdict==="best"?'<span class="star">⭐</span> ':""}${f.fn}</div>
+        <div class="fn">${f.fn}</div>
         <div class="meta">${esc(metaBits)}</div>
-        ${f.onRoute===false?'<div class="note">probability earned on other legs — not yet verified on this exact route</div>':""}
-        ${f.confirmedDep?`<span class="conf-tail">✓ confirmed Starlink tail ${f.confirmedDep.tail} · ${f.confirmedDep.date.slice(5)} ${f.confirmedDep.time}Z</span>`:""}
+        ${f.onRoute===false?'<div class="note">Probability earned on other legs. Not yet seen on this exact route.</div>':""}
+        ${f.confirmedDep?`<span class="conf-tail">Tail confirmed ${f.confirmedDep.tail} · ${f.confirmedDep.date.slice(5)} ${f.confirmedDep.time}Z</span>`:""}
       </div>
       <div class="verdict"><span class="v-tag ${vc}">${vt}</span>
         <span class="conf"><a style="color:inherit" href="${TRACKER}/check-flight/${f.fn}" target="_blank" rel="noopener">history ↗</a></span>
@@ -1664,8 +1633,8 @@ function renderFlights(m){
 function renderItins(m){
   const el=$("itins");
   if(!m.itins.length){
-    el.innerHTML=`<div class="empty-state" style="padding:18px">No routings returned for this pair —
-      <a style="color:var(--sky-bright)" href="${TRACKER}/route-planner/${orig}/${dest}" target="_blank" rel="noopener">try the tracker's planner ↗</a></div>`;
+    el.innerHTML=`<div class="empty-state" style="padding:16px">No routings came back for this pair.
+      <a href="${TRACKER}/route-planner/${orig}/${dest}" target="_blank" rel="noopener">Try the tracker's own planner ↗</a></div>`;
     return;
   }
   el.innerHTML=m.itins.slice(0,6).map((it,i)=>{
@@ -1687,7 +1656,7 @@ function renderDeps(m){
   const el=$("confirmed");
   if(!m.deps.length){
     el.innerHTML=`<div class="empty-state" style="padding:16px;font-size:14px">No published Starlink tail
-      assignments for this route right now — assignments appear ~48h before departure.</div>`;
+      assignments for this route right now. They usually appear about 48 hours before departure.</div>`;
     return;
   }
   el.innerHTML=m.deps.map(d=>
@@ -1698,8 +1667,8 @@ function renderPlaybook(m){
     const best=m.flights[0];
     const alts=m.flights.slice(1,3).filter(f=>f.prob>=25).map(f=>f.fn).join(" or ");
     $("playbook-book").innerHTML=`<b>${best.fn}${best.dep?` (${best.dep} ${best.tz||""})`:""} at ${pct(best.prob)}</b> is the play for
-      ${orig} → ${dest}${alts?`; ${alts} as backups`:""}. Avoid flights that typically draw 737 MAX, A319/A320 or 757
-      equipment — those fleets have zero Starlink installs today.`;
+      ${orig} → ${dest}${alts?`; ${alts} as backups`:""}. Avoid the departures that usually draw 737 MAX, A319,
+      A320 or 757 equipment. Those four fleets have no Starlink installs at all today.`;
   }
   const dl=$("cf-flights");
   dl.innerHTML=m.flights.map(f=>`<option value="${f.fn}">`).join("");
@@ -1726,7 +1695,7 @@ async function renderTrip(mOut){
     const a=+$("trip-out-sel").value/100,b=+$("trip-ret-sel").value/100;
     $("odds-any").textContent=pct((1-(1-a)*(1-b))*100);
     $("odds-both").textContent=pct(a*b*100);
-    $("odds-note").textContent="Before the T-48h verify-and-switch move, which pushes a flexible traveler to near-certainty.";
+    $("odds-note").textContent="Both figures are before the T-48h check. Verifying the tail and switching if it is wrong moves a flexible traveller close to certainty.";
   };
   $("trip-out-sel").onchange=upd;$("trip-ret-sel").onchange=upd;upd();
 }
@@ -1760,29 +1729,39 @@ function renderFleet(){
   $("targets").innerHTML=f.targets.map(t=>`<li>${esc(t)}</li>`).join("");
   drawSpark();
 }
+/* The one chart on this page that is painted rather than baked. Its ink is read
+   off the live custom properties, so it follows the theme and it cannot drift
+   from site.css the way the old hard-coded #4da6ff line did. */
+function sparkInk(){
+  const cs=getComputedStyle(document.documentElement);
+  const g=n=>cs.getPropertyValue(n).trim();
+  return {line:g("--good")||"#3fcf8e",ink:g("--ink")||"#e9ecec",
+    dim:g("--ink-3")||"#6a7377",font:getComputedStyle(document.body).fontFamily};
+}
 function drawSpark(){
-  const cv=$("spark"),x=cv.getContext("2d");
+  const cv=$("spark"),x=cv.getContext("2d"),C=sparkInk();
   const w=cv.width=cv.offsetWidth*2,h=cv.height=240;cv.style.height="120px";
   const H=DATA.history||[];
   x.clearRect(0,0,w,h);
   if(H.length<2){
-    x.fillStyle="#69B3E7";x.beginPath();x.arc(w/2,h/2,6,0,7);x.fill();
-    x.fillStyle="#93a1c0";x.font="24px "+getComputedStyle(document.body).fontFamily;x.textAlign="center";
-    x.fillText(`${H[0]?H[0].equipped:"—"} equipped · ${H[0]?H[0].date:""}`,w/2,h/2+40);
-    $("spark-note").textContent="One data point so far — the daily updater adds a dot every day, and a trend line grows here.";
+    x.fillStyle=C.line;x.fillRect(w/2-5,h/2-5,10,10);
+    x.fillStyle=C.dim;x.font="24px "+C.font;x.textAlign="center";
+    x.fillText(`${H[0]?H[0].equipped:"0"} equipped · ${H[0]?H[0].date:""}`,w/2,h/2+40);
+    $("spark-note").textContent="One snapshot so far. The daily updater adds a point every day and the line grows from here.";
     return;
   }
   const vals=H.map(d=>d.equipped),min=Math.min(...vals)*0.98,max=Math.max(...vals)*1.02;
   const px=i=>30+(w-60)*i/(H.length-1),py=v=>h-30-(h-70)*(v-min)/(max-min||1);
-  x.strokeStyle="#4da6ff";x.lineWidth=4;x.beginPath();
+  x.strokeStyle=C.line;x.lineWidth=3;x.beginPath();
   H.forEach((d,i)=>i?x.lineTo(px(i),py(d.equipped)):x.moveTo(px(i),py(d.equipped)));x.stroke();
-  const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,"rgba(77,166,255,.25)");g.addColorStop(1,"transparent");
-  x.lineTo(px(H.length-1),h-10);x.lineTo(px(0),h-10);x.closePath();x.fillStyle=g;x.fill();
+  x.globalAlpha=.12;
+  x.lineTo(px(H.length-1),h-10);x.lineTo(px(0),h-10);x.closePath();x.fillStyle=C.line;x.fill();
+  x.globalAlpha=1;
   const last=H[H.length-1];
-  x.fillStyle="#8ecdff";x.beginPath();x.arc(px(H.length-1),py(last.equipped),6,0,7);x.fill();
-  x.fillStyle="#93a1c0";x.font="22px "+getComputedStyle(document.body).fontFamily;x.textAlign="right";
-  x.fillText(`${last.equipped} · ${last.date}`,w-16,py(last.equipped)-14);
-  $("spark-note").textContent=`${H.length} daily snapshots · ${H[0].date} → ${last.date}`;
+  x.fillStyle=C.line;x.fillRect(px(H.length-1)-5,py(last.equipped)-5,10,10);
+  x.fillStyle=C.ink;x.font="22px "+C.font;x.textAlign="right";
+  x.fillText(`${last.equipped} · ${last.date}`,w-16,py(last.equipped)-16);
+  $("spark-note").textContent=`${H.length} daily snapshots · ${H[0].date} to ${last.date}`;
 }
 
 const CLOG_MAX_DAYS=3;             // compact: last 3 update-days up top; full list on /history/
@@ -1863,9 +1842,9 @@ function renderChangelog(){
   const earliest=allDates[allDates.length-1];
   const more=allDates.length>CLOG_MAX_DAYS;
   $("changelog-foot").innerHTML=
-    (more?`<a class="clog-more" href="history/">View full history — all ${allDates.length} update days back to ${earliest?fmt(earliest):"—"} →</a><br>`:"")+
-    `<span style="display:inline-block;margin-top:10px">Aircraft &amp; tail numbers come from the tracker's full equipped roster (${roster.length} tails), dated by each jet's install day. `+
-    `Data from <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">UnitedStarlinkTracker.com</a>.</span>`;
+    (more?`<a class="clog-more" href="history/">All ${allDates.length} update days, back to ${earliest?fmt(earliest):"the first"}</a><br>`:"")+
+    `<span style="display:inline-block;margin-top:10px">Aircraft and tail numbers come from the tracker's full equipped roster (${roster.length} tails), dated by each jet's install day. `+
+    `Source: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a>.</span>`;
   sec.hidden=false;
 }
 
@@ -1910,7 +1889,7 @@ fetch(`data.json?cb=${Date.now()}`,{cache:"no-store"})
     $("updated").textContent=d.updated;
     renderChips();renderChangelog();renderFleet();renderLeaderboard();bind();loadRoute();})
   .catch(e=>{document.body.insertAdjacentHTML("afterbegin",
-    `<div style="background:#40121e;color:#ffb3bd;padding:10px 20px;font-size:14px">data.json failed to load: ${e}</div>`);});
+    `<div class="caveat" style="margin:0">data.json failed to load, so the live sections on this page are empty: ${e}</div>`);});
 </script>
 <!-- Shared shell behaviour only (theme toggle + reveal). It touches nothing this
      page's app JS owns: no ids, no classes, no data. Loaded last and deferred. -->

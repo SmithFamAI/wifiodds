@@ -1,123 +1,154 @@
 <!--@head-->
 <style>
-  /* Page-specific only. Every number marked data-bake is rewritten by
+  /* Page-scoped only. Every number marked data-bake is rewritten by
      build/prerender.js from assets/airlines.js, so this page can never disagree
-     with the leaderboard — and it is correct on disk with the build never run. */
-  .scorebox .big{font-family:var(--mono);font-size:56px;font-weight:800;line-height:1;color:var(--ink)}
-  table.fleet{width:100%;border-collapse:collapse;background:var(--surface);
-    border:1px solid var(--edge);border-radius:var(--r-lg);overflow:hidden;margin-top:8px}
-  table.fleet th,table.fleet td{text-align:left;padding:12px 16px;font-size:14px;border-bottom:1px solid var(--edge)}
-  table.fleet th{font-size:11px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--accent)}
-  table.fleet tr:last-child td{border-bottom:none}
-  table.fleet td.num{font-family:var(--mono);white-space:nowrap}
-  table.fleet td b{color:var(--ink)}
+     with the leaderboard, and it is correct on disk with the build never run.
+
+     Layout, rules, type and colour all come from /assets/site.css. What is left
+     here is the size of the one big numeral and the two-column split under the
+     score, because neither belongs in a shared component. */
+  /* The label sits OUTSIDE the baked element on purpose: tmpl.js replaces the
+     whole inner content of a data-bake node, so a <small> nested inside .big
+     would be silently eaten at build time. */
+  .sbscore{flex:none}
+  .scorebox .big{font-size:54px;font-weight:700;line-height:.95;letter-spacing:-.03em;
+    color:var(--band)}
+  .sbscore .micro{margin-top:9px}
+  .scorebox .m{max-width:52ch}
+  .fleetnote{font-size:13px;color:var(--ink-2);max-width:74ch;margin-top:12px}
+  .fleetnote b{color:var(--ink)}
+  @media(max-width:430px){.scorebox .big{font-size:44px}}
 </style>
 <!--@body-->
-<header class="hero" style="padding:18px 0 4px">
-  <h1 class="ph">Alaska Airlines · Starlink rollout</h1>
-  <p class="lede">Alaska is installing Starlink faster than almost anyone, and it's <b>free for everyone
-  onboard</b> — no loyalty program, no tier, no purchase. The catch is the same as everywhere else: it's
-  aircraft by aircraft, so which jet you get decides your day. The regional fleet is already finished;
-  mainline is only just starting.</p>
-
-  <div class="scorebox rv">
-    <div class="big" data-bake="alaska.score">55</div>
-    <div class="sbmid">
-      <!-- <b> wrapper, not <span>: prerender's data-bake regex closes on the first
-           matching end tag, so the wrapper's tag must differ from the inner one. -->
-      <div class="t">ConnectScore <b data-bake="alaska.bandpill"><span class="band sc-mix">mixed</span></b></div>
-      <div class="m" data-bake="alaska.math">99 Starlink at 28.3 + 240 2Ku at 26.4 + 11 Gogo ATG-4 at 0.3 = 55 / 100</div>
-    </div>
-    <div style="flex:none"><a class="btn ghost" href="/airlines/alaska/">Full Alaska score page →</a></div>
-  </div>
+<header class="hero" style="padding:22px 0 4px">
+  <p class="micro">Alaska Airlines · Starlink rollout</p>
+  <h1 class="ph">Alaska is finishing its regional fleet first</h1>
+  <p class="lede">Where Starlink is fitted, Alaska gives it away: <b>free for everyone onboard</b>,
+  with no loyalty programme, no status tier and no purchase. The rollout runs aircraft by aircraft,
+  so the jet you are assigned decides your day. Every Embraer E175 is done. The mainline 737 fleet
+  has barely started.</p>
 </header>
 
-<div class="credit"><span class="cb">DATA CREDIT</span><span class="cbody">Every Alaska figure on this page
-comes from <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener"><b>alaskastarlinktracker.com</b></a>,
-the independent community tracker built by <b>@martinamps</b>, which verifies each tail against Alaska's own
-site. All credit for the data goes to them — visit for live per-tail status, install dates, and much more ↗.
-WiFi Odds is unofficial and not affiliated with Alaska Airlines, SpaceX/Starlink, or the tracker.</span></div>
+<div class="scorebox">
+  <div class="sbscore">
+    <div class="big" data-bake="alaska.score">55</div>
+    <p class="micro">ConnectScore</p>
+  </div>
+  <div class="sbmid">
+    <!-- <b> wrapper, not <span>: prerender's data-bake regex closes on the first
+         matching end tag, so the wrapper's tag must differ from the inner one. -->
+    <div class="t">Band <b data-bake="alaska.bandpill"><span class="band sc-mix">mixed</span></b></div>
+    <div class="m" data-bake="alaska.math">99 Starlink at 28.3 + 240 2Ku at 26.4 + 11 Gogo ATG-4 at 0.3 = 55 / 100</div>
+  </div>
+  <div style="flex:none"><a class="btn ghost" href="/airlines/alaska/">Full Alaska score page</a></div>
+</div>
+
+<div class="credit"><span class="cb">DATA CREDIT</span><span class="cbody">Every Alaska figure on
+this page comes from <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener"><b>alaskastarlinktracker.com</b></a>,
+the independent community tracker built by <b>@martinamps</b>, which checks each tail against
+Alaska's own site. All credit for the data goes to them. Visit for live per-tail status and install
+dates ↗. WiFi Odds is unofficial and not affiliated with Alaska Airlines, SpaceX/Starlink, or the
+tracker.</span></div>
 
 <section class="blk" id="rollout">
-  <div class="sec-h"><h2>Where the rollout stands</h2><span class="sub">as of <span data-bake="site.updated">2026-07-24</span></span></div>
-  <p class="sec-lede">A snapshot, not a live feed — the top-line numbers are baked from the shared
-  ConnectScore map at build time. For today's per-tail count, go to
+  <div class="sec-h"><span class="sub">§1 · Where it stands</span><h2>The fleet, counted</h2>
+    <span class="sub" style="position:static">Data eff <span data-bake="site.updated">2026-07-24</span></span></div>
+  <p class="sec-lede">These are baked from the shared ConnectScore map at build time, so they are a
+  dated snapshot rather than a live feed. For today's per-tail count go to
   <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a>.</p>
   <div class="stats">
-    <div class="stat rv">
+    <div class="stat">
       <div class="n"><span data-bake="alaska.equipped">99</span><small> / <span data-bake="alaska.fleet">350</span></small></div>
       <div class="l">Aircraft equipped</div>
-      <div class="d">Mainline plus regional — about <span data-bake="alaska.pct">28%</span> of the combined fleet.</div>
+      <div class="d">Mainline plus regional, about <span data-bake="alaska.pct">28%</span> of the
+      combined fleet, counted <span data-bake="site.updated">2026-07-24</span>.</div>
     </div>
-    <div class="stat done rv">
+    <div class="stat done">
       <div class="n" style="font-size:21px">Complete</div>
       <div class="l">E175 regional fleet</div>
-      <div class="d">Every Embraer E175 is fitted — a regional flight is close to a sure thing.</div>
+      <div class="d">Every Embraer E175 is fitted, so a regional flight is close to a sure thing.</div>
     </div>
-    <div class="stat early rv">
+    <div class="stat early">
       <div class="n">7<small> / 258</small></div>
-      <div class="l">Mainline</div>
-      <div class="d">The 737 fleet has barely begun. Most mainline flights are still legacy WiFi.</div>
+      <div class="l">Mainline 737</div>
+      <div class="d">Most mainline flights still carry the older satellite service.</div>
     </div>
-    <div class="stat done rv">
+    <div class="stat done">
       <div class="n" style="font-size:21px">Equipped</div>
       <div class="l">Ex-Hawaiian widebodies</div>
-      <div class="d">The A330s and A321neos from the Hawaiian merger already carry Starlink. Our
+      <div class="d">The A330s and A321neos from the Hawaiian merger already carry Starlink. The
       ConnectScore map still counts those tails under <a href="/airlines/hawaiian/">Hawaiian</a>.</div>
     </div>
   </div>
+  <p class="src"><span class="cls">Reported</span> Tail-by-tail counts from
+  <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a>,
+  read <span data-bake="site.updated">2026-07-24</span>. The 7-of-258 mainline figure and the
+  ex-Hawaiian status come from the same roster on the same date.</p>
 
-  <table class="fleet">
-    <thead><tr><th>Fleet</th><th>Starlink status</th><th>What that means when you book</th></tr></thead>
-    <tbody>
-      <tr><td><b>E175 (regional)</b></td><td class="num">Complete</td>
-        <td>Regional-jet routes are the best Starlink odds in the network.</td></tr>
-      <tr><td><b>737 (mainline)</b></td><td class="num">7 of 258</td>
-        <td>Treat mainline as unlikely for now, and check the specific flight.</td></tr>
-      <tr><td><b>A330 / A321neo (ex-Hawaiian)</b></td><td class="num">Equipped</td>
-        <td>Long-haul and Hawaii flying on these tails is already covered.</td></tr>
-    </tbody>
-  </table>
-  <div class="caveat">Aircraft assignments change until departure, so any of this can flip on the day.
-  ConnectScore is the chance of getting the <b>good</b> system — legacy satellite WiFi on the
-  not-yet-converted part of the fleet is not credited. There is no public per-tail install-date feed for
-  Alaska yet, so there is no rollout timeline on this page: we would rather show nothing than invent a curve.</div>
+  <div class="tbl-shell" style="margin-top:20px">
+    <table class="tbl">
+      <thead><tr><th>Fleet</th><th class="num">Starlink status</th><th>What that means when you book</th></tr></thead>
+      <tbody>
+        <tr><td><b>E175 (regional)</b></td><td class="num">Complete</td>
+          <td>Regional-jet routes carry the best Starlink odds in the network.</td></tr>
+        <tr><td><b>737 (mainline)</b></td><td class="num">7 of 258</td>
+          <td>Treat mainline as unlikely for now and check the specific flight.</td></tr>
+        <tr><td><b>A330 / A321neo (ex-Hawaiian)</b></td><td class="num">Equipped</td>
+          <td>Long-haul and Hawaii flying on these tails is already covered.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="caveat">Aircraft assignments change until departure, so any of this can flip on the
+  day. ConnectScore is the chance of drawing the <b>good</b> system: the legacy satellite service on
+  the unconverted part of the fleet earns almost nothing. Nobody publishes per-tail install dates
+  for Alaska, so this page carries no rollout curve. A drawn curve with no install dates behind it
+  would be a guess with a y-axis.</div>
 </section>
 
 <section class="blk">
-  <div class="sec-h"><h2>Per-flight odds while you book</h2></div>
-  <div class="callout rv">
+  <div class="sec-h"><span class="sub">§2 · Per flight</span><h2>Odds while you are booking</h2></div>
+  <div class="callout">
     <h3>Alaska support lives in the extension</h3>
-    <p>There's no route optimizer for Alaska on this site yet. What exists today is better placed
-    anyway — inside the booking flow. Install <b>WiFi Odds for Flights</b> and enable the optional
-    <b>alaskaair.com</b> permission, and you get:</p>
+    <p>There is no route optimizer for Alaska on this site. The useful place for a per-flight number
+    is the booking page itself, which is where the extension puts it. Install
+    <b>WiFi Odds for Flights</b>, grant the optional <b>alaskaair.com</b> permission, and you get:</p>
     <ul>
-      <li>Odds badges on Alaska search results, per flight, colour-coded the same as United</li>
-      <li>The Alaska ConnectScore and fleet split in the popup, wherever you are</li>
-      <li>Nothing sent anywhere but a flight number and a date — no accounts, no analytics, no tracking</li>
+      <li>Odds badges on Alaska search results, per flight, banded the same way as United</li>
+      <li>The Alaska ConnectScore and the fleet split in the popup, on any page</li>
+      <li>A flight number and a date leaving your browser, and nothing else. No account, no
+      analytics, no cookie.</li>
     </ul>
     <div class="cta-row">
-      <a class="btn" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Add to Chrome — free ↗</a>
-      <a class="btn ghost" href="/united/">See the full United toolkit →</a>
+      <a class="btn" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Add to Chrome, free ↗</a>
+      <a class="btn ghost" href="/united/">The full United toolkit</a>
     </div>
-    <p class="note" style="margin-top:12px">alaskaair.com access is optional and off until you turn it on,
-    so the install prompt stays small. Alaska badges appear once you grant it.</p>
+    <p class="note" style="margin-top:12px">alaskaair.com access is optional and stays off until you
+    turn it on, which keeps the install prompt small. Alaska badges appear once you grant it.</p>
   </div>
+  <p class="src"><span class="cls">Reported</span> Store listing body for the shipped build, read
+  24 Jul 2026. See the <a href="/privacy.html">privacy policy</a> for what the extension sends.</p>
 </section>
 
 <section class="blk">
-  <div class="sec-h"><h2>Alaska WiFi questions</h2></div>
+  <div class="sec-h"><span class="sub">§3 · Questions</span><h2>Alaska wifi, answered</h2></div>
   <div class="faq">
-    <div class="q rv"><h3>Does Alaska have Starlink WiFi?</h3>
+    <div class="q"><h3>Does Alaska have Starlink wifi?</h3>
       <p>Yes, on <span data-bake="alaska.equipped">99</span> of <span data-bake="alaska.fleet">350</span>
-      aircraft (<span data-bake="alaska.pct">28%</span>) — the whole E175 regional fleet plus the
-      ex-Hawaiian widebodies, with the mainline 737s only just starting.</p></div>
-    <div class="q rv"><h3>Is Alaska's WiFi free?</h3>
-      <p>Where Starlink is installed it is <span data-bake="alaska.free">free for everyone onboard</span> —
-      no loyalty program, no tier, no purchase. That is why Alaska's free-for-you factor is the maximum 1.00.</p></div>
-    <div class="q rv"><h3>How many Alaska planes have Starlink?</h3>
-      <p><span data-bake="alaska.equipped">99</span> of <span data-bake="alaska.fleet">350</span>, verified
-      tail by tail by alaskastarlinktracker.com (@martinamps).</p></div>
+      aircraft (<span data-bake="alaska.pct">28%</span>): the whole E175 regional fleet plus the
+      ex-Hawaiian widebodies, with the mainline 737s only just starting. Counted from the
+      alaskastarlinktracker.com roster, <span data-bake="site.updated">2026-07-24</span>.</p></div>
+    <div class="q"><h3>Is Alaska's wifi free?</h3>
+      <p>Where Starlink is installed it is <span data-bake="alaska.free">free for everyone onboard</span>,
+      with no loyalty programme, tier or purchase. That is why Alaska's free-for-you factor is the
+      maximum 1.00 in the ConnectScore arithmetic above.</p></div>
+    <div class="q"><h3>How many Alaska planes have Starlink?</h3>
+      <p><span data-bake="alaska.equipped">99</span> of <span data-bake="alaska.fleet">350</span>,
+      checked tail by tail by alaskastarlinktracker.com (@martinamps) and read on
+      <span data-bake="site.updated">2026-07-24</span>.</p></div>
+    <div class="q"><h3>Which Alaska flight should I book for wifi?</h3>
+      <p>A regional flight on an E175 if the schedule offers one, because that sub-fleet is finished.
+      On mainline, check the specific tail at T-48h. Aircraft assignments publish about two days out
+      and they still change after that.</p></div>
   </div>
 </section>
 

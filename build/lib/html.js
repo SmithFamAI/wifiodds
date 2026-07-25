@@ -19,7 +19,34 @@ function ld(obj) {
     JSON.stringify(obj).replace(/</g, '\\u003c') + '</script>';
 }
 
-var FAVICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2369B3E7'/%3E%3Cstop offset='1' stop-color='%230033A0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Cpath d='M9 21c3-9 11-9 14-13' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='11' cy='22' r='2.6' fill='%23fff'/%3E%3C/svg%3E";
+/* ── THE WAFFLE MARK ───────────────────────────────────────────────────────
+ * The hangar-floor waffle is the one picture on this site that is ours: a grid
+ * of cells, most of them dim, a band of them lit. It means the same thing at 16
+ * pixels as it does at full width on /united/fleet/ — this is the fleet, and
+ * this much of it is flying. So it is also the logo, the favicon and the OG
+ * image, and the old rounded-square wifi arc in United's blue-to-sky gradient
+ * is gone. There is no house colour any more; the lit cells take the green end
+ * of the score arc because that is what a lit cell is.
+ *
+ * The favicon is an inline data URI so it costs no request. Sixteen pixels, a
+ * 4×4 grid: the bottom row and one cell above it are lit, which is roughly
+ * where the industry actually is. Regenerate the OG image with
+ * `python3 build/make-brand.py og`; it draws the same mark from the same
+ * tokens. */
+function _cell(x, y) {
+  return "%3Crect x='" + x + "' y='" + y + "' width='2.5' height='2.5'/%3E";
+}
+var FAVICON = (function () {
+  var col = [2, 5.5, 9, 12.5], dim = '', lit = '';
+  col.forEach(function (x) { dim += _cell(x, 2) + _cell(x, 5.5); });
+  [5.5, 9, 12.5].forEach(function (x) { dim += _cell(x, 9); });
+  lit += _cell(2, 9);
+  col.forEach(function (x) { lit += _cell(x, 12.5); });
+  return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E" +
+    "%3Crect width='16' height='16' fill='%230a0c0d'/%3E" +
+    "%3Cg fill='%23444d50'%3E" + dim + "%3C/g%3E" +
+    "%3Cg fill='%233fcf8e'%3E" + lit + "%3C/g%3E%3C/svg%3E";
+})();
 
 /* Set data-theme BEFORE first paint or the dark default flashes on a light
    preference. localStorage.woTheme is the only key this site ever writes.
@@ -36,9 +63,34 @@ var THEME_BOOT = '<script>(function(){var r=document.documentElement;r.classList
   'try{var t=localStorage.getItem("woTheme");' +
   'if(t==="light"||t==="dark")r.setAttribute("data-theme",t);}catch(e){}})();</script>';
 
-var MARK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round">' +
-  '<path d="M4.5 10.5a11 11 0 0 1 15 0"/><path d="M7.6 14a7 7 0 0 1 8.8 0"/>' +
-  '<circle cx="12" cy="18.2" r="1.5" fill="#fff" stroke="none"/></svg>';
+/* The header lockup: 24 cells, 7 lit. currentColor for the dim ones so the mark
+ * follows the ink in both themes; var(--good) for the lit band so it follows the
+ * score arc. Both are inline SVG in the document, so the custom property
+ * resolves — this would silently fall back to black in an <img>. */
+var MARK_SVG = (function () {
+  var xs = [0, 4.6, 9.2, 13.8, 18.4, 23], dim = '', lit = '';
+  function r(x, y) { return '<rect x="' + x + '" y="' + y + '" width="3" height="3"/>'; }
+  xs.forEach(function (x) { dim += r(x, 0) + r(x, 4.6); });
+  xs.slice(1).forEach(function (x) { dim += r(x, 9.2); });
+  lit += r(0, 9.2);
+  xs.forEach(function (x) { lit += r(x, 13.8); });
+  return '<svg width="26" height="17" viewBox="0 0 26 17" aria-hidden="true" focusable="false">' +
+    '<g fill="currentColor" opacity=".55">' + dim + '</g>' +
+    '<g fill="var(--good)">' + lit + '</g></svg>';
+})();
+
+/* ── the plate header strip date ───────────────────────────────────────────
+ * "2026-07-25" → "25 JUL 2026". Split the string; never hand it to `new Date()`,
+ * which reads a bare ISO date as UTC midnight and then prints it in the local
+ * zone, so half the planet gets the 24th. The date comes from united/data.json
+ * through H.page({updated}), so the strip cannot claim a freshness the data does
+ * not have. */
+var MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+function plateDate(iso) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || ''));
+  if (!m) return String(iso || '').toUpperCase();
+  return String(Number(m[3])) + ' ' + MONTHS[Number(m[2]) - 1] + ' ' + m[1];
+}
 
 /* ── TWO-LEVEL NAVIGATION ─────────────────────────────────────────────────
  * NAV is the GLOBAL row and is identical on every page. It must stay free of
@@ -97,10 +149,21 @@ function subnav(section, here, label) {
     '<a class="sn-back" href="/airlines/">All airlines →</a></nav>\n';
 }
 
-function topbar(here, suffix) {
+/* THE PLATE HEADER STRIP, and it is on every page.
+ *
+ *     WIFI ODDS · CONNECTSCORE · DATA EFF 25 JUL 2026 · AMDT DAILY
+ *
+ * Read it as one line: the wordmark is the first field of the strip, not a logo
+ * sitting next to it. That is the approach-plate header idiom, where the chart
+ * tells you what it is, what it measures, the date it is effective and how often
+ * it is amended, before it tells you anything else. The date is `updated` from
+ * the build data. If you ever find yourself typing a month name in here, stop. */
+function topbar(here, suffix, updated) {
   return '<div class="topbar">\n' +
     '  <a class="mark" href="/"><span class="glyph" aria-hidden="true">' + MARK_SVG + '</span>' +
     '<span class="wm">WiFi Odds' + (suffix ? ' <em>· ' + esc(suffix) + '</em>' : '') + '</span></a>\n' +
+    '  <p class="stripmeta">ConnectScore · Data eff <b>' + esc(plateDate(updated)) +
+    '</b> · Amdt daily</p>\n' +
     '  <nav class="topnav" aria-label="Main">\n' +
     NAV.map(function (n) {
       return '    <a href="' + n[0] + '"' + (n[0] === here ? ' aria-current="page"' : '') + '>' + n[1] + '</a>\n';
@@ -158,10 +221,10 @@ function footer(updated) {
     '  <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> ' +
     '· <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> ' +
     '(independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>\n' +
-    '  <div class="frow"><b>No accounts, no analytics, no tracking</b> — on this site or in the extension. ' +
+    '  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension. ' +
     'The only thing stored in your browser is your light/dark choice. See the <a href="/privacy.html">privacy policy</a>.</div>\n' +
     '  <div class="frow">Data updated <b>' + esc(updated) + '</b>. ConnectScores and per-flight odds are ' +
-    'historical estimates, not guarantees — aircraft assignments change until departure. WiFi Odds is an ' +
+    'historical estimates, not guarantees. Aircraft assignments change until departure. WiFi Odds is an ' +
     'unofficial, free, open-source project. 🛰️</div>\n' +
     '</footer>\n';
 }
@@ -193,21 +256,28 @@ function page(o) {
     '<meta property="og:title" content="' + title + '">\n' +
     '<meta property="og:description" content="' + desc + '">\n' +
     '<meta property="og:url" content="' + url + '">\n' +
-    '<meta property="og:image" content="' + ORIGIN + '/assets/og.png?v=2">\n' +
+    '<meta property="og:image" content="' + ORIGIN + '/assets/og.png?v=3">\n' +
     '<meta property="og:image:width" content="1200">\n' +
     '<meta property="og:image:height" content="630">\n' +
     '<meta property="og:image:alt" content="WiFi Odds — know before you book">\n' +
     '<meta name="twitter:card" content="summary_large_image">\n' +
     '<meta name="twitter:title" content="' + title + '">\n' +
     '<meta name="twitter:description" content="' + desc + '">\n' +
-    '<meta name="twitter:image" content="' + ORIGIN + '/assets/og.png?v=2">\n' +
+    '<meta name="twitter:image" content="' + ORIGIN + '/assets/og.png?v=3">\n' +
+    /* B612, self-hosted. The two regular faces are preloaded because they are on
+     * the critical path for the first screen and the heading and every numeral
+     * are set in them; the bolds can arrive with the stylesheet. `crossorigin` is
+     * required even same-origin — a font preload without it is fetched twice.
+     * Nothing here, and nothing in site.css, points at a third party. */
+    '<link rel="preload" href="/assets/b612-400.woff2" as="font" type="font/woff2" crossorigin>\n' +
+    '<link rel="preload" href="/assets/b612mono-400.woff2" as="font" type="font/woff2" crossorigin>\n' +
     '<link rel="stylesheet" href="/assets/site.css">\n' +
     (o.extraHead || '') +
     (o.jsonld || []).map(ld).join('\n') + '\n' +
     '</head>\n<body>\n' +
     (o.preWrap || '') +
     '<div class="wrap">\n' +
-    topbar(o.here, o.suffix) +
+    topbar(o.here, o.suffix, o.updated) +
     subnav(o.section, o.canonical, o.suffix) +
     (o.crumb ? crumb(o.crumb) : '') +
     o.body +
@@ -220,5 +290,6 @@ function page(o) {
 module.exports = {
   ORIGIN: ORIGIN, EXT: EXT, REPO: REPO, NAV: NAV, SUBNAV: SUBNAV,
   esc: esc, ld: ld, page: page, topbar: topbar, subnav: subnav,
-  crumb: crumb, credit: credit, footer: footer
+  crumb: crumb, credit: credit, footer: footer,
+  plateDate: plateDate, MARK_SVG: MARK_SVG, FAVICON: FAVICON
 };

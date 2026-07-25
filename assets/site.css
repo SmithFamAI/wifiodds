@@ -1,204 +1,330 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    assets/site.css — the WiFi Odds design system. ONE file, every page.
-   Vibe: premium aviation dashboard. Dark navy, glowing accents, mono numerals,
-   chips and cards, restrained motion. Flight-deck EFIS, not htop.
+
+   THE PLATE. The reference is an instrument panel and an approach plate, not a
+   marketing site: hairline rules, square corners, near-monochrome ink on panel
+   charcoal, and colour reserved for one job. See public/wifiodds-mockups/a2/ in
+   the websites repo for the direction this was ported from.
+
+   THE ONE COLOUR RULE
+   -------------------
+   Colour on this site means SCORE BAND. A surface takes its accent from the
+   number it is showing, through --band, which the .sc-* classes set (the same
+   six thresholds build/lib/pages.js:15 uses). Nothing else gets to be coloured:
+   not chrome, not links, not a provenance tag, not a call to action. If you add
+   a hue for emphasis, the arc stops meaning anything.
+
+   The projected score is the standing exception and it is a NEGATIVE one: it
+   never takes --band. Grey outline, always. See .proj at the end of this file.
+
+   TYPE — B612, self-hosted, four faces, ~53 KB
+   -------------------------------------------
+   B612 is the typeface Airbus commissioned for cockpit display legibility, and
+   it is SIL-OFL, so it ships from /assets/ as subset woff2. Nothing on this site
+   fetches anything from a third party at runtime, fonts included. Regenerate the
+   files with `python3 build/make-brand.py fonts`. Licence: assets/B612-OFL.txt.
+
+   Headings and display text in B612. EVERY numeral in B612 Mono. On an
+   instrument a digit does not change width when it changes value.
 
    DARK IS THE DEFAULT (:root). Light is an override:
      [data-theme="light"]                       — an explicit stored choice
      @media (prefers-color-scheme: light)       — only when nothing is stored
-   The ~10-line boot script in every <head> sets data-theme before paint so
-   there is no flash. That localStorage key ('woTheme') is the entire
-   persistence story on this site: a preference, not tracking.
+   The boot script in every <head> sets data-theme before paint so there is no
+   flash. That localStorage key ('woTheme') is the entire persistence story on
+   this site: a preference, not tracking.
 
    ANIMATION IS A PRIVILEGE, NOT A DEFAULT. Every animated rule is scoped under
    html.anim, a class site.js adds only when prefers-reduced-motion is
    no-preference. No JS / reduced motion => the page is already finished.
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* ── B612, self-hosted ────────────────────────────────────────────────────
+   Subset with fontTools to Latin plus the punctuation and symbols the pages
+   actually use (checked by counting the non-ASCII characters in the built HTML,
+   not by guessing). font-display:swap, so a slow font never blocks the text. */
+@font-face{font-family:"B612";font-style:normal;font-weight:400;font-display:swap;
+  src:url(/assets/b612-400.woff2) format("woff2")}
+@font-face{font-family:"B612";font-style:normal;font-weight:700;font-display:swap;
+  src:url(/assets/b612-700.woff2) format("woff2")}
+@font-face{font-family:"B612 Mono";font-style:normal;font-weight:400;font-display:swap;
+  src:url(/assets/b612mono-400.woff2) format("woff2")}
+@font-face{font-family:"B612 Mono";font-style:normal;font-weight:700;font-display:swap;
+  src:url(/assets/b612mono-700.woff2) format("woff2")}
+
 :root{
-  --bg:#040816;
-  --bg-glow-a:#0b1b4d;
-  --bg-glow-b:#071233;
-  --surface:rgba(148,178,255,.055);
-  --edge:rgba(148,178,255,.14);
-  --edge-strong:rgba(148,178,255,.35);
-  --ink:#e8eefb;
-  --body:#c0cbe4;
-  --dim:#93a1c0;
-  --faint:#5c688a;
-  --brand:#0033A0;
-  --brand-deep:#001A57;
-  --brand-lift:#0a4fd6;
-  --sky:#69B3E7;
-  --sky-bright:#8ecdff;
-  --accent:var(--sky-bright);
-  --gold:#ffd166;  --green:#35d07f;  --blue:#4da6ff;
-  --amber:#ffb020; --red:#ff5a6e;
-  --field-bg:#0a122e;
-  --shadow:0 0 24px rgba(10,79,214,.35);
-  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
-  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+  color-scheme:dark;
+  /* ── surfaces and ink. Near-monochrome on purpose. ── */
+  --bg:#0a0c0d;
+  --bg-panel:#0f1214;
+  --bg-inset:#14181a;
+  --ink:#e9ecec;
+  --ink-2:#a3acb0;
+  --ink-3:#6a7377;
+  --rule:#212829;
+  --rule-2:#353e41;
+
+  /* ── the score arc. The only colour on the site. ──
+     Six stops because build/lib/pages.js bands at 85/60/35/20/5. The four a2
+     anchors (good/mixed/low/none) keep their names because the mockup, the
+     waffle and the extension all speak them. */
+  --good:#3fcf8e;
+  --mixed:#e2a838;
+  --low:#e0713d;
+  --none:#77817f;
+  --s-exc:var(--good);
+  --s-good:#a9c95e;
+  --s-mix:var(--mixed);
+  --s-long:#d98b3e;
+  --s-rare:#d1495b;
+  --s-no:var(--none);
+  /* --band is what every accented surface reads. Un-scored chrome inherits the
+     grey, which is the correct answer for chrome. */
+  --band:var(--ink-2);
+
+  --mono:"B612 Mono",ui-monospace,"SF Mono",Menlo,"DejaVu Sans Mono",Consolas,monospace;
+  --sans:"B612","Avenir Next",Corbel,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+
+  /* ── compatibility aliases ───────────────────────────────────────────────
+     build/lib/render.js, build/lib/viz.js and build/lib/pages.js reference these
+     names inline (var(--faint), var(--sky) inside an SVG gradient, and so on).
+     They are kept as aliases pointing at the plate tokens so that a re-skin of
+     this file cannot silently blank out an SVG or a caption in a file it does
+     not own. New rules should use the tokens above. --brand and --sky no longer
+     carry United's blue; there is no house hue any more. */
+  --surface:var(--bg-panel);
+  --edge:var(--rule);
+  --edge-strong:var(--rule-2);
+  --body:var(--ink-2);
+  --dim:var(--ink-2);
+  --faint:var(--ink-3);
+  --accent:var(--ink);
+  --brand:var(--good);
+  --brand-deep:var(--rule-2);
+  --brand-lift:var(--good);
+  --sky:var(--good);
+  --sky-bright:var(--good);
+  --gold:var(--mixed);  --green:var(--good);  --blue:var(--ink-2);
+  --amber:var(--mixed); --red:var(--s-rare);
+  --field-bg:var(--bg-inset);
+  --shadow:none;
+  --bg-glow-a:transparent; --bg-glow-b:transparent;
+
   /* chart semantics — used by every visualization, no exceptions */
-  --viz-equipped:#8ecdff;
-  --viz-empty:rgba(148,178,255,.10);
-  --viz-mainline:#4da6ff;
-  --viz-express:#35d07f;
-  --sys-starlink:#8ecdff; --sys-leo:#b48cff; --sys-viasat:#ffb020;
-  --sys-legacy:#5c688a;   --sys-none:transparent;
-  /* radii */
-  --r-sm:10px; --r-md:14px; --r-lg:16px; --r-xl:20px;
+  --viz-equipped:var(--good);
+  --viz-empty:var(--bg-inset);
+  --viz-mainline:var(--ink);
+  --viz-express:var(--ink-3);
+  --sys-starlink:var(--good); --sys-leo:var(--ink-2); --sys-viasat:var(--mixed);
+  --sys-legacy:var(--ink-3);  --sys-none:transparent;
+
+  /* radii. The plate has corners, not curves. Kept as tokens because render.js
+     asks for var(--r-md) in two inline styles. */
+  --r-sm:0; --r-md:0; --r-lg:0; --r-xl:0;
   /* type scale */
-  --fs-body:16px; --fs-small:14.5px; --fs-micro:12px;
+  --fs-body:15px; --fs-small:13.5px; --fs-micro:11.5px;
 }
 
 [data-theme="light"]{
-  --bg:#f5f8fc; --bg-glow-a:#e7f0fd; --bg-glow-b:#eef3fb;
-  --surface:#ffffff; --edge:#e2e9f4; --edge-strong:#cdd8ea;
-  --ink:#0e1730; --body:#3d4a68; --dim:#68758f; --faint:#8d97ac;
-  --accent:#0b5fa8;
-  --gold:#a97400; --green:#0b7a45; --blue:#0b5fa8; --amber:#9a6400; --red:#a32330;
-  --field-bg:#ffffff;
-  --shadow:0 1px 2px rgba(14,23,48,.05),0 8px 24px rgba(14,23,48,.05);
-  --viz-equipped:#0f79c4; --viz-empty:#e7edf6;
-  --viz-mainline:#0b5fa8; --viz-express:#0b7a45;
-  --sys-starlink:#0f79c4; --sys-leo:#6b3fd4; --sys-viasat:#b07a00; --sys-legacy:#8d97ac;
+  color-scheme:light;
+  --bg:#f4f2ed; --bg-panel:#fbfaf7; --bg-inset:#e9e6df;
+  --ink:#14181a; --ink-2:#4c5457; --ink-3:#7c8487;
+  --rule:#cdc9bf; --rule-2:#9c988c;
+  --good:#12784a; --mixed:#8a6006; --low:#a8420f; --none:#6f7876;
+  --s-good:#4f6b12; --s-long:#96540a; --s-rare:#98202f;
 }
 
 @media (prefers-color-scheme: light){
   :root:not([data-theme]){
-    --bg:#f5f8fc; --bg-glow-a:#e7f0fd; --bg-glow-b:#eef3fb;
-    --surface:#ffffff; --edge:#e2e9f4; --edge-strong:#cdd8ea;
-    --ink:#0e1730; --body:#3d4a68; --dim:#68758f; --faint:#8d97ac;
-    --accent:#0b5fa8;
-    --gold:#a97400; --green:#0b7a45; --blue:#0b5fa8; --amber:#9a6400; --red:#a32330;
-    --field-bg:#ffffff;
-    --shadow:0 1px 2px rgba(14,23,48,.05),0 8px 24px rgba(14,23,48,.05);
-    --viz-equipped:#0f79c4; --viz-empty:#e7edf6;
-    --viz-mainline:#0b5fa8; --viz-express:#0b7a45;
-    --sys-starlink:#0f79c4; --sys-leo:#6b3fd4; --sys-viasat:#b07a00; --sys-legacy:#8d97ac;
+    color-scheme:light;
+    --bg:#f4f2ed; --bg-panel:#fbfaf7; --bg-inset:#e9e6df;
+    --ink:#14181a; --ink-2:#4c5457; --ink-3:#7c8487;
+    --rule:#cdc9bf; --rule-2:#9c988c;
+    --good:#12784a; --mixed:#8a6006; --low:#a8420f; --none:#6f7876;
+    --s-good:#4f6b12; --s-long:#96540a; --s-rare:#98202f;
   }
 }
+
+/* ── the band map ─────────────────────────────────────────────────────────
+   Put a .sc-* class on any element and its whole subtree accents to that score.
+   [data-band] is the same switch under the name the a2 mockup used, so markup
+   ported from there keeps working. */
+.sc-exc {--band:var(--s-exc)}
+.sc-good{--band:var(--s-good)}
+.sc-mix {--band:var(--s-mix)}
+.sc-long{--band:var(--s-long)}
+.sc-rare{--band:var(--s-rare)}
+.sc-no  {--band:var(--s-no)}
+[data-band="good"] {--band:var(--good)}
+[data-band="mixed"]{--band:var(--mixed)}
+[data-band="low"]  {--band:var(--low)}
+[data-band="none"] {--band:var(--none)}
 
 /* ── base ─────────────────────────────────────────────────────────────── */
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{
-  background:
-    radial-gradient(1200px 700px at 75% -10%, var(--bg-glow-a) 0%, transparent 55%),
-    radial-gradient(900px 600px at 10% 110%, var(--bg-glow-b) 0%, transparent 60%),
-    var(--bg);
-  color:var(--body);
-  font:var(--fs-body)/1.55 var(--sans);
+  background:var(--bg);
+  color:var(--ink-2);
+  font:400 var(--fs-body)/1.6 var(--sans);
   -webkit-font-smoothing:antialiased;min-height:100vh;
   -webkit-tap-highlight-color:transparent;
 }
-.wrap{max-width:1060px;margin:0 auto;
-  padding:0 max(20px,env(safe-area-inset-right)) 0 max(20px,env(safe-area-inset-left))}
-a{color:var(--accent)}
-h1,h2,h3{color:var(--ink)}
-.mono{font-family:var(--mono)}
+/* Every numeral on the site is B612 Mono and tabular. If you add a class that
+   holds a number, add it here rather than setting font-family locally. */
+.n,.sco,.num,.mono,.big,.v,.ct,.dn,.fa-big,.stat .n,.chip .n,.usrow .sco,
+td.num,th.num,input,.code,.rank,.tblcap,.fchk-in,.fa-as{
+  font-family:var(--mono);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+/* The column rules are the approach-plate margin. .wrap wraps the whole page,
+   header and footer included, so the rule runs the full height of the document
+   the way a plate's margin does. */
+.wrap{max-width:1060px;margin:0 auto;position:relative;
+  border-left:1px solid var(--rule);border-right:1px solid var(--rule);
+  padding:0 max(24px,env(safe-area-inset-right)) 0 max(24px,env(safe-area-inset-left))}
+.wrap::before,.wrap::after{content:"";position:absolute;top:0;bottom:0;width:5px;
+  pointer-events:none;background:repeating-linear-gradient(180deg,var(--rule) 0 1px,transparent 1px 26px)}
+.wrap::before{left:0}
+.wrap::after{right:0}
+a{color:inherit}
+h1,h2,h3,h4{color:var(--ink);font-weight:700;letter-spacing:-.01em}
+:focus-visible{outline:2px solid var(--band);outline-offset:2px}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .needs-js{display:none}
 html.js .needs-js{display:revert}
 html.js .no-js-only{display:none}
 
-/* ── topbar / nav ─────────────────────────────────────────────────────── */
-.topbar{display:flex;align-items:center;gap:14px;padding:18px 0 6px;flex-wrap:wrap}
-.mark{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--ink)}
-.mark .glyph{width:38px;height:38px;border-radius:11px;flex:none;display:grid;place-items:center;
-  background:linear-gradient(135deg,var(--sky) 0%,var(--brand) 100%);
-  box-shadow:0 4px 14px rgba(0,51,160,.34)}
-.mark .glyph svg{width:22px;height:22px;display:block}
-.mark .wm{font-weight:800;font-size:18px;letter-spacing:-.2px}
-.mark .wm em{font-style:normal;color:var(--dim);font-weight:600}
-.topnav{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap;align-items:center}
-.topnav a{font-size:14px;font-weight:600;text-decoration:none;color:var(--dim);
-  padding:7px 11px;border-radius:99px;transition:.15s}
-.topnav a:hover,.topnav a[aria-current="page"]{color:var(--accent);background:var(--surface)}
-.topnav a.cta{background:var(--brand);color:#fff;font-weight:700}
-.topnav a.cta:hover{background:var(--brand-lift);color:#fff;box-shadow:var(--shadow)}
-.tt{background:var(--surface);border:1px solid var(--edge);color:var(--dim);
-  border-radius:99px;width:34px;height:32px;cursor:pointer;font-size:14px;line-height:1;
-  display:inline-grid;place-items:center;transition:.15s}
-.tt:hover{color:var(--accent);border-color:var(--edge-strong)}
-.crumb{margin-top:14px;font-size:13.5px;color:var(--faint)}
-.crumb a{color:var(--dim);text-decoration:none;font-weight:600}
-.crumb a:hover{color:var(--accent);text-decoration:underline}
-.crumb .sep{padding:0 6px;color:var(--faint)}
+/* ── the plate header strip ───────────────────────────────────────────────
+   Every page carries it, and the date in it comes from united/data.json by way
+   of H.page({updated}). Nothing here is hard-coded; a stale date on a plate is
+   worse than no date. */
+.topbar{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;
+  padding:13px 0;border-bottom:1px solid var(--rule-2)}
+.mark{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+.mark .glyph{width:26px;height:17px;flex:none;display:block;color:var(--ink-3)}
+.mark .glyph svg{width:26px;height:17px;display:block}
+.mark .wm{font:700 13px/1 var(--sans);letter-spacing:.19em;text-transform:uppercase}
+.mark .wm em{font-style:normal;color:var(--ink-3);font-weight:400;letter-spacing:.14em}
+/* The strip has to survive on one line next to a four-item nav at 1060px, which
+   is why the tracking is tighter here than anywhere else on the site. If you
+   loosen it, check the header at 1024 and 1280 before you commit. */
+.stripmeta{font:700 9.5px/1.4 var(--mono);letter-spacing:.105em;text-transform:uppercase;
+  color:var(--ink-3);margin-right:auto;flex:1 1 auto;min-width:0}
+.stripmeta b{color:var(--ink-2);font-weight:700}
+.topnav{display:flex;gap:0;flex-wrap:wrap;align-items:center}
+.topnav a{font:700 9.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  text-decoration:none;color:var(--ink-2);padding:8px 9px;border:1px solid var(--rule);
+  margin-left:-1px}
+.topnav a:hover{color:var(--ink);background:var(--bg-inset)}
+.topnav a[aria-current="page"]{color:var(--bg);background:var(--ink);border-color:var(--ink)}
+.topnav a.cta{color:var(--ink);border-color:var(--rule-2)}
+.topnav a.cta:hover{color:var(--bg);background:var(--ink);border-color:var(--ink)}
+/* The theme button's face is a moon or a sun, written by assets/site.js. B612
+   has no U+263D, and neither does most of a normal text stack, so this control
+   asks for a symbol font by name. Everything else on the site is B612. */
+.tt{background:transparent;border:1px solid var(--rule);color:var(--ink-2);
+  width:32px;height:30px;cursor:pointer;font-size:13px;line-height:1;
+  font-family:"Apple Symbols","Segoe UI Symbol","Noto Sans Symbols 2",
+    "Noto Sans Symbols",system-ui,sans-serif;
+  display:inline-grid;place-items:center;margin-left:-1px}
+.tt:hover{color:var(--ink);background:var(--bg-inset)}
+.crumb{margin-top:13px;font:700 9.5px/1.6 var(--mono);letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-3)}
+.crumb a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid var(--rule)}
+.crumb a:hover{color:var(--ink);border-bottom-color:currentColor}
+.crumb .sep{padding:0 7px;color:var(--ink-3)}
 
 /* ── airline sub-nav: the SECOND header row ───────────────────────────────
    .topnav says where you are on the SITE and is identical on every page.
    .subnav says where you are inside ONE airline. Anything airline-specific
-   belongs here — with 18 airlines it can never live in .topnav. Tab vocabulary
-   deliberately matches .filters/.pill: pill, 1px edge, accent when current. */
-.subnav{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:10px;
-  padding:6px 0 8px;border-bottom:1px solid var(--edge)}
-.subnav .sn-air{font-size:13.5px;font-weight:800;color:var(--ink);white-space:nowrap;margin-right:2px}
-.subnav a{font-size:13.5px;font-weight:600;text-decoration:none;color:var(--dim);white-space:nowrap;
-  padding:5px 11px;border-radius:99px;border:1px solid transparent;transition:.15s}
-.subnav a:hover{color:var(--accent);background:var(--surface);border-color:var(--edge)}
-.subnav a[aria-current="page"]{color:var(--accent);background:var(--surface);border-color:var(--sky)}
-.subnav .sn-back{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--faint);
-  padding-right:0}
-.subnav .sn-back:hover{color:var(--accent);background:none;border-color:transparent;
-  text-decoration:underline}
+   belongs here — with 18 airlines it can never live in .topnav. Same tab
+   grammar as .topnav: a hairline box, inverted when it is the current page. */
+.subnav{display:flex;align-items:center;flex-wrap:wrap;gap:0 6px;
+  padding:10px 0;border-bottom:1px solid var(--rule)}
+.subnav .sn-air{font:700 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink);white-space:nowrap;margin-right:8px}
+.subnav a{font:700 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;
+  text-decoration:none;color:var(--ink-2);white-space:nowrap;
+  padding:7px 11px;border:1px solid var(--rule);margin-left:-1px}
+.subnav a:hover{color:var(--ink);background:var(--bg-inset)}
+.subnav a[aria-current="page"]{color:var(--bg);background:var(--ink);border-color:var(--ink)}
+.subnav .sn-back{margin-left:auto;border-color:transparent;color:var(--ink-3);padding-right:0}
+.subnav .sn-back:hover{background:none;color:var(--ink);border-color:transparent}
 /* the 16 single-page airlines: no tabs to choose between, just the way back */
 .subnav.lone .sn-back{margin-left:0;padding-left:0}
-.subnav.lone .sn-air{margin-left:auto;margin-right:0;font-family:var(--mono);font-size:12.5px;
-  font-weight:600;color:var(--dim)}
-@media(max-width:560px){.subnav{gap:4px}.subnav .sn-back{margin-left:0;padding-left:0}}
+.subnav.lone .sn-air{margin-left:auto;margin-right:0;color:var(--ink-2)}
+@media(max-width:560px){.subnav .sn-back{margin-left:0;padding-left:0}}
 
 /* ── type ─────────────────────────────────────────────────────────────── */
-.hero{padding:26px 0 4px}
-.hero h1{font-size:clamp(30px,5.4vw,46px);font-weight:800;letter-spacing:-.9px;line-height:1.08}
-h1.ph{font-size:clamp(24px,4vw,34px);font-weight:800;letter-spacing:-.6px;line-height:1.12;margin:6px 0 0}
-.hero h1 .tag{display:block;font-size:clamp(19px,3.2vw,26px);font-weight:700;letter-spacing:-.3px;
-  margin-top:8px;background:linear-gradient(90deg,var(--sky),var(--sky-bright));
-  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-[data-theme="light"] .hero h1 .tag{background:linear-gradient(90deg,var(--brand),#2b8fd8);
-  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.lede{font-size:17px;color:var(--body);max-width:68ch;margin-top:15px}
-.lede b{color:var(--ink)}
-.kicker{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;
-  letter-spacing:1.3px;text-transform:uppercase;color:var(--accent);
-  background:var(--surface);border:1px solid var(--edge);border-radius:99px;padding:5px 12px}
-.kicker .dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex:none}
-section.blk{margin:40px 0}
-.sec-h{display:flex;align-items:baseline;gap:12px;margin-bottom:8px;flex-wrap:wrap}
-.sec-h h2{font-size:21px;font-weight:800;letter-spacing:.3px}
-.sec-h .sub{color:var(--faint);font-size:13px;font-family:var(--mono)}
-.sec-h .more{margin-left:auto;font-size:13.5px;font-weight:700;text-decoration:none}
-.sec-lede{color:var(--dim);font-size:15px;max-width:74ch;margin-bottom:16px}
-.micro{font-size:var(--fs-micro);font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
-.note{font-size:13.5px;color:var(--dim)}
+.hero{padding:34px 0 4px}
+.hero h1{font-size:clamp(28px,4.4vw,44px);font-weight:700;letter-spacing:-.018em;
+  line-height:1.12;max-width:21ch}
+h1.ph{font-size:clamp(24px,3.6vw,34px);font-weight:700;letter-spacing:-.014em;
+  line-height:1.14;margin:8px 0 0}
+/* the old gradient-filled tagline was United's blue on United's sky. It is a
+   plain second line now, one step down the scale. */
+.hero h1 .tag{display:block;font-size:clamp(17px,2.6vw,23px);font-weight:400;
+  letter-spacing:-.004em;margin-top:10px;color:var(--ink-2)}
+.lede{font-size:16px;color:var(--ink-2);max-width:64ch;margin-top:15px}
+.lede b{color:var(--ink);font-weight:700}
+.kicker{display:inline-flex;align-items:center;gap:8px;font:700 9.5px/1 var(--mono);
+  letter-spacing:.15em;text-transform:uppercase;color:var(--ink-2);
+  border:1px solid var(--rule-2);padding:6px 10px}
+.kicker .dot{width:7px;height:7px;background:var(--band);flex:none}
 
-/* ── cards, chips, panels ─────────────────────────────────────────────── */
-.card,.panel{background:var(--surface);border:1px solid var(--edge);border-radius:var(--r-lg);
-  padding:20px;box-shadow:var(--shadow);color:inherit}
-a.card{text-decoration:none;display:flex;flex-direction:column;gap:9px;transition:.18s}
-a.card:hover{border-color:var(--edge-strong);transform:translateY(-1px)}
-.card h3{font-size:16.5px;font-weight:700;letter-spacing:-.2px}
-.card p{font-size:var(--fs-small);color:var(--dim)}
-.card .go{margin-top:auto;font-weight:700;font-size:14px;color:var(--accent)}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+/* Sections divide with a full-width rule, broken at the left by an all-caps
+   micro-label. That is the whole section grammar; there are no cards around
+   sections and no headings floating in space. */
+section.blk{position:relative;border-top:1px solid var(--rule-2);
+  margin:40px 0 0;padding-top:30px}
+.sec-h{display:flex;align-items:baseline;gap:8px 16px;margin-bottom:10px;flex-wrap:wrap}
+.sec-h h2{font-size:22px;font-weight:700;letter-spacing:-.005em;line-height:1.25}
+.sec-h .sub{font:700 10px/1.4 var(--mono);letter-spacing:.155em;text-transform:uppercase;
+  color:var(--ink-3)}
+section.blk>.sec-h>.sub{position:absolute;top:-7px;left:0;background:var(--bg);
+  padding-right:13px}
+.sec-h .more{margin-left:auto;font:700 10px/1 var(--mono);letter-spacing:.14em;
+  text-transform:uppercase;text-decoration:none;color:var(--ink-2)}
+.sec-h .more:hover{color:var(--ink)}
+.sec-lede{color:var(--ink-2);font-size:15px;max-width:70ch;margin-bottom:18px}
+.micro{font:700 10px/1.4 var(--mono);letter-spacing:.155em;text-transform:uppercase;
+  color:var(--ink-3)}
+.note{font-size:13px;color:var(--ink-2)}
+
+/* ── boxes. Hairline ruled, square, flat. ─────────────────────────────────
+   The glass card is gone: no translucent fill, no rgba edge, no lift on hover,
+   no glow. A box on a plate is a box. */
+.card,.panel{background:var(--bg-panel);border:1px solid var(--rule);border-radius:0;
+  padding:18px 20px;box-shadow:none;color:inherit}
+a.card{text-decoration:none;display:flex;flex-direction:column;gap:8px}
+a.card:hover{border-color:var(--rule-2);background:var(--bg-inset)}
+.card h3{font-size:15.5px;font-weight:700;letter-spacing:-.006em}
+.card p{font-size:var(--fs-small);color:var(--ink-2)}
+.card .go{margin-top:auto;font:700 10px/1 var(--mono);letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-2)}
+a.card:hover .go{color:var(--ink)}
+/* One-pixel gaps over a rule-coloured ground: the cells look ruled, not spaced,
+   and there is exactly one line between two neighbours. */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);
+  border:1px solid var(--rule)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);
+  border:1px solid var(--rule)}
+.grid2>*,.grid3>*{border:0}
 @media(max-width:860px){.grid3{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){.grid2,.grid3{grid-template-columns:1fr}}
 
-.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0 8px}
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);
+  border:1px solid var(--rule);margin:20px 0 8px}
 @media(max-width:860px){.chips{grid-template-columns:1fr 1fr}}
 @media(max-width:420px){.chips{grid-template-columns:1fr}}
-.chip{background:var(--surface);border:1px solid var(--edge);border-radius:var(--r-md);
-  padding:14px 17px;transition:.18s}
-.chip:hover{border-color:var(--edge-strong)}
-.chip .n{font-size:27px;font-weight:800;font-family:var(--mono);line-height:1.05;color:var(--ink)}
-.chip .n small{font-size:15px;color:var(--faint);font-weight:700}
-.chip .l{font-size:11.5px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;
-  color:var(--accent);margin-top:7px}
-.chip .d{font-size:12.5px;color:var(--dim);margin-top:5px}
-.chip .d .up{color:var(--green);font-weight:700}
-.chip.glow .n{color:var(--accent)}
-.chip.hero-kpi .n{font-size:42px}
+.chip{background:var(--bg-panel);border:0;padding:14px 16px}
+.chip .n{font-size:26px;font-weight:700;line-height:1.05;color:var(--ink);letter-spacing:-.02em}
+.chip .n small{font-size:14px;color:var(--ink-3);font-weight:400}
+.chip .l{font:700 9.5px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);margin-top:8px}
+.chip .d{font-size:12.5px;color:var(--ink-2);margin-top:5px}
+.chip .d .up{color:var(--good);font-weight:700}
+.chip.glow .n{color:var(--band)}
+.chip.hero-kpi .n{font-size:40px}
 
 /* ── US airlines at a glance (homepage only) ───────────────────────────────
    Seven fixed carriers (build/lib/pages.js US_MAJORS), four across, so the last
@@ -209,70 +335,76 @@ a.card:hover{border-color:var(--edge-strong);transform:translateY(-1px)}
    scoped `table.tbl .sco` and these cards are anchors, not a table. Do not
    "dedupe" the two by unscoping the table rule; it would resize every leaderboard
    cell on /airlines/. */
-.usrow{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0 10px}
+.usrow{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);
+  border:1px solid var(--rule);margin:16px 0 10px}
 @media(max-width:980px){.usrow{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:720px){.usrow{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:430px){.usrow{grid-template-columns:1fr}}
-.usrow .card{padding:15px 16px;gap:7px}
+.usrow .card{padding:14px 16px;gap:6px;border:0}
 .ush{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.ush h3{margin-right:auto}
-.usrow .sco{font-family:var(--mono);font-size:21px;font-weight:800;color:var(--ink);line-height:1}
-.usrow a.card:hover .sco{color:var(--accent)}
+.ush h3{margin-right:auto;font-size:14.5px}
+.usrow .sco{font-size:21px;font-weight:700;color:var(--band);line-height:1;letter-spacing:-.02em}
 /* the three stacked lines: next-gen headline, today's tier, and the ConnectScore
    footer that lets a reader reconcile this row's order with /airlines/. See the
    comment above usGlance() in build/lib/pages.js for why there are three. */
-.usng{font-weight:600;color:var(--body)}
-.usnow{color:var(--dim)}
-.uscs{margin-top:auto;padding-top:8px;border-top:1px solid var(--edge);
-  font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+.usng{font-weight:700;color:var(--ink-2)}
+.usnow{color:var(--ink-2)}
+.uscs{margin-top:auto;padding-top:8px;border-top:1px solid var(--rule);
+  font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--ink-3)}
 
-/* ── buttons, badges, pills ───────────────────────────────────────────── */
-.btn{display:inline-block;padding:12px 20px;border-radius:12px;font-weight:700;font-size:15px;
-  background:var(--brand);color:#fff;text-decoration:none;border:none;cursor:pointer;transition:.18s}
-.btn:hover{background:var(--brand-lift);box-shadow:var(--shadow);color:#fff}
-.btn.ghost{background:var(--surface);color:var(--accent);border:1px solid var(--edge-strong);box-shadow:none}
-.btn.ghost:hover{border-color:var(--sky);background:var(--surface)}
-.cta-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:20px}
-.microlinks{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:13.5px}
-.microlinks a{color:var(--dim);text-decoration:none}
-.microlinks a:hover{color:var(--accent);text-decoration:underline}
+/* ── buttons, badges, pills ───────────────────────────────────────────────
+   One button: ink block, square, inverts on hover. The ghost is its outline. */
+.btn{display:inline-flex;align-items:center;gap:10px;padding:13px 18px;border-radius:0;
+  font:700 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;
+  background:var(--ink);color:var(--bg);text-decoration:none;border:1px solid var(--ink);
+  cursor:pointer}
+.btn:hover{background:transparent;color:var(--ink)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule-2)}
+.btn.ghost:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.cta-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:20px}
+.microlinks{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;
+  font:700 10px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase}
+.microlinks a{color:var(--ink-2);text-decoration:none}
+.microlinks a:hover{color:var(--ink)}
 
-.badge{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;
-  padding:3px 9px;border-radius:99px;border:1px solid var(--edge);color:var(--dim)}
-.badge.live{color:var(--green);border-color:rgba(53,208,127,.45)}
-.badge.cachetag{color:var(--accent);border-color:var(--edge-strong)}
-.badge.offline{color:var(--amber);border-color:rgba(255,176,32,.45)}
-.badge.mainline{color:var(--viz-mainline);border-color:currentColor}
-.badge.express{color:var(--viz-express);border-color:currentColor}
-.pill{display:inline-block;font-family:var(--mono);font-size:12.5px;padding:3px 9px;border-radius:99px;
-  margin:2px 5px 2px 0;background:var(--surface);border:1px solid var(--edge);color:var(--accent)}
-.pill.add{color:var(--green);border-color:rgba(53,208,127,.35)}
-.pill.tail{color:var(--dim)}
-a.pill{text-decoration:none;transition:.15s}
-a.pill:hover{border-color:var(--edge-strong)}
-.band{font-size:11.5px;font-weight:700;letter-spacing:.4px;padding:4px 11px;border-radius:99px;
-  border:1px solid;white-space:nowrap;display:inline-block}
-.sc-exc {color:var(--green); border-color:rgba(53,208,127,.45)}
-.sc-good{color:var(--blue);  border-color:rgba(77,166,255,.45)}
-.sc-mix {color:var(--gold);  border-color:rgba(255,209,102,.45)}
-.sc-long{color:var(--amber); border-color:rgba(255,176,32,.45)}
-.sc-rare{color:var(--red);   border-color:rgba(255,90,110,.45)}
-.sc-no  {color:var(--faint); border-color:var(--edge)}
-.legend{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 12px;font-size:var(--fs-micro);
-  font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)}
-.legend span{display:inline-flex;align-items:center;gap:6px}
-.legend i{width:10px;height:10px;border-radius:3px;display:inline-block;flex:none;background:var(--edge)}
+.badge{display:inline-block;font:700 9px/1.35 var(--mono);letter-spacing:.13em;
+  text-transform:uppercase;padding:4px 6px;border-radius:0;border:1px solid var(--rule-2);
+  color:var(--ink-3);white-space:nowrap}
+.badge.live{color:var(--good);border-color:var(--good)}
+.badge.cachetag{color:var(--ink-2);border-color:var(--rule-2)}
+.badge.offline{color:var(--mixed);border-color:var(--mixed)}
+/* mainline vs express is a category, not a score, so it stays monochrome and
+   separates itself with the border style instead of a hue. */
+.badge.mainline{color:var(--ink);border-color:var(--ink-2)}
+.badge.express{color:var(--ink-2);border-style:dashed}
+.pill{display:inline-block;font:400 12px/1.4 var(--mono);letter-spacing:.04em;
+  padding:4px 7px;border-radius:0;margin:2px 5px 2px 0;background:transparent;
+  border:1px solid var(--rule);color:var(--ink-2)}
+.pill.add{color:var(--good);border-color:var(--good)}
+.pill.tail{color:var(--ink-2)}
+a.pill{text-decoration:none}
+a.pill:hover{border-color:var(--rule-2);color:var(--ink)}
+/* The score band chip. This one IS allowed the colour: it is the score. */
+.band{font:700 9.5px/1.35 var(--mono);letter-spacing:.13em;text-transform:uppercase;
+  padding:4px 7px;border-radius:0;border:1px solid;white-space:nowrap;display:inline-block;
+  color:var(--band);border-color:var(--band)}
+.legend{display:flex;gap:8px 18px;flex-wrap:wrap;margin:8px 0 12px;
+  font:700 9.5px/1.5 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:9px;height:9px;border-radius:0;display:inline-block;flex:none;background:var(--rule-2)}
 .legend i.eq{background:var(--viz-equipped)}
-.legend i.no{background:var(--viz-empty);border:1px solid var(--edge)}
+.legend i.no{background:var(--viz-empty);border:1px solid var(--rule)}
 .legend i.ml{background:var(--viz-mainline)}
 .legend i.ex{background:var(--viz-express)}
-.sysdot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none;margin-right:6px;
+.sysdot{width:8px;height:8px;border-radius:0;display:inline-block;flex:none;margin-right:7px;
   background:var(--sys-legacy)}
 .sysdot.starlink{background:var(--sys-starlink)}
 .sysdot.leo{background:var(--sys-leo)}
 .sysdot.viasat,.sysdot.ku,.sysdot.intelsat{background:var(--sys-viasat)}
 
-/* ── progress tracks ──────────────────────────────────────────────────────
+/* ── progress tapes ───────────────────────────────────────────────────────
+   Was a rounded gradient bar; is now a tape: a ruled inset with a solid band
+   fill. The colour is the band, so a bar next to a score always agrees with it.
    COLLISION NOTE: /united/ has its own .track/.fill pair (9px, inline widths set
    by 1400 lines of live-tested app JS). These rules must not outrank it, which is
    why the fill selector is wrapped in :where() — that keeps it at .fill-level
@@ -281,193 +413,220 @@ a.pill:hover{border-color:var(--edge-strong)}
    Width comes from a baked --pct custom property, not an inline width, so the
    html.anim rules further down can start it at 0 and grow it. No JS => --pct is
    used directly and the bar is already correct. */
-.track{display:block;height:6px;border-radius:99px;background:var(--viz-empty);overflow:hidden}
-.chip .track,.stat .track,.hpanel .track,.scorebox .track{margin-top:8px}
-:where(.track) .fill{display:block;height:100%;border-radius:99px;width:var(--pct,0%);
-  background:linear-gradient(90deg,var(--sky),var(--brand-lift));transition:width 1s ease-out}
-:where(.track) .fill.ml{background:linear-gradient(90deg,var(--viz-mainline),var(--brand))}
-:where(.track) .fill.ex{background:linear-gradient(90deg,var(--viz-express),#128a55)}
-.track.mini{height:5px;width:92px;margin:0}
+.track{display:block;height:9px;border-radius:0;background:var(--bg-inset);
+  border:1px solid var(--rule);overflow:hidden}
+.chip .track,.stat .track,.hpanel .track,.scorebox .track{margin-top:9px}
+:where(.track) .fill{display:block;height:100%;border-radius:0;width:var(--pct,0%);
+  background:var(--band);transition:width 1s ease-out}
+:where(.track) .fill.ml{background:var(--viz-mainline)}
+:where(.track) .fill.ex{background:var(--viz-express)}
+.track.mini{height:7px;width:92px;margin:0}
 
-/* ── tables (leaderboard + tail registry) ─────────────────────────────── */
-.tbl-shell{background:var(--surface);border:1px solid var(--edge);border-radius:var(--r-lg);
-  overflow-x:auto;box-shadow:var(--shadow)}
+/* ── tables. Real tables, ruled rows, no shell. ─────────────────────────── */
+.tbl-shell{background:transparent;border:0;border-radius:0;overflow-x:auto;box-shadow:none;
+  -webkit-overflow-scrolling:touch}
 table.tbl{width:100%;border-collapse:collapse;min-width:640px}
-table.tbl th,table.tbl td{text-align:left;padding:11px 14px;font-size:14px;
-  border-bottom:1px solid var(--edge);vertical-align:middle}
-table.tbl thead th{font-size:11px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;
-  color:var(--accent);white-space:nowrap;position:sticky;top:0;background:var(--bg)}
-table.tbl tbody tr:last-child td{border-bottom:none}
-table.tbl tbody tr:hover{background:var(--viz-empty)}
-table.tbl td.num,table.tbl td.mono{font-family:var(--mono);white-space:nowrap}
-table.tbl td b{color:var(--ink)}
-table.tbl .rank{color:var(--faint);font-family:var(--mono);width:38px}
-table.tbl .aname{font-weight:700;color:var(--ink);text-decoration:none}
-table.tbl .aname:hover{color:var(--accent);text-decoration:underline}
-table.tbl .code{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--faint);
-  margin-left:7px;letter-spacing:1px}
-table.tbl .sco{font-family:var(--mono);font-size:24px;font-weight:800;color:var(--ink);line-height:1}
-table.tbl tr.instr{border-left:3px solid var(--brand-lift)}
+table.tbl th,table.tbl td{text-align:left;padding:9px 14px 9px 0;font-size:14px;
+  border-bottom:1px solid var(--rule);vertical-align:middle}
+table.tbl thead th{font:700 9.5px/1.35 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);white-space:nowrap;position:sticky;top:0;background:var(--bg);
+  border-bottom:1px solid var(--rule-2);padding-bottom:8px;vertical-align:bottom}
+table.tbl tbody tr:last-child td{border-bottom:1px solid var(--rule)}
+table.tbl tbody tr:hover{background:var(--bg-panel)}
+table.tbl td.num,table.tbl td.mono{white-space:nowrap}
+table.tbl td b{color:var(--ink);font-weight:700}
+table.tbl .rank{color:var(--ink-3);font-size:12px;width:38px}
+table.tbl .aname{font-weight:700;color:var(--ink);text-decoration:none;
+  border-bottom:1px solid var(--rule-2)}
+table.tbl .aname:hover{border-bottom-color:currentColor}
+table.tbl .code{font-size:11.5px;font-weight:700;color:var(--ink-3);margin-left:7px;
+  letter-spacing:.12em}
+table.tbl .sco{font-size:22px;font-weight:700;color:var(--band);line-height:1;letter-spacing:-.02em}
+/* the instrumented carriers get a tick in the margin, the way a plate marks the
+   row it wants you to read. It is grey: instrumentation is a provenance class,
+   not a score. */
+table.tbl tr.instr{box-shadow:inset 3px 0 0 var(--ink-2)}
 table.tbl tr.instr td:first-child{padding-left:11px}
 html.js table.tbl th[data-k]{cursor:pointer;user-select:none}
-html.js table.tbl th[data-k]:after{content:"\2195";opacity:.35;margin-left:5px;font-size:10px}
+html.js table.tbl th[data-k]:after{content:"\2195";opacity:.4;margin-left:5px;font-size:10px}
 html.js table.tbl th[data-k][aria-sort="ascending"]:after{content:"\2191";opacity:1}
 html.js table.tbl th[data-k][aria-sort="descending"]:after{content:"\2193";opacity:1}
 @media(max-width:720px){.hide-sm{display:none}}
-.tblcap{font-size:12.5px;color:var(--faint);margin-top:10px;font-family:var(--mono)}
-.caveat{margin-top:14px;font-size:13.5px;color:var(--dim);border-left:3px solid var(--gold);
-  background:var(--surface);border-radius:0 12px 12px 0;padding:12px 16px}
+.tblcap{font:700 9.5px/1.7 var(--mono);letter-spacing:.11em;text-transform:uppercase;
+  color:var(--ink-3);margin-top:12px}
+.caveat{margin-top:14px;font-size:13px;color:var(--ink-2);border:1px solid var(--rule);
+  border-left:3px solid var(--rule-2);background:var(--bg-panel);border-radius:0;padding:12px 16px}
 
 /* ── filter chips + search (JS-only affordances) ──────────────────────── */
-.filters{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 14px}
-.filters button{font-size:13px;font-family:inherit;color:var(--dim);cursor:pointer;padding:6px 13px;
-  border:1px solid var(--edge);border-radius:99px;background:var(--surface);transition:.15s}
-.filters button:hover{color:var(--accent);border-color:var(--edge-strong)}
-.filters button[aria-pressed="true"]{color:var(--accent);border-color:var(--sky);
-  background:rgba(105,179,231,.12)}
+.filters{display:flex;flex-wrap:wrap;gap:0 6px;margin:4px 0 14px}
+.filters button{font:700 10px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-2);cursor:pointer;padding:8px 11px;border:1px solid var(--rule);
+  border-radius:0;background:transparent;margin-left:-1px}
+.filters button:hover{color:var(--ink);background:var(--bg-inset)}
+.filters button[aria-pressed="true"]{color:var(--bg);background:var(--ink);border-color:var(--ink)}
 .srch{display:inline-flex;align-items:center;gap:8px;margin:0 0 14px}
-.srch input{padding:9px 13px;border-radius:var(--r-sm);font-size:14px;font-family:var(--mono);
-  background:var(--field-bg);color:var(--ink);border:1px solid var(--edge);min-width:180px}
-.srch input:focus{outline:none;border-color:var(--sky)}
+.srch input{padding:9px 12px;border-radius:0;font-size:13.5px;letter-spacing:.06em;
+  background:var(--bg-inset);color:var(--ink);border:1px solid var(--rule-2);min-width:180px}
+.srch input:focus{outline:none;border-color:var(--ink-2)}
 
-/* ── Hangar Floor waffle ──────────────────────────────────────────────── */
-.hangar{display:grid;gap:14px}
-.hpanel{background:var(--surface);border:1px solid var(--edge);border-radius:var(--r-lg);padding:16px 18px}
+/* ── Hangar Floor waffle: the mark, at full size ──────────────────────────
+   This grid is the site's one original picture and it is also the logo. Dim
+   cells are the fleet, lit cells are what is flying. Nothing else on the page is
+   allowed to look like this. */
+.hangar{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.hpanel{background:var(--bg-panel);border:0;border-radius:0;padding:16px 18px}
 .hpanel-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
-.hpanel-h .ty{font-size:15.5px;font-weight:800;color:var(--ink)}
-.hpanel-h .ct{font-family:var(--mono);font-size:13px;color:var(--dim);margin-left:auto}
-.hpanel-h .ct b{color:var(--ink)}
+.hpanel-h .ty{font-size:14.5px;font-weight:700;color:var(--ink)}
+.hpanel-h .ct{font-size:12.5px;color:var(--ink-2);margin-left:auto}
+.hpanel-h .ct b{color:var(--ink);font-weight:700}
 .waffle{display:grid;grid-template-columns:repeat(auto-fill,minmax(10px,1fr));gap:2px;margin-top:12px}
-.waffle i{display:block;aspect-ratio:1;border-radius:2px;background:var(--viz-empty)}
-.waffle i.eq{background:var(--viz-equipped);box-shadow:0 0 6px rgba(142,205,255,.5)}
-[data-theme="light"] .waffle i.eq{box-shadow:none}
+.waffle i{display:block;aspect-ratio:1;border-radius:0;background:var(--ink-3);opacity:.24}
+.waffle i.eq{background:var(--good);opacity:1;box-shadow:none}
+[data-theme="light"] .waffle i{opacity:.38}
 .waffle i.eq:hover{transform:scale(1.6);position:relative;z-index:2}
-.hpanel .cap{font-size:12.5px;color:var(--faint);margin-top:9px}
+.hpanel .cap{font-size:12px;color:var(--ink-3);margin-top:9px}
 .mini-waffle{display:grid;grid-template-columns:repeat(auto-fill,minmax(9px,1fr));gap:2px;margin:4px 0 2px}
-.mini-waffle i{display:block;aspect-ratio:1;border-radius:2px;background:var(--viz-empty)}
-.mini-waffle i.eq{background:var(--viz-equipped)}
+.mini-waffle i{display:block;aspect-ratio:1;border-radius:0;background:var(--ink-3);opacity:.24}
+.mini-waffle i.eq{background:var(--good);opacity:1}
+[data-theme="light"] .mini-waffle i{opacity:.38}
 
 /* ── visualizations (baked SVG) ───────────────────────────────────────── */
 .viz{width:100%;height:auto;display:block;overflow:visible}
-.viz .gl{stroke:var(--edge);stroke-width:1}
-.viz .ax{fill:var(--faint);font-family:var(--mono);font-size:10px}
+.viz .gl{stroke:var(--rule);stroke-width:1}
+.viz .ax{fill:var(--ink-3);font-family:var(--mono);font-size:10px}
 .viz .lbl{fill:var(--ink);font-family:var(--mono);font-size:12px;font-weight:700}
-.viz .a-ml{fill:var(--viz-mainline);fill-opacity:.2}
-.viz .a-ex{fill:var(--viz-express);fill-opacity:.2}
-.viz .s-ml{stroke:var(--viz-mainline);stroke-width:2;fill:none}
-.viz .s-ex{stroke:var(--viz-express);stroke-width:2;fill:none}
+.viz .a-ml{fill:var(--viz-mainline);fill-opacity:.12}
+.viz .a-ex{fill:var(--viz-express);fill-opacity:.12}
+.viz .s-ml{stroke:var(--viz-mainline);stroke-width:1.6;fill:none}
+.viz .s-ex{stroke:var(--viz-express);stroke-width:1.6;fill:none;stroke-dasharray:4 3}
 .viz .dot-ml{fill:var(--viz-mainline)}
 .viz .dot-ex{fill:var(--viz-express)}
 .viz .bar{fill:url(#pacegrad)}
-.viz .bar.partial{opacity:.5}
-.viz .ring-bg{stroke:var(--viz-empty);fill:none}
-.viz .ring-fg{stroke:var(--accent);fill:none;stroke-linecap:round}
-.viz .ring-n{fill:var(--ink);font-family:var(--mono);font-weight:800}
+.viz .bar.partial{opacity:.45}
+.viz .ring-bg{stroke:var(--bg-inset);fill:none}
+.viz .ring-fg{stroke:var(--band);fill:none;stroke-linecap:butt}
+.viz .ring-n{fill:var(--ink);font-family:var(--mono);font-weight:700}
 .spark{width:100%;height:auto;display:block}
-.spark path.s{stroke:var(--viz-equipped);stroke-width:2;fill:none}
-.spark path.f{fill:var(--viz-equipped);fill-opacity:.16;stroke:none}
+.spark path.s{stroke:var(--good);stroke-width:1.6;fill:none}
+.spark path.f{fill:var(--good);fill-opacity:.12;stroke:none}
 
 /* ── roadmap vertical timeline ────────────────────────────────────────────
    EVERY rule is scoped under .rm. /united/ has its own .steps/.step playbook
    component with a different geometry (52px grid + .dot), and an unscoped
    .step:before here painted a rogue circle on top of it. Keep the .rm scope. */
-.steps.rm{display:grid;gap:14px;position:relative;padding-left:26px}
-.steps.rm:before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;
-  background:linear-gradient(180deg,var(--sky),transparent)}
-.rm .step{position:relative;display:block;padding:0}
-.rm .step:before{content:"";position:absolute;left:-26px;top:6px;width:16px;height:16px;
-  border-radius:50%;background:var(--bg);border:2px solid var(--edge-strong)}
-.rm .step.shipped:before{border-color:var(--green);background:var(--green)}
-.rm .step.building:before{border-color:var(--sky);background:var(--sky)}
-.rm .step.planned:before{border-color:var(--faint)}
+.steps.rm{display:grid;gap:0;position:relative;padding-left:26px}
+.steps.rm:before{content:"";position:absolute;left:6px;top:0;bottom:0;width:1px;
+  background:var(--rule-2)}
+.rm .step{position:relative;display:block;padding:16px 0;border-bottom:1px solid var(--rule)}
+.rm .step:before{content:"";position:absolute;left:-26px;top:20px;width:13px;height:13px;
+  border-radius:0;background:var(--bg);border:1px solid var(--rule-2)}
+.rm .step.shipped:before{border-color:var(--good);background:var(--good)}
+.rm .step.building:before{border-color:var(--ink);background:var(--bg)}
+.rm .step.planned:before{border-color:var(--ink-3)}
 .rm .step .sh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.rm .step h3{font-size:16.5px;font-weight:800;color:var(--ink)}
-.rm .step .st{font-size:10.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;
-  border:1px solid;border-radius:99px;padding:2px 8px}
-.rm .step.shipped .st{color:var(--green);border-color:rgba(53,208,127,.45)}
-.rm .step.building .st{color:var(--accent);border-color:var(--edge-strong)}
-.rm .step.planned .st{color:var(--faint);border-color:var(--edge)}
-.rm .step p{font-size:var(--fs-small);color:var(--dim);margin-top:6px;max-width:74ch}
+.rm .step h3{font-size:15.5px;font-weight:700;color:var(--ink)}
+.rm .step .st{font:700 9px/1.35 var(--mono);letter-spacing:.13em;text-transform:uppercase;
+  border:1px solid;border-radius:0;padding:3px 6px}
+.rm .step.shipped .st{color:var(--good);border-color:var(--good)}
+.rm .step.building .st{color:var(--ink);border-color:var(--ink-2)}
+.rm .step.planned .st{color:var(--ink-3);border-color:var(--rule-2);border-style:dashed}
+.rm .step p{font-size:var(--fs-small);color:var(--ink-2);margin-top:6px;max-width:74ch}
 /* .tgts, not .targets — /united/ already owns a .targets list and an unscoped
    :before here gave its items a second bullet. */
-.tgts{list-style:none;margin-top:12px;display:grid;gap:7px}
-.tgts li{font-size:13.5px;color:var(--dim);padding-left:24px;position:relative}
-.tgts li:before{content:"\25CE";position:absolute;left:2px;color:var(--accent)}
+.tgts{list-style:none;margin-top:12px;display:grid;gap:0}
+.tgts li{font-size:13px;color:var(--ink-2);padding:7px 0 7px 24px;position:relative;
+  border-top:1px solid var(--rule)}
+.tgts li:before{content:"";position:absolute;left:2px;top:14px;width:7px;height:7px;
+  background:var(--ink-3)}
 
 /* ── credit strip (credits are architecture, not a footnote) ───────────── */
-.credit{display:flex;gap:13px;align-items:flex-start;flex-wrap:wrap;margin-top:18px;
-  padding:14px 18px;border-radius:var(--r-md);text-decoration:none;
-  background:linear-gradient(90deg,rgba(14,165,233,.12),rgba(0,51,160,.16));
-  border:1px solid rgba(105,179,231,.32);color:var(--dim);font-size:14px;transition:.2s}
-[data-theme="light"] .credit{background:linear-gradient(90deg,#eaf3fd,#f3f7fd);border-color:#cfe3f8;
-  color:var(--body)}
-.credit .cb{flex:none;font-size:10.5px;font-weight:800;letter-spacing:1.2px;color:var(--accent);
-  border:1px solid var(--edge-strong);border-radius:99px;padding:4px 10px;background:var(--surface);margin-top:1px}
+.credit{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-top:18px;
+  padding:13px 16px;border-radius:0;text-decoration:none;background:var(--bg-panel);
+  border:1px solid var(--rule);border-left:3px solid var(--rule-2);
+  color:var(--ink-2);font-size:13.5px}
+.credit .cb{flex:none;font:700 9px/1.35 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);border:1px solid var(--rule-2);border-radius:0;padding:4px 6px;
+  background:transparent;margin-top:2px}
 .credit .cbody{flex:1;min-width:220px}
-.credit b{color:var(--ink)}
+.credit b{color:var(--ink);font-weight:700}
+.credit a{color:inherit}
 
 /* ── footer ───────────────────────────────────────────────────────────── */
-footer{margin:52px 0 56px;border-top:1px solid var(--edge);padding-top:20px;
-  color:var(--faint);font-size:13.5px}
-footer a{color:var(--dim)}
-footer .frow{margin-top:8px}
-footer .flinks{display:flex;gap:15px;flex-wrap:wrap;margin-bottom:10px}
-footer .flinks a{font-weight:600;color:var(--accent);text-decoration:none}
-footer .flinks a:hover{text-decoration:underline}
+footer{margin:44px 0 0;border-top:1px solid var(--rule-2);padding:22px 0 34px;
+  color:var(--ink-3);font-size:13px}
+footer a{color:var(--ink-2)}
+footer .frow{margin-top:9px;max-width:88ch}
+footer .flinks{display:flex;gap:0 18px;flex-wrap:wrap;margin-bottom:12px;
+  font:700 10px/1.8 var(--mono);letter-spacing:.14em;text-transform:uppercase}
+footer .flinks a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid transparent}
+footer .flinks a:hover{color:var(--ink);border-bottom-color:currentColor}
+footer b{color:var(--ink-2)}
 
 /* ── faq ──────────────────────────────────────────────────────────────── */
-.faq{display:grid;gap:12px}
-.faq .q{background:var(--surface);border:1px solid var(--edge);border-radius:var(--r-md);padding:16px 18px}
-.faq .q h3{font-size:15.5px;font-weight:700}
-.faq .q p{font-size:var(--fs-small);color:var(--dim);margin-top:6px}
+.faq{display:grid;gap:0;border-top:1px solid var(--rule)}
+.faq .q{background:transparent;border:0;border-bottom:1px solid var(--rule);
+  border-radius:0;padding:15px 0}
+.faq .q h3{font-size:15px;font-weight:700}
+.faq .q p{font-size:var(--fs-small);color:var(--ink-2);margin-top:6px;max-width:80ch}
 
 /* ── score hero (airline pages) ───────────────────────────────────────── */
-.scorebox{display:flex;gap:22px;align-items:center;flex-wrap:wrap;margin-top:22px;
-  background:var(--surface);border:1px solid var(--edge);border-left:5px solid var(--brand-lift);
-  border-radius:var(--r-xl);padding:20px 24px;box-shadow:var(--shadow)}
+.scorebox{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:22px;
+  background:var(--bg-panel);border:1px solid var(--rule);border-top:2px solid var(--band);
+  border-radius:0;padding:20px 22px;box-shadow:none}
+/* THE RING IS 120px. It arrives from V.scoreRing() as <svg class="viz" width="120">,
+   and `.viz{width:100%}` — which is right for a full-width chart — turned it into
+   a 966px circle that filled the screen on all 18 airline pages. It has been
+   doing that on the live site; I found it by measuring the element against the
+   deployed stylesheet, because at that size it reads as a design choice rather
+   than a bug. Give it its intrinsic size and take it out of the flex maths. */
+.scorebox .viz{flex:0 0 120px;width:120px;height:120px}
+/* Until the page markup carries a .sc-* class on the box itself, the ring has no
+   score to take its colour from and would draw in chrome grey. Ink is the honest
+   default for "a number with no band applied yet"; the moment a .sc-* lands on
+   .scorebox this rule stops matching and the arc takes over. */
+.scorebox:not([class*="sc-"]){--band:var(--ink)}
 .scorebox .sbmid{flex:1;min-width:240px}
-.scorebox .sbmid .t{font-size:12.5px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;
-  color:var(--accent)}
-.scorebox .sbmid .m{font-family:var(--mono);font-size:13.5px;color:var(--dim);margin-top:6px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+.scorebox .sbmid .t{font:700 10px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3)}
+.scorebox .sbmid .m{font-family:var(--mono);font-size:13px;color:var(--ink-2);margin-top:6px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);
+  border:1px solid var(--rule)}
 @media(max-width:860px){.stats{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:440px){.stats{grid-template-columns:1fr}}
-.stat{background:var(--surface);border:1px solid var(--edge);border-radius:var(--r-lg);padding:15px 17px}
-.stat .n{font-family:var(--mono);font-size:27px;font-weight:800;color:var(--ink);line-height:1.1}
-.stat .n small{font-size:15px;color:var(--faint);font-weight:700}
-.stat .l{font-size:11.5px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;
-  color:var(--accent);margin-top:7px}
-.stat .d{font-size:13px;color:var(--dim);margin-top:5px}
-.stat.done{border-left:4px solid var(--green)}
-.stat.early{border-left:4px solid var(--amber)}
-.callout{margin-top:8px;background:var(--surface);border:1px solid var(--edge);
-  border-radius:var(--r-xl);padding:20px 24px;box-shadow:var(--shadow)}
-.callout h3{font-size:18px;font-weight:800;letter-spacing:-.3px}
-.callout p{font-size:15px;color:var(--dim);margin-top:8px;max-width:70ch}
-.callout ul{margin:10px 0 0 18px;font-size:14.5px;color:var(--dim)}
+.stat{background:var(--bg-panel);border:0;border-radius:0;padding:14px 16px}
+.stat .n{font-size:26px;font-weight:700;color:var(--ink);line-height:1.1;letter-spacing:-.02em}
+.stat .n small{font-size:14px;color:var(--ink-3);font-weight:400}
+.stat .l{font:700 9.5px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);margin-top:8px}
+.stat .d{font-size:12.5px;color:var(--ink-2);margin-top:5px}
+.stat.done{box-shadow:inset 3px 0 0 var(--good)}
+.stat.early{box-shadow:inset 3px 0 0 var(--mixed)}
+.callout{margin-top:8px;background:var(--bg-panel);border:1px solid var(--rule);
+  border-radius:0;padding:18px 20px;box-shadow:none}
+.callout h3{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.callout p{font-size:14.5px;color:var(--ink-2);margin-top:8px;max-width:70ch}
+.callout ul{margin:10px 0 0 18px;font-size:14px;color:var(--ink-2)}
 .callout li{margin:4px 0}
-.movers{display:grid;gap:8px}
-.mover{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;font-size:14px;
-  padding:9px 14px;background:var(--surface);border:1px solid var(--edge);border-radius:var(--r-md)}
-.mover .fn{font-family:var(--mono);font-weight:700;color:var(--ink)}
-.mover .dn{font-family:var(--mono);margin-left:auto}
-.mover .dn.up{color:var(--green)}
-.mover .dn.dn2{color:var(--red)}
-.steady{color:var(--faint);font-size:13.5px;font-style:italic;
-  padding:14px 16px;border:1px dashed var(--edge);border-radius:var(--r-md)}
+.movers{display:grid;gap:0;border-top:1px solid var(--rule)}
+.mover{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;font-size:13.5px;
+  padding:9px 0;background:transparent;border:0;border-bottom:1px solid var(--rule);border-radius:0}
+.mover .fn{font-weight:700;color:var(--ink)}
+.mover .dn{margin-left:auto}
+.mover .dn.up{color:var(--good)}
+.mover .dn.dn2{color:var(--s-rare)}
+.steady{color:var(--ink-3);font-size:13px;padding:13px 16px;border:1px dashed var(--rule-2);
+  border-radius:0}
 
 /* ── tooltip (pointer users only; the title attribute is the no-JS truth) ── */
-.wtip{position:fixed;z-index:50;pointer-events:none;font-family:var(--mono);font-size:12px;
-  background:var(--field-bg);color:var(--ink);border:1px solid var(--edge-strong);
-  border-radius:8px;padding:5px 9px;box-shadow:0 6px 20px rgba(0,0,0,.45);white-space:nowrap}
-[data-theme="light"] .wtip{box-shadow:0 6px 20px rgba(14,23,48,.14)}
+.wtip{position:fixed;z-index:50;pointer-events:none;font-family:var(--mono);font-size:11.5px;
+  background:var(--bg-inset);color:var(--ink);border:1px solid var(--rule-2);
+  border-radius:0;padding:5px 8px;box-shadow:none;white-space:nowrap}
 
 /* the /united/ starfield is that page's flourish only, and never in light */
 [data-theme="light"] #stars{display:none}
 
 /* ═══ HOMEPAGE FLIGHT CHECK — the above-the-fold answer ════════════════════
-   The hero IS the tool. Structure only in this pass: current tokens, no new
-   palette, no new type stack — "The Plate" re-skin is a later increment.
+   The hero IS the tool.
 
    READ THE MARKUP NOTE IN build/lib/pages.js flightCheck() BEFORE EDITING.
    `.needs-js` sits on the plain wrapper `.fchk`, never on `.fchk-form`, because
@@ -475,78 +634,83 @@ footer .flinks a:hover{text-decoration:underline}
    (0,1,0) and would quietly turn the row back into a block. Layout lives on the
    children for exactly that reason.
    ═════════════════════════════════════════════════════════════════════════ */
-.heroq{padding:26px 0 0}
-.heroq h1{max-width:24ch}
-.heroq .lede{font-size:16.5px;margin-top:13px}
+.heroq{padding:34px 0 0}
+.heroq h1{max-width:22ch}
+.heroq .lede{font-size:16px;margin-top:13px}
 
-.fchk{margin-top:22px}
-.fchk-lb{display:block;font-size:var(--fs-micro);font-weight:800;letter-spacing:1px;
-  text-transform:uppercase;color:var(--dim);margin-bottom:8px}
-.fchk-row{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
-.fchk-in{flex:1 1 250px;min-width:0;padding:14px 16px;border-radius:var(--r-md);
-  font-family:var(--mono);font-size:17px;letter-spacing:.5px;
-  background:var(--field-bg);color:var(--ink);border:1px solid var(--edge-strong);
+/* The field and its button butt together into one control, the way an entry
+   field on a panel does. -1px margins, never a gap. */
+.fchk{margin-top:24px}
+.fchk-lb{display:block;font:700 10px/1.4 var(--mono);letter-spacing:.155em;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:8px}
+.fchk-row{display:flex;gap:0;flex-wrap:wrap;align-items:stretch}
+.fchk-in{flex:1 1 240px;min-width:0;padding:13px 14px;border-radius:0;
+  font:700 17px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;
+  background:var(--bg-inset);color:var(--ink);border:1px solid var(--rule-2);
   -webkit-appearance:none;appearance:none}
-.fchk-in::placeholder{color:var(--faint);letter-spacing:.3px}
-.fchk-in:focus{outline:none;border-color:var(--sky);box-shadow:var(--shadow)}
+.fchk-in::placeholder{color:var(--ink-3);letter-spacing:.09em}
+.fchk-in:focus{outline:none;border-color:var(--ink-2)}
 .fchk-in::-webkit-search-cancel-button{-webkit-appearance:none}
-.fchk-go{flex:0 0 auto;padding:14px 22px}
-.fchk-hint{font-size:13px;color:var(--faint);margin-top:9px;max-width:74ch}
-.fchk-hint b{color:var(--dim);font-family:var(--mono)}
-.fchk-hint a{text-decoration:none}
+.fchk-go{flex:0 0 auto;padding:13px 20px;margin-left:-1px}
+.fchk-hint{font-size:12.5px;color:var(--ink-3);margin-top:10px;max-width:74ch}
+.fchk-hint b{color:var(--ink-2);font-family:var(--mono)}
+.fchk-hint a{text-decoration:none;border-bottom:1px solid var(--rule)}
 .fchk-links{margin-top:8px}
 .fchk-links b{font-family:var(--mono);color:var(--ink)}
 .fchk-nojs{margin-top:20px}
-.fchk-out{margin-top:16px}
+.fchk-out{margin-top:18px}
 .fchk-out:empty{display:none}
-.fchk-busy,.fchk-err{font-size:14.5px;color:var(--dim);padding:14px 16px;
-  border:1px dashed var(--edge);border-radius:var(--r-md)}
+.fchk-busy,.fchk-err{font-size:14px;color:var(--ink-2);padding:13px 16px;
+  border:1px dashed var(--rule-2);border-radius:0}
 .fchk-busy b{color:var(--ink);font-family:var(--mono)}
-.fchk-err{color:var(--amber);border-color:rgba(255,176,32,.4)}
+.fchk-err{color:var(--mixed);border-color:var(--mixed)}
 .fchk-err b{font-family:var(--mono)}
 
-/* the answer card. The tier tag is not decoration: no number appears on this
-   card without the method that produced it sitting next to it. */
-.fa{background:var(--surface);border:1px solid var(--edge-strong);border-radius:var(--r-lg);
-  padding:18px 20px;box-shadow:var(--shadow)}
+/* the answer card. The one surface on the site that breathes, and the tier tag
+   is not decoration: no number appears on this card without the method that
+   produced it sitting next to it. */
+.fa{background:var(--bg-panel);border:1px solid var(--rule);border-top:2px solid var(--band);
+  border-radius:0;padding:20px 22px;box-shadow:none}
 .fa-h{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.fa-big{font-family:var(--mono);font-weight:800;line-height:1;display:flex;align-items:baseline;
-  gap:1px}
-.fa-big b{font-size:clamp(34px,7vw,46px);letter-spacing:-2px;color:inherit}
-.fa-big small{font-size:15px;color:var(--faint);font-weight:700}
+.fa-big{font-weight:700;line-height:1;display:flex;align-items:baseline;gap:1px;color:var(--band)}
+.fa-big b{font-size:clamp(34px,7vw,46px);letter-spacing:-.03em;color:inherit}
+.fa-big small{font-size:14px;color:var(--ink-3);font-weight:400}
 .fa-t{flex:1 1 200px;min-width:0}
-.fa-t h3{font-size:19px;font-weight:800;letter-spacing:-.3px}
-.fa-air{color:var(--dim);font-weight:700}
-.fa-what{font-size:12.5px;color:var(--faint);margin-top:3px}
+.fa-t h3{font-size:19px;font-weight:700;letter-spacing:-.012em}
+.fa-air{color:var(--ink-2);font-weight:700}
+.fa-what{font-size:12px;color:var(--ink-3);margin-top:3px}
 .fa-band{margin-left:auto}
-.fa-tier{font-size:13.5px;color:var(--dim);margin-top:14px;
-  border-top:1px solid var(--edge);padding-top:13px}
-.fa-tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.8px;
-  text-transform:uppercase;padding:3px 9px;border-radius:99px;border:1px solid;margin-right:7px;
+.fa-tier{font-size:13px;color:var(--ink-2);margin-top:14px;
+  border-top:1px solid var(--rule);padding-top:13px}
+.fa-tag{display:inline-block;font:700 9px/1.35 var(--mono);letter-spacing:.13em;
+  text-transform:uppercase;padding:4px 6px;border-radius:0;border:1px solid;margin-right:8px;
   white-space:nowrap}
-.fa-tag.tv{color:var(--green);border-color:rgba(53,208,127,.45)}
-.fa-tag.tf{color:var(--blue); border-color:rgba(77,166,255,.45)}
-.fa-tag.tc{color:var(--amber);border-color:rgba(255,176,32,.45)}
-.fa-fleet{font-size:13.5px;color:var(--dim);margin-top:9px}
-.fa-links{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:13.5px;font-weight:700}
-.fa-links a{text-decoration:none}
-.fa-links a:hover{text-decoration:underline}
-.fa-ext{font-size:13.5px;color:var(--dim);margin-top:14px;
-  border-top:1px solid var(--edge);padding-top:12px}
-.fa-as{font-size:12px;color:var(--faint);font-family:var(--mono);margin-top:8px}
+/* tier tags are PROVENANCE, not score. Monochrome, and they separate by border
+   style. A tag competing with the arc would break the one colour rule. */
+.fa-tag.tv{color:var(--ink);border-color:var(--ink-2)}
+.fa-tag.tf{color:var(--ink-2);border-color:var(--rule-2)}
+.fa-tag.tc{color:var(--ink-2);border-color:var(--rule-2);border-style:dashed}
+.fa-fleet{font-size:13px;color:var(--ink-2);margin-top:9px}
+.fa-links{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;
+  font:700 10px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase}
+.fa-links a{text-decoration:none;color:var(--ink-2)}
+.fa-links a:hover{color:var(--ink)}
+.fa-ext{font-size:13px;color:var(--ink-2);margin-top:14px;
+  border-top:1px solid var(--rule);padding-top:12px}
+.fa-as{font-size:11.5px;color:var(--ink-3);margin-top:8px;letter-spacing:.06em}
 
 /* the compact above-the-fold extension plug — a signpost to #extension, not the
    pitch. One line by design; the sell is the section further down. */
 .extplug{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:18px;
-  font-size:14px;color:var(--dim);background:var(--surface);border:1px solid var(--edge);
-  border-radius:99px;padding:9px 9px 9px 17px}
+  font-size:13.5px;color:var(--ink-2);background:var(--bg-inset);border:1px solid var(--rule);
+  border-radius:0;padding:10px 14px}
 .extplug b{color:var(--ink)}
-.extplug-go{font-weight:700;text-decoration:none;background:rgba(105,179,231,.14);
-  border:1px solid var(--edge-strong);border-radius:99px;padding:5px 13px;white-space:nowrap}
-.extplug-go:hover{border-color:var(--sky)}
-.extplug-alt{font-size:13px;color:var(--faint);text-decoration:none;white-space:nowrap}
-.extplug-alt:hover{color:var(--accent)}
-@media(max-width:600px){.extplug{border-radius:var(--r-md);padding:13px 15px}}
+.extplug-go{font:700 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  text-decoration:none;color:var(--ink);background:transparent;border:1px solid var(--rule-2);
+  border-radius:0;padding:7px 10px;white-space:nowrap}
+.extplug-go:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.extplug-alt{font-size:12.5px;color:var(--ink-3);text-decoration:none;white-space:nowrap}
+.extplug-alt:hover{color:var(--ink)}
 
 /* ═══ HOMEPAGE EXTENSION SECTION ═══════════════════════════════════════════
    .extdemo is a DARK STAGE in BOTH themes, deliberately. Inside it sits the
@@ -556,38 +720,110 @@ footer .flinks a:hover{text-decoration:underline}
    because a screenshot of a white airline website needs a dark surround to read
    as a screenshot; on the light theme, inheriting would give white on white.
    Every `.rlc*` rule lives in that block's scoped <style>; nothing here reaches
-   inside it. (This slot previously held `.plc`, the hand-drawn fake united.com
-   carousel — deleted, see build/lib/reel.js.)
+   inside it. The stage is flat charcoal now instead of two radial glows.
    ═════════════════════════════════════════════════════════════════════════ */
-.extdemo{background:
-    radial-gradient(700px 420px at 78% -20%, #0b1b4d 0%, transparent 58%),
-    radial-gradient(520px 360px at 6% 116%, #071233 0%, transparent 62%),
-    #040816;
-  border:1px solid rgba(148,178,255,.16);border-radius:var(--r-xl);
-  padding:clamp(16px,3vw,30px);overflow:hidden;box-shadow:0 18px 50px rgba(2,8,32,.4)}
+.extdemo{background:#0a0c0d;border:1px solid #353e41;border-radius:0;
+  padding:clamp(14px,3vw,26px);overflow:hidden;box-shadow:none}
 .extfeat{margin-top:18px}
 .extfeat .card h3{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 /* live vs next-release, and the distinction is load-bearing: the store ships
    1.5.1 today. See the claim rules in build/lib/pages.js extensionSection(). */
-.pill.soon{color:var(--amber);border-color:rgba(255,176,32,.4);font-size:11px;margin:0}
-.pill.live{color:var(--green);border-color:rgba(53,208,127,.45);font-size:11px;margin:0}
+.pill.soon{color:var(--mixed);border-color:var(--mixed);font-size:10.5px;margin:0}
+.pill.live{color:var(--good);border-color:var(--good);font-size:10.5px;margin:0}
 .extwhere{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
 .extwhere .micro{flex:0 0 92px}
 @media(max-width:520px){.extwhere .micro{flex:1 0 100%}}
 .extwhere .pill{margin:0}
-.extwhere .pill em{font-style:normal;color:var(--faint);font-size:11px}
+.extwhere .pill em{font-style:normal;color:var(--ink-3);font-size:11px}
 .extwhy{margin-top:10px;max-width:80ch}
-.extfine{margin-top:16px;font-size:12.5px;color:var(--faint);max-width:90ch;
-  border-top:1px solid var(--edge);padding-top:14px}
-.extfine b{color:var(--dim)}
+.extfine{margin-top:16px;font-size:12px;color:var(--ink-3);max-width:90ch;
+  border-top:1px solid var(--rule);padding-top:14px}
+.extfine b{color:var(--ink-2)}
+
+/* ═══ A′ PLATE PRIMITIVES ══════════════════════════════════════════════════
+   Ported from the a2 mockup for the page re-skin to build on. Nothing in the
+   current markup uses them yet, and every name here was checked against the
+   class vocabulary the build emits so that adding them cannot restyle anything
+   that already exists.
+   ═════════════════════════════════════════════════════════════════════════ */
+/* a ruled box with plate ticks at the corners */
+.plate-box{border:1px solid var(--rule);background:var(--bg-panel);position:relative}
+.ticked::before,.ticked::after{content:"";position:absolute;width:8px;height:8px;
+  pointer-events:none;border-color:var(--rule-2);border-style:solid}
+.ticked::before{top:-1px;left:-1px;border-width:1px 0 0 1px}
+.ticked::after{bottom:-1px;right:-1px;border-width:0 1px 1px 0}
+/* provenance: every figure carries a class, a source and a date. Monochrome,
+   because colour is the arc. */
+.cls{font:700 9px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;
+  border:1px solid var(--rule-2);color:var(--ink-3);padding:4px 5px;white-space:nowrap;
+  display:inline-block;vertical-align:2px}
+.cls-m{color:var(--ink);border-color:var(--ink-2)}
+.cls-f{border-style:dashed;color:var(--ink-2)}
+.src{font:700 9.5px/1.6 var(--mono);letter-spacing:.07em;color:var(--ink-3);margin-top:7px}
+.src a{text-decoration:none;border-bottom:1px solid var(--rule)}
+.src a:hover{border-bottom-color:currentColor}
+/* THE PROJECTED SCORE. Outline, grey, never the arc, never sorted, never
+   without its date and its confidence word. See the fencing rules in the ship
+   plan; this rule is the visual half of them. */
+.proj{display:inline-flex;align-items:baseline;gap:8px;border:1px solid var(--rule-2);
+  background:transparent;padding:4px 8px;font-family:var(--mono);color:var(--ink-2);
+  white-space:nowrap}
+.proj .pv{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.proj .ph{font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3)}
+.proj.slipped{border-color:var(--ink-3);color:var(--ink-3);
+  background:repeating-linear-gradient(135deg,transparent 0 3px,var(--bg-inset) 3px 6px)}
+.conf{font:700 9px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-3);border-bottom:1px solid var(--rule-2);padding-bottom:2px}
+.conf.slip{color:var(--ink);border-bottom-color:var(--ink)}
+/* the tape: a score drawn as a length rather than a number */
+.tape{position:relative;height:9px;background:var(--bg-inset);border:1px solid var(--rule);
+  margin:12px 0 8px}
+.tape i{position:absolute;left:0;top:0;bottom:0;background:var(--band);display:block}
+.tape .tk{position:absolute;top:-4px;bottom:-4px;width:1px;background:var(--rule-2)}
+.tapescale{display:flex;justify-content:space-between}
+/* key-value plate rows */
+.kv{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);
+  border:1px solid var(--rule)}
+.kv>div{background:var(--bg-panel);padding:14px 16px}
+.kv.kv-2{grid-template-columns:1fr 1fr}
+.kv .v{font:700 24px/1.1 var(--mono);letter-spacing:-.01em;display:block;margin-top:8px}
+.kv .v small{font-size:12px;letter-spacing:.1em;color:var(--ink-3);display:block;
+  margin-top:6px;font-weight:700}
+@media(max-width:900px){.kv,.kv.kv-2{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.kv,.kv.kv-2{grid-template-columns:1fr 1fr}}
+/* a scrollable frame for a table that must stay a table */
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+/* ═══ RESPONSIVE ═══════════════════════════════════════════════════════════
+   Down to 390px. Tables stay tables: they get a scroll frame, never a stack of
+   pseudo-rows. A schedule that reflows into cards stops being readable as a
+   schedule. ═══════════════════════════════════════════════════════════════ */
+@media(max-width:600px){
+  .topbar{gap:9px 14px;padding:11px 0}
+  .stripmeta{order:3;flex:1 0 100%;margin-right:0;font-size:9px;letter-spacing:.12em}
+  .topnav{order:2;margin-left:auto}
+  .topnav a{padding:7px 8px;letter-spacing:.12em}
+  .hero,.heroq{padding-top:26px}
+  .fchk-go{width:100%;justify-content:center;margin-left:0;margin-top:-1px}
+  .fchk-in{flex:1 0 100%}
+}
+@media(max-width:430px){
+  .wrap{padding-left:max(14px,env(safe-area-inset-left));
+    padding-right:max(14px,env(safe-area-inset-right))}
+  .wrap::before,.wrap::after{display:none}
+  .mark .wm{font-size:12px;letter-spacing:.15em}
+  .sec-h h2{font-size:19px}
+  .card,.panel{padding:15px 16px}
+  .fa{padding:16px 15px}
+}
 
 /* ═══ ANIMATION — every rule below is scoped under html.anim ═══════════════
    site.js adds .anim to <html> only when matchMedia('(prefers-reduced-motion:
    no-preference)') matches. No JS, or reduced motion => none of this exists and
    the page is already in its finished state. ═══════════════════════════════ */
-body{transition:background .25s,color .25s}
-html.anim .rv{opacity:0;transform:translateY(12px);
-  transition:opacity .4s ease-out,transform .4s ease-out}
+body{transition:background .2s,color .2s}
+html.anim .rv{opacity:0;transform:translateY(8px);
+  transition:opacity .3s ease-out,transform .3s ease-out}
 html.anim .rv.in{opacity:1;transform:none}
 html.anim .rv[data-d="1"]{transition-delay:60ms}
 html.anim .rv[data-d="2"]{transition-delay:120ms}

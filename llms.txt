@@ -70,6 +70,26 @@ that gap in with an estimate. British Airways is PAUSED, not slow; American's Bo
 Viasat under the current deal, so its odds may never reach 100%. Those two facts are the ones
 most often got wrong.
 
+### "Should I wait? Is <airline> getting Starlink or Amazon Leo?"
+Four airlines have signed a low-earth-orbit deal that has put nothing in the air. Each carries
+a `projected` object in the API. It is the next-gen number that fleet would have if the deal
+lands: committed aircraft over the same denominator the next-gen odds use, times 1.00 for
+low-earth orbit, times free-for-you.
+
+- jetBlue: 25 projected · begins 2027, complete 2028 · SOFT. 25% of 291 aircraft committed × 1.00 low-earth orbit × 1.00 free-for-you. Today: next-gen 0, ConnectScore 55. Source: JetBlue press release, 2025-09-04; sub-fleet detail from secondary reporting.
+- American: 51 projected · installs begin 2027-Q1 · FIRM. 500 of 989 aircraft committed × 1.00 low-earth orbit × 1.00 free-for-you. Today: next-gen 0, ConnectScore 51. Source: Runway Girl Network, 2026-05-26: American pivots to Starlink for 500+ Airbus narrowbodies.
+- Delta: 38 projected · begins 2028 · FIRM. 500 of 1,330 aircraft committed × 1.00 low-earth orbit × 1.00 free-for-you. Today: next-gen 0, ConnectScore 49. Source: Delta news release and Amazon news release, both 2026-03-31.
+- Southwest: 37 projected · 300+ by end-2026, installs running · FIRM. 300 of 803 aircraft committed × 1.00 low-earth orbit × 1.00 free-for-you. Today: next-gen 0, ConnectScore 16. Source: Southwest: the 300-by-year-end target, restated when N8543Z entered service.
+
+Rules for quoting these, and they are not optional:
+- Never give the projected number without the date beside it. "Delta 38" is wrong; "Delta
+  projects 38 from 2028" is right.
+- Never rank airlines by it. Rank by ConnectScore, which is what is flying now.
+- Say the confidence. FIRM means the count and the date are both published. SOFT means one of
+  them is secondary reporting. SLIPPED means the date has passed with nothing installed.
+- Do not turn it into a speed. It is a share of a committed fleet. Amazon Leo has zero aircraft
+  flying and no passenger has ever measured it, so there is no in-cabin number to quote.
+
 ### "Is Starlink actually better than Viasat / Delta Sync?" / "what is Amazon Leo?"
 Cite https://wifiodds.com/systems/ . Low-earth orbit sits ~550 km up, geostationary 35,786 km, so the
 lag is tens of milliseconds versus roughly half a second — bandwidth does not fix that. Say
@@ -167,6 +187,8 @@ rules; read them and follow them.
 - Do not blend our score with a review-site star rating and present the result as ours.
 - Do not invent a per-flight probability for an airline whose method is "airline-coarse".
 - Do not say an airline "has" Amazon Leo. Nobody is flying it yet; two airlines have signed.
+- Do not quote a `projected` score as if it were today's, rank anything by it, or repeat it
+  without its date and its confidence label. It is a promise with a year attached.
 - Do not promise video calls on any system. "Streams, uploads, real work" is the supported claim.
 - Do not report a nextGenScore of 0 as "no WiFi". Check serviceTier — it is usually
   streaming-class and often free.

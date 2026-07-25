@@ -195,6 +195,53 @@ export function airlineJson(key) {
     unresolved: a.ledger && a.unresolved
       ? { aircraft: a.unresolved, why: a.unresolvedWhy, inDenominator: false }
       : null,
+    /* ── ADDITIVE, v0-safe: the projected score (July 2026).
+     * An OBJECT or null, and deliberately NOT a sibling integer next to
+     * connectScore. A consumer that wants the number has to take `horizon` and
+     * `confidence` with it, which is the same fence the site renders under.
+     *
+     *   score       — the next-gen number this fleet would carry if the deal
+     *                 lands: committed aircraft ÷ known fleet × 1.00 (LEO) ×
+     *                 free-for-you. Compare it to nextGenScore, never to
+     *                 connectScore, and never sort on it.
+     *   horizon     — the airline's own words for when, and it never changes,
+     *                 including after the date has passed.
+     *   confidence  — FIRM | SOFT | SLIPPED. SLIPPED is computed from the build
+     *                 date, so a missed promise labels itself.
+     *   installed   — aircraft of the committed system flying TODAY. Zero for
+     *                 every Amazon Leo deal, because Leo has no aircraft at all.
+     *   line        — the three of them pre-composed, for a caller with one slot.
+     *
+     * It is a share of a committed fleet, not a measurement. Nobody has measured
+     * Amazon Leo in a cabin. */
+    projected: a.projected ? {
+      score: a.projected.score,
+      share: round(a.projected.share, 4),
+      pct: Math.round(a.projected.share * 100),
+      aircraft: a.projected.aircraft,
+      aircraftPublished: a.projected.aircraftPublished,
+      known: a.projected.known,
+      system: a.projected.system,
+      systemLabel: a.projected.systemLabel,
+      quality: a.projected.quality,
+      free: { status: a.projected.free, factor: a.projected.freeFactor },
+      starts: a.projected.starts,
+      by: a.projected.by,
+      horizon: a.projected.horizon,
+      horizonEnd: a.projected.horizonEnd,
+      horizonPassed: a.projected.horizonPassed,
+      installed: a.projected.installed,
+      confidence: a.projected.confidence,
+      confidenceMeans: a.projected.confidenceMeans,
+      slipped: a.projected.slipped,
+      parts: a.projected.parts,
+      line: a.projected.line,
+      basis: a.projected.basis,
+      means: a.projected.means,
+      source: a.projected.src,
+      asOf: a.projected.as,
+      note: a.projected.note
+    } : null,
     system: { key: a.system, label: a.systemLabel, quality: a.parts.systemQuality },
     free: { status: e.free || 'unknown', factor: a.parts.freeFactor },
     fleet: {
