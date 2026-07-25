@@ -382,8 +382,54 @@ function buildRobots() {
   ).concat(['Sitemap: ' + ORIGIN + '/sitemap.xml', '']).join('\n');
 }
 
+/* ── reconcile United's second copy BEFORE anything reads it ──────────────
+ * United's counts live in two files: united/data.json (rewritten every morning
+ * from unitedstarlinktracker.com — the truth) and the `united:` entry in
+ * assets/airlines.js (which nothing rewrote). They drifted by one aircraft and
+ * the SAME homepage printed both — "481 of 1,807 (27%)" on the US-majors card,
+ * "of 1,808 aircraft" in the United section. Both were internally consistent
+ * with their own source, so nothing caught it.
+ *
+ * Failing the build would have been correct and useless: it would have fired
+ * unattended at 04:32 the next morning United gained a tail. So the build OWNS
+ * the derived value instead — it copies data.json's numbers into airlines.js on
+ * disk and says so. The daily task already stages assets/airlines.js, so the
+ * corrected file rides along with the same commit. Same idea as regen-homepage
+ * owning the site list. The assertion in main() stays as a post-check and
+ * should now be unreachable. */
+function reconcileUnited() {
+  var D = JSON.parse(fs.readFileSync(abs('united/data.json'), 'utf8'));
+  var eq = D.fleet.equipped, tot = D.fleet.total;
+  if (typeof eq !== 'number' || typeof tot !== 'number' || tot <= 0) {
+    console.error('Build FAILED — united/data.json has no usable fleet.equipped / fleet.total.');
+    process.exit(1);
+  }
+  var p = 'assets/airlines.js';
+  var src = fs.readFileSync(abs(p), 'utf8');
+  /* Scoped to the united entry: from `united: {` to the first `},` after it. */
+  var start = src.indexOf('  united: {');
+  if (start < 0) { console.error('Build FAILED — no united entry in ' + p); process.exit(1); }
+  var end = src.indexOf('\n  },', start);
+  if (end < 0) { console.error('Build FAILED — united entry in ' + p + ' is unterminated.'); process.exit(1); }
+
+  var head = src.slice(0, start), body = src.slice(start, end), tail = src.slice(end);
+  var was = body.match(/equipped:\s*(\d+),\s*fleet:\s*(\d+)/);
+  var next = body
+    .replace(/equipped:\s*\d+,\s*fleet:\s*\d+/, 'equipped: ' + eq + ', fleet: ' + tot)
+    /* the note quotes both numbers with a thousands comma */
+    .replace(/note:\s*"\d[\d,]*\s+of\s+\d[\d,]*\s+aircraft/,
+      'note: "' + eq.toLocaleString('en-US') + ' of ' + tot.toLocaleString('en-US') + ' aircraft');
+
+  if (next === body) return;
+  fs.writeFileSync(abs(p), head + next + tail);
+  console.log('  united: reconciled ' + p + ' from data.json — ' +
+    (was ? was[1] + '/' + was[2] : '?') + ' → ' + eq + '/' + tot +
+    '  (stage assets/airlines.js with this commit)');
+}
+
 /* ── main ────────────────────────────────────────────────────────────────── */
 function main() {
+  reconcileUnited();
   var m = DL.build();
 
   /* invariants worth failing the build over — these are the numbers every page
