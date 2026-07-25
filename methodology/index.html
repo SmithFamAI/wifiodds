@@ -39,7 +39,7 @@
 .wex .r{color:var(--ink);font-weight:700}
 .blk h3.apih{font-size:17px;font-weight:800;margin-top:26px}
 </style>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"How ConnectScore is calculated, and what it cannot see","url":"https://wifiodds.com/methodology/","dateModified":"2026-07-24","description":"The confidence tiers, the ConnectScore formula with a worked example, the known limits, the refresh cadence and the citation block for WiFi Odds.","author":{"@type":"Organization","name":"WiFi Odds","url":"https://wifiodds.com/"},"publisher":{"@id":"https://wifiodds.com/#org"},"isPartOf":{"@type":"WebSite","name":"WiFi Odds","url":"https://wifiodds.com/"},"about":"Inflight WiFi ConnectScore methodology and data provenance","citation":["https://unitedstarlinktracker.com","https://alaskastarlinktracker.com"]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"How ConnectScore is calculated, and what it cannot see","url":"https://wifiodds.com/methodology/","dateModified":"2026-07-25","description":"The confidence tiers, the ConnectScore formula with a worked example, the known limits, the refresh cadence and the citation block for WiFi Odds.","author":{"@type":"Organization","name":"WiFi Odds","url":"https://wifiodds.com/"},"publisher":{"@id":"https://wifiodds.com/#org"},"isPartOf":{"@type":"WebSite","name":"WiFi Odds","url":"https://wifiodds.com/"},"about":"Inflight WiFi ConnectScore methodology and data provenance","citation":["https://unitedstarlinktracker.com","https://alaskastarlinktracker.com"]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://wifiodds.com/"},{"@type":"ListItem","position":2,"name":"Methodology","item":"https://wifiodds.com/methodology/"}]}</script>
 </head>
 <body>
@@ -56,7 +56,7 @@
 </div>
 <nav class="crumb" aria-label="Breadcrumb"><a href="/">Home</a><span class="sep">→</span><span aria-current="page">Methodology</span></nav>
 <header class="hero" style="padding-top:18px">
-  <span class="kicker"><span class="dot"></span>Methodology · data as of 2026-07-24</span>
+  <span class="kicker"><span class="dot"></span>Methodology · data as of 2026-07-25</span>
   <h1 class="ph">How WiFi Odds knows what it knows</h1>
   <p class="lede">Every number on this site is either verified tail by tail by an independent community tracker, derived from an aircraft type, or modelled from what an airline said publicly — and we label which. This page is the whole method: the three confidence tiers, the formula with a worked example, what the score <b>cannot</b> see, and how fresh the data is.</p>
   <div class="microlinks"><a href="/airlines/">The leaderboard →</a><a href="/api/docs/">The API →</a><a href="/llms.txt">llms.txt →</a></div>
@@ -64,7 +64,7 @@
 
 <div class="credit"><span class="cb">DATA CREDIT</span><span class="cbody">Fleet verification for the instrumented airlines comes from the independent community trackers <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener"><b>unitedstarlinktracker.com</b></a> and <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener"><b>alaskastarlinktracker.com</b></a>, built by <b>@martinamps</b>. All credit for that data goes to them ↗. Every other airline is compiled from public airline announcements (July 2026). WiFi Odds is unofficial and not affiliated with any airline, SpaceX/Starlink, Amazon, Viasat, or the trackers.</span></div>
 
-<div class="chips"><div class="chip rv "><div class="n cu">2026-07-24</div><div class="l">Data as of</div><div class="d">refreshed daily, re-baked on every build</div></div><div class="chip rv "><div class="n cu">481</div><div class="l">Verified United tails</div><div class="d">each with its install date</div></div><div class="chip rv "><div class="n cu">176</div><div class="l">Install days on record</div><div class="d">since Mar 14, 2025</div></div><div class="chip rv "><div class="n cu">18</div><div class="l">Airlines scored</div><div class="d">1 verified · 1 type-derived · 16 coarse</div></div></div>
+<div class="chips"><div class="chip rv "><div class="n cu">2026-07-25</div><div class="l">Data as of</div><div class="d">refreshed daily, re-baked on every build</div></div><div class="chip rv "><div class="n cu">481</div><div class="l">Verified United tails</div><div class="d">each with its install date</div></div><div class="chip rv "><div class="n cu">176</div><div class="l">Install days on record</div><div class="d">since Mar 14, 2025</div></div><div class="chip rv "><div class="n cu">18</div><div class="l">Airlines scored</div><div class="d">1 verified · 1 type-derived · 16 coarse</div></div></div>
 
 <section class="blk">
   <div class="sec-h"><h2>The three confidence tiers</h2><span class="sub">say which one you are quoting</span></div>
@@ -92,10 +92,10 @@ cost onboard = free for loyalty members → free-for-you <b>1.00</b>
   <h3 class="apih" style="margin-top:26px">Worked example — one flight, from the Verified tier</h3>
   <div class="wex">flight   = <b>UA2123</b>  (9:10 PM departure)
 route    = Denver → San Francisco
-observed = 20 recent departures of that flight number
+observed = 21 recent departures of that flight number
 aircraft = A321neo / 737-800
 
-equipped on <b>33%</b> of those 20 departures → <span class="r">per-flight odds 33%</span>, confidence high</div>
+equipped on <b>39%</b> of those 21 departures → <span class="r">per-flight odds 39%</span>, confidence high</div>
   <p class="tblcap">This is what the Verified tier buys you, and why the fleet-wide 27 is the wrong number to quote for a specific flight in either direction. Confidence is the sample size: low under 10 observations, medium 10–15, high 16 or more. <a href="/united/">Rank a whole route →</a></p>
 </section>
 
@@ -112,15 +112,15 @@ equipped on <b>33%</b> of those 20 departures → <span class="r">per-flight odd
 </section>
 
 <section class="blk">
-  <div class="sec-h"><h2>Data freshness</h2><span class="sub">every figure on this page is from 2026-07-24</span></div>
+  <div class="sec-h"><h2>Data freshness</h2><span class="sub">every figure on this page is from 2026-07-25</span></div>
   <div class="tbl-shell"><table class="tbl">
     <thead><tr><th>Input</th><th>Source</th><th>Cadence</th><th>Last refresh</th></tr></thead>
     <tbody>
-      <tr><td>United fleet + per-tail roster</td><td>unitedstarlinktracker.com</td><td>pulled daily</td><td class="mono">2026-07-24</td></tr>
-      <tr><td>United per-flight route history</td><td>unitedstarlinktracker.com check-flight pages</td><td>daily, 48 cached routes</td><td class="mono">2026-07-24</td></tr>
+      <tr><td>United fleet + per-tail roster</td><td>unitedstarlinktracker.com</td><td>pulled daily</td><td class="mono">2026-07-25</td></tr>
+      <tr><td>United per-flight route history</td><td>unitedstarlinktracker.com check-flight pages</td><td>daily, 53 cached routes</td><td class="mono">2026-07-25</td></tr>
       <tr><td>Alaska fleet</td><td>alaskastarlinktracker.com</td><td>pulled daily</td><td class="mono">2026-07</td></tr>
       <tr><td>The other 16 airlines</td><td>public airline announcements</td><td>reviewed by hand</td><td class="mono">July 2026</td></tr>
-      <tr><td>Every page, score and chart on this site</td><td>this build</td><td>re-baked on every data commit</td><td class="mono">2026-07-24</td></tr>
+      <tr><td>Every page, score and chart on this site</td><td>this build</td><td>re-baked on every data commit</td><td class="mono">2026-07-25</td></tr>
     </tbody>
   </table></div>
   <p class="tblcap">Nothing on wifiodds.com is fetched live. The daily pull commits <a href="/united/data.json">united/data.json</a>, that commit rebuilds every page, and the ConnectScore API reads the same file out of the same deploy — so the page, the API and the extension cannot disagree with each other. If the date above is stale, the data is stale everywhere at once, visibly, rather than in one surface quietly.</p>
@@ -129,7 +129,7 @@ equipped on <b>33%</b> of those 20 departures → <span class="r">per-flight odd
 <section class="blk">
   <div class="sec-h"><h2>Citing this</h2><span class="sub">please do</span></div>
   <p class="sec-lede">Quote the numbers freely, including in an article or an AI answer. The one condition is that the credit travels with them, because the fleet verification is not ours.</p>
-  <div class="wex">ConnectScore and per-flight odds: WiFi Odds (wifiodds.com), data as of 2026-07-24.
+  <div class="wex">ConnectScore and per-flight odds: WiFi Odds (wifiodds.com), data as of 2026-07-25.
 United tail verification: unitedstarlinktracker.com (@martinamps).
 Alaska tail verification: alaskastarlinktracker.com (@martinamps).
 All other airlines: public airline announcements, July 2026.</div>
@@ -141,7 +141,7 @@ All other airlines: public airline announcements, July 2026.</div>
   <div class="flinks"><a href="/airlines/">Airlines</a><a href="/race/">The Race</a><a href="/systems/">Systems</a><a href="/united/">United</a><a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a><a href="/methodology/">Methodology</a><a href="/api/docs/">API</a><a href="/privacy.html">Privacy</a><a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Open source ↗</a></div>
   <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> · <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> (independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>
   <div class="frow"><b>No accounts, no analytics, no tracking</b> — on this site or in the extension. The only thing stored in your browser is your light/dark choice. See the <a href="/privacy.html">privacy policy</a>.</div>
-  <div class="frow">Data updated <b>2026-07-24</b>. ConnectScores and per-flight odds are historical estimates, not guarantees — aircraft assignments change until departure. WiFi Odds is an unofficial, free, open-source project. 🛰️</div>
+  <div class="frow">Data updated <b>2026-07-25</b>. ConnectScores and per-flight odds are historical estimates, not guarantees — aircraft assignments change until departure. WiFi Odds is an unofficial, free, open-source project. 🛰️</div>
 </footer>
 </div>
 <script src="/assets/site.js" defer></script>
