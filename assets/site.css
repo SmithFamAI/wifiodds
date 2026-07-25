@@ -126,6 +126,28 @@ html.js .no-js-only{display:none}
 .crumb a:hover{color:var(--accent);text-decoration:underline}
 .crumb .sep{padding:0 6px;color:var(--faint)}
 
+/* ── airline sub-nav: the SECOND header row ───────────────────────────────
+   .topnav says where you are on the SITE and is identical on every page.
+   .subnav says where you are inside ONE airline. Anything airline-specific
+   belongs here — with 18 airlines it can never live in .topnav. Tab vocabulary
+   deliberately matches .filters/.pill: pill, 1px edge, accent when current. */
+.subnav{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:10px;
+  padding:6px 0 8px;border-bottom:1px solid var(--edge)}
+.subnav .sn-air{font-size:13.5px;font-weight:800;color:var(--ink);white-space:nowrap;margin-right:2px}
+.subnav a{font-size:13.5px;font-weight:600;text-decoration:none;color:var(--dim);white-space:nowrap;
+  padding:5px 11px;border-radius:99px;border:1px solid transparent;transition:.15s}
+.subnav a:hover{color:var(--accent);background:var(--surface);border-color:var(--edge)}
+.subnav a[aria-current="page"]{color:var(--accent);background:var(--surface);border-color:var(--sky)}
+.subnav .sn-back{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--faint);
+  padding-right:0}
+.subnav .sn-back:hover{color:var(--accent);background:none;border-color:transparent;
+  text-decoration:underline}
+/* the 16 single-page airlines: no tabs to choose between, just the way back */
+.subnav.lone .sn-back{margin-left:0;padding-left:0}
+.subnav.lone .sn-air{margin-left:auto;margin-right:0;font-family:var(--mono);font-size:12.5px;
+  font-weight:600;color:var(--dim)}
+@media(max-width:560px){.subnav{gap:4px}.subnav .sn-back{margin-left:0;padding-left:0}}
+
 /* ── type ─────────────────────────────────────────────────────────────── */
 .hero{padding:26px 0 4px}
 .hero h1{font-size:clamp(30px,5.4vw,46px);font-weight:800;letter-spacing:-.9px;line-height:1.08}

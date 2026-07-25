@@ -244,9 +244,11 @@ function airlinePage(m, key) {
           ? 'The route optimizer ranks every flight on a route by live Starlink odds, and the hangar floor ' +
             'shows all ' + num(m.fleet.equipped) + ' equipped tails with their install dates.'
           : 'Odds badges appear on alaskaair.com search results once you enable the optional permission.') +
-        '</p><div class="cta-row"><a class="btn" href="' + toolHref + '">Open the ' + esc(a.name) +
-        ' tools →</a>' + (key === 'united'
-          ? '<a class="btn ghost" href="/united/fleet/">The hangar floor →</a>' : '') +
+        '</p><div class="cta-row"><a class="btn" href="' + toolHref + '">' + (key === 'united'
+          ? 'Open the route optimizer →' : 'Open the ' + esc(a.name) + ' rollout →') + '</a>' +
+        (key === 'united'
+          ? '<a class="btn ghost" href="/united/fleet/">The hangar floor →</a>' +
+            '<a class="btn ghost" href="/united/history/">Day-by-day history →</a>' : '') +
         '</div></div>\n</section>\n\n'
       : '<section class="blk">\n  <div class="callout rv"><h3>How to check your ' + esc(a.name) + ' flight</h3>' +
         '<p>We cannot score an individual ' + esc(a.name) + ' flight yet — there is no verified per-tail ' +
@@ -269,6 +271,9 @@ function airlinePage(m, key) {
       a.systemLabel + ' (' + pct + '%). ' : a.name + ' offers ' + a.systemLabel + ' fleetwide. ') +
       'ConnectScore ' + a.score + '/100 — ' + a.label + '. ' + P.freeText(e.free) + '.',
     canonical: '/airlines/' + key + '/', here: '/airlines/', suffix: a.name,
+    /* the two instrumented airlines have a multi-page section and get tabs;
+       the other sixteen are a single page and get the way back, nothing more */
+    section: key === 'united' ? 'united' : key === 'alaska' ? 'alaska' : 'airline',
     updated: m.updated, crumb: crumbs, body: body,
     jsonld: [{
       '@context': 'https://schema.org', '@type': 'FAQPage',
@@ -417,6 +422,7 @@ function fleetPage(m) {
     desc: num(m.fleet.equipped) + ' of ' + num(m.fleet.total) + ' United aircraft equipped: the hangar ' +
       'floor, the install pace, and the full tail registry with install dates. Data by unitedstarlinktracker.com.',
     canonical: '/united/fleet/', here: '/united/fleet/', suffix: 'United',
+    section: 'united',
     updated: m.updated, crumb: crumbs, body: body,
     jsonld: [datasetLd(m), crumbLd(crumbs)]
   });

@@ -1,7 +1,8 @@
 'use strict';
 /* build/lib/html.js — the shared shell every prerendered page is poured into.
- * One <head> builder, one topnav, one credit strip, one footer. If a page needs
- * a different nav, the nav is wrong, not the page. */
+ * One <head> builder, one credit strip, one footer, and TWO nav rows: a global
+ * topnav that is byte-identical everywhere, plus an optional per-airline subnav.
+ * If a page needs a different global nav, the nav is wrong, not the page. */
 
 var ORIGIN = 'https://wifiodds.com';
 var EXT = 'https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec';
@@ -29,13 +30,56 @@ var MARK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width=
   '<path d="M4.5 10.5a11 11 0 0 1 15 0"/><path d="M7.6 14a7 7 0 0 1 8.8 0"/>' +
   '<circle cx="12" cy="18.2" r="1.5" fill="#fff" stroke="none"/></svg>';
 
+/* ── TWO-LEVEL NAVIGATION ─────────────────────────────────────────────────
+ * NAV is the GLOBAL row and is identical on every page. It must stay free of
+ * anything airline-specific: with 18 airlines there is no version of "Fleet" or
+ * "United" that belongs in a site-wide header. Per-airline pages get a SECOND
+ * row (subnav) scoped to that airline instead. If you are tempted to add an
+ * airline link here, add a SUBNAV section instead. */
 var NAV = [
   ['/airlines/', 'Airlines'],
-  ['/united/', 'United'],
-  ['/united/fleet/', 'Fleet'],
-  ['/alaska/', 'Alaska'],
   ['/roadmap/', 'Roadmap']
 ];
+
+/* Airline sections. Key = section id passed as page({section:…}); the active tab
+ * is decided by canonical, so a page never has to name itself twice. */
+var SUBNAV = {
+  united: {
+    label: 'United',
+    tabs: [
+      ['/airlines/united/', 'Overview'],
+      ['/united/', 'Route optimizer'],
+      ['/united/fleet/', 'Fleet'],
+      ['/united/history/', 'History']
+    ]
+  },
+  alaska: {
+    label: 'Alaska',
+    tabs: [
+      ['/airlines/alaska/', 'Overview'],
+      ['/alaska/', 'Rollout']
+    ]
+  }
+};
+
+/* section: 'united' | 'alaska' | 'airline' (the 16 single-page airlines) */
+function subnav(section, here, label) {
+  if (!section) return '';
+  var s = SUBNAV[section];
+  if (!s) {
+    /* single-page airline — no tabs to offer, just the way back */
+    return '<nav class="subnav lone" aria-label="Airline">' +
+      '<a class="sn-back" href="/airlines/">← All airlines</a>' +
+      (label ? '<span class="sn-air">' + esc(label) + '</span>' : '') + '</nav>\n';
+  }
+  return '<nav class="subnav" aria-label="' + esc(s.label) + ' pages">' +
+    '<span class="sn-air">' + esc(s.label) + ' ·</span>' +
+    s.tabs.map(function (t) {
+      return '<a class="sn-tab" href="' + t[0] + '"' +
+        (t[0] === here ? ' aria-current="page"' : '') + '>' + t[1] + '</a>';
+    }).join('') +
+    '<a class="sn-back" href="/airlines/">All airlines →</a></nav>\n';
+}
 
 function topbar(here, suffix) {
   return '<div class="topbar">\n' +
@@ -131,6 +175,7 @@ function page(o) {
     (o.jsonld || []).map(ld).join('\n') + '\n' +
     '</head>\n<body>\n<div class="wrap">\n' +
     topbar(o.here, o.suffix) +
+    subnav(o.section, o.canonical, o.suffix) +
     (o.crumb ? crumb(o.crumb) : '') +
     o.body +
     footer(o.updated) +
@@ -138,6 +183,7 @@ function page(o) {
 }
 
 module.exports = {
-  ORIGIN: ORIGIN, EXT: EXT, REPO: REPO, NAV: NAV,
-  esc: esc, ld: ld, page: page, topbar: topbar, crumb: crumb, credit: credit, footer: footer
+  ORIGIN: ORIGIN, EXT: EXT, REPO: REPO, NAV: NAV, SUBNAV: SUBNAV,
+  esc: esc, ld: ld, page: page, topbar: topbar, subnav: subnav,
+  crumb: crumb, credit: credit, footer: footer
 };

@@ -420,15 +420,14 @@
   <a class="mark" href="/"><span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round"><path d="M4.5 10.5a11 11 0 0 1 15 0"/><path d="M7.6 14a7 7 0 0 1 8.8 0"/><circle cx="12" cy="18.2" r="1.5" fill="#fff" stroke="none"/></svg></span><span class="wm">WiFi Odds <em>· United</em></span></a>
   <nav class="topnav" aria-label="Main">
     <a href="/airlines/">Airlines</a>
-    <a href="/united/" aria-current="page">United</a>
-    <a href="/united/fleet/">Fleet</a>
-    <a href="/alaska/">Alaska</a>
     <a href="/roadmap/">Roadmap</a>
     <a class="cta" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Get the extension</a>
   </nav>
   <button class="tt" type="button" aria-label="Switch theme" title="Switch theme">☽</button>
 </div>
-<nav class="crumb" aria-label="Breadcrumb"><a href="/">Home</a><span class="sep">→</span><span aria-current="page">United</span></nav>
+<!-- Airline sub-nav. Keep byte-identical with H.subnav('united', …) in build/lib/html.js. -->
+<nav class="subnav" aria-label="United pages"><span class="sn-air">United ·</span><a class="sn-tab" href="/airlines/united/">Overview</a><a class="sn-tab" href="/united/" aria-current="page">Route optimizer</a><a class="sn-tab" href="/united/fleet/">Fleet</a><a class="sn-tab" href="/united/history/">History</a><a class="sn-back" href="/airlines/">All airlines →</a></nav>
+<nav class="crumb" aria-label="Breadcrumb"><a href="/">Home</a><span class="sep">→</span><a href="/airlines/united/">United</a><span class="sep">→</span><span aria-current="page">Route optimizer</span></nav>
 
 <header>
   <div class="brand">
