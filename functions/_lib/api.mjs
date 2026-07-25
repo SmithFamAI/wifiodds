@@ -22,8 +22,8 @@
  * library, not an endpoint.
  */
 
-import { WIFI_AIRLINES, SCORE_CAVEAT, SCORE_METHOD_LINE, scoreAirline, rankAirlines }
-  from './score.mjs';
+import { WIFI_AIRLINES, SCORE_CAVEAT, SCORE_METHOD_LINE, TIER_METHOD_LINE,
+  scoreAirline, rankAirlines } from './score.mjs';
 
 export const API_VERSION = 'v0';
 export const ORIGIN = 'https://wifiodds.com';
@@ -62,6 +62,7 @@ export const SOURCES = [
     url: ORIGIN + '/',
     covers: 'the ConnectScore method itself',
     method: SCORE_METHOD_LINE,
+    nextGenMethod: TIER_METHOD_LINE,
     caveat: SCORE_CAVEAT,
     citation: 'Please credit unitedstarlinktracker.com / alaskastarlinktracker.com ' +
       '(@martinamps) when re-publishing fleet numbers, and wifiodds.com for the ConnectScore. ' +
@@ -128,6 +129,32 @@ export function airlineJson(key) {
     code: a.code,
     connectScore: a.score,
     band: a.label,
+    /* ── ADDITIVE, v0-safe. Everything above and below keeps its meaning; these
+     * two are the headline/today split the site now shows.
+     *   nextGenScore — odds of a Starlink or Amazon Leo aircraft × free-for-you.
+     *                  ZERO for a signed-but-unflown deal: Delta is 0 here and 60
+     *                  in connectScore, and both numbers are correct answers to
+     *                  different questions.
+     *   serviceTier  — next-gen | streaming | basic | mixed: what the fleet
+     *                  actually delivers today. `rest` is the tier on the part of
+     *                  the fleet that is not next-gen yet; null when there is no
+     *                  such part, "unknown" when we have not verified it. */
+    nextGenScore: a.nextGenScore,
+    nextGen: {
+      score: a.nextGenScore,
+      system: a.nextGenSystem,
+      label: a.nextGenLabel,
+      share: round(a.nextGenShare, 4),
+      pct: Math.round(a.nextGenShare * 100)
+    },
+    serviceTier: a.serviceTier,
+    service: {
+      tier: a.serviceTier,
+      label: a.serviceTierLabel,
+      rest: a.restTier,
+      restLabel: a.restTierLabel,
+      means: a.serviceTierBlurb
+    },
     system: { key: a.system, label: a.systemLabel, quality: a.parts.systemQuality },
     free: { status: e.free || 'unknown', factor: a.parts.freeFactor },
     fleet: {

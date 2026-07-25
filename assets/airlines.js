@@ -34,6 +34,41 @@
  * are my odds of the good wifi", not "is there any wifi at all". That is why
  * Southwest (1 of 817 Starlink) scores near zero despite having fleetwide legacy
  * service. See SCORE_CAVEAT, which the popup shows as a tooltip.
+ * ═══════════════════════════════════════════════════════════════════════════
+ * THE THREE-TIER READING (added Jul 2026) — TWO NUMBERS, NEVER ONE
+ *
+ * The single ConnectScore above answers "what are my odds of the GOOD system".
+ * It is the right headline and it is also, on its own, misleading in one specific
+ * direction: Delta scores 60 on free fleetwide Viasat and United scores 27 on a
+ * quarter-finished Starlink fleet, so a reader who skims one number concludes
+ * Delta has better WiFi than United's Starlink. Both facts are true; the
+ * comparison is not the one the reader thinks they are making.
+ *
+ * So every surface now shows the fleet TWICE:
+ *
+ *   nextGenScore  the headline. Odds of a NEXT-GEN system — Starlink or Amazon
+ *                 Leo, the only two low-earth-orbit products flying — times
+ *                 free-for-you. Delta is 0 here. A signed deal is still zero.
+ *   serviceTier   what the fleet actually delivers TODAY, in three words:
+ *                   next-gen   — LEO across (effectively) the whole fleet
+ *                   streaming  — modern GEO fleetwide: Viasat / 2Ku, e.g. Delta
+ *                                Sync. Streams, uploads, real work.
+ *                   basic      — legacy Panasonic / Ku. Email and messaging.
+ *                   mixed      — part of the fleet is next-gen, the rest is one
+ *                                of the two above (United: "Starlink 27%, rest
+ *                                streaming-class or basic")
+ *   restTier      the tier on the part of the fleet that is NOT next-gen yet.
+ *                 "unknown" is honest and common: we have verified next-gen tail
+ *                 counts, not a verified inventory of everyone's old hardware, so
+ *                 it renders as "streaming-class or basic" rather than a guess.
+ *
+ * Both fields are DATA, not prose: the wording lives in the site/popup, the keys
+ * live here, and build/prerender.js fails the build if a stored serviceTier
+ * disagrees with the fleet share it is supposed to describe.
+ *
+ * We do not promise video calls anywhere. "Streams, uploads, real work" is the
+ * claim the hardware supports; a Zoom call at 35,000 feet over a full cabin is
+ * not something this data set can honestly underwrite.
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 const WIFI_AIRLINES = {
@@ -42,12 +77,14 @@ const WIFI_AIRLINES = {
     name: "United", code: "UA", asOf: "2026-07",
     system: "starlink", equipped: 481, fleet: 1807, free: "loyalty-free",
     instrumented: true, tracker: "unitedstarlinktracker.com",
+    serviceTier: "mixed", restTier: "unknown",
     note: "481 of 1,807 aircraft — free for MileagePlus members. Odds swing a lot by route and aircraft type.",
   },
   alaska: {
     name: "Alaska", code: "AS", asOf: "2026-07",
     system: "starlink", equipped: 99, fleet: 350, free: "free",
     instrumented: true, tracker: "alaskastarlinktracker.com",
+    serviceTier: "mixed", restTier: "unknown",
     note: "99 of 350 mainline + regional and installing fast; the ex-Hawaiian widebodies are counted under Hawaiian.",
   },
 
@@ -55,67 +92,80 @@ const WIFI_AIRLINES = {
   jsx: {
     name: "JSX", code: "XE", asOf: "2026-07",
     system: "starlink", equipped: 75, fleet: 75, free: "free",
+    serviceTier: "next-gen", restTier: null,
     note: "Every aircraft in the fleet — the first airline anywhere to finish its Starlink rollout.",
   },
   airbaltic: {
     name: "airBaltic", code: "BT", asOf: "2026-07",
     system: "starlink", equipped: 55, fleet: 55, free: "free",
+    serviceTier: "next-gen", restTier: null,
     note: "Entire A220 fleet equipped — the first European airline to complete a Starlink fit.",
   },
   zipair: {
     name: "ZIPAIR", code: "ZG", asOf: "2026-07",
     system: "starlink", equipped: 9, fleet: 9, free: "free",
+    serviceTier: "next-gen", restTier: null,
     note: "All nine 787s equipped, free onboard.",
   },
   westjet: {
     name: "WestJet", code: "WS", asOf: "2026-07",
     system: "starlink", equipped: 151, fleet: 159, free: "free",
+    serviceTier: "next-gen", restTier: "unknown",
     note: "151 of 159 — fleetwide install all but finished.",
   },
   airfrance: {
     name: "Air France", code: "AF", asOf: "2026-07",
     system: "starlink", equipped: 172, fleet: 229, free: "free",
+    serviceTier: "mixed", restTier: "unknown",
     note: "172 of 229 done and free for all Flying Blue members.",
   },
   hawaiian: {
     name: "Hawaiian", code: "HA", asOf: "2026-07",
     system: "starlink", equipped: 42, fleet: 61, free: "free",
     tracker: "airlinestarlinktracker.com",
+    serviceTier: "mixed", restTier: "unknown",
     note: "42 of 61 — the widebody fit is nearly complete, the best Starlink odds of any US carrier.",
   },
   qatar: {
     name: "Qatar Airways", code: "QR", asOf: "2026-07",
     system: "starlink", equipped: 140, fleet: 241, free: "free",
+    serviceTier: "mixed", restTier: "unknown",
     note: "140 of 241 fitted with Starlink; free for every passenger in every cabin, no sign-up (OMAAT, Jul 2026).",
   },
   sas: {
     name: "SAS", code: "SK", asOf: "2026-07",
     system: "starlink", equipped: 60, fleet: 123, free: "loyalty-free",
+    serviceTier: "mixed", restTier: "unknown",
     note: "About half the fleet equipped and still installing; free for EuroBonus members (free to join) since 2026-03-24 (SAS/Business Travel News Europe).",
   },
   emirates: {
     name: "Emirates", code: "EK", asOf: "2026-07",
     system: "starlink", equipped: 36, fleet: 232, free: "free",
+    serviceTier: "mixed", restTier: "unknown",
     note: "36 of 232 so far, free onboard — the widebody retrofit is early.",
   },
   virginatlantic: {
     name: "Virgin Atlantic", code: "VS", asOf: "2026-07",
     system: "starlink", equipped: 12, fleet: 43, free: "loyalty-free",
+    serviceTier: "mixed", restTier: "unknown",
     note: "12 of 43 aircraft; free for Flying Club members (free to join) since launch 2026-05-01 (OMAAT/Virgin Atlantic).",
   },
   aircanada: {
     name: "Air Canada", code: "AC", asOf: "2026-07",
     system: "starlink", equipped: 12, fleet: 216, free: "loyalty-free",
+    serviceTier: "mixed", restTier: "unknown",
     note: "Just started — 12 Q400s equipped out of 216; free for Aeroplan members (free to join), per seatwifi.com/Runway Girl, Jun 2026.",
   },
   britishairways: {
     name: "British Airways", code: "BA", asOf: "2026-07",
     system: "starlink", equipped: 5, fleet: 261, free: "free",
+    serviceTier: "mixed", restTier: "unknown",
     note: "Rollout paused summer 2026 — only 5 aircraft equipped; free for every customer in every cabin once fitted (BA mediacentre, Mar 2026 launch).",
   },
   southwest: {
     name: "Southwest", code: "WN", asOf: "2026-07",
     system: "starlink", equipped: 1, fleet: 817, free: "loyalty-free",
+    serviceTier: "mixed", restTier: "unknown",
     note: "1 of 817 and ramping; free for Rapid Rewards members. Legacy wifi on the rest of the fleet is not scored.",
   },
 
@@ -124,18 +174,23 @@ const WIFI_AIRLINES = {
     name: "American", code: "AA", asOf: "2026-07",
     system: "viasat", equipped: 890, fleet: 989, free: "free",
     future: { system: "starlink", from: "2027-Q1", detail: "500+ Airbus aircraft signed" },
+    /* the only entry with a KNOWN rest tier: AA's free Viasat/Intelsat covers ~90%
+       of the fleet and the Panasonic widebodies are explicitly excluded from it */
+    serviceTier: "streaming", restTier: "basic",
     note: "Free Viasat/Intelsat on ~90% of the fleet today. Airbus-only Starlink from 2027 — Boeing stays Viasat.",
   },
   delta: {
     name: "Delta", code: "DL", asOf: "2026-07",
     system: "viasat", coverage: 1.0, free: "free",
     future: { system: "leo", from: "2028", detail: "Amazon Leo signed for 500 aircraft" },
+    serviceTier: "streaming", restTier: null,
     note: "Free Viasat for SkyMiles members fleetwide today; Amazon Leo lands on 500 aircraft from 2028.",
   },
   jetblue: {
     name: "jetBlue", code: "B6", asOf: "2026-07",
     system: "viasat", coverage: 1.0, free: "free",
     future: { system: "leo", from: "2027", detail: "Amazon Leo" },
+    serviceTier: "streaming", restTier: null,
     note: "Free “Fly-Fi” Viasat on the whole fleet; Amazon Leo arrives 2027.",
   },
 };
@@ -161,6 +216,44 @@ const FREE_FACTOR = {
   paid: 0.7,
 };
 
+/* ── the three-tier reading ───────────────────────────────────────────────
+ * NEXT_GEN_SYSTEMS is derived-by-hand from SYSTEM_QUALITY on purpose: "quality
+ * 1.0" and "low-earth orbit" happen to coincide today, but they are different
+ * claims, and if a future GEO product ever earned 1.0 it still would not be
+ * next-gen. Keep the list explicit. */
+const NEXT_GEN_SYSTEMS = { starlink: true, leo: true };
+
+/* A fleet is called next-gen once the retrofit is effectively done. 0.9 rather
+ * than 1.0 because WestJet's last eight aircraft should not make the other 151
+ * read as a coin flip — the numbers are shown either way. */
+const NEXT_GEN_DONE = 0.9;
+
+const SERVICE_TIER_LABEL = {
+  "next-gen": "next-gen fleetwide",
+  mixed: "mixed",
+  streaming: "streaming-class",
+  basic: "basic",
+};
+
+/* What the not-yet-converted part of the fleet gets. "unknown" is the common,
+ * honest case: we have verified next-gen tail counts, not a verified inventory
+ * of everybody's older hardware. */
+const REST_TIER_LABEL = {
+  streaming: "streaming-class",
+  basic: "basic",
+  unknown: "streaming-class or basic",
+};
+
+/* One sentence per tier, for the surfaces that have room. No video-call promise
+ * anywhere in here — see the header. */
+const SERVICE_TIER_BLURB = {
+  "next-gen": "Low-earth-orbit across the fleet: streams, uploads, real work.",
+  mixed: "Part of the fleet is low-earth orbit; the rest is older satellite service.",
+  streaming: "Modern geostationary service fleetwide — streams, uploads, real work, " +
+    "with more lag than low-earth orbit.",
+  basic: "Legacy satellite service — email, messaging, and not much else.",
+};
+
 // Display names for the hardware, so the popup never has to map them itself.
 const SYSTEM_LABEL = {
   starlink: "Starlink",
@@ -180,6 +273,13 @@ const SCORE_CAVEAT =
 const SCORE_METHOD_LINE =
   "ConnectScore = connectivity probability × system quality × free-for-you. " +
   "Data: unitedstarlinktracker.com · alaskastarlinktracker.com · airline announcements (Jul 2026).";
+
+/* The headline line for the two-number reading. Deliberately says what it does
+ * NOT count: a signed deal, and the older hardware on the rest of the fleet. */
+const TIER_METHOD_LINE =
+  "Next-gen odds = share of the fleet flying Starlink or Amazon Leo today × free-for-you. " +
+  "Signed-but-unflown deals count zero. The second line is what the fleet actually " +
+  "delivers today: next-gen, streaming-class, basic, or mixed.";
 
 /* ── pure helpers ────────────────────────────────────────────────────────── */
 function clamp01(n) {
@@ -218,6 +318,56 @@ function scoreClass(score) {
   if (score >= 35) return "usl-pct-mid";
   if (score >= 20) return "usl-pct-low";
   return "usl-pct-no";
+}
+
+/* ── the three-tier helpers ───────────────────────────────────────────────
+ * These are ADDITIVE. scoreEntry() and scoreAirline() keep returning every field
+ * they returned before, including `score`; nothing here changes a single existing
+ * number. What they add is the second axis: how much of the fleet is next-gen
+ * (the headline) versus what the fleet actually delivers today (the tier). */
+
+function isNextGen(system) {
+  return NEXT_GEN_SYSTEMS[String(system || "").toLowerCase()] === true;
+}
+
+/* Share of the fleet on a next-gen system RIGHT NOW. A signed deal is not a
+ * system: `future` never contributes here, which is the whole point. */
+function nextGenShare(entry) {
+  if (!entry || !isNextGen(entry.system)) return 0;
+  return pctEquipped(entry);
+}
+
+/* The headline number: odds of drawing a next-gen aircraft, times free-for-you.
+ * System quality is not a factor because next-gen IS the quality ceiling (1.0) —
+ * multiplying by it would just be multiplying by one. */
+function nextGenScore(entry) {
+  if (!entry) return 0;
+  return Math.round(clamp01(nextGenShare(entry) * freeFactor(entry.free)) * 100);
+}
+
+/* The stored tier is the answer; the derivation is the fallback AND the check.
+ * build/prerender.js asserts the two agree, so a fleet that crosses the
+ * threshold cannot keep a stale word next to a fresh number. */
+function serviceTierOf(entry) {
+  if (!entry) return "basic";
+  if (entry.serviceTier) return entry.serviceTier;
+  const share = nextGenShare(entry);
+  if (share >= NEXT_GEN_DONE) return "next-gen";
+  if (share > 0) return "mixed";
+  return systemQuality(entry.system) >= 0.6 ? "streaming" : "basic";
+}
+function serviceTierExpected(entry) {
+  const share = nextGenShare(entry);
+  if (share >= NEXT_GEN_DONE) return "next-gen";
+  if (share > 0) return "mixed";
+  return systemQuality(entry.system) >= 0.6 ? "streaming" : "basic";
+}
+function serviceTierLabel(entry) {
+  return SERVICE_TIER_LABEL[serviceTierOf(entry)] || serviceTierOf(entry);
+}
+function restTierLabel(entry) {
+  const r = entry && entry.restTier;
+  return r ? (REST_TIER_LABEL[r] || r) : null;
 }
 
 /* Score any entry object — the blend lives here so it can be tested against a
@@ -278,6 +428,16 @@ function scoreAirline(key) {
     tracker: entry.tracker || null,
     future: entry.future || null,
     asOf: entry.asOf || null,
+    /* ── the second axis. Every field above is unchanged; these are new. ── */
+    nextGenScore: nextGenScore(entry),
+    nextGenShare: nextGenShare(entry),
+    nextGenSystem: isNextGen(entry.system) ? entry.system : null,
+    nextGenLabel: isNextGen(entry.system) ? (SYSTEM_LABEL[entry.system] || entry.system) : null,
+    serviceTier: serviceTierOf(entry),
+    serviceTierLabel: serviceTierLabel(entry),
+    serviceTierBlurb: SERVICE_TIER_BLURB[serviceTierOf(entry)] || "",
+    restTier: entry.restTier || null,
+    restTierLabel: restTierLabel(entry),
   };
 }
 
@@ -297,8 +457,12 @@ function rankAirlines() {
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     WIFI_AIRLINES, SYSTEM_QUALITY, FREE_FACTOR, SYSTEM_LABEL,
-    SCORE_CAVEAT, SCORE_METHOD_LINE,
+    NEXT_GEN_SYSTEMS, NEXT_GEN_DONE, SERVICE_TIER_LABEL, REST_TIER_LABEL,
+    SERVICE_TIER_BLURB,
+    SCORE_CAVEAT, SCORE_METHOD_LINE, TIER_METHOD_LINE,
     clamp01, systemQuality, freeFactor, pctEquipped,
+    isNextGen, nextGenShare, nextGenScore,
+    serviceTierOf, serviceTierExpected, serviceTierLabel, restTierLabel,
     labelFor, scoreClass, scoreEntry, scoreAirline, rankAirlines,
   };
 }

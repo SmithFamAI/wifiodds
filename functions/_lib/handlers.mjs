@@ -10,6 +10,7 @@
  */
 
 import { WIFI_AIRLINES } from './score.mjs';
+import { TIER_METHOD_LINE } from './score.mjs';
 import {
   API_VERSION, ORIGIN, DOCS, SOURCES,
   json, fail, guard, airlineJson, allAirlinesJson, parseFlight, findUnitedFlight, readAsset
@@ -28,6 +29,15 @@ export function apiIndex(context) {
       'for United out of our own daily-cached route history. Free, no key, no accounts, ' +
       'CORS open to everyone. Read-only.',
     method: 'ConnectScore = P(connectivity) × system quality × free-for-you',
+    /* Two numbers per airline, and the difference between them is the point.
+     * Read both before you quote either. */
+    nextGenMethod: TIER_METHOD_LINE,
+    serviceTiers: {
+      'next-gen': 'Starlink or Amazon Leo across (effectively) the whole fleet.',
+      streaming: 'Modern geostationary fleetwide — Viasat / 2Ku. Streams, uploads, real work.',
+      basic: 'Legacy satellite service. Email and messaging.',
+      mixed: 'Part next-gen, the rest streaming-class or basic.'
+    },
     airlineCount: airlines.length,
     endpoints: [
       {

@@ -294,7 +294,13 @@ function fileMod(f) {
  * the build step and the bundler in. Never hand-edit it. */
 var SCORE_EXPORTS = ['WIFI_AIRLINES', 'SYSTEM_QUALITY', 'FREE_FACTOR', 'SYSTEM_LABEL',
   'SCORE_CAVEAT', 'SCORE_METHOD_LINE', 'clamp01', 'systemQuality', 'freeFactor', 'pctEquipped',
-  'labelFor', 'scoreClass', 'scoreEntry', 'scoreAirline', 'rankAirlines'];
+  'labelFor', 'scoreClass', 'scoreEntry', 'scoreAirline', 'rankAirlines',
+  /* the three-tier reading — the API returns nextGenScore and serviceTier, so the
+     names it needs have to survive the re-emit as well */
+  'NEXT_GEN_SYSTEMS', 'NEXT_GEN_DONE', 'SERVICE_TIER_LABEL', 'REST_TIER_LABEL',
+  'SERVICE_TIER_BLURB', 'TIER_METHOD_LINE',
+  'isNextGen', 'nextGenShare', 'nextGenScore',
+  'serviceTierOf', 'serviceTierExpected', 'serviceTierLabel', 'restTierLabel'];
 
 function buildScoreModule() {
   var src = fs.readFileSync(abs('assets/airlines.js'), 'utf8');
@@ -362,6 +368,27 @@ function main() {
   if (m.registry.length !== m.fleet.equipped) {
     console.error('Build WARNING — registry ' + m.registry.length + ' rows vs fleet.equipped ' +
       m.fleet.equipped + ' (roster is truth for rows; tolerated).');
+  }
+
+  /* ── the tier tripwire ──────────────────────────────────────────────────
+   * Every airline stores a serviceTier word AND the fleet numbers that word is
+   * supposed to describe. They can drift in one direction only — the numbers get
+   * updated daily and the word does not — so a fleet that crosses the next-gen
+   * threshold would keep printing "mixed" next to "97%" forever, and the page
+   * would look fine. Assert they agree, on the build that creates them. */
+  var tierDrift = Object.keys(m.A.WIFI_AIRLINES).map(function (k) {
+    var e = m.A.WIFI_AIRLINES[k];
+    var want = m.A.serviceTierExpected(e);
+    return e.serviceTier === want ? null
+      : k + ': stored "' + e.serviceTier + '" but ' +
+        Math.round(m.A.nextGenShare(e) * 100) + '% next-gen means "' + want + '"';
+  }).filter(Boolean);
+  if (tierDrift.length) {
+    console.error('Build FAILED — serviceTier disagrees with the fleet share it describes:');
+    tierDrift.forEach(function (x) { console.error('  ' + x); });
+    console.error('  Fix the serviceTier/restTier fields in assets/airlines.js. A tier word that');
+    console.error('  contradicts the numbers beside it is the same lie as a 200 with an empty body.');
+    process.exit(1);
   }
 
   /* 1. every page. ROUTES is the table; this is the switchboard, and the two
