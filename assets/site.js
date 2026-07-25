@@ -91,16 +91,30 @@
       Array.prototype.forEach.call(targets, function (el) { el.classList.add('in'); });
     } else {
       root.classList.add('anim');
+      /* THRESHOLD 0.25 ALONE HIDES TALL CONTENT FOREVER. A `.rv` element taller
+       * than about 4× the viewport can never reach a 25% intersection ratio — the
+       * viewport is not big enough — so it sits at opacity 0 permanently and the
+       * page looks blank where its main content should be. This bit /race/, whose
+       * 18-row table is ~2,000px on a laptop and far taller on a phone, and it is
+       * exactly this project's recurring failure: a green build, a 200, and no
+       * bytes on screen.
+       *
+       * So the observer watches BOTH edges (0 and 0.25) and reveals when either
+       * "a quarter of it is showing" or "it is too tall for that to ever be true
+       * and some of it is showing". Short elements keep the original feel. */
       var io = new IntersectionObserver(function (entries) {
         entries.forEach(function (en) {
           if (!en.isIntersecting) return;
           var el = en.target;
+          var tall = en.boundingClientRect.height >
+            (en.rootBounds ? en.rootBounds.height : window.innerHeight) * 0.9;
+          if (!tall && en.intersectionRatio < 0.25) return;
           el.classList.add('in');
           io.unobserve(el);
           Array.prototype.forEach.call(el.querySelectorAll('.cu'), countUp);
           if (el.classList.contains('cu')) countUp(el);
         });
-      }, { threshold: 0.25, rootMargin: '0px 0px -8% 0px' });
+      }, { threshold: [0, 0.25], rootMargin: '0px 0px -8% 0px' });
       Array.prototype.forEach.call(targets, function (el) { io.observe(el); });
       /* count-ups that live outside a revealed container still run */
       Array.prototype.forEach.call(doc.querySelectorAll('.cu'), function (el) {
