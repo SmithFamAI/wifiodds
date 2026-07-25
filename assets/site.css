@@ -200,6 +200,25 @@ a.card:hover{border-color:var(--edge-strong);transform:translateY(-1px)}
 .chip.glow .n{color:var(--accent)}
 .chip.hero-kpi .n{font-size:42px}
 
+/* ── US airlines at a glance (homepage only) ───────────────────────────────
+   Seven fixed carriers (build/lib/pages.js US_MAJORS), four across, so the last
+   row is three. The set never grows with the data, which is why the column count
+   is a literal 4 and not an auto-fit: a row that reflows on every data pull is a
+   layout that nobody has actually looked at.
+   The score reuses the leaderboard's `.sco` NAME but not its rule — that one is
+   scoped `table.tbl .sco` and these cards are anchors, not a table. Do not
+   "dedupe" the two by unscoping the table rule; it would resize every leaderboard
+   cell on /airlines/. */
+.usrow{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0 10px}
+@media(max-width:980px){.usrow{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:720px){.usrow{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:430px){.usrow{grid-template-columns:1fr}}
+.usrow .card{padding:15px 16px;gap:7px}
+.ush{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ush h3{margin-right:auto}
+.usrow .sco{font-family:var(--mono);font-size:21px;font-weight:800;color:var(--ink);line-height:1}
+.usrow a.card:hover .sco{color:var(--accent)}
+
 /* ── buttons, badges, pills ───────────────────────────────────────────── */
 .btn{display:inline-block;padding:12px 20px;border-radius:12px;font-weight:700;font-size:15px;
   background:var(--brand);color:#fff;text-decoration:none;border:none;cursor:pointer;transition:.18s}

@@ -73,6 +73,77 @@ function leaderboard(m, limit) {
     '  </table></div>\n';
 }
 
+/* ── §3.1b US airlines at a glance — the homepage's first data surface ────
+ * What used to sit here: a 4-KPI strip in which TWO of the four cells were
+ * United's rollout trivia (481 equipped, 27% of the fleet) — one airline's
+ * numbers presented as the site's headline — followed by the global top-8
+ * ConnectScore leaderboard. The leaderboard is honestly sorted, which is exactly
+ * the problem on a US homepage: airBaltic, JSX and ZIPAIR take the podium with
+ * 139 aircraft between them that a US visitor will never board. Owner feedback,
+ * verbatim: "US flyers care most about American, Delta, United, Southwest,
+ * Alaska, JetBlue."
+ *
+ * So US_MAJORS is a FIXED, EDITORIAL set — seven carriers, hand-picked, and it
+ * must NOT become a filter over the data (there is no `country` field in
+ * assets/airlines.js to filter on, and inventing one to re-derive this list would
+ * be a lie dressed as a rule). Within the set the ORDER is data: ConnectScore
+ * desc, ties alphabetically, the same comparator as A.rankAirlines(). Membership
+ * is the only opinion here.
+ *
+ * The full 18 are one click away at /airlines/, which still carries the whole
+ * sortable table. Do not re-add it here.
+ *
+ * NOTE ON THE SCORES: American, Delta and jetBlue outrank United and Alaska on
+ * this row, and that is not a bug — free fleetwide Viasat scores 0.6 × 1.0 while
+ * a quarter-finished Starlink fleet scores ~0.27. The status line under each name
+ * says which, so nobody reads "60" as "Starlink". */
+var US_MAJORS = ['american', 'delta', 'united', 'southwest', 'alaska', 'jetblue', 'hawaiian'];
+
+/* One line per card, GENERATED from the same fields the leaderboard row used —
+ * fleet share, system, free status, and any signed-but-unflown deal. Deliberately
+ * not the entry's prose `note`: those run to two sentences ("…Odds swing a lot by
+ * route and aircraft type.") and would wreck a seven-across grid.
+ *
+ * `<1%` rather than a rounded `0%` for Southwest: 1 of 817 really is one aircraft,
+ * and "0%" reads as "none", which is false. */
+function usStatus(m, a, e) {
+  var bits = [];
+  if (a.fleet) {
+    var raw = a.parts.pctEquipped * 100;
+    var pct = raw > 0 && raw < 1 ? '<1%' : Math.round(raw) + '%';
+    bits.push(num(a.equipped) + ' of ' + num(a.fleet) + ' on ' + a.systemLabel + ' (' + pct + ')');
+  } else {
+    bits.push(a.systemLabel + ' fleetwide');
+  }
+  bits.push(freeText(e.free));
+  if (a.future) {
+    bits.push((m.A.SYSTEM_LABEL[a.future.system] || a.future.system) + ' from ' + a.future.from);
+  }
+  return bits.join(' · ');
+}
+
+/* The set, scored and ordered. ONE function, because the row and the page's
+ * ItemList must not be able to disagree about either membership or order. */
+function usRanked(m) {
+  return US_MAJORS.map(function (k) { return m.A.scoreAirline(k); })
+    .filter(Boolean)
+    .sort(function (a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.name.localeCompare(b.name);
+    });
+}
+
+function usGlance(m) {
+  return '  <div class="usrow">' + usRanked(m).map(function (a) {
+    var e = m.A.WIFI_AIRLINES[a.key];
+    return '<a class="card rv uscard" href="/airlines/' + a.key + '/">' +
+      '<div class="ush"><h3>' + esc(a.name) + '</h3>' +
+      '<span class="sco">' + a.score + '</span>' +
+      '<span class="band ' + band(a.score) + '">' + esc(a.label) + '</span></div>' +
+      '<p>' + esc(usStatus(m, a, e)) + '</p></a>';
+  }).join('') + '</div>\n';
+}
+
 /* ── §3.8 route-odds teaser ─────────────────────────────────────────────── */
 function routePills(m) {
   if (!m.leaderboard.length) {
@@ -265,6 +336,7 @@ function extensionSection(m) {
 module.exports = {
   band: band, freeText: freeText, sysClass: sysClass, tagsFor: tagsFor,
   leaderboard: leaderboard, routePills: routePills, kpi: kpi,
+  US_MAJORS: US_MAJORS, usRanked: usRanked, usStatus: usStatus, usGlance: usGlance,
   roadmapSteps: roadmapSteps, ROADMAP: ROADMAP,
   flightCheck: flightCheck, extPlug: extPlug, extensionSection: extensionSection,
   FREE: FREE

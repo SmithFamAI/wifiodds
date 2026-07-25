@@ -45,8 +45,14 @@ function crumbLd(items) {
 /* ═══ / ═════════════════════════════════════════════════════════════════ */
 function home(m) {
   var eq = m.fleet.equipped;
-  var delta = m.todayDelta !== null && m.todayDelta > 0
-    ? '<span class="up">+' + m.todayDelta + ' today</span>' : 'confirmed United tails';
+  /* The "+N today" number, now a KPI cell of its own in the United section rather
+     than a footnote under the hero's headline count. When the pull adds nothing
+     it says so — an em dash, not a zero, because `0` in 27px reads as an outage
+     rather than as "a quiet day in a 176-day rollout". `.cu` bails on a
+     non-numeric string, so the em dash is safe with the count-up animation. */
+  var up = m.todayDelta !== null && m.todayDelta > 0;
+  var deltaN = up ? '+' + m.todayDelta : '—';
+  var deltaD = up ? 'since yesterday’s verified pull' : 'none in the latest verified pull';
   /* ── ABOVE THE FOLD: the answer, not a description of our ability to answer.
    * A stranger arrives with one question — "will MY flight have WiFi that
    * works?" — so the H1 IS that question and the first interactive thing on the
@@ -55,8 +61,10 @@ function home(m) {
    *
    * The leaderboard used to be the first thing here. It answers a question the
    * visitor did not ask, and our own honest sort puts airBaltic, JSX and ZIPAIR
-   * in the top three — 139 aircraft most US visitors will never board. It is
-   * still on the page, one screen down, mechanically unchanged.
+   * in the top three — 139 aircraft most US visitors will never board. It was
+   * demoted one screen, then removed from this page entirely: /airlines/ renders
+   * the full 18-row table and this page links to it. What sits in that slot now
+   * is the seven-carrier US row (P.usGlance).
    *
    * The one-line extension plug sits above the fold too (owner requirement) but
    * stays a signpost: the real pitch is P.extensionSection() at #extension,
@@ -76,23 +84,36 @@ function home(m) {
     '<a href="/api/docs/">Free API →</a>' +
     '<a href="' + H.REPO + '" target="_blank" rel="noopener">Open source ↗</a></div>\n' +
     '</header>\n\n' +
-    '<div class="chips">' +
-    P.kpi(num(eq), 'United aircraft equipped', delta, 'hero-kpi glow') +
-    P.kpi(m.sharePct + '%', 'Of the United fleet', 'of ' + num(m.fleet.total) + ' aircraft') +
-    P.kpi(String(m.airlineCount), 'Airlines tracked', 'one ConnectScore each') +
-    P.kpi(String(m.archiveDays), 'Days of install history', 'since ' + esc(DL.shortMonth(m.firstDay)) + ' 2025') +
-    '</div>\n\n' +
-    '<section class="blk">\n  <div class="sec-h"><h2>ConnectScore leaderboard</h2>' +
-    '<span class="sub">top 8 of ' + m.airlineCount + '</span>' +
-    '<a class="more" href="/airlines/">all ' + m.airlineCount + ' airlines →</a></div>\n' +
+    /* ── the first data surface: the seven airlines a US flyer chooses between.
+     * This slot held a 4-KPI strip (two cells of it United's own rollout numbers)
+     * and, below it, the global top-8 leaderboard — whose honest sort puts
+     * airBaltic, JSX and ZIPAIR on the podium. Both are gone: the KPIs moved into
+     * the United section below, where they are actually about the thing being
+     * discussed, and the leaderboard lives only at /airlines/, linked twice from
+     * here. See P.US_MAJORS for why the set is fixed and why only its ORDER is
+     * data. Do not re-add a table to this page. */
+    '<section class="blk">\n  <div class="sec-h"><h2>US airlines at a glance</h2>' +
+    '<span class="sub">the six US majors + Hawaiian</span>' +
+    '<a class="more" href="/airlines/">All ' + m.airlineCount + ' airlines, ranked →</a></div>\n' +
     '  <p class="sec-lede">Best odds of good WiFi first. The score credits only the modern high-speed ' +
     'system (Starlink, Amazon Leo) at full weight — legacy satellite service counts for less, and ' +
-    'signed-but-not-yet-flying deals count zero until the hardware is in the air.</p>\n' +
-    P.leaderboard(m, 8) +
-    '  <p class="tblcap">' + esc(m.A.SCORE_METHOD_LINE) + '</p>\n' +
+    'signed-but-not-yet-flying deals count zero until the hardware is in the air. That is why free ' +
+    'fleetwide Viasat can outrank a Starlink fleet that is only a quarter finished.</p>\n' +
+    P.usGlance(m) +
+    '  <p class="tblcap"><a href="/airlines/">All ' + m.airlineCount + ' airlines, ranked →</a> · ' +
+    esc(m.A.SCORE_METHOD_LINE) + '</p>\n' +
     '</section>\n\n' +
     '<section class="blk">\n  <div class="sec-h"><h2>The United rollout, three ways</h2>' +
     '<span class="sub">' + m.archiveDays + ' install days baked at build time</span></div>\n' +
+    /* The old hero KPI strip, in the section it was always describing. Same
+       P.kpi() markup, no `hero-kpi glow` — it is proof for a claim now, not the
+       page's headline. */
+    '  <div class="chips" style="margin:14px 0 16px">' +
+    P.kpi(num(eq), 'United aircraft equipped', 'verified tail by tail') +
+    P.kpi(deltaN, 'New tails today', deltaD) +
+    P.kpi(m.sharePct + '%', 'Of the United fleet', 'of ' + num(m.fleet.total) + ' aircraft') +
+    P.kpi(String(m.archiveDays), 'Days of install history', 'since ' + esc(DL.shortMonth(m.firstDay)) + ' 2025') +
+    '</div>\n' +
     '  <div class="grid3">\n' +
     '    <a class="card rv" href="/united/fleet/"><h3>Rollout curve</h3>' + V.spark(m) +
     '<p>' + num(eq) + ' aircraft equipped since ' + esc(DL.prettyDate(m.firstDay)) +
@@ -139,6 +160,24 @@ function home(m) {
         '@context': 'https://schema.org', '@type': 'Organization', '@id': ORIGIN + '/#org',
         name: 'WiFi Odds', url: ORIGIN + '/', logo: ORIGIN + '/assets/og.png',
         sameAs: [H.EXT, H.REPO]
+      },
+      /* Declares EXACTLY the seven cards this page renders, in the order it
+       * renders them — built from the same P.usRanked(m) call, so the markup and
+       * the structured data cannot drift. The 18-airline ItemList belongs to
+       * /airlines/, which is the page that actually shows 18 rows; a homepage
+       * that declared eighteen while displaying seven would be the same class of
+       * lie as a 200 with an empty body. */
+      {
+        '@context': 'https://schema.org', '@type': 'ItemList',
+        name: 'US airlines at a glance — inflight WiFi ConnectScore',
+        numberOfItems: P.usRanked(m).length,
+        itemListElement: P.usRanked(m).map(function (a, i) {
+          return {
+            '@type': 'ListItem', position: i + 1,
+            name: a.name + ' — ConnectScore ' + a.score,
+            url: ORIGIN + '/airlines/' + a.key + '/'
+          };
+        })
       },
       /* The extension is the thing a person can actually install, and it was
        * invisible to answer engines: the homepage described it in prose and
