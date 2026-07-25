@@ -399,6 +399,29 @@ function main() {
       m.fleet.equipped + ' (roster is truth for rows; tolerated).');
   }
 
+  /* ── the United fleet-count tripwire ────────────────────────────────────
+   * United's numbers live in TWO places: united/data.json (the daily pull from
+   * unitedstarlinktracker.com, which the refresh task rewrites) and the united
+   * entry in assets/airlines.js (which nothing rewrites). They had drifted by a
+   * single aircraft — data.json 1,808, airlines.js 1,807 — and the SAME
+   * homepage printed both: "481 of 1,807 (27%)" on the US-majors card and "of
+   * 1,808 aircraft" in the United section. Nothing caught it because both
+   * numbers were internally consistent with their own source.
+   *
+   * data.json is the truth: it is Martin's verified pull. If this fires, copy
+   * fleet.equipped / fleet.total into assets/airlines.js and re-run. */
+  var ua = m.A.WIFI_AIRLINES.united;
+  if (ua.equipped !== m.fleet.equipped || ua.fleet !== m.fleet.total) {
+    console.error('Build FAILED — United fleet counts disagree between the two files:');
+    console.error('  united/data.json      ' + m.fleet.equipped + ' of ' + m.fleet.total +
+      '   (the daily verified pull — this is the truth)');
+    console.error('  assets/airlines.js    ' + ua.equipped + ' of ' + ua.fleet);
+    console.error('  Copy data.json\'s numbers into the united entry in assets/airlines.js, and');
+    console.error('  update its note string, which quotes them too. Shipping both numbers on one');
+    console.error('  page is the same lie as a 200 with an empty body.');
+    process.exit(1);
+  }
+
   /* ── the tier tripwire ──────────────────────────────────────────────────
    * Every airline stores a serviceTier word AND the fleet numbers that word is
    * supposed to describe. They can drift in one direction only — the numbers get

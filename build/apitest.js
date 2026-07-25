@@ -200,7 +200,11 @@ async function main() {
   var dl = all.airlines.filter(function (a) { return a.key === 'delta'; })[0];
   eq(dl.nextGenScore, 0, 'PARITY: /api/airlines Delta nextGenScore is 0');
   eq(dl.serviceTier, 'streaming', 'PARITY: /api/airlines Delta serviceTier is streaming');
-  eq(dl.connectScore, 60, 'Delta connectScore unchanged at 60 — the tier fields are additive');
+  /* Was 60 until 2026-07-25, when coverage was corrected from 1.0 to 0.86.
+     Delta Sync reaches 1,150+ of ~1,330 aircraft; the 80 Boeing 717s have had
+     no wifi at all since May 2026 and transpacific widebodies come online in
+     the fall. 0.86 × 0.6 × 1.0 = 52. */
+  eq(dl.connectScore, 52, 'Delta connectScore is 52 — coverage 0.86, not fleetwide');
   eq(dl.future.system, 'leo', 'Delta future deal is still reported (Amazon Leo)');
   /* the index documents the second number rather than leaving it undeclared */
   ok(/Starlink or Amazon Leo/.test(j.nextGenMethod || ''), '/api index explains next-gen odds');
@@ -492,8 +496,13 @@ async function main() {
   }
   ok(home.indexOf('Next-gen: 0 (Amazon Leo signed, 2028)') !== -1,
     'homepage names the Leo deal on the Delta card while scoring it zero');
+  /* Was `indexOf('streaming-class fleetwide')`, which was a weak assertion: it
+     passed on jetBlue's card even while Delta's said something false. Assert the
+     Delta line by its own text, including the coverage number. */
+  ok(home.indexOf('Today: streaming-class on 86% of the fleet') !== -1,
+    'homepage states Delta coverage as a share, not as "fleetwide"');
   ok(home.indexOf('streaming-class fleetwide') !== -1,
-    'homepage says what Delta actually delivers today');
+    'jetBlue, which genuinely is fleetwide, still says so');
   /* every US card's headline must equal that airline's API nextGenScore */
   var cardRe = /<h3>([^<]+)<\/h3><span class="sco">(\d+)<\/span>/g;
   var seenCards = 0, mCard;

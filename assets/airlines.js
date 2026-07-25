@@ -75,10 +75,16 @@ const WIFI_AIRLINES = {
   /* ── instrumented: the extension can show real per-flight odds for these ── */
   united: {
     name: "United", code: "UA", asOf: "2026-07",
-    system: "starlink", equipped: 481, fleet: 1807, free: "loyalty-free",
+    /* These two numbers MUST equal united/data.json fleet.equipped / fleet.total.
+       They had drifted to 481/1807 while data.json said 481/1808, so the same
+       homepage printed "481 of 1,807 (27%)" on the US card and "of 1,808
+       aircraft" in the United section. build/prerender.js now fails the build if
+       they disagree — if that tripwire fires, copy the numbers from data.json,
+       which is the daily pull from unitedstarlinktracker.com and is the truth. */
+    system: "starlink", equipped: 481, fleet: 1808, free: "loyalty-free",
     instrumented: true, tracker: "unitedstarlinktracker.com",
     serviceTier: "mixed", restTier: "unknown",
-    note: "481 of 1,807 aircraft — free for MileagePlus members. Odds swing a lot by route and aircraft type.",
+    note: "481 of 1,808 aircraft — free for MileagePlus members. Odds swing a lot by route and aircraft type.",
   },
   alaska: {
     name: "Alaska", code: "AS", asOf: "2026-07",

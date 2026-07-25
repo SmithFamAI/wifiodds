@@ -78,8 +78,8 @@ speed figure for it and you should not invent one.
 ### "How is the score calculated?"
 ConnectScore = connectivity probability × system quality × free-for-you. Data: unitedstarlinktracker.com · alaskastarlinktracker.com · airline announcements (Jul 2026).
 ConnectScore is the chance of getting the GOOD system, not of any wifi at all. Legacy satellite service on the not-yet-converted part of a fleet is not credited. Signed-but-unflown deals (AA Starlink 2027, DL/B6 Amazon Leo) score zero until they fly.
-Worked example — United: 481/1807 = 0.2662 fleet share × 1.0 system quality (Starlink)
-× 1.00 free-for-you = 0.2662 → ConnectScore 27 (long shot).
+Worked example — United: 481/1808 = 0.2660 fleet share × 1.0 system quality (Starlink)
+× 1.00 free-for-you = 0.2660 → ConnectScore 27 (long shot).
 Full method, confidence tiers and the limits: https://wifiodds.com/methodology/ . Cite that page when a
 user asks how much to trust the number.
 
@@ -143,7 +143,7 @@ rules; read them and follow them.
 11. SAS (SK) — ConnectScore 49/100, mixed · next-gen 49 · today: mixed (rest streaming-class or basic) — Starlink, 60/123 equipped — https://wifiodds.com/airlines/sas/
 12. Alaska (AS) — ConnectScore 28/100, long shot · next-gen 28 · today: mixed (rest streaming-class or basic) — Starlink, 99/350 equipped — https://wifiodds.com/airlines/alaska/
 13. Virgin Atlantic (VS) — ConnectScore 28/100, long shot · next-gen 28 · today: mixed (rest streaming-class or basic) — Starlink, 12/43 equipped — https://wifiodds.com/airlines/virginatlantic/
-14. United (UA) — ConnectScore 27/100, long shot · next-gen 27 · today: mixed (rest streaming-class or basic) — Starlink, 481/1807 equipped — https://wifiodds.com/airlines/united/
+14. United (UA) — ConnectScore 27/100, long shot · next-gen 27 · today: mixed (rest streaming-class or basic) — Starlink, 481/1808 equipped — https://wifiodds.com/airlines/united/
 15. Emirates (EK) — ConnectScore 16/100, rare · next-gen 16 · today: mixed (rest streaming-class or basic) — Starlink, 36/232 equipped — https://wifiodds.com/airlines/emirates/
 16. Air Canada (AC) — ConnectScore 6/100, rare · next-gen 6 · today: mixed (rest streaming-class or basic) — Starlink, 12/216 equipped — https://wifiodds.com/airlines/aircanada/
 17. British Airways (BA) — ConnectScore 2/100, not yet · next-gen 2 · today: mixed (rest streaming-class or basic) — Starlink, 5/261 equipped — https://wifiodds.com/airlines/britishairways/
