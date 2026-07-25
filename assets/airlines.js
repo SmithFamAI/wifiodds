@@ -32,14 +32,14 @@
  * fleet. Legacy GEO wifi on the rest of those fleets is not modelled, because the
  * numbers for it are not in this data set and the score is meant to answer "what
  * are my odds of the good wifi", not "is there any wifi at all". That is why
- * Southwest (1 of 817 Starlink) scores near zero despite having fleetwide legacy
+ * Southwest (1 of 803 Starlink) scores near zero despite having fleetwide legacy
  * service. See SCORE_CAVEAT, which the popup shows as a tooltip.
  * ═══════════════════════════════════════════════════════════════════════════
  * THE THREE-TIER READING (added Jul 2026) — TWO NUMBERS, NEVER ONE
  *
  * The single ConnectScore above answers "what are my odds of the GOOD system".
  * It is the right headline and it is also, on its own, misleading in one specific
- * direction: Delta scores 60 on free fleetwide Viasat and United scores 27 on a
+ * direction: Delta scores 52 on free near-fleetwide Viasat and United 27 on a
  * quarter-finished Starlink fleet, so a reader who skims one number concludes
  * Delta has better WiFi than United's Starlink. Both facts are true; the
  * comparison is not the one the reader thinks they are making.
@@ -164,9 +164,12 @@ const WIFI_AIRLINES = {
   },
   southwest: {
     name: "Southwest", code: "WN", asOf: "2026-07",
-    system: "starlink", equipped: 1, fleet: 817, free: "loyalty-free",
+    /* fleet: 803 Boeing 737s as of Dec 31 2025, read verbatim from Southwest's
+       FY2025 10-K (filed 2026-02-05). The 817 previously here was the Dec 31
+       2023 figure and had gone stale. Third-party trackers still quote 817. */
+    system: "starlink", equipped: 1, fleet: 803, free: "loyalty-free",
     serviceTier: "mixed", restTier: "unknown",
-    note: "1 of 817 and ramping; free for Rapid Rewards members. Legacy wifi on the rest of the fleet is not scored.",
+    note: "First Starlink aircraft (N8543Z) entered service 2026-06-22; Southwest targets 300+ of 803 by year-end. Free for Rapid Rewards members. Legacy wifi on the rest of the fleet is not scored.",
   },
 
   /* ── legacy GEO today, LEO signed for later (future deals are NOT scored) ── */
@@ -181,17 +184,39 @@ const WIFI_AIRLINES = {
   },
   delta: {
     name: "Delta", code: "DL", asOf: "2026-07",
-    system: "viasat", coverage: 1.0, free: "free",
+    /* CORRECTED 2026-07-25. coverage was 1.0 ("streaming-class fleetwide"),
+       which is not true today. Delta's own two public data points bound it:
+         · 2025-12-08 — "1,000+ Sync-equipped aircraft, >75% of the entire
+           fleet"  ⇒ total fleet ≈ 1,330
+         · 2026-03-31 press release — "more than 1,150 aircraft"
+       1,150 / ~1,330 ≈ 0.86. The uncovered ~14% is real and specific:
+         · the 80 Boeing 717s, whose legacy Intelsat/Gogo units Delta
+           DEACTIVATED in May 2026 ahead of the Hughes Fusion retrofit — most
+           are flying with NO wifi at all through the summer 2026 schedule
+         · A330/A350 transpacific service, which Delta says comes online
+           "fall 2026" — i.e. not live as of this date
+       Delta's modern service is Viasat AND Hughes, not Viasat alone. */
+    system: "viasat", coverage: 0.86, free: "free",
     future: { system: "leo", from: "2028", detail: "Amazon Leo signed for 500 aircraft" },
-    serviceTier: "streaming", restTier: null,
-    note: "Free Viasat for SkyMiles members fleetwide today; Amazon Leo lands on 500 aircraft from 2028.",
+    serviceTier: "streaming", restTier: "basic",
+    note: "Delta Sync (Viasat + Hughes) on 1,150+ aircraft, free for SkyMiles members — but not fleetwide: the 80 Boeing 717s lost their legacy wifi in May 2026 awaiting the Hughes retrofit, and transpacific widebodies come online fall 2026. Amazon Leo lands on 500 aircraft from 2028.",
   },
   jetblue: {
     name: "jetBlue", code: "B6", asOf: "2026-07",
+    /* coverage stays 1.0 — every one of the 291 aircraft (129 A320, 101 A321,
+       61 A220 as of 2026-03-31, per JetBlue's Q1 8-K) carries Viasat Ka-band
+       Fly-Fi. What the old copy hid is that there are TWO HARDWARE
+       GENERATIONS: the A220-300s and A321neo/LRs shipped with ViaSat-2, while
+       most A320/A321ceo airframes still run the original ~2013 ViaSat-1 kit.
+       A "Phase 2" refresh has moved an unpublished subset of A320s to
+       ViaSat-2, so no hard per-type count is citable — hence "most", not a
+       number. The E190s (the one sub-fleet with patchy Fly-Fi) were fully
+       retired 2025-09-10. Amazon Leo from 2027 explicitly targets the
+       first-gen kit first. */
     system: "viasat", coverage: 1.0, free: "free",
     future: { system: "leo", from: "2027", detail: "Amazon Leo" },
     serviceTier: "streaming", restTier: null,
-    note: "Free “Fly-Fi” Viasat on the whole fleet; Amazon Leo arrives 2027.",
+    note: "Free “Fly-Fi” Viasat on every aircraft, but two hardware generations: the A220s and A321neo/LRs carry the faster ViaSat-2, while most A320/A321ceo airframes still run the original ViaSat-1. Amazon Leo arrives 2027, first-gen aircraft first.",
   },
 };
 

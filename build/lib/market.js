@@ -157,16 +157,21 @@ var ROLLOUT = {
     target: 'Amazon Leo from 2028',
     detail: 'Signed 31 March 2026 for 500 aircraft — the biggest bet against Starlink in the market. ' +
       'Nothing is flying, so the next-gen number is 0 and stays 0 until hardware is in the air. Delta ' +
-      'Sync (Viasat) is free fleetwide for SkyMiles members in the meantime, and it is genuinely ' +
-      'streaming-class — which is why Delta’s ConnectScore is high while its next-gen odds are zero.',
-    source: 'Delta News Hub, 31 March 2026'
+      'Sync (Viasat and Hughes) is free for SkyMiles members on 1,150-plus aircraft meanwhile, and it ' +
+      'is genuinely streaming-class — which is why Delta’s ConnectScore is high while its next-gen ' +
+      'odds are zero. It is not quite fleetwide: the 80 Boeing 717s had their legacy wifi switched ' +
+      'off in May 2026 and are waiting on the Hughes retrofit, and transpacific widebodies come ' +
+      'online in fall 2026.',
+    source: 'Delta News Hub, 31 March 2026 · AeroXplorer / Simple Flying on the 717 gap'
   },
   jetblue: {
     target: 'Amazon Leo from 2027',
-    detail: 'Amazon Leo’s first airline, a year ahead of Delta. Free Fly-Fi (Viasat) fleetwide until ' +
-      'then. If Leo delivers on schedule this is the first fleet where the two low-earth-orbit ' +
-      'systems can be compared in service.',
-    source: 'CNBC, September 2025'
+    detail: 'Amazon Leo’s first airline, a year ahead of Delta. Free Fly-Fi (Viasat) on every ' +
+      'aircraft until then — though in two generations: the A220s and A321neo/LRs carry ViaSat-2, ' +
+      'while most A320 and A321ceo airframes still run the original 2013-era ViaSat-1 kit, which is ' +
+      'exactly the sub-fleet Leo is slated to replace first. If Leo delivers on schedule this is the ' +
+      'first fleet where the two low-earth-orbit systems can be compared in service.',
+    source: 'CNBC, September 2025 · Viasat newsroom on the A220/A321neo fit'
   }
 };
 
