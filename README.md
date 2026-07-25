@@ -27,11 +27,25 @@ footer were touched.
 | Node | Any current LTS. **Zero dependencies** — there is no `package.json` and nothing to install |
 | Excluded from the deploy | `.assetsignore` (`build/`, `*.md`, `.claude`) |
 
-`build/prerender.js` does two things: it **fails the build** if any public route's file is missing
-(that is the failure that silently ships a 404), and it writes `sitemap.xml` + `robots.txt`.
-`<lastmod>` comes from `united/data.json`'s `updated` field, so the daily data commit moves it too.
-There is no SPA shell and no HTML generation yet — when per-airline pages start coming from a shared
-template, the `ROUTES` table in that file is where it begins.
+`build/prerender.js` **generates every one of the 27 served pages** and writes `sitemap.xml`,
+`robots.txt` and `llms.txt`. `<lastmod>` comes from `united/data.json`'s `updated` field, so the daily
+data commit moves it too. The generated HTML is committed, because Pages serves the repo root.
+
+**Never hand-edit a file listed in `build/routes.js` — the next build overwrites it.** Layout:
+
+| | |
+|---|---|
+| `build/routes.js` | the route table. Source of truth for what exists publicly |
+| `build/lib/html.js` | the shared chrome: one `<head>` builder, one topbar, one subnav, one footer |
+| `build/lib/render.js` | one function per page |
+| `build/templates/*.html` | the unique content of the four pages that are too bespoke to express in JS — chiefly `united-optimizer.html`, which holds the optimizer's ~1,400 lines of live-tested app JS/CSS **verbatim**. Templates are injected, never parsed |
+
+Three tripwires fail the build rather than shipping quietly:
+
+1. a route in `ROUTES` with no file on disk (the failure that silently ships a 404);
+2. a served `.html` file that is **not** in `ROUTES` — the drift guard. Four pages were once
+   hand-authored whole documents, each with its own stale copy of the header, and nothing caught it;
+3. a route still marked `kind: 'hand'`. There are none left.
 
 ## Local preview
 
@@ -52,8 +66,10 @@ curl -sS "http://localhost:8000/united/?cb=$RANDOM" | grep -i '<title>'   # WiFi
 curl -sS "http://localhost:8000/alaska/?cb=$RANDOM" | grep -c 'alaskastarlinktracker'   # > 0
 ```
 
-The airline index and the Alaska score render client-side from `assets/airlines.js`; if that file
-fails to load, both pages say so in place rather than showing an empty section.
+Every number, table row and chart path is **baked at build time** — the airline leaderboard and the
+Alaska ConnectScore included — so the pages read correctly with JavaScript switched off. Two pages
+still render a list client-side from `united/data.json` and are the only ones allowed to say
+"Loading…": `/united/` (the live route optimizer) and `/united/history/` (the 176-day day-log).
 
 ## Data pipeline
 

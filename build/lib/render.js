@@ -6,6 +6,7 @@ var H = require('./html.js');
 var V = require('./viz.js');
 var P = require('./pages.js');
 var DL = require('./data.js');
+var T = require('./tmpl.js');
 var esc = H.esc, num = DL.num;
 var ORIGIN = H.ORIGIN;
 
@@ -476,8 +477,146 @@ function notFound(m) {
   });
 }
 
+/* ═══ THE FOUR TEMPLATE-BACKED PAGES ═══════════════════════════════════════
+ * These were hand-authored whole documents until the chrome drifted (see
+ * build/lib/tmpl.js for the why). Their unique content now lives verbatim in
+ * build/templates/, and they come through H.page() like everything else.
+ *
+ * The rule for editing them: page CONTENT goes in the template file, page
+ * CHROME goes in html.js. Nothing about the shared shell is expressed here.  */
+
+/* ═══ /united/ — the route optimizer app ════════════════════════════════ */
+function unitedOptimizer(m) {
+  var crumbs = [['/', 'Home'], ['/airlines/united/', 'United'], ['/united/', 'Route optimizer']];
+  /* The template is injected, never parsed: the ~1,400 lines of live-tested app
+     JS and CSS in it are byte-identical in the output. Only the three data-bake
+     markers in the no-JS stat line are touched. */
+  var t = T.bake(T.load('united-optimizer'), {
+    'united.equipped': num(m.fleet.equipped),
+    'united.total': num(m.fleet.total),
+    'site.updated': m.updated
+  }, 'united-optimizer');
+
+  return H.page({
+    title: 'WiFi Odds · United — Starlink Route Optimizer',
+    desc: 'Pick any United route and get the best plan to land a Starlink-equipped plane — every flight ' +
+      'ranked by live odds, the smartest routings, confirmed tails, and a booking playbook. Updated daily ' +
+      'and on demand.',
+    canonical: '/united/', here: '/', suffix: 'United', section: 'united',
+    updated: m.updated, crumb: crumbs,
+    extraHead: t.head, preWrap: t.prewrap, body: t.body, afterWrap: t.foot,
+    jsonld: [{
+      '@context': 'https://schema.org', '@type': 'WebApplication',
+      name: 'United Starlink Route Optimizer', url: ORIGIN + '/united/',
+      applicationCategory: 'TravelApplication', operatingSystem: 'Any (web)',
+      browserRequirements: 'Requires JavaScript for the live route search',
+      description: 'Pick any United route and see every flight ranked by its live Starlink WiFi odds, ' +
+        'with the best routings, confirmed equipped tails and a booking playbook.',
+      isPartOf: { '@type': 'WebSite', name: 'WiFi Odds', url: ORIGIN + '/' },
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      creator: { '@type': 'Organization', name: 'WiFi Odds', url: ORIGIN + '/' },
+      isBasedOn: { '@type': 'WebSite', name: 'unitedstarlinktracker.com', url: 'https://unitedstarlinktracker.com' }
+    }, crumbLd([['/', 'Home'], ['/united/', 'United']])]
+  });
+}
+
+/* ═══ /united/history/ ══════════════════════════════════════════════════ */
+function unitedHistory(m) {
+  var crumbs = [['/', 'Home'], ['/airlines/united/', 'United'], ['/united/history/', 'History']];
+  var t = T.bake(T.load('united-history'), {
+    'united.tails': num(m.registry.length),
+    'united.days': String(m.archiveDays),
+    'united.first': DL.prettyDate(m.firstDay),
+    'united.equipped': num(m.fleet.equipped),
+    'united.total': num(m.fleet.total),
+    'site.updated': m.updated
+  }, 'united-history');
+
+  return H.page({
+    title: 'United Starlink install history — day by day',
+    /* the day count was hard-coded at 176 while it was hand-authored; it is
+       generated now, so it can never fall behind the archive again */
+    desc: m.archiveDays + ' days of United Starlink install history: every tail, every aircraft type, ' +
+      'and every route and odds movement since ' + DL.shortMonth(m.firstDay) + ' 2025. ' +
+      'Data by unitedstarlinktracker.com.',
+    canonical: '/united/history/', here: '/', suffix: 'United', section: 'united',
+    updated: m.updated, crumb: crumbs,
+    extraHead: t.head, body: t.body, afterWrap: t.foot,
+    jsonld: [datasetLd(m), crumbLd([['/', 'Home'], ['/united/', 'United'],
+      ['/united/history/', 'History']])]
+  });
+}
+
+/* ═══ /alaska/ ══════════════════════════════════════════════════════════ */
+function alaskaRollout(m) {
+  var al = m.A.scoreAirline('alaska');
+  var pct = Math.round(al.parts.pctEquipped * 100);
+  var crumbs = [['/', 'Home'], ['/airlines/', 'Airlines'], ['/airlines/alaska/', 'Alaska'],
+    ['/alaska/', 'Rollout']];
+  var t = T.bake(T.load('alaska-rollout'), {
+    'alaska.score': String(al.score),
+    'alaska.band': al.label,
+    /* the band CLASS is baked too, or a score that crosses a threshold would keep
+       the old colour while showing the new word */
+    'alaska.bandpill': '<span class="band ' + P.band(al.score) + '">' + al.label + '</span>',
+    'alaska.equipped': num(al.equipped),
+    'alaska.fleet': num(al.fleet),
+    'alaska.pct': pct + '%',
+    'alaska.free': 'free for everyone onboard',
+    'alaska.math': pct + '% of the fleet equipped × ' + al.parts.systemQuality.toFixed(1) +
+      ' system quality (' + al.systemLabel + ') × ' + al.parts.freeFactor.toFixed(2) +
+      ' free-for-you = ' + al.score + ' / 100',
+    'site.updated': m.updated,
+    'site.airlines': String(m.airlineCount)
+  }, 'alaska-rollout');
+
+  return H.page({
+    /* the fleet counts used to be hard-coded in this page's meta description */
+    title: 'WiFi Odds · Alaska — Starlink rollout & ConnectScore',
+    desc: 'Alaska Airlines’ Starlink rollout: ' + num(al.equipped) + ' of ' + num(al.fleet) +
+      ' aircraft equipped (' + pct + '%), the E175 regional fleet complete, mainline just starting. ' +
+      'ConnectScore ' + al.score + '/100, free for everyone onboard, and per-flight odds on alaskaair.com. ' +
+      'Fleet data from alaskastarlinktracker.com.',
+    canonical: '/alaska/', here: '/', suffix: 'Alaska', section: 'alaska',
+    updated: m.updated, crumb: crumbs,
+    extraHead: t.head, body: t.body,
+    jsonld: [{
+      '@context': 'https://schema.org', '@type': 'FAQPage',
+      mainEntity: [
+        ['Does Alaska have Starlink WiFi?',
+          'Yes — the whole E175 regional fleet plus the ex-Hawaiian widebodies carry Starlink, with the ' +
+          'mainline 737 fleet only just starting. Alaska’s ConnectScore reflects the share of the ' +
+          'combined fleet that is equipped.'],
+        ['Is Alaska’s WiFi free?',
+          'Yes — where Starlink is installed it is free for everyone onboard, with no loyalty program, ' +
+          'tier or purchase required.'],
+        ['How many Alaska planes have Starlink?',
+          num(al.equipped) + ' of ' + num(al.fleet) + ' (' + pct + '%), verified tail by tail by ' +
+          'alaskastarlinktracker.com (@martinamps), an independent community tracker.']
+      ].map(function (f) {
+        return { '@type': 'Question', name: f[0], acceptedAnswer: { '@type': 'Answer', text: f[1] } };
+      })
+    }, crumbLd([['/', 'Home'], ['/airlines/', 'Airlines'], ['/alaska/', 'Alaska']])]
+  });
+}
+
+/* ═══ /privacy.html ═════════════════════════════════════════════════════ */
+function privacyPage(m) {
+  var t = T.bake(T.load('privacy'), {}, 'privacy');
+  return H.page({
+    title: 'Privacy Policy — WiFi Odds for Flights',
+    desc: 'Privacy policy for WiFi Odds (wifiodds.com) and the WiFi Odds for Flights browser extension. ' +
+      'No accounts, no analytics, no tracking, and no personal data collected.',
+    canonical: '/privacy.html', here: '/', updated: m.updated,
+    extraHead: t.head, body: t.body,
+    jsonld: [crumbLd([['/', 'Home'], ['/privacy.html', 'Privacy']])]
+  });
+}
+
 module.exports = {
   home: home, airlinesIndex: airlinesIndex, airlinePage: airlinePage,
   fleetPage: fleetPage, roadmapPage: roadmapPage, notFound: notFound,
+  unitedOptimizer: unitedOptimizer, unitedHistory: unitedHistory,
+  alaskaRollout: alaskaRollout, privacyPage: privacyPage,
   datasetLd: datasetLd, crumbLd: crumbLd, DATASET_ID: DATASET_ID
 };

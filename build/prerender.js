@@ -9,12 +9,18 @@
  * /united/ optimizer (which has its own live-tested app JS).
  *
  * What it does:
- *   1. Renders /, /airlines/, 18 × /airlines/{key}/, /united/fleet/, /roadmap/, /404.html
- *   2. Bakes numbers into the hand-authored pages via data-bake markers
- *   3. Emits sitemap.xml, robots.txt, llms.txt
- *   4. Asserts every route in build/routes.js exists on disk afterwards — a
+ *   1. Renders ALL 27 served pages. There are no hand-authored pages left: the
+ *      four that used to be (/united/, /united/history/, /alaska/, /privacy.html)
+ *      keep their unique content in build/templates/ and are poured through the
+ *      same H.page() shell as everything else. See build/lib/tmpl.js for why.
+ *   2. Emits sitemap.xml, robots.txt, llms.txt
+ *   3. Asserts every route in build/routes.js exists on disk afterwards — a
  *      missing file here is the failure mode that ships a 404 to production, and
  *      Cloudflare Pages will not tell you. We fail the build instead.
+ *   4. Asserts the reverse too: every served .html file in the repo IS a known
+ *      route. That is the drift tripwire — it is how a hand-authored page with a
+ *      stale copy of the header gets caught on the build that creates it, rather
+ *      than six weeks later.
  *
  * It must stay fast and exit 0. Anything slow (headless Chrome, image gen) is
  * opt-in tooling, never part of the timer.
@@ -35,7 +41,6 @@ var t0 = Date.now();
 var written = [];
 
 function abs(p) { return path.join(ROOT, p); }
-function read(p) { return fs.readFileSync(abs(p), 'utf8'); }
 function write(p, body) {
   fs.mkdirSync(path.dirname(abs(p)), { recursive: true });
   fs.writeFileSync(abs(p), body);
@@ -43,24 +48,47 @@ function write(p, body) {
 }
 function exists(p) { try { return fs.statSync(abs(p)).isFile(); } catch (e) { return false; } }
 
-/* ── bake numbers into a hand-authored page ───────────────────────────────
- * <b data-bake="alaska.equipped">99</b>  →  the element's text is replaced.
- * Idempotent, and the file on disk is always valid HTML with a correct number
- * even if this never runs again. */
-function bake(file, map) {
-  var src = read(file), hits = 0, missing = [];
-  var out = src.replace(/(<([a-z][a-z0-9]*)\b[^>]*\bdata-bake="([^"]+)"[^>]*>)([\s\S]*?)(<\/\2>)/g,
-    function (all, open, tag, key, inner, close) {
-      if (!Object.prototype.hasOwnProperty.call(map, key)) { missing.push(key); return all; }
-      hits++;
-      return open + map[key] + close;
-    });
-  if (missing.length) {
-    console.error('Build FAILED — unknown data-bake keys in ' + file + ': ' + missing.join(', '));
+/* ── the drift tripwire ───────────────────────────────────────────────────
+ * Walk the deploy for .html files and demand that every one of them is a route
+ * in build/routes.js. ROUTES asserts "every route has a file"; this asserts the
+ * converse, "every file is a route" — which is the check that catches a NEW
+ * hand-authored page carrying its own stale copy of the header, the exact drift
+ * that made four pages diverge from the generator in the first place.
+ *
+ * A page that genuinely should not be generated belongs in ROUTES, UNLISTED, or
+ * EMBEDS below — never nowhere. */
+var EMBEDS = [
+  /* standalone <iframe>/inline embed, not a page: no chrome, no route, no sitemap
+     entry. It is included INTO /united/ from the template, so it must not be held
+     to the page contract. */
+  'united/assets/plugin-carousel.html'
+];
+/* skip dirs that Cloudflare Pages never serves (see .assetsignore / .gitignore) */
+var SKIP_DIRS = { '.git': 1, 'build': 1, 'node_modules': 1, '.claude': 1 };
+
+function walkHtml(dir, rel, out) {
+  fs.readdirSync(path.join(ROOT, dir || '.'), { withFileTypes: true }).forEach(function (e) {
+    var r = rel ? rel + '/' + e.name : e.name;
+    if (e.isDirectory()) { if (!SKIP_DIRS[e.name]) walkHtml(r, r, out); return; }
+    if (/\.html$/.test(e.name)) out.push(r);
+  });
+  return out;
+}
+
+function assertNoStrayPages() {
+  var known = {};
+  R.ROUTES.concat(R.UNLISTED).forEach(function (r) { known[r.file] = r.url; });
+  EMBEDS.forEach(function (f) { known[f] = 'embed'; });
+  var stray = walkHtml('', '', []).filter(function (f) { return !known[f]; });
+  if (stray.length) {
+    console.error('Build FAILED — served HTML files that are not in build/routes.js:');
+    stray.forEach(function (f) { console.error('  ' + f); });
+    console.error('  A page nobody generates is a page whose header will drift. Add it to ROUTES');
+    console.error('  (with a Render.* function and a build/templates/ file), to UNLISTED, or — if it');
+    console.error('  is a standalone embed rather than a page — to EMBEDS in build/prerender.js.');
     process.exit(1);
   }
-  if (out !== src) fs.writeFileSync(abs(file), out);
-  return hits;
+  return Object.keys(known).length;
 }
 
 /* ── llms.txt (§6) ───────────────────────────────────────────────────────── */
@@ -151,7 +179,8 @@ function main() {
       m.fleet.equipped + ' (roster is truth for rows; tolerated).');
   }
 
-  /* 1. generated pages */
+  /* 1. every page. ROUTES is the table; this is the switchboard, and the two
+   *    have to agree — a route with no case here fails the assert in step 4. */
   write('index.html', Render.home(m));
   write('airlines/index.html', Render.airlinesIndex(m));
   R.AIRLINE_KEYS.forEach(function (k) {
@@ -160,48 +189,19 @@ function main() {
   write('united/fleet/index.html', Render.fleetPage(m));
   write('roadmap/index.html', Render.roadmapPage(m));
   write('404.html', Render.notFound(m));
+  /* the four former hand-authored pages — content from build/templates/, chrome
+     from build/lib/html.js, numbers baked from data.json at render time */
+  write('united/index.html', Render.unitedOptimizer(m));
+  write('united/history/index.html', Render.unitedHistory(m));
+  write('alaska/index.html', Render.alaskaRollout(m));
+  write('privacy.html', Render.privacyPage(m));
 
-  /* 2. baked numbers in the hand-authored pages */
-  var al = m.A.scoreAirline('alaska');
-  var alPct = Math.round(al.parts.pctEquipped * 100);
-  var baked = 0;
-  baked += bake('alaska/index.html', {
-    'alaska.score': String(al.score),
-    'alaska.band': al.label,
-    /* the band CLASS is baked too, or a score that crosses a threshold would keep
-       the old colour while showing the new word */
-    'alaska.bandpill': '<span class="band ' + require('./lib/pages.js').band(al.score) + '">' +
-      al.label + '</span>',
-    'alaska.equipped': DL.num(al.equipped),
-    'alaska.fleet': DL.num(al.fleet),
-    'alaska.pct': alPct + '%',
-    'alaska.free': 'free for everyone onboard',
-    'alaska.math': alPct + '% of the fleet equipped × ' + al.parts.systemQuality.toFixed(1) +
-      ' system quality (' + al.systemLabel + ') × ' + al.parts.freeFactor.toFixed(2) +
-      ' free-for-you = ' + al.score + ' / 100',
-    'site.updated': m.updated,
-    'site.airlines': String(m.airlineCount)
-  });
-  baked += bake('united/history/index.html', {
-    'united.tails': DL.num(m.registry.length),
-    'united.days': String(m.archiveDays),
-    'united.first': DL.prettyDate(m.firstDay),
-    'united.equipped': DL.num(m.fleet.equipped),
-    'united.total': DL.num(m.fleet.total),
-    'site.updated': m.updated
-  });
-  baked += bake('united/index.html', {
-    'united.equipped': DL.num(m.fleet.equipped),
-    'united.total': DL.num(m.fleet.total),
-    'site.updated': m.updated
-  });
-
-  /* 3. machine surfaces */
+  /* 2. machine surfaces */
   write('sitemap.xml', buildSitemap(m));
   write('robots.txt', buildRobots());
   write('llms.txt', buildLlms(m));
 
-  /* 4. the tripwire — assert AFTER writing */
+  /* 3. the tripwire — assert AFTER writing, both directions */
   var missing = [];
   R.ROUTES.concat(R.UNLISTED).forEach(function (r) {
     if (!exists(r.file)) missing.push(r.file + '  (route ' + r.url + ')');
@@ -212,6 +212,15 @@ function main() {
     missing.forEach(function (x) { console.error('  ' + x); });
     process.exit(1);
   }
+  var knownHtml = assertNoStrayPages();
+
+  /* every route must actually be generated now — no `kind: 'hand'` left */
+  var hand = R.ROUTES.concat(R.UNLISTED).filter(function (r) { return r.kind !== 'gen'; });
+  if (hand.length) {
+    console.error('Build FAILED — routes still marked hand-authored: ' +
+      hand.map(function (r) { return r.url; }).join(', '));
+    process.exit(1);
+  }
 
   console.log('wifiodds prerender OK in ' + (Date.now() - t0) + ' ms');
   console.log('  data.json updated=' + m.updated + ' · equipped=' + m.fleet.equipped + '/' + m.fleet.total +
@@ -219,10 +228,10 @@ function main() {
     m.airlineCount + ' airlines');
   console.log('  hangar floor=' + m.cells + ' cells (' + m.litCells + ' lit) · timeline=' +
     m.series.length + ' points · pace=' + m.weeks.length + ' weeks');
-  console.log('  ' + baked + ' data-bake markers refreshed in hand-authored pages');
   console.log('  wrote ' + written.length + ' files:');
   written.forEach(function (w) { console.log('    ' + w); });
-  console.log('  ' + R.ROUTES.length + ' public routes verified on disk.');
+  console.log('  ' + R.ROUTES.length + ' public routes verified on disk · every one generated · ' +
+    'no stray HTML (' + knownHtml + ' known .html files, incl. ' + EMBEDS.length + ' embed).');
 }
 
 main();

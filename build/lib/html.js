@@ -144,7 +144,16 @@ function footer(updated) {
     '</footer>\n';
 }
 
-/* opts: {title, desc, canonical, here, suffix, crumb, jsonld[], body, extraHead} */
+/* opts: {title, desc, canonical, here, suffix, section, crumb, jsonld[], body,
+ *        extraHead, preWrap, afterWrap}
+ *
+ * preWrap / afterWrap exist for the template-backed pages (build/lib/tmpl.js):
+ *   preWrap   — sits between <body> and <div class="wrap">. /united/ puts its
+ *               starfield <canvas id="stars"> there, outside the column.
+ *   afterWrap — sits after </div>, BEFORE /assets/site.js. That ordering is
+ *               load-bearing: /united/ and /united/history/ ship inline app
+ *               scripts that must run before the shared shell script, exactly as
+ *               they did when those pages were hand-authored. */
 function page(o) {
   var title = esc(o.title);
   var desc = esc(o.desc);
@@ -173,13 +182,17 @@ function page(o) {
     '<link rel="stylesheet" href="/assets/site.css">\n' +
     (o.extraHead || '') +
     (o.jsonld || []).map(ld).join('\n') + '\n' +
-    '</head>\n<body>\n<div class="wrap">\n' +
+    '</head>\n<body>\n' +
+    (o.preWrap || '') +
+    '<div class="wrap">\n' +
     topbar(o.here, o.suffix) +
     subnav(o.section, o.canonical, o.suffix) +
     (o.crumb ? crumb(o.crumb) : '') +
     o.body +
     footer(o.updated) +
-    '</div>\n<script src="/assets/site.js" defer></script>\n</body>\n</html>\n';
+    '</div>\n' +
+    (o.afterWrap || '') +
+    '<script src="/assets/site.js" defer></script>\n</body>\n</html>\n';
 }
 
 module.exports = {
