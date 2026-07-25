@@ -92,6 +92,10 @@ curl -s https://wifiodds.com/api/score/AS15</div>
     &quot;code&quot;: &quot;QR&quot;,
     &quot;connectScore&quot;: 58,
     &quot;band&quot;: &quot;mixed&quot;,
+    &quot;nextGenScore&quot;: 58,
+    &quot;nextGen&quot;: { &quot;score&quot;: 58, &quot;system&quot;: &quot;starlink&quot;, &quot;pct&quot;: 58 },
+    &quot;serviceTier&quot;: &quot;mixed&quot;,
+    &quot;service&quot;: { &quot;tier&quot;: &quot;mixed&quot;, &quot;label&quot;: &quot;mixed&quot;, &quot;rest&quot;: &quot;unknown&quot; },
     &quot;system&quot;:  { &quot;key&quot;: &quot;starlink&quot;, &quot;label&quot;: &quot;Starlink&quot;, &quot;quality&quot;: 1.0 },
     &quot;free&quot;:    { &quot;status&quot;: &quot;free&quot;, &quot;factor&quot;: 1.00 },
     &quot;fleet&quot;:   { &quot;equipped&quot;: 140, &quot;total&quot;: 241, &quot;equippedShare&quot;: 0.5809, &quot;equippedPct&quot;: 58, &quot;basis&quot;: &quot;tail-counts&quot; },
@@ -127,6 +131,20 @@ curl -s https://wifiodds.com/api/score/AS15</div>
   &quot;sources&quot;: [ … ]
 }</div>
   <p class="tblcap">United is the only fleet with per-flight history today; every other prefix returns <span class="mono">airline-coarse</span>. <a href="/united/">Rank a whole route →</a></p>
+</section>
+
+<section class="blk">
+  <div class="sec-h"><h2>Two numbers, not one</h2><span class="sub">read both before you quote either</span></div>
+  <p class="sec-lede">Every airline object carries <b>connectScore</b> and <b>nextGenScore</b>, and they answer different questions. Next-gen odds = share of the fleet flying Starlink or Amazon Leo today × free-for-you. Signed-but-unflown deals count zero. The second line is what the fleet actually delivers today: next-gen, streaming-class, basic, or mixed.</p>
+  <div class="tbl-shell"><table class="tbl">
+    <thead><tr><th>Field</th><th>What it is</th><th>Delta, as an example</th></tr></thead>
+    <tbody>
+      <tr><td class="mono"><b>nextGenScore</b></td><td>Odds of a Starlink or Amazon Leo aircraft × free-for-you. A signed deal contributes nothing.</td><td class="mono">0</td></tr>
+      <tr><td class="mono"><b>connectScore</b></td><td>The original score: fleet share × system quality × free-for-you. Credits streaming-class geostationary service at 0.6.</td><td class="mono">60</td></tr>
+      <tr><td class="mono"><b>serviceTier</b></td><td><span class="mono">next-gen</span> · <span class="mono">streaming</span> · <span class="mono">basic</span> · <span class="mono">mixed</span> — what the fleet delivers today. <span class="mono">service.rest</span> is the tier on the part that is not next-gen yet, and <span class="mono">"unknown"</span> where we have not verified it.</td><td class="mono">streaming</td></tr>
+    </tbody>
+  </table></div>
+  <p class="tblcap">Delta is the case worth internalising: <b>0</b> next-gen odds and free, fleetwide, genuinely streaming-class Viasat. Reporting either number without the other misleads. <a href="/systems/">What the hardware actually does →</a> · <a href="/race/">when each fleet finishes →</a></p>
 </section>
 
 <section class="blk">

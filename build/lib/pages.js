@@ -99,35 +99,76 @@ function leaderboard(m, limit) {
  * says which, so nobody reads "60" as "Starlink". */
 var US_MAJORS = ['american', 'delta', 'united', 'southwest', 'alaska', 'jetblue', 'hawaiian'];
 
-/* One line per card, GENERATED from the same fields the leaderboard row used —
- * fleet share, system, free status, and any signed-but-unflown deal. Deliberately
- * not the entry's prose `note`: those run to two sentences ("…Odds swing a lot by
- * route and aircraft type.") and would wreck a seven-across grid.
+/* ── THE TWO LINES ON EVERY CARD ──────────────────────────────────────────
+ * These cards used to carry ONE line and ONE number, the ConnectScore, and that
+ * was the site's most misleading surface. Delta showed 60 on free fleetwide
+ * Viasat; United showed 27 on a quarter-finished Starlink fleet. Both numbers are
+ * right. Side by side, in 21px mono, they say "Delta's WiFi beats United's
+ * Starlink" — a comparison no reader asked for and neither number makes.
+ *
+ * So: two lines, and the headline is now the NEXT-GEN number.
+ *   nextGenLine  odds of a Starlink or Amazon Leo aircraft. Delta reads
+ *                "Next-gen: 0 (Amazon Leo signed, 2028)" — the deal is named,
+ *                because it is real, and scored zero, because it is not flying.
+ *   todayLine    what you actually get if you board tomorrow. This is where free
+ *                fleetwide Viasat gets its due: "streaming-class fleetwide, free
+ *                onboard" is a good answer, and a nextGenScore of 0 on its own
+ *                would have read as "nothing".
+ * The ConnectScore has not gone anywhere — it is the card's footer line, so the
+ * homepage and /airlines/ can be reconciled by anyone who wonders why the order
+ * differs.
  *
  * `<1%` rather than a rounded `0%` for Southwest: 1 of 817 really is one aircraft,
  * and "0%" reads as "none", which is false. */
-function usStatus(m, a, e) {
-  var bits = [];
-  if (a.fleet) {
-    var raw = a.parts.pctEquipped * 100;
-    var pct = raw > 0 && raw < 1 ? '<1%' : Math.round(raw) + '%';
-    bits.push(num(a.equipped) + ' of ' + num(a.fleet) + ' on ' + a.systemLabel + ' (' + pct + ')');
-  } else {
-    bits.push(a.systemLabel + ' fleetwide');
-  }
-  bits.push(freeText(e.free));
-  if (a.future) {
-    bits.push((m.A.SYSTEM_LABEL[a.future.system] || a.future.system) + ' from ' + a.future.from);
-  }
-  return bits.join(' · ');
+function pctText(share) {
+  var raw = share * 100;
+  return raw > 0 && raw < 1 ? '<1%' : Math.round(raw) + '%';
 }
 
+function nextGenLine(m, a) {
+  if (a.nextGenScore > 0 || a.nextGenSystem) {
+    return 'Next-gen: ' + a.nextGenScore + ' — ' + a.nextGenLabel + ' on ' +
+      (a.fleet ? num(a.equipped) + ' of ' + num(a.fleet) + ' (' + pctText(a.nextGenShare) + ')'
+        : 'the whole fleet');
+  }
+  if (a.future) {
+    return 'Next-gen: 0 (' + (m.A.SYSTEM_LABEL[a.future.system] || a.future.system) +
+      ' signed, ' + a.future.from + ')';
+  }
+  return 'Next-gen: 0 — nothing signed';
+}
+
+function todayLine(m, a, e) {
+  var bits = [];
+  if (a.serviceTier === 'mixed') {
+    bits.push(a.nextGenLabel + ' ' + pctText(a.nextGenShare) + ', rest ' +
+      (a.restTierLabel || 'older satellite service'));
+  } else if (a.serviceTier === 'next-gen') {
+    bits.push(a.nextGenLabel + ' fleetwide');
+  } else {
+    bits.push(a.serviceTierLabel + ' fleetwide');
+    if (a.restTierLabel) bits.push('some of the fleet ' + a.restTierLabel);
+  }
+  bits.push(freeText(e.free));
+  return 'Today: ' + bits.join(' · ');
+}
+
+/* Kept for compatibility with anything that still wants the one-liner. */
+function usStatus(m, a, e) { return todayLine(m, a, e); }
+
 /* The set, scored and ordered. ONE function, because the row and the page's
- * ItemList must not be able to disagree about either membership or order. */
+ * ItemList must not be able to disagree about either membership or order.
+ *
+ * ORDERED BY NEXT-GEN ODDS, which is the headline the cards now show. Ties fall
+ * back to the ConnectScore so the three US carriers sitting at next-gen 0 still
+ * order sensibly among themselves (American 54, Delta 60, jetBlue 60), then by
+ * name. /airlines/ keeps the ConnectScore sort — two orders, two questions, and
+ * both pages say which one they are answering. */
 function usRanked(m) {
   return US_MAJORS.map(function (k) { return m.A.scoreAirline(k); })
     .filter(Boolean)
     .sort(function (a, b) {
+      if (b.nextGenScore !== a.nextGenScore) return b.nextGenScore - a.nextGenScore;
       if (b.score !== a.score) return b.score - a.score;
       return a.name.localeCompare(b.name);
     });
@@ -138,9 +179,12 @@ function usGlance(m) {
     var e = m.A.WIFI_AIRLINES[a.key];
     return '<a class="card rv uscard" href="/airlines/' + a.key + '/">' +
       '<div class="ush"><h3>' + esc(a.name) + '</h3>' +
-      '<span class="sco">' + a.score + '</span>' +
-      '<span class="band ' + band(a.score) + '">' + esc(a.label) + '</span></div>' +
-      '<p>' + esc(usStatus(m, a, e)) + '</p></a>';
+      '<span class="sco">' + a.nextGenScore + '</span>' +
+      '<span class="band ' + band(a.nextGenScore) + '">' +
+      esc(m.A.labelFor(a.nextGenScore)) + '</span></div>' +
+      '<p class="usng">' + esc(nextGenLine(m, a)) + '</p>' +
+      '<p class="usnow">' + esc(todayLine(m, a, e)) + '</p>' +
+      '<p class="uscs">ConnectScore ' + a.score + ' · ' + esc(a.label) + '</p></a>';
   }).join('') + '</div>\n';
 }
 
@@ -340,6 +384,7 @@ module.exports = {
   band: band, freeText: freeText, sysClass: sysClass, tagsFor: tagsFor,
   leaderboard: leaderboard, routePills: routePills, kpi: kpi,
   US_MAJORS: US_MAJORS, usRanked: usRanked, usStatus: usStatus, usGlance: usGlance,
+  nextGenLine: nextGenLine, todayLine: todayLine, pctText: pctText,
   roadmapSteps: roadmapSteps, ROADMAP: ROADMAP,
   flightCheck: flightCheck, extPlug: extPlug, extensionSection: extensionSection,
   FREE: FREE

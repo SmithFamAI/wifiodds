@@ -171,10 +171,41 @@ async function main() {
     ok('equipped' in a.fleet && 'total' in a.fleet, a.key + ': fleet counts present');
     ok(typeof a.note === 'string' && a.note.length, a.key + ': note');
     ok(/^\d{4}-\d{2}$/.test(a.asOf), a.key + ': asOf', a.asOf);
+    /* ── the three-tier fields. ADDITIVE: every assertion above still holds, and
+     * these two are the split the site now leads with. The contract worth
+     * protecting is that nextGenScore is ZERO for a fleet with no low-earth-orbit
+     * hardware in the air, however good its connectScore is. */
+    eq(a.nextGenScore, r.nextGenScore, 'nextGenScore for ' + a.key);
+    eq(a.serviceTier, r.serviceTier, 'serviceTier for ' + a.key);
+    ok(['next-gen', 'mixed', 'streaming', 'basic'].indexOf(a.serviceTier) >= 0,
+      a.key + ': serviceTier is one of the four tiers', a.serviceTier);
+    eq(a.nextGen.score, a.nextGenScore, a.key + ': nextGen.score mirrors nextGenScore');
+    eq(a.service.tier, a.serviceTier, a.key + ': service.tier mirrors serviceTier');
+    ok(typeof a.service.label === 'string' && a.service.label.length, a.key + ': service.label');
+    ok(typeof a.service.means === 'string' && a.service.means.length, a.key + ': service.means');
+    if (!A.isNextGen(a.system.key)) {
+      eq(a.nextGenScore, 0, a.key + ': no LEO hardware flying ⇒ nextGenScore 0');
+      eq(a.nextGen.system, null, a.key + ': nextGen.system null when nothing next-gen flies');
+    } else {
+      eq(a.nextGen.system, a.system.key, a.key + ': nextGen.system names the flying LEO system');
+    }
+    /* no video-call promise leaks into any machine-readable string either */
+    ok(!/video call/i.test(JSON.stringify(a)), a.key + ': API text promises no video calls');
   });
   /* the two shapes of fleet data, both covered */
   eq(all.airlines.filter(function (a) { return a.fleet.basis === 'fleetwide-coverage'; }).length, 2,
     'exactly two airlines are fleetwide-coverage (Delta, jetBlue)');
+  /* the headline case, by name, because it is the one the plan calls out: Delta has
+     genuinely good free WiFi AND zero next-gen odds, and the API must say both. */
+  var dl = all.airlines.filter(function (a) { return a.key === 'delta'; })[0];
+  eq(dl.nextGenScore, 0, 'PARITY: /api/airlines Delta nextGenScore is 0');
+  eq(dl.serviceTier, 'streaming', 'PARITY: /api/airlines Delta serviceTier is streaming');
+  eq(dl.connectScore, 60, 'Delta connectScore unchanged at 60 — the tier fields are additive');
+  eq(dl.future.system, 'leo', 'Delta future deal is still reported (Amazon Leo)');
+  /* the index documents the second number rather than leaving it undeclared */
+  ok(/Starlink or Amazon Leo/.test(j.nextGenMethod || ''), '/api index explains next-gen odds');
+  ok(j.serviceTiers && j.serviceTiers.streaming && j.serviceTiers['next-gen'],
+    '/api index documents the service tiers');
 
   /* ── GET /api/airlines/{key} ── */
   res = await H.airlineOne(ctx('https://wifiodds.com/api/airlines/qatar', { key: 'qatar' }));
@@ -447,6 +478,47 @@ async function main() {
     'PARITY: the API score for qatar equals the score rendered on /airlines/qatar/');
   eq(qr.airline.connectScore, 58, 'PARITY: the API score for qatar is 58');
 
+  /* ── PARITY, second axis: the homepage card and the API must agree about the
+   * NEXT-GEN number too. Same rule, same reason — read the bytes of the page a
+   * visitor gets. Delta is the case that matters: the card leads with 0 and the
+   * API must return 0, on a fleet whose connectScore is 60. */
+  var home = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  var dlCard = /Delta<\/h3><span class="sco">(\d+)<\/span>/.exec(home);
+  ok(dlCard !== null, 'homepage: could not find the Delta card headline number');
+  if (dlCard) {
+    eq(Number(dlCard[1]), dl.nextGenScore,
+      'PARITY: the Delta card headline equals the API nextGenScore');
+    eq(Number(dlCard[1]), 0, 'PARITY: the Delta card headline is 0');
+  }
+  ok(home.indexOf('Next-gen: 0 (Amazon Leo signed, 2028)') !== -1,
+    'homepage names the Leo deal on the Delta card while scoring it zero');
+  ok(home.indexOf('streaming-class fleetwide') !== -1,
+    'homepage says what Delta actually delivers today');
+  /* every US card's headline must equal that airline's API nextGenScore */
+  var cardRe = /<h3>([^<]+)<\/h3><span class="sco">(\d+)<\/span>/g;
+  var seenCards = 0, mCard;
+  while ((mCard = cardRe.exec(home)) !== null) {
+    var byName = all.airlines.filter(function (a) { return a.name === mCard[1]; })[0];
+    if (!byName) continue;
+    seenCards++;
+    eq(Number(mCard[2]), byName.nextGenScore,
+      'PARITY: ' + mCard[1] + ' card headline == API nextGenScore');
+  }
+  eq(seenCards, 7, 'PARITY: all seven US cards were checked against the API');
+
+  /* /race/ must print the same next-gen share the API reports for each airline */
+  var racePage = fs.readFileSync(path.join(ROOT, 'race', 'index.html'), 'utf8');
+  var raceMissing = all.airlines.filter(function (a) {
+    return racePage.indexOf('/airlines/' + a.key + '/') < 0;
+  });
+  eq(raceMissing.length, 0, '/race/ links every scored airline',
+    raceMissing.map(function (a) { return a.key; }));
+  ok(/Amazon Leo/.test(racePage), '/race/ names Amazon Leo');
+  var sysPage = fs.readFileSync(path.join(ROOT, 'systems', 'index.html'), 'utf8');
+  ok(/Amazon Leo/.test(sysPage), '/systems/ names Amazon Leo');
+  ok(sysPage.indexOf(A.SYSTEM_QUALITY.viasat.toFixed(1)) !== -1,
+    '/systems/ prints the Viasat quality weight straight from the scoring table');
+
   /* and the generated module really is a verbatim copy, not a second hand-typed
    * implementation that happens to agree today */
   var siteSrc = fs.readFileSync(path.join(ROOT, 'assets', 'airlines.js'), 'utf8');
@@ -479,6 +551,8 @@ async function main() {
     all.airlines[all.airlines.length - 1].connectScore);
   console.log('  /api/score/UA212: prob ' + s.prob + '% via ' + s.method + ' (' + s.evidence.route +
     ', ' + s.evidence.observations + ' obs) · /api/score/AS15: ' + as.method + ', prob ' + as.prob);
+  console.log('  tiers: Delta nextGenScore ' + dl.nextGenScore + ' / serviceTier ' + dl.serviceTier +
+    ' / connectScore ' + dl.connectScore + ' — and the homepage card agrees (7 cards checked)');
 }
 
 main().catch(function (e) {

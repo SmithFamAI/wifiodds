@@ -3,8 +3,15 @@
 **WiFi Odds — know before you book.** A static site that answers one question:
 *what are my odds of getting good WiFi on this flight?*
 
-- **`/`** — every airline ranked by **ConnectScore** (0–100), rendered from the shared airline map,
-  plus the extension install CTA and the data credits.
+- **`/`** — the instant flight check, then the extension in full (real screenshots), then The Race,
+  the systems teaser, and the seven US carriers scored **twice**: next-gen odds as the headline and
+  today's service tier under it. See "Two numbers" below.
+- **`/race/`** — every airline's rollout timeline to full next-gen: current share against the finish
+  line that airline has actually announced, with a source and a date on every row. United appears as
+  the fastest large retrofit, not as the subject.
+- **`/systems/`** — evergreen: Starlink vs Amazon Leo head-to-head plus every system flying on the
+  fleets we score, with the quality weight each one carries in the formula.
+- **`/airlines/`** — all 18 ranked by **ConnectScore** (0–100), sortable, filterable.
 - **`/united/`** — the full United toolkit (route optimizer, best routings, confirmed tails, trip
   planner, booking playbook, fleet pulse) plus **`/united/history/`**, the day-by-day rollout timeline.
   Reads its own `/united/data.json`, refreshed daily.
@@ -27,7 +34,7 @@ footer were touched.
 | Node | Any current LTS. **Zero dependencies** — there is no `package.json` and nothing to install |
 | Excluded from the deploy | `.assetsignore` (`build/`, `*.md`, `.claude`) |
 
-`build/prerender.js` **generates every one of the 28 served pages** and writes `sitemap.xml`,
+`build/prerender.js` **generates every one of the 30 served pages** and writes `sitemap.xml`,
 `robots.txt`, `llms.txt` and `functions/_lib/score.mjs`. `<lastmod>` comes from `united/data.json`'s `updated` field, so the daily
 data commit moves it too. The generated HTML is committed, because Pages serves the repo root.
 
@@ -39,13 +46,36 @@ data commit moves it too. The generated HTML is committed, because Pages serves 
 | `build/lib/html.js` | the shared chrome: one `<head>` builder, one topbar, one subnav, one footer |
 | `build/lib/render.js` | one function per page |
 | `build/templates/*.html` | the unique content of the four pages that are too bespoke to express in JS — chiefly `united-optimizer.html`, which holds the optimizer's ~1,400 lines of live-tested app JS/CSS **verbatim**. Templates are injected, never parsed |
+| `build/lib/market.js` | the two **editorial** data sets: each airline's announced finish line (for `/race/`) and the satellite-system primer (for `/systems/`). Every row carries its source and date. Fleet numbers are never repeated here — they are read live off `airlines.js`, so a row cannot disagree with the same airline's card |
+| `build/lib/reel.js` | the homepage extension demo: ONE sequence over the **two real product screenshots** in `assets/`, four captions (search → odds → sort → guard). It replaced 883 lines of hand-drawn fake united.com/Navan UI. Read its header before changing it |
 
-Three tripwires fail the build rather than shipping quietly:
+Five tripwires fail the build rather than shipping quietly:
 
 1. a route in `ROUTES` with no file on disk (the failure that silently ships a 404);
 2. a served `.html` file that is **not** in `ROUTES` — the drift guard. Four pages were once
-   hand-authored whole documents, each with its own stale copy of the header, and nothing caught it;
-3. a route still marked `kind: 'hand'`. There are none left.
+   hand-authored whole documents, each with its own stale copy of the header, and nothing caught it.
+   The `EMBEDS` escape hatch is now **empty**, which is the goal state;
+3. a route still marked `kind: 'hand'`. There are none left;
+4. a stored `serviceTier` that disagrees with the fleet share it describes. Counts update daily, the
+   tier word does not, so without this a finished fleet would print "mixed" next to "97%" forever;
+5. a missing rollout row on `/race/` or a missing screenshot for the reel — a blank timeline cell
+   reads as "no rollout", and a broken `<img>` inside a section arguing "these are real screenshots"
+   is worse than no section.
+
+## Two numbers, not one
+
+Every airline is scored twice, and the difference is the point:
+
+| | |
+|---|---|
+| `nextGenScore` | **the headline.** Odds of a Starlink or Amazon Leo aircraft × free-for-you. A signed-but-unflown deal contributes **zero** — Delta is 0 |
+| `connectScore` | the original score. Fleet share × system quality × free-for-you, crediting streaming-class geostationary at 0.6 rather than nothing — Delta is 60 |
+| `serviceTier` | what the fleet delivers **today**: `next-gen` · `streaming` · `basic` · `mixed`. `restTier` is the tier on the part that is not next-gen yet, and `"unknown"` where we have not verified it |
+
+Delta at *next-gen 0 and ConnectScore 60* is the case that forced this: a single number let a reader
+conclude "Delta's WiFi beats United's Starlink" from two figures that were each individually correct.
+Both numbers are on every card, in the API, and in `llms.txt`. **The tier fields are additive** —
+`scoreAirline()` returns everything it always returned, so the extension and the API stay compatible.
 
 ## The public ConnectScore API
 
@@ -74,8 +104,13 @@ Two rules the code enforces on itself:
 
 ```bash
 node build/prerender.js     # must run first — apitest reads its output
-node build/apitest.js       # 278 checks: syntax, every handler against a mock context, and PARITY
+node build/apitest.js       # 538 checks: syntax, every handler against a mock context, and PARITY
 ```
+
+PARITY now runs on both axes: the API's `connectScore` must equal the number `/airlines/qatar/`
+prints, **and** its `nextGenScore` must equal the headline number on that airline's homepage card
+(all seven checked). Delta reading 0 on the card and 0 from the API, while `connectScore` stays 60,
+is the specific thing being protected.
 
 `wrangler` is deliberately not installed, so there is no local Functions runtime. `apitest.js` is the
 substitute: it copies each `functions/**/*.js` to a temp `.mjs` for `node --check`, imports the
@@ -122,6 +157,18 @@ being a web server and becomes just the cron box. Nothing else in the tree is ge
 `assets/airlines.js` is a **copy** of the extension's `extension/airlines.js`
 (`jeremyinthebay/united-starlink-companion`, branch `bridge-1.6`), which stays the single source of
 truth until the `airlines` table in Supabase replaces both. Change one, change the other.
+
+> **KNOWN DIVERGENCE, deliberate and additive.** This copy is ahead of the extension's by the
+> three-tier fields (`serviceTier`, `restTier`) and their helpers (`nextGenScore`, `serviceTierOf`,
+> …). Nothing was removed or renamed, so the extension's popup keeps working against its own older
+> copy — it simply does not show the second number yet. Fold these fields into
+> `extension/airlines.js` on the next 2.0 build so the popup can lead with next-gen odds like the
+> site does.
+
+`assets/shot-united-1280x800.png` / `assets/shot-navan-1280x800.png` are the **real** store
+screenshots (copies of `store-assets/screenshot-{united,navan}-1280x800.png` in the extension repo).
+`build/lib/reel.js` builds the homepage demo from them and fails the build if either is missing.
+The same two files feed the v2.0.0 store listing and any Reddit post — one asset set, three surfaces.
 
 `assets/selectors.json` is the extension's remote selector manifest — it is fetched by the extension
 about once a day so an airline redesign doesn't break the overlay. It is served from this site, so

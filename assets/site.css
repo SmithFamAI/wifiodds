@@ -218,6 +218,13 @@ a.card:hover{border-color:var(--edge-strong);transform:translateY(-1px)}
 .ush h3{margin-right:auto}
 .usrow .sco{font-family:var(--mono);font-size:21px;font-weight:800;color:var(--ink);line-height:1}
 .usrow a.card:hover .sco{color:var(--accent)}
+/* the three stacked lines: next-gen headline, today's tier, and the ConnectScore
+   footer that lets a reader reconcile this row's order with /airlines/. See the
+   comment above usGlance() in build/lib/pages.js for why there are three. */
+.usng{font-weight:600;color:var(--body)}
+.usnow{color:var(--dim)}
+.uscs{margin-top:auto;padding-top:8px;border-top:1px solid var(--edge);
+  font-family:var(--mono);font-size:11.5px;color:var(--faint)}
 
 /* ── buttons, badges, pills ───────────────────────────────────────────── */
 .btn{display:inline-block;padding:12px 20px;border-radius:12px;font-weight:700;font-size:15px;
