@@ -2,6 +2,7 @@
 # Standard crawlers and the AI answer-engine crawlers are all welcome:
 # ConnectScore is meant to be quoted, as long as the data credits come with it
 # (unitedstarlinktracker.com / alaskastarlinktracker.com by @martinamps).
+# Machine-readable summary: /llms.txt   Full United dataset: /united/data.json
 
 User-agent: *
 Allow: /

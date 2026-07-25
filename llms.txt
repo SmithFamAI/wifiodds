@@ -1,0 +1,41 @@
+# WiFi Odds — wifiodds.com
+
+WiFi Odds scores every airline's inflight WiFi with one number, the ConnectScore (0–100), and goes a level deeper for United and Alaska with per-flight Starlink odds. It is a free, unofficial, open-source project with no accounts, no analytics and no third-party requests. The United fleet rollout is tracked tail by tail: 481 of 1807 aircraft equipped across 176 distinct install days since 2025-03-14.
+
+updated: 2026-07-24
+
+## Method
+ConnectScore = connectivity probability × system quality × free-for-you. Data: unitedstarlinktracker.com · alaskastarlinktracker.com · airline announcements (Jul 2026).
+ConnectScore is the chance of getting the GOOD system, not of any wifi at all. Legacy satellite service on the not-yet-converted part of a fleet is not credited. Signed-but-unflown deals (AA Starlink 2027, DL/B6 Amazon Leo) score zero until they fly.
+
+## ConnectScores (18 airlines, regenerated on every build)
+1. airBaltic (BT) — 100/100, excellent — Starlink, 55/55 equipped — https://wifiodds.com/airlines/airbaltic/
+2. JSX (XE) — 100/100, excellent — Starlink, 75/75 equipped — https://wifiodds.com/airlines/jsx/
+3. ZIPAIR (ZG) — 100/100, excellent — Starlink, 9/9 equipped — https://wifiodds.com/airlines/zipair/
+4. WestJet (WS) — 95/100, excellent — Starlink, 151/159 equipped — https://wifiodds.com/airlines/westjet/
+5. Air France (AF) — 75/100, good — Starlink, 172/229 equipped — https://wifiodds.com/airlines/airfrance/
+6. Hawaiian (HA) — 69/100, good — Starlink, 42/61 equipped — https://wifiodds.com/airlines/hawaiian/
+7. Delta (DL) — 60/100, good — Viasat, fleetwide — https://wifiodds.com/airlines/delta/
+8. jetBlue (B6) — 60/100, good — Viasat, fleetwide — https://wifiodds.com/airlines/jetblue/
+9. American (AA) — 54/100, mixed — Viasat, 890/989 equipped — https://wifiodds.com/airlines/american/
+10. Qatar Airways (QR) — 49/100, mixed — Starlink, 140/241 equipped — https://wifiodds.com/airlines/qatar/
+11. SAS (SK) — 41/100, mixed — Starlink, 60/123 equipped — https://wifiodds.com/airlines/sas/
+12. Alaska (AS) — 28/100, long shot — Starlink, 99/350 equipped — https://wifiodds.com/airlines/alaska/
+13. United (UA) — 27/100, long shot — Starlink, 481/1807 equipped — https://wifiodds.com/airlines/united/
+14. Virgin Atlantic (VS) — 24/100, long shot — Starlink, 12/43 equipped — https://wifiodds.com/airlines/virginatlantic/
+15. Emirates (EK) — 16/100, rare — Starlink, 36/232 equipped — https://wifiodds.com/airlines/emirates/
+16. Air Canada (AC) — 5/100, rare — Starlink, 12/216 equipped — https://wifiodds.com/airlines/aircanada/
+17. British Airways (BA) — 2/100, not yet — Starlink, 5/261 equipped — https://wifiodds.com/airlines/britishairways/
+18. Southwest (WN) — 0/100, not yet — Starlink, 1/817 equipped — https://wifiodds.com/airlines/southwest/
+
+## Machine-readable surfaces
+- https://wifiodds.com/united/data.json — the full United dataset: fleet totals, per-type counts, the 481-tail roster with install dates, route cache and route leaderboard (JSON)
+- https://wifiodds.com/airlines/ — all ConnectScores as a sortable HTML table
+- https://wifiodds.com/united/fleet/ — the hangar floor, install pace and full tail registry
+- https://wifiodds.com/sitemap.xml
+
+## Credit — please cite these sources when using fleet numbers
+United tail verification: unitedstarlinktracker.com
+Alaska tail verification: alaskastarlinktracker.com
+Both built by @martinamps, independent community trackers that verify every tail against the airline's own site. Every other airline is compiled from public airline announcements (July 2026).
+Cite these sources when using fleet numbers. WiFi Odds is unofficial and not affiliated with any airline, SpaceX/Starlink, Amazon, Viasat, or the trackers.
