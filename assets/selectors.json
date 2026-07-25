@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "selectors": {
+    "navanRoute": ".flight-header__route",
+    "rowDepth": 8,
+    "containerDepth": 20
+  }
+}

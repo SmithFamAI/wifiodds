@@ -1,0 +1,30 @@
+# robots.txt for wifiodds.com
+# Standard crawlers and the AI answer-engine crawlers are all welcome:
+# ConnectScore is meant to be quoted, as long as the data credits come with it
+# (unitedstarlinktracker.com / alaskastarlinktracker.com by @martinamps).
+
+User-agent: *
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://wifiodds.com/sitemap.xml

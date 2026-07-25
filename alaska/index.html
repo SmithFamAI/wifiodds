@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2369B3E7'/%3E%3Cstop offset='1' stop-color='%230033A0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Cpath d='M9 21c3-9 11-9 14-13' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='11' cy='22' r='2.6' fill='%23fff'/%3E%3C/svg%3E">
+<title>WiFi Odds · Alaska — Starlink rollout &amp; ConnectScore</title>
+<meta name="description" content="Alaska Airlines' Starlink rollout: 99 of 350 aircraft equipped, the E175 regional fleet complete, mainline just starting. ConnectScore, free-for-everyone WiFi, and per-flight odds on alaskaair.com. Fleet data from alaskastarlinktracker.com.">
+<link rel="canonical" href="https://wifiodds.com/alaska/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="WiFi Odds">
+<meta property="og:title" content="WiFi Odds · Alaska — Starlink rollout &amp; ConnectScore">
+<meta property="og:description" content="99 of 350 Alaska aircraft carry Starlink and it's free for everyone onboard. Where the rollout stands, and how to get per-flight odds while you book.">
+<meta property="og:url" content="https://wifiodds.com/alaska/">
+<meta property="og:image" content="https://wifiodds.com/assets/og.png?v=1">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="WiFi Odds · Alaska">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="WiFi Odds · Alaska — Starlink rollout &amp; ConnectScore">
+<meta name="twitter:description" content="99 of 350 Alaska aircraft carry Starlink and it's free for everyone onboard. Where the rollout stands, and how to get per-flight odds while you book.">
+<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=1">
+<style>
+  /* ═══ WiFi Odds — same light shell as the home page ═══ */
+  :root{
+    --brand:#0033A0;--brand-deep:#001A57;--brand-lift:#0a4fd6;--sky:#0f79c4;--sky-soft:#eaf3fd;
+    --ink:#0e1730;--body:#3d4a68;--dim:#68758f;--faint:#8d97ac;
+    --bg:#f5f8fc;--surface:#ffffff;--edge:#e2e9f4;--edge-strong:#cdd8ea;
+    --green:#0b7a45;--blue:#0b5fa8;--amber:#9a6400;--red:#a32330;
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+    --shadow:0 1px 2px rgba(14,23,48,.05),0 8px 24px rgba(14,23,48,.05);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{
+    background:
+      radial-gradient(1100px 520px at 78% -12%, #e7f0fd 0%, transparent 60%),
+      radial-gradient(760px 460px at 4% 4%, #eef3fb 0%, transparent 55%),
+      var(--bg);
+    color:var(--body);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;min-height:100vh;-webkit-tap-highlight-color:transparent;
+  }
+  .wrap{max-width:1040px;margin:0 auto;
+    padding:0 max(20px,env(safe-area-inset-right)) 0 max(20px,env(safe-area-inset-left))}
+  a{color:var(--blue)}
+  h1,h2,h3{color:var(--ink);letter-spacing:.2px}
+
+  .topbar{display:flex;align-items:center;gap:18px;padding:18px 0 6px;flex-wrap:wrap}
+  .mark{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--ink)}
+  .mark .glyph{width:38px;height:38px;border-radius:11px;flex:none;display:grid;place-items:center;
+    background:linear-gradient(135deg,#69B3E7 0%,var(--brand) 100%);box-shadow:0 4px 14px rgba(0,51,160,.28)}
+  .mark .glyph svg{width:22px;height:22px;display:block}
+  .mark .wm{font-weight:800;font-size:18px;letter-spacing:-.2px}
+  .mark .wm em{font-style:normal;color:var(--dim);font-weight:600}
+  .topnav{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .topnav a{font-size:14px;font-weight:600;text-decoration:none;color:var(--dim);
+    padding:7px 12px;border-radius:99px;transition:.15s}
+  .topnav a:hover{color:var(--brand);background:var(--sky-soft)}
+  .topnav a.cta{background:var(--brand);color:#fff}
+  .topnav a.cta:hover{background:var(--brand-lift)}
+
+  .crumb{margin-top:16px;font-size:13.5px}
+  .crumb a{color:var(--dim);text-decoration:none;font-weight:600}
+  .crumb a:hover{color:var(--brand);text-decoration:underline}
+
+  .hero{padding:14px 0 6px}
+  .hero h1{font-size:clamp(27px,4.6vw,38px);font-weight:800;letter-spacing:-.7px;line-height:1.12}
+  .hero h1 .sub{color:var(--dim);font-weight:700}
+  .lede{font-size:17px;color:var(--body);max-width:68ch;margin-top:14px}
+  .lede b{color:var(--ink)}
+
+  /* score hero */
+  .scorebox{
+    display:flex;gap:22px;align-items:center;flex-wrap:wrap;margin-top:24px;
+    background:var(--surface);border:1px solid var(--edge);border-left:5px solid var(--brand);
+    border-radius:20px;padding:22px 24px;box-shadow:var(--shadow);
+  }
+  .scorebox .big{font-family:var(--mono);font-size:56px;font-weight:800;line-height:1;color:var(--ink)}
+  .scorebox .sbmid{flex:1;min-width:240px}
+  .scorebox .sbmid .t{font-size:13px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--brand)}
+  .scorebox .sbmid .m{font-family:var(--mono);font-size:13.5px;color:var(--dim);margin-top:6px}
+  .band{font-size:11.5px;font-weight:700;letter-spacing:.4px;padding:4px 11px;border-radius:99px;
+    border:1px solid;white-space:nowrap;display:inline-block}
+  .sc-exc {color:#0b7a45;border-color:#9fdcbc;background:#e9f8f0}
+  .sc-good{color:#0b5fa8;border-color:#a8cff5;background:#eaf3fd}
+  .sc-mix {color:#8a5a00;border-color:#f0cd8a;background:#fdf5e5}
+  .sc-long{color:#9a4a10;border-color:#f3c3a4;background:#fdf0e8}
+  .sc-rare{color:#a32330;border-color:#f0b6bd;background:#fdecee}
+  .sc-no  {color:#5a6784;border-color:#d7dde8;background:#f2f4f8}
+
+  .credit{
+    display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-top:22px;padding:15px 18px;
+    border-radius:16px;background:linear-gradient(90deg,#eaf3fd,#f3f7fd);border:1px solid #cfe3f8;
+    color:var(--body);font-size:14.5px;
+  }
+  .credit .cb{flex:none;font-size:10.5px;font-weight:800;letter-spacing:1.2px;color:var(--brand);
+    border:1px solid #b7d4f2;border-radius:99px;padding:5px 11px;background:#fff;margin-top:1px}
+  .credit b{color:var(--ink)}
+  .credit .cbody{flex:1;min-width:220px}
+
+  section.blk{margin:42px 0}
+  .sec-h{display:flex;align-items:baseline;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+  .sec-h h2{font-size:23px;font-weight:800;letter-spacing:-.4px}
+  .sec-h .sub{color:var(--faint);font-size:13px;font-family:var(--mono)}
+  .sec-lede{color:var(--dim);font-size:15px;max-width:74ch;margin-bottom:18px}
+
+  /* rollout stat grid */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  @media(max-width:860px){.stats{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:460px){.stats{grid-template-columns:1fr}}
+  .stat{background:var(--surface);border:1px solid var(--edge);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow)}
+  .stat .n{font-family:var(--mono);font-size:27px;font-weight:800;color:var(--ink);line-height:1.1}
+  .stat .n small{font-size:15px;color:var(--faint);font-weight:700}
+  .stat .l{font-size:11.5px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--brand);margin-top:7px}
+  .stat .d{font-size:13px;color:var(--dim);margin-top:5px}
+  .stat.done{border-left:4px solid #35b06f}
+  .stat.early{border-left:4px solid #e0a33a}
+
+  table.fleet{width:100%;border-collapse:collapse;background:var(--surface);
+    border:1px solid var(--edge);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);margin-top:6px}
+  table.fleet th,table.fleet td{text-align:left;padding:12px 16px;font-size:14px;border-bottom:1px solid var(--edge)}
+  table.fleet th{font-size:11.5px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--brand);background:#fafcff}
+  table.fleet tr:last-child td{border-bottom:none}
+  table.fleet td.num{font-family:var(--mono);white-space:nowrap}
+  table.fleet td b{color:var(--ink)}
+
+  .callout{
+    margin-top:8px;background:var(--surface);border:1px solid var(--edge);border-radius:20px;
+    padding:22px 24px;box-shadow:var(--shadow);
+  }
+  .callout h3{font-size:19px;font-weight:800;letter-spacing:-.3px}
+  .callout p{font-size:15px;color:var(--dim);margin-top:8px;max-width:70ch}
+  .callout ul{margin:10px 0 0 18px;font-size:14.5px;color:var(--dim)}
+  .callout li{margin:4px 0}
+  .cta-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:18px}
+  .btn{display:inline-block;padding:12px 20px;border-radius:12px;font-weight:700;font-size:15px;
+    background:var(--brand);color:#fff;text-decoration:none;transition:.18s;box-shadow:0 6px 18px rgba(0,51,160,.18)}
+  .btn:hover{background:var(--brand-lift)}
+  .btn.ghost{background:var(--surface);color:var(--brand);border:1px solid var(--edge-strong);box-shadow:none}
+  .btn.ghost:hover{background:var(--sky-soft);border-color:#a9c9ec}
+  .note-sm{font-size:13px;color:var(--faint);margin-top:12px}
+  .caveat{margin-top:16px;font-size:13.5px;color:var(--dim);border-left:3px solid #f0cd8a;
+    background:#fdf9ef;border-radius:0 12px 12px 0;padding:12px 16px}
+
+  footer{margin:56px 0 60px;border-top:1px solid var(--edge);padding-top:22px;color:var(--faint);font-size:13.5px}
+  footer a{color:var(--dim)}
+  footer .frow{margin-top:8px}
+  footer .flinks{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px}
+  footer .flinks a{font-weight:600;color:var(--blue);text-decoration:none}
+  footer .flinks a:hover{text-decoration:underline}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="topbar">
+  <a class="mark" href="/">
+    <span class="glyph" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round">
+        <path d="M4.5 10.5a11 11 0 0 1 15 0"/><path d="M7.6 14a7 7 0 0 1 8.8 0"/>
+        <circle cx="12" cy="18.2" r="1.5" fill="#fff" stroke="none"/>
+      </svg>
+    </span>
+    <span class="wm">WiFi Odds <em>· Alaska</em></span>
+  </a>
+  <nav class="topnav" aria-label="Sections">
+    <a href="/">All airlines</a>
+    <a href="/united/">United</a>
+    <a href="#rollout">Rollout</a>
+    <a class="cta" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Add to Chrome — free</a>
+  </nav>
+</div>
+
+<div class="crumb"><a href="/">← part of WiFi Odds — every airline, one score</a></div>
+
+<header class="hero">
+  <h1>Alaska Airlines <span class="sub">· Starlink rollout</span></h1>
+  <p class="lede">Alaska is installing Starlink faster than almost anyone, and it's <b>free for everyone
+  onboard</b> — no loyalty program, no tier, no purchase. The catch is the same as everywhere else: it's
+  aircraft by aircraft, so which jet you get decides your day. The regional fleet is already finished;
+  mainline is only just starting.</p>
+
+  <div class="scorebox">
+    <div class="big" id="scoreBig">—</div>
+    <div class="sbmid">
+      <div class="t">ConnectScore <span id="scoreBand" class="band sc-mix">—</span></div>
+      <div class="m" id="scoreMath">…</div>
+    </div>
+    <div style="flex:none"><a class="btn ghost" href="/#how">How the score works →</a></div>
+  </div>
+</header>
+
+<div class="credit">
+  <span class="cb">DATA CREDIT</span>
+  <span class="cbody">Every Alaska figure on this page comes from
+  <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener"><b>alaskastarlinktracker.com</b></a>,
+  the independent community tracker built by <b>@martinamps</b>, which verifies each tail against
+  Alaska's own site. All credit for the data goes to them — visit for live per-tail status, install
+  dates, and much more ↗. WiFi Odds is unofficial and not affiliated with Alaska Airlines,
+  SpaceX/Starlink, or the tracker.</span>
+</div>
+
+<section class="blk" id="rollout">
+  <div class="sec-h"><h2>Where the rollout stands</h2><span class="sub">as of July 2026</span></div>
+  <p class="sec-lede">A snapshot, not a live feed — these numbers are updated by hand from the tracker.
+  For today's count, go to <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a>.</p>
+  <div class="stats">
+    <div class="stat">
+      <div class="n">99<small> / 350</small></div>
+      <div class="l">Aircraft equipped</div>
+      <div class="d">Mainline plus regional, about 28% of the combined fleet.</div>
+    </div>
+    <div class="stat done">
+      <div class="n">Complete</div>
+      <div class="l">E175 regional fleet</div>
+      <div class="d">Every Embraer E175 is fitted — a regional flight is close to a sure thing.</div>
+    </div>
+    <div class="stat early">
+      <div class="n">7<small> / 258</small></div>
+      <div class="l">Mainline</div>
+      <div class="d">The 737 fleet has barely begun. Most mainline flights are still legacy WiFi.</div>
+    </div>
+    <div class="stat done">
+      <div class="n">Equipped</div>
+      <div class="l">Ex-Hawaiian widebodies</div>
+      <div class="d">The A330s and A321neos from the Hawaiian merger already carry Starlink. Our
+      ConnectScore map still counts those tails under Hawaiian.</div>
+    </div>
+  </div>
+
+  <table class="fleet" style="margin-top:18px">
+    <thead><tr><th>Fleet</th><th>Starlink status</th><th>What that means when you book</th></tr></thead>
+    <tbody>
+      <tr><td><b>E175 (regional)</b></td><td class="num">Complete</td>
+        <td>Regional-jet routes are the best Starlink odds in the network.</td></tr>
+      <tr><td><b>737 (mainline)</b></td><td class="num">7 of 258</td>
+        <td>Treat mainline as unlikely for now, and check the specific flight.</td></tr>
+      <tr><td><b>A330 / A321neo (ex-Hawaiian)</b></td><td class="num">Equipped</td>
+        <td>Long-haul and Hawaii flying on these tails is already covered.</td></tr>
+    </tbody>
+  </table>
+  <div class="caveat">Aircraft assignments change until departure, so any of this can flip on the day.
+  ConnectScore is the chance of getting the <b>good</b> system — legacy satellite WiFi on the
+  not-yet-converted part of the fleet is not credited.</div>
+</section>
+
+<section class="blk">
+  <div class="sec-h"><h2>Per-flight odds while you book</h2></div>
+  <div class="callout">
+    <h3>Alaska support lives in the extension</h3>
+    <p>There's no route optimizer for Alaska on this site yet. What exists today is better placed
+    anyway — inside the booking flow. Install <b>WiFi Odds for Flights</b> and enable the optional
+    <b>alaskaair.com</b> permission, and you get:</p>
+    <ul>
+      <li>Odds badges on Alaska search results, per flight, colour-coded the same as United</li>
+      <li>The Alaska ConnectScore and fleet split in the popup, wherever you are</li>
+      <li>Nothing sent anywhere but a flight number and a date — no accounts, no analytics, no tracking</li>
+    </ul>
+    <div class="cta-row">
+      <a class="btn" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Add to Chrome — free ↗</a>
+      <a class="btn ghost" href="/united/">See the full United toolkit →</a>
+    </div>
+    <p class="note-sm">alaskaair.com access is optional and off until you turn it on, so the install
+    prompt stays small. Alaska badges appear once you grant it.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="flinks">
+    <a href="/">All airlines</a><a href="/united/">United</a><a href="/privacy.html">Privacy</a>
+    <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com ↗</a>
+  </div>
+  <div>Fleet data: <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a>
+  (independent community tracker by @martinamps, verified against alaskaair.com) · snapshot July 2026.</div>
+  <div class="frow">ConnectScores and per-flight odds are historical estimates, not guarantees —
+  aircraft assignments change until departure. WiFi Odds is an unofficial, free, open-source project
+  and is not affiliated with, endorsed by, or sponsored by Alaska Airlines, SpaceX/Starlink, or the
+  community trackers. 🛰️</div>
+</footer>
+
+</div>
+
+<script src="/assets/airlines.js"></script>
+<script>
+/* The score, its band and its arithmetic all come from the shared airline map
+   (assets/airlines.js) so this page can never disagree with the home index. */
+(function(){
+  var BAND=function(s){
+    if(s>=85)return "sc-exc"; if(s>=60)return "sc-good"; if(s>=35)return "sc-mix";
+    if(s>=20)return "sc-long"; if(s>=5)return "sc-rare"; return "sc-no";
+  };
+  var a=(typeof scoreAirline==="function")?scoreAirline("alaska"):null;
+  if(!a){document.getElementById("scoreMath").textContent=
+    "Couldn't load assets/airlines.js — the rollout figures below are unaffected.";return;}
+  document.getElementById("scoreBig").textContent=a.score;
+  var b=document.getElementById("scoreBand");
+  b.className="band "+BAND(a.score);
+  b.textContent=a.label;
+  var p=a.parts;
+  document.getElementById("scoreMath").textContent=
+    Math.round(p.pctEquipped*100)+"% of the fleet equipped × "+p.systemQuality.toFixed(1)+
+    " system quality ("+a.systemLabel+") × "+p.freeFactor.toFixed(2)+
+    " free-for-you = "+a.score+" / 100";
+})();
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","name":"WiFi Odds · Alaska — Starlink rollout & ConnectScore",
+"url":"https://wifiodds.com/alaska/",
+"description":"Alaska Airlines' Starlink rollout: 99 of 350 aircraft equipped, E175 regional fleet complete, mainline just starting. Free for everyone onboard.",
+"isPartOf":{"@type":"WebSite","name":"WiFi Odds","url":"https://wifiodds.com/"}}
+</script>
+</body>
+</html>

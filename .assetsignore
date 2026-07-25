@@ -1,0 +1,6 @@
+# Cloudflare Pages — do NOT serve these non-site paths publicly
+build
+*.md
+.claude
+.assetsignore
+*.env
