@@ -20,31 +20,33 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="WiFi Odds · United — Starlink Route Optimizer">
 <meta name="twitter:description" content="Any United route: every flight ranked by live Starlink odds, best routings, confirmed tails, and a booking playbook.">
-<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=1">
+<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=2">
+<script>(function(){try{var t=localStorage.getItem("woTheme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+<link rel="stylesheet" href="/assets/site.css">
 <style>
+  /* ═══ RESKIN SCOPE FENCE — read before editing anything on this page ═══════
+     This page's ~1400 lines of app JS are live-tested. The 2.0 reskin was
+     deliberately limited to the SHELL: this :root block, the body gradients, the
+     header/nav, and the tags at the bottom of the file. NOTHING below in this
+     stylesheet was renamed, no id or class the JS touches was renamed, and no
+     <script> body was edited.
+
+     The colour migration is done with ALIAS custom properties, not a
+     find-replace across 1400 lines: the old names below now point at the shared
+     tokens in /assets/site.css, so every existing rule on this page keeps
+     working AND follows the light/dark theme for free. If you need a colour
+     here, add an alias — do not sed the file. ══════════════════════════════ */
   :root{
-    --united:#0033A0;
-    --united-deep:#001A57;
-    --sky:#69B3E7;
-    --sky-bright:#8ecdff;
-    --ink:#e8eefb;
-    --dim:#93a1c0;
-    --faint:#5c688a;
-    --bg:#040816;
-    --card:rgba(148,178,255,.055);
-    --card-edge:rgba(148,178,255,.14);
-    --gold:#ffd166;
-    --green:#35d07f;
-    --blue:#4da6ff;
-    --amber:#ffb020;
-    --red:#ff5a6e;
-    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+    --united:var(--brand);
+    --united-deep:var(--brand-deep);
+    --card:var(--surface);
+    --card-edge:var(--edge);
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html{scroll-behavior:smooth;overflow-x:hidden}
   body{
-    background:radial-gradient(1200px 700px at 75% -10%, #0b1b4d 0%, transparent 55%),
-               radial-gradient(900px 600px at 10% 110%, #071233 0%, transparent 60%),
+    background:radial-gradient(1200px 700px at 75% -10%, var(--bg-glow-a) 0%, transparent 55%),
+               radial-gradient(900px 600px at 10% 110%, var(--bg-glow-b) 0%, transparent 60%),
                var(--bg);
     color:var(--ink);
     font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
@@ -114,7 +116,7 @@
   .field label{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
   .field input{
     width:100%;padding:13px 14px;border-radius:12px;font-size:16px;font-weight:600;
-    background:#0a122e;color:var(--ink);border:1px solid var(--card-edge);
+    background:var(--field-bg);color:var(--ink);border:1px solid var(--card-edge);
     text-transform:uppercase;
   }
   .field input:focus{outline:none;border-color:var(--sky)}
@@ -414,10 +416,21 @@
 <canvas id="stars"></canvas>
 <div class="wrap">
 
+<div class="topbar">
+  <a class="mark" href="/"><span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round"><path d="M4.5 10.5a11 11 0 0 1 15 0"/><path d="M7.6 14a7 7 0 0 1 8.8 0"/><circle cx="12" cy="18.2" r="1.5" fill="#fff" stroke="none"/></svg></span><span class="wm">WiFi Odds <em>· United</em></span></a>
+  <nav class="topnav" aria-label="Main">
+    <a href="/airlines/">Airlines</a>
+    <a href="/united/" aria-current="page">United</a>
+    <a href="/united/fleet/">Fleet</a>
+    <a href="/alaska/">Alaska</a>
+    <a href="/roadmap/">Roadmap</a>
+    <a class="cta" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Get the extension</a>
+  </nav>
+  <button class="tt" type="button" aria-label="Switch theme" title="Switch theme">☽</button>
+</div>
+<nav class="crumb" aria-label="Breadcrumb"><a href="/">Home</a><span class="sep">→</span><span aria-current="page">United</span></nav>
+
 <header>
-  <a href="/" style="display:inline-flex;align-items:center;gap:7px;margin-bottom:14px;color:var(--sky-bright);
-     text-decoration:none;font-size:13.5px;font-weight:600;border:1px solid var(--card-edge);
-     background:var(--card);border-radius:99px;padding:6px 14px">← Part of <b>WiFi Odds</b> — every airline, one score</a>
   <div class="brand">
     <div class="globe" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6">
@@ -437,6 +450,10 @@
     built on their work; visit them for live per-tail status, the full route planner, and much more ↗</span>
   </a>
   <div class="satline"><div class="satpath"></div><div class="sat">🛰️</div></div>
+  <p class="tagline" style="margin-top:10px"><b data-bake="united.equipped">481</b> of
+  <b data-bake="united.total">1,807</b> United aircraft carry Starlink as of
+  <b data-bake="site.updated">2026-07-24</b> — baked into this page at build time, so it is true even
+  before the live sections below load. <a href="/united/fleet/">See every equipped tail →</a></p>
 </header>
 
 <div class="chips" id="chips"></div>
@@ -446,6 +463,7 @@
   <a href="#route">Route optimizer</a>
   <a href="#trip-sec">Trip planner</a>
   <a href="#fleet">Fleet pulse</a>
+  <a href="/united/fleet/">Hangar floor ↗</a>
   <a class="cta" href="#plugin">Get the extension ↗</a>
 </nav>
 
@@ -1936,6 +1954,24 @@ fetch(`data.json?cb=${Date.now()}`,{cache:"no-store"})
     renderChips();renderChangelog();renderFleet();renderLeaderboard();bind();loadRoute();})
   .catch(e=>{document.body.insertAdjacentHTML("afterbegin",
     `<div style="background:#40121e;color:#ffb3bd;padding:10px 20px;font-size:14px">data.json failed to load: ${e}</div>`);});
+</script>
+<!-- Shared shell behaviour only (theme toggle + reveal). It touches nothing this
+     page's app JS owns: no ids, no classes, no data. Loaded last and deferred. -->
+<script src="/assets/site.js" defer></script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"United Starlink Route Optimizer",
+"url":"https://wifiodds.com/united/","applicationCategory":"TravelApplication",
+"operatingSystem":"Any (web)","browserRequirements":"Requires JavaScript for the live route search",
+"description":"Pick any United route and see every flight ranked by its live Starlink WiFi odds, with the best routings, confirmed equipped tails and a booking playbook.",
+"isPartOf":{"@type":"WebSite","name":"WiFi Odds","url":"https://wifiodds.com/"},
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"creator":{"@type":"Organization","name":"WiFi Odds","url":"https://wifiodds.com/"},
+"isBasedOn":{"@type":"WebSite","name":"unitedstarlinktracker.com","url":"https://unitedstarlinktracker.com"}}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"Home","item":"https://wifiodds.com/"},
+{"@type":"ListItem","position":2,"name":"United","item":"https://wifiodds.com/united/"}]}
 </script>
 </body>
 </html>

@@ -168,6 +168,10 @@ function main() {
   baked += bake('alaska/index.html', {
     'alaska.score': String(al.score),
     'alaska.band': al.label,
+    /* the band CLASS is baked too, or a score that crosses a threshold would keep
+       the old colour while showing the new word */
+    'alaska.bandpill': '<span class="band ' + require('./lib/pages.js').band(al.score) + '">' +
+      al.label + '</span>',
     'alaska.equipped': DL.num(al.equipped),
     'alaska.fleet': DL.num(al.fleet),
     'alaska.pct': alPct + '%',

@@ -98,7 +98,7 @@ var ROADMAP = [
     'every new airline inherits its priors.']
 ];
 function roadmapSteps(limit) {
-  return '<div class="steps">' + ROADMAP.slice(0, limit || ROADMAP.length).map(function (s) {
+  return '<div class="steps rm">' + ROADMAP.slice(0, limit || ROADMAP.length).map(function (s) {
     return '<div class="step ' + s[0] + ' rv"><div class="sh"><h3>' + s[1] + '</h3>' +
       '<span class="st">' + s[0] + '</span></div><p>' + s[2] + '</p></div>';
   }).join('') + '</div>';

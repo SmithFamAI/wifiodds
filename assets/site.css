@@ -224,15 +224,21 @@ a.pill:hover{border-color:var(--edge-strong)}
 .sysdot.leo{background:var(--sys-leo)}
 .sysdot.viasat,.sysdot.ku,.sysdot.intelsat{background:var(--sys-viasat)}
 
-/* ── progress tracks ──────────────────────────────────────────────────── */
-.track{display:block;height:6px;border-radius:99px;background:var(--viz-empty);overflow:hidden;margin-top:8px}
-/* width comes from the baked --pct custom property (not an inline width), so the
-   html.anim rules below can start it at 0 and grow it. No JS => --pct is used
-   directly and the bar is already correct. */
-.track .fill{display:block;height:100%;border-radius:99px;width:var(--pct,0%);
+/* ── progress tracks ──────────────────────────────────────────────────────
+   COLLISION NOTE: /united/ has its own .track/.fill pair (9px, inline widths set
+   by 1400 lines of live-tested app JS). These rules must not outrank it, which is
+   why the fill selector is wrapped in :where() — that keeps it at .fill-level
+   specificity, so the optimizer's own later rules win on that page and these win
+   everywhere else. Do not "simplify" the :where() away.
+   Width comes from a baked --pct custom property, not an inline width, so the
+   html.anim rules further down can start it at 0 and grow it. No JS => --pct is
+   used directly and the bar is already correct. */
+.track{display:block;height:6px;border-radius:99px;background:var(--viz-empty);overflow:hidden}
+.chip .track,.stat .track,.hpanel .track,.scorebox .track{margin-top:8px}
+:where(.track) .fill{display:block;height:100%;border-radius:99px;width:var(--pct,0%);
   background:linear-gradient(90deg,var(--sky),var(--brand-lift));transition:width 1s ease-out}
-.track .fill.ml{background:linear-gradient(90deg,var(--viz-mainline),var(--brand))}
-.track .fill.ex{background:linear-gradient(90deg,var(--viz-express),#128a55)}
+:where(.track) .fill.ml{background:linear-gradient(90deg,var(--viz-mainline),var(--brand))}
+:where(.track) .fill.ex{background:linear-gradient(90deg,var(--viz-express),#128a55)}
 .track.mini{height:5px;width:92px;margin:0}
 
 /* ── tables (leaderboard + tail registry) ─────────────────────────────── */
@@ -313,27 +319,32 @@ html.js table.tbl th[data-k][aria-sort="descending"]:after{content:"\2193";opaci
 .spark path.s{stroke:var(--viz-equipped);stroke-width:2;fill:none}
 .spark path.f{fill:var(--viz-equipped);fill-opacity:.16;stroke:none}
 
-/* ── roadmap / playbook vertical timeline ─────────────────────────────── */
-.steps{display:grid;gap:14px;position:relative;padding-left:26px}
-.steps:before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;
+/* ── roadmap vertical timeline ────────────────────────────────────────────
+   EVERY rule is scoped under .rm. /united/ has its own .steps/.step playbook
+   component with a different geometry (52px grid + .dot), and an unscoped
+   .step:before here painted a rogue circle on top of it. Keep the .rm scope. */
+.steps.rm{display:grid;gap:14px;position:relative;padding-left:26px}
+.steps.rm:before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;
   background:linear-gradient(180deg,var(--sky),transparent)}
-.step{position:relative}
-.step:before{content:"";position:absolute;left:-26px;top:6px;width:16px;height:16px;border-radius:50%;
-  background:var(--bg);border:2px solid var(--edge-strong)}
-.step.shipped:before{border-color:var(--green);background:var(--green)}
-.step.building:before{border-color:var(--sky);background:var(--sky)}
-.step.planned:before{border-color:var(--faint)}
-.step .sh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.step h3{font-size:16.5px;font-weight:800;color:var(--ink)}
-.step .st{font-size:10.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;
+.rm .step{position:relative;display:block;padding:0}
+.rm .step:before{content:"";position:absolute;left:-26px;top:6px;width:16px;height:16px;
+  border-radius:50%;background:var(--bg);border:2px solid var(--edge-strong)}
+.rm .step.shipped:before{border-color:var(--green);background:var(--green)}
+.rm .step.building:before{border-color:var(--sky);background:var(--sky)}
+.rm .step.planned:before{border-color:var(--faint)}
+.rm .step .sh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.rm .step h3{font-size:16.5px;font-weight:800;color:var(--ink)}
+.rm .step .st{font-size:10.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;
   border:1px solid;border-radius:99px;padding:2px 8px}
-.step.shipped .st{color:var(--green);border-color:rgba(53,208,127,.45)}
-.step.building .st{color:var(--accent);border-color:var(--edge-strong)}
-.step.planned .st{color:var(--faint);border-color:var(--edge)}
-.step p{font-size:var(--fs-small);color:var(--dim);margin-top:6px;max-width:74ch}
-.targets{list-style:none;margin-top:12px;display:grid;gap:7px}
-.targets li{font-size:13.5px;color:var(--dim);padding-left:24px;position:relative}
-.targets li:before{content:"\25CE";position:absolute;left:2px;color:var(--accent)}
+.rm .step.shipped .st{color:var(--green);border-color:rgba(53,208,127,.45)}
+.rm .step.building .st{color:var(--accent);border-color:var(--edge-strong)}
+.rm .step.planned .st{color:var(--faint);border-color:var(--edge)}
+.rm .step p{font-size:var(--fs-small);color:var(--dim);margin-top:6px;max-width:74ch}
+/* .tgts, not .targets — /united/ already owns a .targets list and an unscoped
+   :before here gave its items a second bullet. */
+.tgts{list-style:none;margin-top:12px;display:grid;gap:7px}
+.tgts li{font-size:13.5px;color:var(--dim);padding-left:24px;position:relative}
+.tgts li:before{content:"\25CE";position:absolute;left:2px;color:var(--accent)}
 
 /* ── credit strip (credits are architecture, not a footnote) ───────────── */
 .credit{display:flex;gap:13px;align-items:flex-start;flex-wrap:wrap;margin-top:18px;

@@ -363,7 +363,7 @@ function fleetPage(m) {
     '  <p class="tblcap">' + m.weeksTotal + ' aircraft added in the last 10 weeks · recent mainline pace ' +
     '~' + m.fleet.mainlinePacePerWeek + '/wk. The current week is partial.</p>\n' +
     '  <div class="panel rv" style="margin-top:14px"><div class="micro">United’s public commitments</div>' +
-    '<ul class="targets">' + (m.fleet.targets || []).map(function (t) {
+    '<ul class="tgts">' + (m.fleet.targets || []).map(function (t) {
       return '<li>' + esc(t) + '</li>';
     }).join('') + '</ul></div>\n</section>\n\n' +
 
