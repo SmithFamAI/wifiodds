@@ -29,6 +29,14 @@
       "pivotPer1000": 1.64,
       "pivotUnits": 0.5
     },
+    "CLAUDE.md": {
+      "words": 997,
+      "llmPoints": 0.8,
+      "clichePoints": 0.8,
+      "unsub": 0,
+      "pivotPer1000": 2.01,
+      "pivotUnits": 2
+    },
     "README.md": {
       "words": 1421,
       "llmPoints": 2.5,
