@@ -1143,10 +1143,31 @@ html.anim .track.in .fill{width:var(--pct)}
   .tbl.board td .band{display:block;margin:.15rem 0 0}
   /* .tbl carries min-width:40rem (and 34rem inside .tablescroll) so that DENSE
      tables scroll rather than crush. The board sheds columns instead, so the
-     floor comes off — this line is why the board fits a phone at all. */
-  table.tbl.board{min-width:0}
+     floor comes off — this line is why the board fits a phone at all.
+
+     table-layout:fixed is the load-bearing half, and it is here because Jeremy
+     reads with his phone's text size turned up. Auto table layout sizes columns
+     to their MIN-CONTENT width, which no min-width can override: at 150% text
+     the board grew to 451px inside a 398px screen, and at 200% it forced the
+     whole document to 466px. Fixed layout gives the columns proportional widths
+     and lets the words wrap instead, so the board fits at any text size. Tested
+     in WebKit at 100/110/120/130/150/175/200%. */
+  table.tbl.board{min-width:0;width:100%;table-layout:fixed}
+  .tbl.board td,.tbl.board th{overflow-wrap:anywhere}
+  .tbl.board .rank{width:2.2rem}
+  .tbl.board .micro{width:1.9rem}
+  /* the band chip must be allowed to wrap inside its cell at large text, or it
+     pushes the column wider than the screen on its own */
+  .tbl.board .band{white-space:normal}
   .board-note{display:block}
 }
+
+/* Provenance lines carry bare domains — unitedstarlinktracker.com is one
+   unbreakable 25-character word — and at a raised phone text size a single one
+   of them was forcing the document to 466px in a 398px screen. Let long tokens
+   break. This is the accessibility case, not an edge case: readers who turn
+   text up are exactly the readers this site is for. */
+.prov,.src,.footnote,.credit .cbody{overflow-wrap:anywhere}
 
 /* Chart lines own a third small palette, by Jeremy's call on 26 Jul 2026: the
  * bands still own scores and the sky still owns chrome, but a time-series line
