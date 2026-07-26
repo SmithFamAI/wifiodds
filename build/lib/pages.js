@@ -646,8 +646,9 @@ function rankBoard(id, list) {
     '<th class="num" data-rc="regional">Regional next-gen</th>' +
     '<th>Signed, not flying</th></tr></thead><tbody>\n' + rows + '\n  </tbody></table></div>\n' +
     '  <p class="footnote">Mainline and regional are each segment’s own next-gen share, not a ' +
-    'ConnectScore. Three columns, three denominators. Ties share a rank. A row with no published ' +
-    'number ranks with a dash, never zero. Projected figures are grey, fenced, and never sort.</p>\n' +
+    'ConnectScore. Three columns, three denominators. On next-gen, mainline and regional, ties ' +
+    'share a rank and a row with no published number ranks with a dash, never zero. ConnectScore ' +
+    'keeps the site’s usual 1-2-3 order. Projected figures are grey, fenced, and never sort.</p>\n' +
     '</div>\n';
 }
 /* The Big 4: United, American, Delta, Southwest, ranked on ConnectScore by
