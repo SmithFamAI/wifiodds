@@ -51,6 +51,17 @@ function crumbLd(items) {
 }
 
 /* ═══ / ═════════════════════════════════════════════════════════════════ */
+/* The two carriers with tail-verified counts but no published daily archive.
+ * They get a labelled TODAY count beside the chart, never an invented curve. */
+function raceCountRows(m) {
+  return ['alaska', 'hawaiian'].map(function (k, i) {
+    var a = m.ranked.filter(function (x) { return x.key === k; })[0];
+    if (!a) return '';
+    return '      <li><i class="dot c' + (i + 2) + '"></i><b>' + num(a.equipped) + '</b> ' +
+      esc(a.name) + ', today’s count</li>\n';
+  }).join('');
+}
+
 function home(m) {
   /* Still read below, in the page description. The "+N today" delta and the two
      United rollout visuals that used to sit here left with §4: a homepage that
@@ -144,29 +155,32 @@ function home(m) {
       'target="_blank" rel="noopener">alaskastarlinktracker.com</a>, both by @martinamps, ' +
       esc(H.plateDate(m.updated)) + '. Every other airline from public airline announcements, ' +
       'Jul 2026. <a href="/methodology/#credit">The full credit</a>.') +
+    '  <p class="micro" style="margin-top:10px">How sure we are, and the fourth number: ' +
+    '<a href="/record/">the written record</a> carries the confidence ladder, the projection ' +
+    'fence and the observation channels in full.</p>\n' +
     '</section>\n\n' +
 
-    /* ── THE LADDER AND THE FENCE ──────────────────────────────────────────
-     * The tier an answer was derived at is part of the answer, not a disclaimer
-     * under it, and the forward-looking number lives behind a fence of its own.
-     * The four cards are built from P.tierRows(), so the airlines named here and
-     * the airlines named in the methodology table cannot drift apart. */
-    '<section class="blk" id="ladder">\n' +
-    '  <span class="kicker">How sure we are</span>\n' +
-    '  <div class="sec-h"><h2>The confidence ladder, and the fourth number</h2>' +
-    '<a class="more" href="/methodology/">the full method →</a></div>\n' +
-    '  <p class="sec-lede">A 27 read off a tail record and a 27 read off a press release are ' +
-    'different claims about the world. Four tiers keep them apart, every answer names its tier, and ' +
-    'the forward-looking number lives behind a fence of its own.</p>\n' +
-    P.ladderCards(m) +
-    P.fenceBlock(m) +
-    '  <p class="footnote" style="margin-top:1.2rem">Three limits hold everywhere. Tail swaps ' +
-    'happen up to pushback, which is why the T-48h re-check is in every playbook. This site tracks ' +
-    'aircraft, never seats. And nobody has load-tested a full cabin, so every crowding claim, from ' +
-    'anyone, is inference — I think that is the largest open question in the subject.</p>\n' +
-    '  <p class="prov"><b>Measured</b> · the load-test gap holds across Jang et al., ACM IMC ’25, ' +
-    'Oct 2025 · Ullah et al., arXiv:2508.09839, Aug 2025 · Ookla Speedtest Intelligence, ' +
-    '28 Apr 2026</p>\n' +
+    /* ── THE RACE, drawn. United is the one carrier with a public daily install
+     * history, so its curve is the only line; drawing an Alaska or Hawaiian
+     * curve would require inventing points between counts, and inventing data
+     * is the one sin this site does not commit. Their TODAY counts ride beside
+     * the chart as labelled marks instead. The ladder section that stood here
+     * moved to /record/ with the rest of the working. */
+    '<section class="blk" id="race">\n' +
+    '  <span class="kicker">The race</span>\n' +
+    '  <div class="sec-h"><h2>Installed Starlink tails</h2>' +
+    '<a class="more" href="/race/">month by month →</a></div>\n' +
+    '  <div class="racestrip">\n' +
+    '    <div class="rs-chart">' + V.spark(m) + '</div>\n' +
+    '    <ul class="rs-counts">\n' +
+    '      <li><i class="dot c1"></i><b>' + num(m.fleet.equipped) + '</b> United, ' +
+    'daily history drawn</li>\n' +
+    raceCountRows(m) +
+    '    </ul>\n' +
+    '  </div>\n' +
+    P.srcLine('reported', 'Counts from unitedstarlinktracker.com and alaskastarlinktracker.com ' +
+      '(@martinamps), ' + esc(H.plateDate(m.updated)) + '. United is the one carrier with a ' +
+      'published day-by-day archive, so it is the one drawn as a line.') +
     '</section>\n\n' +
 
     /* ═══ THE SEAM ═══════════════════════════════════════════════════════════
@@ -179,16 +193,16 @@ function home(m) {
      * other route. See the header of P.extensionSection(). */
     P.extensionSection(m) +
 
-    /* ── THE LOOP. The closing beat, and it asks for nothing but an observation.
-     * Five channels, none of which takes an email address. */
+    /* ── THE LOOP, slimmed to one bar by the 26 Jul pivot. The five channels
+     * and their descriptions live on /record/#loop now; the homepage keeps one
+     * sentence and the door. */
     '<section class="blk" id="loop">\n' +
-    '  <span class="kicker">The loop</span>\n' +
-    '  <h2>What the record cannot see, you can</h2>\n' +
-    '  <p class="sec-lede">Fleet records stop at the cabin door. Whether the login worked, what a ' +
-    'video call survived, which badge was wrong: the person in the seat is the only instrument on ' +
-    'board, and this site runs no analytics to guess with. Five channels carry observations back, ' +
-    'and none of them asks for your email.</p>\n' +
-    P.loopSection() +
+    '  <div class="loopbar">\n' +
+    '    <span class="kicker" style="margin:0">Add an observation</span>\n' +
+    '    <p>Installs stop at the cabin door. If you flew this month, thirty seconds is a data ' +
+    'point nobody else has.</p>\n' +
+    '    <a href="/record/#loop">the ways in →</a>\n' +
+    '  </div>\n' +
     '</section>\n\n';
 
   return H.page({
@@ -277,6 +291,58 @@ function home(m) {
         privacyPolicy: ORIGIN + '/privacy'
       }
     ]
+  });
+}
+
+/* ═══ /record/ ══════════════════════════════════════════════════════════
+ * Where the homepage's working moved when the 26 Jul pivot drew the numbers.
+ * The confidence ladder, the projection fence and the five observation channels
+ * left the default view; this page is them, in full, prerendered, one tap from
+ * the board. It is allowed to be dense on purpose: dense is its job. */
+function recordPage(m) {
+  var crumbs = [['/', 'Home'], ['/record/', 'The written record']];
+  var body =
+    '<header class="hero">\n' +
+    '  <span class="kicker">The record view</span>\n' +
+    '  <h1>The working, shown</h1>\n' +
+    '  <p class="lede">The homepage draws its numbers; this page is where they show their working. ' +
+    'Nothing was cut to make the board visual. It moved here, and it is the same build, from the ' +
+    'same data, dated ' + esc(H.chipDate(m.updated)) + '.</p>\n' +
+    '</header>\n\n' +
+    '<section class="blk" id="ladder">\n' +
+    '  <span class="kicker">How sure we are</span>\n' +
+    '  <div class="sec-h"><h2>The confidence ladder, and the fourth number</h2>' +
+    '<a class="more" href="/methodology/">the full method →</a></div>\n' +
+    '  <p class="sec-lede">A 27 read off a tail record and a 27 read off a press release are ' +
+    'different claims about the world. Four tiers keep them apart, every answer names its tier, and ' +
+    'the forward-looking number lives behind a fence of its own.</p>\n' +
+    P.ladderCards(m) +
+    P.fenceBlock(m) +
+    '  <p class="footnote" style="margin-top:1.2rem">Three limits hold everywhere. Tail swaps ' +
+    'happen up to pushback, which is why the T-48h re-check is in every playbook. This site tracks ' +
+    'aircraft, never seats. And nobody has load-tested a full cabin, so every crowding claim, from ' +
+    'anyone, is inference — I think that is the largest open question in the subject.</p>\n' +
+    '  <p class="prov"><b>Measured</b> · the load-test gap holds across Jang et al., ACM IMC ’25, ' +
+    'Oct 2025 · Ullah et al., arXiv:2508.09839, Aug 2025 · Ookla Speedtest Intelligence, ' +
+    '28 Apr 2026</p>\n' +
+    '</section>\n\n' +
+    '<section class="blk" id="loop">\n' +
+    '  <span class="kicker">The loop</span>\n' +
+    '  <h2>What the record cannot see, you can</h2>\n' +
+    '  <p class="sec-lede">Fleet records stop at the cabin door. Whether the login worked, what a ' +
+    'video call survived, which badge was wrong: the person in the seat is the only instrument on ' +
+    'board, and this site runs no analytics to guess with. Five channels carry observations back, ' +
+    'and none of them asks for your email.</p>\n' +
+    P.loopSection() +
+    '</section>\n';
+
+  return H.page({
+    title: 'WiFi Odds · the written record',
+    desc: 'The confidence ladder, the projection fence and the observation channels behind the ' +
+      'WiFi Odds board, in full.',
+    canonical: '/record/', here: '/', updated: m.updated, crumb: crumbs,
+    body: body,
+    jsonld: [crumbLd(crumbs)]
   });
 }
 
@@ -2553,6 +2619,6 @@ module.exports = {
   racePage: racePage, systemsPage: systemsPage,
   apiDocs: apiDocs, notFound: notFound,
   unitedOptimizer: unitedOptimizer, unitedHistory: unitedHistory,
-  alaskaRollout: alaskaRollout, privacyPage: privacyPage,
+  alaskaRollout: alaskaRollout, privacyPage: privacyPage, recordPage: recordPage,
   datasetLd: datasetLd, crumbLd: crumbLd, DATASET_ID: DATASET_ID
 };

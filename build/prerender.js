@@ -991,6 +991,7 @@ function main() {
   write('united/history/index.html', Render.unitedHistory(m));
   write('alaska/index.html', Render.alaskaRollout(m));
   write('privacy.html', Render.privacyPage(m));
+  write('record/index.html', Render.recordPage(m));
 
   /* 2. machine surfaces */
   write('sitemap.xml', buildSitemap(m));

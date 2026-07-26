@@ -305,23 +305,33 @@ header.site{border-bottom:1px solid var(--line);background:var(--paper)}
    document so the custom property resolves — inside an <img> it would silently
    fall back to black. */
 .wordmark .mk{color:var(--sky);vertical-align:-.12em;margin-right:.35rem}
-.masthead nav{margin-left:auto;display:flex;gap:1.1rem;font-size:.92rem;flex-wrap:wrap}
-.masthead nav a{color:var(--link)}
-.masthead nav a[aria-current="page"]{color:var(--ink);text-decoration-thickness:2px}
-/* The Extension link is the quiet one the spec allows on every page. It is a
-   nav link, not a button: a call to action in the masthead of thirty routes is
-   the scattered pitch that killed version one. */
-.masthead nav a.cta{color:var(--link)}
+/* The 26 Jul pivot: underlined default-blue nav read as nobody decided this.
+   Small-caps wordmarks now, hover fill, no underline. The Extension link is the
+   one FILLED element because it is the only nav item that is an action rather
+   than a place — still one pitch sitewide, just dressed as what it is. */
+.masthead nav{margin-left:auto;display:flex;gap:.2rem;font-size:.92rem;flex-wrap:wrap;
+  align-items:center}
+.masthead nav a{color:var(--muted-strong);text-decoration:none;font-size:.72rem;
+  font-weight:650;letter-spacing:.11em;text-transform:uppercase;padding:.5rem .65rem;
+  border-radius:8px}
+.masthead nav a:hover{color:var(--ink);background:var(--bg-inset);text-decoration:none}
+.masthead nav a[aria-current="page"]{color:var(--ink)}
+.masthead nav a.cta{color:var(--btn-fg);background:var(--btn-bg);margin-left:.35rem}
+.masthead nav a.cta:hover{color:var(--btn-fg);background:var(--btn-bg);filter:brightness(1.08)}
 .datechip{font-size:.78rem;color:var(--muted);letter-spacing:.02em;width:100%;
   padding-bottom:.15rem}
 .datechip b{color:var(--muted-strong);font-weight:600}
 /* The switch is hidden until the inline script reveals it, so a page without
    JavaScript never shows a control that cannot work. Its title text is
    deliberate down to the clause about storage; do not shorten it. */
-.themetoggle{font:inherit;font-size:.78rem;letter-spacing:.02em;padding:.22rem .75rem;
-  border:1px solid var(--line);border-radius:99px;background:transparent;
-  color:var(--muted);cursor:pointer}
-.themetoggle:hover{border-color:var(--muted);color:var(--ink)}
+/* Prominent since the 26 Jul pivot: dark is the default now, and the switch
+   label is a full sentence of intent ("Switch to light") so a casual reader
+   knows what clicking does without decoding a state word. */
+.themetoggle{font:inherit;font-size:.8rem;letter-spacing:.02em;padding:.42rem .95rem;
+  border:1.5px solid var(--muted);border-radius:99px;background:transparent;
+  color:var(--ink);cursor:pointer;font-weight:600}
+.themetoggle u{text-decoration:none}
+.themetoggle:hover{border-color:var(--sky);color:var(--sky)}
 
 /* ── crumbs ─────────────────────────────────────────────────────────────── */
 .crumb{font-size:.82rem;color:var(--muted);padding:1rem 0 0}
@@ -1099,3 +1109,47 @@ html.anim .track.in .fill{width:var(--pct)}
   .halfmark#record{display:none}
   .lede .sm-off{display:none}
 }
+
+/* ── the 26 Jul pivot: the board drawn, the race strip, the loop bar ──────
+ * Every number drawn before it is written. The bar's colour is the band and
+ * ONLY the band; the chip word beside the number is the non-colour signal. */
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;
+  clip:rect(0 0 0 0);white-space:nowrap}
+.tbl.board td{padding-top:.62rem;padding-bottom:.62rem}
+.tbl.board .barcell{width:26%;min-width:120px}
+.scobar{display:block;height:9px;border-radius:99px;background:var(--bg-inset);
+  overflow:hidden}
+.scobar .fill{display:block;height:100%;border-radius:99px}
+.scobar .fill.sc-good{background:var(--good)}
+.scobar .fill.sc-mix{background:var(--mixed)}
+.scobar .fill.sc-long{background:var(--long)}
+.scobar .fill.sc-no{background:var(--zero)}
+@media(max-width:700px){
+  .tbl.board .barcell,.tbl.board .phz{display:none}
+}
+
+/* Chart lines own a third small palette, by Jeremy's call on 26 Jul 2026: the
+ * bands still own scores and the sky still owns chrome, but a time-series line
+ * encodes IDENTITY, not a score, so it may not borrow a band colour and no
+ * longer has to be bare ink. Three hues, none of them a band's. */
+:root{--chart-1:#2d5a7d;--chart-2:#7d5aa6;--chart-3:#2e7d8a}
+html.dark{--chart-1:#8fc0e0;--chart-2:#b79fe0;--chart-3:#7ecfdd}
+.racestrip{display:grid;grid-template-columns:1.3fr 1fr;gap:26px;align-items:center;
+  margin-top:.6rem}
+.racestrip .spark path.s{stroke:var(--chart-1);stroke-width:2.2}
+.racestrip .spark path.f{fill:var(--chart-1);fill-opacity:.12}
+.rs-counts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.55rem}
+.rs-counts li{font-size:.92rem;color:var(--muted-strong);display:flex;align-items:baseline;
+  gap:.55rem}
+.rs-counts b{font-family:var(--serif);font-size:1.25rem;color:var(--ink);
+  font-variant-numeric:tabular-nums}
+.rs-counts .dot{width:10px;height:10px;border-radius:99px;flex:0 0 auto;align-self:center}
+.rs-counts .dot.c1{background:var(--chart-1)}
+.rs-counts .dot.c2{background:var(--chart-2)}
+.rs-counts .dot.c3{background:var(--chart-3)}
+@media(max-width:700px){.racestrip{grid-template-columns:1fr}}
+
+.loopbar{display:flex;gap:1rem 1.4rem;align-items:baseline;flex-wrap:wrap;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:1rem 1.3rem}
+.loopbar p{margin:0;font-family:var(--serif);font-size:1.02rem;flex:1 1 26ch}

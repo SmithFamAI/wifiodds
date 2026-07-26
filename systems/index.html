@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<script>(function(){var r=document.documentElement;r.classList.add("js");try{r.classList.add(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");}catch(e){}})();</script>
+<script>(function(){var r=document.documentElement;r.classList.add("js");r.classList.add("dark");})();</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2322455f'/%3E%3Cellipse cx='16' cy='16' rx='11' ry='4.6' fill='none' stroke='%23fff' stroke-width='2' transform='rotate(-22 16 16)'/%3E%3Ccircle cx='16' cy='16' r='5.2' fill='%23fff'/%3E%3Ccircle cx='26.2' cy='11.9' r='2.3' fill='%23fff'/%3E%3C/svg%3E">
 <title>Inflight WiFi systems compared — Starlink vs Amazon Leo vs Viasat</title>
 <meta name="description" content="Starlink and Amazon Leo head to head, plus every inflight WiFi system flying on the airlines we track: how each one works, real-world cabin speed, reliability, price and the weight it carries in ConnectScore. Reviewed July 2026.">
@@ -23,7 +23,7 @@
 <meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=fa82ae75">
 <link rel="preload" href="/assets/serif-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/serif-700.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=4fd4aadd">
+<link rel="stylesheet" href="/assets/site.css?v=94b830ac">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is Starlink actually better than Delta’s WiFi, or is that just marketing?","acceptedAnswer":{"@type":"Answer","text":"Both things are true and they answer different questions. Delta Sync is free, fleetwide, and genuinely streaming-class, so you can work on it. Starlink is a low-earth-orbit system roughly 60 times closer to the aircraft than a geostationary satellite, so the lag is tens of milliseconds instead of about half a second, and it keeps working mid-ocean and at high latitude where geostationary coverage thins out. If your flight is four hours of real work, the difference is noticeable. If it is email and a film, it is not."}},{"@type":"Question","name":"What is Amazon Leo, and does any airline have it?","acceptedAnswer":{"@type":"Answer","text":"Amazon Leo is Amazon’s low-earth-orbit constellation, formerly Project Kuiper, and the same physics class as Starlink. No passenger aircraft is flying it yet. jetBlue is first, from 2027; Delta signed for 500 aircraft from 2028. Because nothing is in the air, both airlines score zero for next-gen odds on this site, and we publish no speed figure for Leo anywhere. There is no in-cabin measurement to publish."}},{"@type":"Question","name":"Why does “free WiFi” not tell you whether it is good?","acceptedAnswer":{"@type":"Answer","text":"Because the two are unrelated. American launched free WiFi across about 90% of its fleet in January 2026, and it is Viasat and Intelsat: streaming-class, geostationary, with the widebodies on older Panasonic hardware left out of the offer entirely. Free and fast are separate axes, which is why ConnectScore multiplies them instead of picking one."}},{"@type":"Question","name":"Which system will my flight have?","acceptedAnswer":{"@type":"Answer","text":"That depends on the aircraft, not the airline, which is the whole problem. For United we hold a per-tail archive and can give you the odds for your actual flight number. For every other carrier all we have is the fleet share plus the aircraft type on your itinerary. The race page has each fleet’s current split and its finish line."}},{"@type":"Question","name":"Does more bandwidth fix the lag?","acceptedAnswer":{"@type":"Answer","text":"No, and this is the one piece of physics worth knowing. A geostationary satellite sits 35,786 km up; the round trip is about half a second no matter how fast the link is. Low-earth orbit is roughly 550 km, so the delay is tens of milliseconds. Bandwidth decides whether video streams; distance decides whether the connection feels alive."}}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Inflight WiFi systems compared: Starlink, Amazon Leo, Viasat, 2Ku, Panasonic","url":"https://wifiodds.com/systems/","dateModified":"2026-07-25","description":"Low-earth orbit against geostationary: how each inflight WiFi system works, what it delivers in the cabin, and how ConnectScore weights it.","author":{"@type":"Organization","name":"WiFi Odds","url":"https://wifiodds.com/"},"publisher":{"@id":"https://wifiodds.com/#org"},"about":"Inflight satellite connectivity systems"}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://wifiodds.com/"},{"@type":"ListItem","position":2,"name":"Systems","item":"https://wifiodds.com/systems/"}]}</script>
@@ -39,7 +39,7 @@
       <a class="cta" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Extension</a>
     </nav>
     <button class="themetoggle" id="themetoggle" type="button" hidden
-      title="Follows your system setting by default. The switch lasts until you reload; nothing is stored."></button>
+      title="Dark by default. The switch lasts until you reload; nothing is stored."></button>
     <div class="datechip">Inflight WiFi as a forecast · figures checked daily · this build <b>25 Jul 2026</b></div>
   </div>
 </header>
@@ -125,7 +125,7 @@
   <div class="frow">The page follows your system’s light or dark setting. The switch in the header lasts until you reload, and nothing about your choice is stored.</div>
 </footer>
 </div>
-<script>(function(){var r=document.documentElement,b=document.getElementById("themetoggle");if(!b)return;function p(){b.textContent=r.classList.contains("dark")?"Light mode":"Dark mode";}b.hidden=false;p();b.addEventListener("click",function(){var d=r.classList.contains("dark");r.classList.toggle("dark",!d);r.classList.toggle("light",d);p();});})();</script>
+<script>(function(){var r=document.documentElement,b=document.getElementById("themetoggle");if(!b)return;function p(){var d=r.classList.contains("dark");b.innerHTML=d?"\u2600\uFE0E <u>Switch to light</u>":"\u263D <u>Switch to dark</u>";}b.hidden=false;p();b.addEventListener("click",function(){var d=r.classList.contains("dark");r.classList.toggle("dark",!d);r.classList.toggle("light",d);p();});})();</script>
 <script src="/assets/site.js?v=caed77a1" defer></script>
 </body>
 </html>

@@ -434,6 +434,12 @@ function tierLetter(a) {
   return a.projected ? 'D' : 'C';
 }
 function fieldTable(m) {
+  /* THE BOARD IS DRAWN NOW, Jeremy's pivot of 26 Jul 2026: every row carries a
+   * fill bar whose length is the score and whose colour is the band, so the
+   * table reads at a glance like a departures board. The tier letter stays (it
+   * is provenance), the projection chip keeps every fence attribute, and the
+   * score is still printed as a number beside its bar — the bar is a drawing OF
+   * the number, never a replacement for it. */
   var rows = m.ranked.map(function (a, i) {
     var ph = MK.phaseOf(m.A, a);
     var ng = a.nextGenScore;
@@ -443,17 +449,23 @@ function fieldTable(m) {
       '<span class="code">' + esc(a.code || '') + '</span></a></td>' +
       '<td class="num ' + band(a.score) + '"><span class="sco">' + a.score + '</span> ' +
       bandChip(a.score) + '</td>' +
+      /* the bar is a drawing of the number; the chip word beside the number is
+         the non-colour signal, so a reader who cannot tell green from clay
+         still gets the band. */
+      '<td class="barcell"><span class="scobar"><i class="fill ' + band(a.score) +
+      '" style="width:' + a.score + '%"></i></span></td>' +
       /* the tier letter is a CATEGORY — provenance, not score — so it stays ink */
       '<td class="micro">' + tierLetter(a) + '</td>' +
       '<td class="num ' + band(ng) + '"><span class="sco" style="font-size:1rem">' + ng +
       '</span></td>' +
-      '<td class="micro">' + esc(MK.PHASE_LABEL[ph]) + '</td>' +
+      '<td class="micro phz">' + esc(MK.PHASE_LABEL[ph]) + '</td>' +
       '<td class="num">' + (a.projected ? projected(a) : '<span class="dash">&middot;</span>') +
       '</td></tr>';
   }).join('\n');
 
-  return '<div class="tbl-shell tablescroll rv"><table class="tbl">\n' +
+  return '<div class="tbl-shell tablescroll rv"><table class="tbl board">\n' +
     '    <thead><tr><th>#</th><th>Airline</th><th class="num">ConnectScore</th>' +
+    '<th class="barcell"><span class="visually-hidden">Score drawn as a bar</span></th>' +
     '<th>Tier</th><th class="num">Next-gen odds</th><th>Rollout</th>' +
     '<th class="num">Projected · grey, never sorts</th></tr></thead>\n' +
     '    <tbody>\n' + rows + '\n    </tbody>\n  </table></div>\n';

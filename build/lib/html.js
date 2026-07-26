@@ -121,17 +121,22 @@ var MARK_SVG = '<svg class="mk" viewBox="0 0 32 32" width="17" height="17" ' +
  * `.needs-js` and its fallback is a list of 18 airline links. One statement, in
  * the <head>, before paint. site.js still adds the class — it is idempotent, and
  * site.js must keep working if this tag is ever dropped. */
-var THEME_BOOT = '<script>(function(){var r=document.documentElement;r.classList.add("js");' +
-  'try{r.classList.add(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");}' +
-  'catch(e){}})();</script>';
+/* DARK IS THE DEFAULT, by Jeremy's call on 26 Jul 2026, overriding the earlier
+ * follow-the-system rule. Every visitor boots dark; the switch offers light and
+ * lasts until reload. The `js` class still gates .needs-js as before. */
+var THEME_BOOT = '<script>(function(){var r=document.documentElement;' +
+  'r.classList.add("js");r.classList.add("dark");})();</script>';
 
 /* The switch itself, wired after the button exists. It flips two classes and
  * writes nothing anywhere. If this script never runs, the button stays `hidden`
- * and the page follows the OS — which is the correct state, not a degraded one:
- * a control that cannot work should not be on screen. */
+ * and the page stays dark — a control that cannot work should not be on
+ * screen. */
+/* The label says what clicking DOES, not what the state is, because "Light
+ * mode" as a label reads as a caption to half the people who meet it. */
 var THEME_SWITCH = '<script>(function(){var r=document.documentElement,' +
   'b=document.getElementById("themetoggle");if(!b)return;' +
-  'function p(){b.textContent=r.classList.contains("dark")?"Light mode":"Dark mode";}' +
+  'function p(){var d=r.classList.contains("dark");' +
+  'b.innerHTML=d?"\\u2600\\uFE0E <u>Switch to light</u>":"\\u263D <u>Switch to dark</u>";}' +
   'b.hidden=false;p();b.addEventListener("click",function(){' +
   'var d=r.classList.contains("dark");r.classList.toggle("dark",!d);' +
   'r.classList.toggle("light",d);p();});})();</script>\n';
@@ -262,7 +267,7 @@ function masthead(here, suffix, updated) {
     '      <a class="cta" href="' + EXT + '" target="_blank" rel="noopener">Extension</a>\n' +
     '    </nav>\n' +
     '    <button class="themetoggle" id="themetoggle" type="button" hidden\n' +
-    '      title="Follows your system setting by default. The switch lasts until you reload; nothing is stored."></button>\n' +
+    '      title="Dark by default. The switch lasts until you reload; nothing is stored."></button>\n' +
     '    <div class="datechip">Inflight WiFi as a forecast · figures checked daily · this build <b>' +
     esc(chipDate(updated)) + '</b></div>\n' +
     '  </div>\n</header>\n';

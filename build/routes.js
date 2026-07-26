@@ -43,6 +43,9 @@ var ROUTES = [
   { url: '/methodology/', file: 'methodology/index.html', kind: 'gen', changefreq: 'daily', priority: '0.7' },
   { url: '/roadmap/', file: 'roadmap/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.5' },
   { url: '/api/docs/', file: 'api/docs/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.5' },
+  /* The written record: where the homepage's working lives after the 26 Jul
+     pivot drew the default view. */
+  { url: '/record/', file: 'record/index.html', kind: 'gen', changefreq: 'weekly', priority: '0.4' },
   /* url is the path Cloudflare serves; file is what lands on disk. They differ
      only here: /privacy.html 308s to /privacy, so the sitemap must advertise
      /privacy or it is pointing crawlers at a redirect. */
