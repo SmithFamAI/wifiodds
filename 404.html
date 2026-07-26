@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<script>(function(){var r=document.documentElement;r.classList.add("js");try{var t=localStorage.getItem("woTheme");if(t==="light"||t==="dark")r.setAttribute("data-theme",t);}catch(e){}})();</script>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230a0c0d'/%3E%3Cg fill='%23444d50'%3E%3Crect x='2' y='2' width='2.5' height='2.5'/%3E%3Crect x='2' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='2' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='9' y='2' width='2.5' height='2.5'/%3E%3Crect x='9' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='2' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='9' width='2.5' height='2.5'/%3E%3Crect x='9' y='9' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='9' width='2.5' height='2.5'/%3E%3C/g%3E%3Cg fill='%233fcf8e'%3E%3Crect x='2' y='9' width='2.5' height='2.5'/%3E%3Crect x='2' y='12.5' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='12.5' width='2.5' height='2.5'/%3E%3Crect x='9' y='12.5' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='12.5' width='2.5' height='2.5'/%3E%3C/g%3E%3C/svg%3E">
+<script>(function(){var r=document.documentElement;r.classList.add("js");try{r.classList.add(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");}catch(e){}})();</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2322455f'/%3E%3Cellipse cx='16' cy='16' rx='11' ry='4.6' fill='none' stroke='%23fff' stroke-width='2' transform='rotate(-22 16 16)'/%3E%3Ccircle cx='16' cy='16' r='5.2' fill='%23fff'/%3E%3Ccircle cx='26.2' cy='11.9' r='2.3' fill='%23fff'/%3E%3C/svg%3E">
 <title>Page not found — WiFi Odds</title>
 <meta name="description" content="That page does not exist on wifiodds.com.">
 <link rel="canonical" href="https://wifiodds.com/404.html">
@@ -13,46 +13,69 @@
 <meta property="og:title" content="Page not found — WiFi Odds">
 <meta property="og:description" content="That page does not exist on wifiodds.com.">
 <meta property="og:url" content="https://wifiodds.com/404.html">
-<meta property="og:image" content="https://wifiodds.com/assets/og.png?v=3">
+<meta property="og:image" content="https://wifiodds.com/assets/og.png?v=fa82ae75">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="WiFi Odds — know before you book">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Page not found — WiFi Odds">
 <meta name="twitter:description" content="That page does not exist on wifiodds.com.">
-<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=3">
-<link rel="preload" href="/assets/b612-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/assets/b612mono-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=2ff10b77">
+<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=fa82ae75">
+<link rel="preload" href="/assets/serif-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/serif-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=d2a06f32">
 
 </head>
 <body>
+<header class="site">
+  <div class="wrap masthead">
+    <a class="wordmark" href="/"><svg class="mk" viewBox="0 0 32 32" width="17" height="17" aria-hidden="true" focusable="false"><ellipse cx="16" cy="16" rx="11" ry="4.6" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(-22 16 16)"/><circle cx="16" cy="16" r="5.2" fill="currentColor"/><circle cx="26.2" cy="11.9" r="2.3" fill="currentColor"/></svg>WiFi&nbsp;Odds</a>
+    <nav aria-label="Main">
+      <a href="/airlines/">Airlines</a>
+      <a href="/race/">The Race</a>
+      <a href="/roadmap/">Roadmap</a>
+      <a class="cta" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Extension</a>
+    </nav>
+    <button class="themetoggle" id="themetoggle" type="button" hidden
+      title="Follows your system setting by default. The switch lasts until you reload; nothing is stored."></button>
+    <div class="datechip">Inflight WiFi as a forecast · figures checked daily · this build <b>25 Jul 2026</b></div>
+  </div>
+</header>
 <div class="wrap">
-<div class="topbar">
-  <a class="mark" href="/"><span class="glyph" aria-hidden="true"><svg width="26" height="17" viewBox="0 0 26 17" aria-hidden="true" focusable="false"><g fill="currentColor" opacity=".55"><rect x="0" y="0" width="3" height="3"/><rect x="0" y="4.6" width="3" height="3"/><rect x="4.6" y="0" width="3" height="3"/><rect x="4.6" y="4.6" width="3" height="3"/><rect x="9.2" y="0" width="3" height="3"/><rect x="9.2" y="4.6" width="3" height="3"/><rect x="13.8" y="0" width="3" height="3"/><rect x="13.8" y="4.6" width="3" height="3"/><rect x="18.4" y="0" width="3" height="3"/><rect x="18.4" y="4.6" width="3" height="3"/><rect x="23" y="0" width="3" height="3"/><rect x="23" y="4.6" width="3" height="3"/><rect x="4.6" y="9.2" width="3" height="3"/><rect x="9.2" y="9.2" width="3" height="3"/><rect x="13.8" y="9.2" width="3" height="3"/><rect x="18.4" y="9.2" width="3" height="3"/><rect x="23" y="9.2" width="3" height="3"/></g><g fill="var(--good)"><rect x="0" y="9.2" width="3" height="3"/><rect x="0" y="13.8" width="3" height="3"/><rect x="4.6" y="13.8" width="3" height="3"/><rect x="9.2" y="13.8" width="3" height="3"/><rect x="13.8" y="13.8" width="3" height="3"/><rect x="18.4" y="13.8" width="3" height="3"/><rect x="23" y="13.8" width="3" height="3"/></g></svg></span><span class="wm">WiFi Odds</span></a>
-  <p class="stripmeta">ConnectScore · Data eff <b>25 JUL 2026</b> · Amdt daily</p>
-  <nav class="topnav" aria-label="Main">
-    <a href="/airlines/">Airlines</a>
-    <a href="/race/">The Race</a>
-    <a href="/roadmap/">Roadmap</a>
-    <a class="cta" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Get the extension</a>
-  </nav>
-  <button class="tt" type="button" aria-label="Switch theme" title="Switch theme">☽</button>
-</div>
-<header class="hero">
-  <span class="kicker"><span class="dot"></span>404</span>
-  <h1 class="ph" style="margin-top:14px">No aircraft at this gate.</h1>
-  <p class="lede">That page does not exist. Everything on this site lives at a real path, so there are no hash routes to mistype. The eighteen ConnectScores, the rollout race and the method are all one click away.</p>
-  <div class="cta-row"><a class="btn" href="/airlines/">All 18 ConnectScores →</a><a class="btn ghost" href="/united/fleet/">The United hangar floor →</a></div>
+<header class="hero heroq">
+  <span class="kicker">404</span>
+  <h1 class="ph" style="margin-top:.6rem">No page at this address</h1>
+  <p class="lede">Unlike the WiFi, that one is a certainty. The check still works from here.</p>
+  <div class="fchk needs-js">
+    <form class="fchk-form" id="fchk" action="/airlines/" method="get" role="search">
+      <label class="fchk-lb" for="fchk-q">Flight number, or airline</label>
+      <div class="fchk-row">
+        <input class="fchk-in" id="fchk-q" name="q" type="search" list="fchk-air" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="search" placeholder="UA212 · AS15 · Qatar" aria-describedby="fchk-hint">
+        <button class="btn fchk-go" type="submit">Check the odds →</button>
+      </div>
+      <datalist id="fchk-air"><option value="airBaltic"></option><option value="JSX"></option><option value="ZIPAIR"></option><option value="Air France"></option><option value="WestJet"></option><option value="Hawaiian"></option><option value="Qatar Airways"></option><option value="Alaska"></option><option value="jetBlue"></option><option value="SAS"></option><option value="American"></option><option value="Delta"></option><option value="United"></option><option value="Virgin Atlantic"></option><option value="Emirates"></option><option value="Air Canada"></option><option value="Southwest"></option><option value="British Airways"></option></datalist>
+      <p class="fchk-hint" id="fchk-hint">Any flight number works: <b>UA212</b>, <b>AS15</b>, <b>AA1234</b>. An airline name works too. The answer comes from our own daily-verified data and the card names the method it used. No account, nothing stored.</p>
+    </form>
+    <div class="fchk-out" id="fchk-out" role="status" aria-live="polite"></div>
+  </div>
+  <div class="fchk-nojs no-js-only">
+    <p class="fchk-hint">The live check needs JavaScript. Pick your airline instead. Every page below carries the same ConnectScore, the method behind it, and how much to trust it.</p>
+    <div class="fchk-links"><a class="pill" href="/airlines/airbaltic/" data-name="airBaltic" data-code="BT">airBaltic <b>100</b></a><a class="pill" href="/airlines/jsx/" data-name="JSX" data-code="XE">JSX <b>100</b></a><a class="pill" href="/airlines/zipair/" data-name="ZIPAIR" data-code="ZG">ZIPAIR <b>100</b></a><a class="pill" href="/airlines/airfrance/" data-name="Air France" data-code="AF">Air France <b>80</b></a><a class="pill" href="/airlines/westjet/" data-name="WestJet" data-code="WS">WestJet <b>79</b></a><a class="pill" href="/airlines/hawaiian/" data-name="Hawaiian" data-code="HA">Hawaiian <b>64</b></a><a class="pill" href="/airlines/qatar/" data-name="Qatar Airways" data-code="QR">Qatar Airways <b>61</b></a><a class="pill" href="/airlines/alaska/" data-name="Alaska" data-code="AS">Alaska <b>55</b></a><a class="pill" href="/airlines/jetblue/" data-name="jetBlue" data-code="B6">jetBlue <b>55</b></a><a class="pill" href="/airlines/sas/" data-name="SAS" data-code="SK">SAS <b>52</b></a><a class="pill" href="/airlines/american/" data-name="American" data-code="AA">American <b>51</b></a><a class="pill" href="/airlines/delta/" data-name="Delta" data-code="DL">Delta <b>49</b></a><a class="pill" href="/airlines/united/" data-name="United" data-code="UA">United <b>48</b></a><a class="pill" href="/airlines/virginatlantic/" data-name="Virgin Atlantic" data-code="VS">Virgin Atlantic <b>39</b></a><a class="pill" href="/airlines/emirates/" data-name="Emirates" data-code="EK">Emirates <b>31</b></a><a class="pill" href="/airlines/aircanada/" data-name="Air Canada" data-code="AC">Air Canada <b>18</b></a><a class="pill" href="/airlines/southwest/" data-name="Southwest" data-code="WN">Southwest <b>16</b></a><a class="pill" href="/airlines/britishairways/" data-name="British Airways" data-code="BA">British Airways <b>15</b></a></div>
+    <p class="fchk-hint"><a href="/airlines/">All 18 airlines, ranked →</a> · <a href="/methodology/">How we know →</a></p>
+  </div>
+  <p class="footnote" style="margin-top:1.4rem"><a href="/airlines/">The board, all 18 airlines</a> · <a href="/airlines/united/">United, the deepest page here</a> · <a href="/methodology/">How every number was derived</a></p>
 </header>
 
-<footer>
+<footer class="site">
   <div class="flinks"><a href="/airlines/">Airlines</a><a href="/race/">The Race</a><a href="/systems/">Systems</a><a href="/united/">United</a><a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a><a href="/methodology/">Methodology</a><a href="/api/docs/">API</a><a href="/privacy.html">Privacy</a><a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Open source ↗</a></div>
   <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> · <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> (independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>
-  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension. The only thing stored in your browser is your light/dark choice. See the <a href="/privacy.html">privacy policy</a>.</div>
-  <div class="frow">Data updated <b>2026-07-25</b>. ConnectScores and per-flight odds are historical estimates, not guarantees. Aircraft assignments change until departure. WiFi Odds is an unofficial, free, open-source project. 🛰️</div>
+  <div class="frow">Data updated <b>2026-07-25</b>. ConnectScores and per-flight odds are historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</div>
+  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension, and nothing is stored in your browser. What the server keeps is on the <a href="/privacy.html">privacy page</a>.</div>
+  <div class="frow">The page follows your system’s light or dark setting. The switch in the header lasts until you reload, and nothing about your choice is stored.</div>
 </footer>
 </div>
-<script src="/assets/site.js?v=5eddb0b4" defer></script>
+<script src="/assets/flightcheck.js" defer></script>
+<script>(function(){var r=document.documentElement,b=document.getElementById("themetoggle");if(!b)return;function p(){b.textContent=r.classList.contains("dark")?"Light mode":"Dark mode";}b.hidden=false;p();b.addEventListener("click",function(){var d=r.classList.contains("dark");r.classList.toggle("dark",!d);r.classList.toggle("light",d);p();});})();</script>
+<script src="/assets/site.js?v=caed77a1" defer></script>
 </body>
 </html>

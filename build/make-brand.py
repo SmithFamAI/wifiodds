@@ -1,34 +1,46 @@
 #!/usr/bin/env python3
-"""build/make-brand.py — the two binary assets, and where they come from.
+"""build/make-brand.py — the binary assets, and where they come from.
 
-    python3 build/make-brand.py fonts    # assets/b612*.woff2
+    python3 build/make-brand.py fonts    # assets/serif-400.woff2, serif-700.woff2
     python3 build/make-brand.py og       # assets/og.png
     python3 build/make-brand.py all
 
 OPT-IN TOOLING. This is not part of `node build/prerender.js` and it must never
-be: it downloads fonts and rasterises a 1200x630 PNG, and the daily build has to
+be: it downloads a font and rasterises a 1200x630 PNG, and the daily build has to
 stay fast and offline-safe. Run it by hand when the mark or the typeface changes,
 commit the output, and that is the last time the network is involved. Nothing the
 browser loads comes from anywhere but wifiodds.com.
 
     pip3 install fonttools brotli pillow
 
-FONTS. B612 is the typeface Airbus commissioned for cockpit display legibility,
-released under the SIL Open Font License. The four faces are fetched from Google's
-CDN (which is where the upstream project publishes builds), subset to Latin plus
-the punctuation and symbols the site actually uses, and written as woff2 to
-assets/. The licence travels with them in assets/B612-OFL.txt, which the OFL
-requires. About 53 KB for all four.
+FONTS. Two faces, one family, about 38 KB. Source Serif 4 (Frank Grießhammer,
+Adobe, SIL Open Font License) carries the speaking voice: headings, the
+say-sentence, the wordmark and every large figure. The reporting voice — tables,
+labels, provenance, micro-caps — stays on system-ui, which costs nothing and is
+already hinted for the reader's own OS at the 12 to 14px sizes that voice lives
+at. The reasoning is written out at the top of assets/site.css.
 
-The UNICODES list below was not guessed. It is Latin, plus the characters found by
-counting every non-ASCII codepoint in the built HTML. If you add a glyph to the
-copy and it renders in a fallback face, that is what this list is missing.
+The upstream file is a two-axis variable font (wght 200-900, opsz 8-60). It is
+instanced here to two static weights rather than shipped variable: 38 KB across
+two files against 49 KB for one variable file, with real 400 and 700 outlines
+instead of interpolated ones. The optical size is pinned per weight, 14 for the
+400 that sets the say-sentence and 20 for the 700 that sets headings.
 
-OG IMAGE. The waffle mark at 1200x630 on plate charcoal, drawn from the same
-tokens as assets/site.css. Deliberately dateless: an OG image is cached by every
-scraper that ever saw it, so a date baked into one is a promise the file cannot
-keep. The date lives in the plate strip on the page, where it is regenerated
-daily.
+Source Serif's default figures are already tabular — all ten digits measure 529
+units — so a numeral does not change width when it changes value, which is the
+one thing the old B612 Mono was carrying. Nothing on the site needs a mono
+webfont to keep that, and the licence travels in assets/SourceSerif4-OFL.txt as
+the OFL requires.
+
+The UNICODES list below was not guessed. It is Latin, plus the characters found
+by counting every non-ASCII codepoint in the built HTML. If you add a glyph to
+the copy and it renders in a fallback face, that is what this list is missing.
+
+OG IMAGE. The paper ground, the sky rule and the orbit mark, drawn from the same
+tokens as assets/site.css and set in the same Source Serif that the page uses.
+Deliberately dateless: an OG image is cached by every scraper that ever saw it,
+so a date baked into one is a promise the file cannot keep. The date lives in the
+masthead on the page, where it is regenerated daily.
 """
 
 import io
@@ -39,14 +51,19 @@ import urllib.request
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ASSETS = os.path.join(ROOT, 'assets')
 
-# Google Fonts CSS API resolves these; pinned so a run is reproducible.
+# The OFL upstream, pinned to a path rather than a release tag so a rerun is
+# reproducible against whatever google/fonts main holds. Re-run and re-commit
+# when you want a newer cut; never fetch at build time.
+SRC = ('https://raw.githubusercontent.com/google/fonts/main/ofl/sourceserif4/'
+       'SourceSerif4%5Bopsz%2Cwght%5D.ttf')
+OFL = 'https://raw.githubusercontent.com/google/fonts/main/ofl/sourceserif4/OFL.txt'
+
+# name -> (opsz, wght). opsz is pinned per weight: the 400 sets running text at
+# 16 to 19px, the 700 sets headings from 20px to 48px.
 FACES = {
-    'b612-400':      'https://fonts.gstatic.com/s/b612/v13/3JnySDDxiSz32jk.ttf',
-    'b612-700':      'https://fonts.gstatic.com/s/b612/v13/3Jn9SDDxiSz34oWXPDA.ttf',
-    'b612mono-400':  'https://fonts.gstatic.com/s/b612mono/v16/kmK_Zq85QVWbN1eW6lJl1w.ttf',
-    'b612mono-700':  'https://fonts.gstatic.com/s/b612mono/v16/kmK6Zq85QVWbN1eW6lJdayv4og.ttf',
+    'serif-400': (14, 400),
+    'serif-700': (20, 700),
 }
-OFL = 'https://raw.githubusercontent.com/google/fonts/main/ofl/b612/OFL.txt'
 
 UNICODES = ','.join([
     'U+0020-007E', 'U+00A0-00FF', 'U+0131', 'U+0152-0153', 'U+02C6', 'U+02DC',
@@ -54,50 +71,67 @@ UNICODES = ','.join([
     'U+2010', 'U+2013-2014', 'U+2018-201A', 'U+201C-201E',     # dashes and quotes
     'U+2020-2022', 'U+2026', 'U+2030', 'U+2032-2033', 'U+2039-203A',
     'U+2044', 'U+2074', 'U+20AC', 'U+2122',
-    'U+2190-2199', 'U+21D5',                                    # arrows, incl. the sort glyph
+    'U+2190-2199', 'U+21C4-21C5', 'U+21CC', 'U+21D5',           # arrows, incl. the sort glyph
     'U+2212', 'U+221A', 'U+221E', 'U+2248', 'U+2260', 'U+2264-2265',
-    'U+25CE', 'U+25CF', 'U+2605', 'U+26A0', 'U+2708', 'U+2713',
+    'U+25B2', 'U+25BC', 'U+25BE', 'U+25CE', 'U+25CF', 'U+2605', 'U+2713',
     'U+FB01-FB02', 'U+FFFD',
 ])
-FEATURES = 'kern,liga,tnum,zero,ccmp'
+# tnum and lnum are kept even though the defaults are already lining and
+# tabular, so that a font-variant-numeric declaration has something to bind to.
+FEATURES = 'kern,liga,ccmp,calt,case,tnum,lnum'
+BUDGET = 60 * 1024
 
-# the plate tokens, straight from assets/site.css :root
-BG = (0x0a, 0x0c, 0x0d)
-PANEL = (0x0f, 0x12, 0x14)
-INK = (0xe9, 0xec, 0xec)
-INK2 = (0xa3, 0xac, 0xb0)
-INK3 = (0x6a, 0x73, 0x77)
-RULE = (0x21, 0x28, 0x29)
-RULE2 = (0x35, 0x3e, 0x41)
-GOOD = (0x3f, 0xcf, 0x8e)
+# the Fable tokens, straight from assets/site.css :root
+PAPER = (0xfb, 0xf8, 0xf2)
+PANEL = (0xf4, 0xee, 0xe2)
+INK = (0x29, 0x24, 0x1c)
+INK_SOFT = (0x44, 0x3d, 0x32)
+MUTED = (0x6e, 0x65, 0x57)
+LINE = (0xe3, 0xda, 0xca)
+SKY = (0x2d, 0x5a, 0x7d)
+SKY_DEEP = (0x22, 0x45, 0x5f)
+SKY_FG = (0xe9, 0xf1, 0xf7)
+GOOD = (0x1e, 0x7a, 0x46)
+MIXED = (0xa0, 0x64, 0x00)
+LONG = (0xa8, 0x4b, 0x2f)
 
 
 def fetch(url):
     req = urllib.request.Request(url, headers={'User-Agent': 'wifiodds-build/1'})
-    return urllib.request.urlopen(req, timeout=30).read()
+    return urllib.request.urlopen(req, timeout=60).read()
 
 
 def build_fonts():
     from fontTools import subset
-    total = 0
-    for name, url in FACES.items():
-        src = os.path.join('/tmp', name + '.ttf')
+    from fontTools.ttLib import TTFont
+    from fontTools.varLib import instancer
+
+    src = os.path.join('/tmp', 'sourceserif4-vf.ttf')
+    if not os.path.exists(src):
         with open(src, 'wb') as fh:
-            fh.write(fetch(url))
+            fh.write(fetch(SRC))
+
+    total = 0
+    for name, (opsz, wght) in sorted(FACES.items()):
+        vf = TTFont(src)
+        instancer.instantiateVariableFont(vf, {'opsz': opsz, 'wght': wght}, inplace=True)
+        pinned = os.path.join('/tmp', name + '-static.ttf')
+        vf.save(pinned)
         out = os.path.join(ASSETS, name + '.woff2')
         subset.main([
-            src, '--unicodes=' + UNICODES, '--layout-features=' + FEATURES,
+            pinned, '--unicodes=' + UNICODES, '--layout-features=' + FEATURES,
             '--flavor=woff2', '--no-hinting', '--desubroutinize',
             '--notdef-outline', '--output-file=' + out,
         ])
         size = os.path.getsize(out)
         total += size
-        print('  %-16s %6d bytes' % (os.path.basename(out), size))
-    with open(os.path.join(ASSETS, 'B612-OFL.txt'), 'wb') as fh:
+        print('  %-18s %6d bytes  (opsz %d, wght %d)' % (
+            os.path.basename(out), size, opsz, wght))
+    with open(os.path.join(ASSETS, 'SourceSerif4-OFL.txt'), 'wb') as fh:
         fh.write(fetch(OFL))
     print('  total %d bytes (%.1f KB)' % (total, total / 1024.0))
-    if total > 60 * 1024:
-        print('  OVER BUDGET. 60 KB is the ceiling for all four faces.')
+    if total > BUDGET:
+        print('  OVER BUDGET. 60 KB is the ceiling for the whole family.')
         return 1
     return 0
 
@@ -114,52 +148,70 @@ def ttf_for_pillow(face):
     return buf
 
 
+def orbit_mark(size, colour):
+    """The mark: an orbit ring at -22 degrees, a body on the ring's centre and a
+    satellite on the ring. Same drawing as the favicon and the masthead, and the
+    only picture this site has. Drawn oversampled and rotated, because Pillow
+    cannot stroke a rotated ellipse directly."""
+    from PIL import Image, ImageDraw
+    s = size * 4
+    layer = Image.new('RGBA', (s, s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    cx = cy = s / 2.0
+    rx, ry = s * 0.344, s * 0.144           # 11/32 and 4.6/32, as the SVG has it
+    d.ellipse([cx - rx, cy - ry, cx + rx, cy + ry], outline=colour + (255,),
+              width=max(2, int(s * 0.0625)))
+    layer = layer.rotate(22, resample=Image.BICUBIC, center=(cx, cy))
+    d = ImageDraw.Draw(layer)
+    r = s * 0.1625                           # 5.2/32
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=colour + (255,))
+    sx, sy, sr = s * 0.819, s * 0.372, s * 0.072
+    d.ellipse([sx - sr, sy - sr, sx + sr, sy + sr], fill=colour + (255,))
+    return layer.resize((size, size), Image.LANCZOS)
+
+
 def build_og():
     from PIL import Image, ImageDraw, ImageFont
     W, H = 1200, 630
-    img = Image.new('RGB', (W, H), BG)
+    img = Image.new('RGB', (W, H), PAPER)
     d = ImageDraw.Draw(img)
 
-    disp = ImageFont.truetype(ttf_for_pillow('b612-700'), 58)
-    mono = ImageFont.truetype(ttf_for_pillow('b612mono-700'), 21)
-    monol = ImageFont.truetype(ttf_for_pillow('b612mono-400'), 19)
-    sub = ImageFont.truetype(ttf_for_pillow('b612-400'), 31)
+    # Every page opens on a rule of sky. So does the card.
+    d.rectangle([0, 0, W, 13], fill=SKY_DEEP)
 
-    M = 64                       # the plate margin
-    d.rectangle([M, M, W - M, H - M], outline=RULE2, width=1)
-    for y in range(M, H - M, 26):  # the ticked margin, same as .wrap::before
-        d.line([M + 3, y, M + 3, y + 1], fill=RULE2)
-        d.line([W - M - 3, y, W - M - 3, y + 1], fill=RULE2)
+    disp = ImageFont.truetype(ttf_for_pillow('serif-700'), 66)
+    wm = ImageFont.truetype(ttf_for_pillow('serif-700'), 34)
+    sub = ImageFont.truetype(ttf_for_pillow('serif-400'), 30)
+    lab = ImageFont.truetype(ttf_for_pillow('serif-700'), 20)
+    fig = ImageFont.truetype(ttf_for_pillow('serif-700'), 62)
 
-    # header strip, the same fields as the strip on every page minus the date
-    d.line([M, M + 62, W - M, M + 62], fill=RULE2)
-    d.text((M + 34, M + 26), 'WIFI ODDS  ·  CONNECTSCORE  ·  AMDT DAILY', font=mono, fill=INK2)
+    M = 76
+    mark = orbit_mark(44, SKY)
+    img.paste(mark, (M, 74), mark)
+    d.text((M + 58, 76), 'WiFi Odds', font=wm, fill=INK)
+    d.line([M, 142, W - M, 142], fill=LINE, width=1)
 
-    # the waffle, right column: 10 x 12 cells, the bottom two rows and part of a
-    # third lit. Same picture as the favicon and the header lockup, at poster
-    # size. The column rule to its left is the fold, not decoration.
-    cols, rows, cell, gap = 10, 12, 22, 7
-    span = cols * (cell + gap) - gap
-    gx = W - M - 34 - span
-    gy = M + 62 + (H - M - (M + 62) - (rows * (cell + gap) - gap)) // 2
-    lit_from = rows - 2
-    for r in range(rows):
-        for c in range(cols):
-            x = gx + c * (cell + gap)
-            y = gy + r * (cell + gap)
-            lit = r >= lit_from or (r == lit_from - 1 and c < 4)
-            d.rectangle([x, y, x + cell, y + cell], fill=GOOD if lit else PANEL)
-            if not lit:
-                d.rectangle([x, y, x + cell, y + cell], outline=RULE, width=1)
-    d.line([gx - 44, M + 62, gx - 44, H - M], fill=RULE)
-    d.text((gx, gy - 32), 'LIT CELLS ARE FLYING', font=monol, fill=INK3)
+    d.text((M, 186), 'Will your flight have', font=disp, fill=INK)
+    d.text((M, 262), 'WiFi that works?', font=disp, fill=INK)
+    d.text((M, 372), '18 airlines scored, one number each,', font=sub, fill=INK_SOFT)
+    d.text((M, 412), 'and the method that produced it.', font=sub, fill=INK_SOFT)
 
-    d.text((M + 34, M + 122), 'Will your flight', font=disp, fill=INK)
-    d.text((M + 34, M + 190), 'have WiFi that', font=disp, fill=INK)
-    d.text((M + 34, M + 258), 'works?', font=disp, fill=INK)
-    d.text((M + 34, M + 346), '18 airlines scored, one', font=sub, fill=INK2)
-    d.text((M + 34, M + 386), 'number each, and the', font=sub, fill=INK2)
-    d.text((M + 34, M + 426), 'method that produced it.', font=sub, fill=INK2)
+    # The bands, right column: the three colours this site is allowed to spend on
+    # a number, each wearing its own word. Nothing decorative is tinted.
+    bx = W - M - 250
+    d.line([bx - 54, 186, bx - 54, H - 96], fill=LINE, width=1)
+    for i, (val, word, col) in enumerate((('88', 'good', GOOD),
+                                          ('48', 'mixed', MIXED),
+                                          ('12', 'long shot', LONG))):
+        y = 190 + i * 96
+        d.text((bx, y), val, font=fig, fill=col)
+        d.text((bx + 106, y + 26), word, font=lab, fill=col)
+    d.text((bx, 190 + 3 * 96 + 6), 'ConnectScore, 0 to 100', font=lab, fill=MUTED)
+
+    d.rectangle([0, H - 52, W, H], fill=PANEL)
+    d.line([0, H - 52, W, H - 52], fill=LINE, width=1)
+    d.text((M, H - 38), 'Every figure names its source and its date.',
+           font=lab, fill=MUTED)
 
     out = os.path.join(ASSETS, 'og.png')
     img.save(out, 'PNG', optimize=True)

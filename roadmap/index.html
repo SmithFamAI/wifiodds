@@ -3,65 +3,77 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<script>(function(){var r=document.documentElement;r.classList.add("js");try{var t=localStorage.getItem("woTheme");if(t==="light"||t==="dark")r.setAttribute("data-theme",t);}catch(e){}})();</script>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230a0c0d'/%3E%3Cg fill='%23444d50'%3E%3Crect x='2' y='2' width='2.5' height='2.5'/%3E%3Crect x='2' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='2' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='9' y='2' width='2.5' height='2.5'/%3E%3Crect x='9' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='2' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='9' width='2.5' height='2.5'/%3E%3Crect x='9' y='9' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='9' width='2.5' height='2.5'/%3E%3C/g%3E%3Cg fill='%233fcf8e'%3E%3Crect x='2' y='9' width='2.5' height='2.5'/%3E%3Crect x='2' y='12.5' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='12.5' width='2.5' height='2.5'/%3E%3Crect x='9' y='12.5' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='12.5' width='2.5' height='2.5'/%3E%3C/g%3E%3C/svg%3E">
-<title>What’s next for WiFi Odds</title>
-<meta name="description" content="Tail-swap Guardian, more airlines in rollout order, a PWA — and the free public ConnectScore API, which is live now. No dates promised.">
+<script>(function(){var r=document.documentElement;r.classList.add("js");try{r.classList.add(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");}catch(e){}})();</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2322455f'/%3E%3Cellipse cx='16' cy='16' rx='11' ry='4.6' fill='none' stroke='%23fff' stroke-width='2' transform='rotate(-22 16 16)'/%3E%3Ccircle cx='16' cy='16' r='5.2' fill='%23fff'/%3E%3Ccircle cx='26.2' cy='11.9' r='2.3' fill='%23fff'/%3E%3C/svg%3E">
+<title>WiFi Odds roadmap — what shipped, and what has not</title>
+<meta name="description" content="Shipped with dates: the extension, the public ConnectScore API, the fenced projected score, the per-tail rollout archive. Ahead, with what each one is waiting on: extension v2.0.0, Tail-swap Guardian, the next instrumented airline.">
 <link rel="canonical" href="https://wifiodds.com/roadmap/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="WiFi Odds">
-<meta property="og:title" content="What’s next for WiFi Odds">
-<meta property="og:description" content="Tail-swap Guardian, more airlines in rollout order, a PWA — and the free public ConnectScore API, which is live now. No dates promised.">
+<meta property="og:title" content="WiFi Odds roadmap — what shipped, and what has not">
+<meta property="og:description" content="Shipped with dates: the extension, the public ConnectScore API, the fenced projected score, the per-tail rollout archive. Ahead, with what each one is waiting on: extension v2.0.0, Tail-swap Guardian, the next instrumented airline.">
 <meta property="og:url" content="https://wifiodds.com/roadmap/">
-<meta property="og:image" content="https://wifiodds.com/assets/og.png?v=3">
+<meta property="og:image" content="https://wifiodds.com/assets/og.png?v=fa82ae75">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="WiFi Odds — know before you book">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="What’s next for WiFi Odds">
-<meta name="twitter:description" content="Tail-swap Guardian, more airlines in rollout order, a PWA — and the free public ConnectScore API, which is live now. No dates promised.">
-<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=3">
-<link rel="preload" href="/assets/b612-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/assets/b612mono-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=2ff10b77">
+<meta name="twitter:title" content="WiFi Odds roadmap — what shipped, and what has not">
+<meta name="twitter:description" content="Shipped with dates: the extension, the public ConnectScore API, the fenced projected score, the per-tail rollout archive. Ahead, with what each one is waiting on: extension v2.0.0, Tail-swap Guardian, the next instrumented airline.">
+<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=fa82ae75">
+<link rel="preload" href="/assets/serif-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/serif-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=d2a06f32">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://wifiodds.com/"},{"@type":"ListItem","position":2,"name":"Roadmap","item":"https://wifiodds.com/roadmap/"}]}</script>
 </head>
 <body>
+<header class="site">
+  <div class="wrap masthead">
+    <a class="wordmark" href="/"><svg class="mk" viewBox="0 0 32 32" width="17" height="17" aria-hidden="true" focusable="false"><ellipse cx="16" cy="16" rx="11" ry="4.6" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(-22 16 16)"/><circle cx="16" cy="16" r="5.2" fill="currentColor"/><circle cx="26.2" cy="11.9" r="2.3" fill="currentColor"/></svg>WiFi&nbsp;Odds</a>
+    <nav aria-label="Main">
+      <a href="/airlines/">Airlines</a>
+      <a href="/race/">The Race</a>
+      <a href="/roadmap/" aria-current="page">Roadmap</a>
+      <a class="cta" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Extension</a>
+    </nav>
+    <button class="themetoggle" id="themetoggle" type="button" hidden
+      title="Follows your system setting by default. The switch lasts until you reload; nothing is stored."></button>
+    <div class="datechip">Inflight WiFi as a forecast · figures checked daily · this build <b>25 Jul 2026</b></div>
+  </div>
+</header>
 <div class="wrap">
-<div class="topbar">
-  <a class="mark" href="/"><span class="glyph" aria-hidden="true"><svg width="26" height="17" viewBox="0 0 26 17" aria-hidden="true" focusable="false"><g fill="currentColor" opacity=".55"><rect x="0" y="0" width="3" height="3"/><rect x="0" y="4.6" width="3" height="3"/><rect x="4.6" y="0" width="3" height="3"/><rect x="4.6" y="4.6" width="3" height="3"/><rect x="9.2" y="0" width="3" height="3"/><rect x="9.2" y="4.6" width="3" height="3"/><rect x="13.8" y="0" width="3" height="3"/><rect x="13.8" y="4.6" width="3" height="3"/><rect x="18.4" y="0" width="3" height="3"/><rect x="18.4" y="4.6" width="3" height="3"/><rect x="23" y="0" width="3" height="3"/><rect x="23" y="4.6" width="3" height="3"/><rect x="4.6" y="9.2" width="3" height="3"/><rect x="9.2" y="9.2" width="3" height="3"/><rect x="13.8" y="9.2" width="3" height="3"/><rect x="18.4" y="9.2" width="3" height="3"/><rect x="23" y="9.2" width="3" height="3"/></g><g fill="var(--good)"><rect x="0" y="9.2" width="3" height="3"/><rect x="0" y="13.8" width="3" height="3"/><rect x="4.6" y="13.8" width="3" height="3"/><rect x="9.2" y="13.8" width="3" height="3"/><rect x="13.8" y="13.8" width="3" height="3"/><rect x="18.4" y="13.8" width="3" height="3"/><rect x="23" y="13.8" width="3" height="3"/></g></svg></span><span class="wm">WiFi Odds</span></a>
-  <p class="stripmeta">ConnectScore · Data eff <b>25 JUL 2026</b> · Amdt daily</p>
-  <nav class="topnav" aria-label="Main">
-    <a href="/airlines/">Airlines</a>
-    <a href="/race/">The Race</a>
-    <a href="/roadmap/" aria-current="page">Roadmap</a>
-    <a class="cta" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Get the extension</a>
-  </nav>
-  <button class="tt" type="button" aria-label="Switch theme" title="Switch theme">☽</button>
-</div>
 <nav class="crumb" aria-label="Breadcrumb"><a href="/">Home</a><span class="sep">→</span><span aria-current="page">Roadmap</span></nav>
 <header class="hero" style="padding-top:18px">
-  <h1 class="ph">What’s next for WiFi Odds</h1>
-  <p class="lede">Everything below is either built, being built, or labelled as neither. The ordering is by usefulness, not by how impressive it sounds in a changelog.</p>
+  <span class="kicker">The roadmap</span>
+  <h1 class="ph">What has shipped, and what has not</h1>
+  <p class="lede">The one page here about this project instead of about an airline. Shipped things carry the date they can be checked against. The rest carry the date they entered the state they are in, a confidence word, and the thing they are actually waiting on.</p>
 </header>
 
 <section class="blk">
-<div class="steps rm"><div class="step building rv"><div class="sh"><h3>Tail-swap Guardian</h3><span class="st">building</span></div><p>Watches your booked flight for equipment swaps, booking to boarding. Prototype built; ships with extension 2.1.</p></div><div class="step building rv"><div class="sh"><h3>More airlines, in rollout order</h3><span class="st">building</span></div><p>Hawaiian next, which has the best US Starlink odds at 42 of 66, then the near-complete fleets: WestJet, Air France, airBaltic, JSX. Each gets the United treatment as instrumentation lands.</p></div><div class="step planned rv"><div class="sh"><h3>PWA</h3><span class="st">planned</span></div><p>Installable, offline ConnectScores, and push notifications for Guardian alerts.</p></div><div class="step shipped rv"><div class="sh"><h3>Public ConnectScore API</h3><span class="st">shipped</span></div><p>Live now: <code>GET /api/airlines</code>, <code>GET /api/airlines/qatar</code> and <code>GET /api/score/UA212</code>. Free, no key, CORS open, credits in every response body. <a href="/api/docs/">Read the API docs →</a></p></div><div class="step shipped rv"><div class="sh"><h3>The rollout archive</h3><span class="st">shipped</span></div><p>The daily install history grows into the industry’s rollout record; every new airline inherits its priors.</p></div></div>
-  <p class="note" style="margin-top:20px">No dates promised. Built by one person and a very patient AI.</p>
+  <span class="kicker">Shipped</span>
+  <div class="steps rm"><div class="step shipped rv"><div class="sh"><h3>Extension v1.5.1</h3><span class="st">shipped</span><span class="micro">24 Jul 2026</span></div><p>Odds badges and a one-click odds sort on united.com and app.navan.com, plus the route panel. The date and the coverage are read off the Chrome Web Store listing body, not off the repository manifest, which is already at 2.0.0.</p></div><div class="step shipped rv"><div class="sh"><h3>The public ConnectScore API</h3><span class="st">shipped</span><span class="micro">live in this build, 25 Jul 2026</span></div><p>Answering today: <code>GET /api/airlines</code>, <code>GET /api/airlines/qatar</code> and <code>GET /api/score/UA212</code>. No key, CORS open, credits in every response body. <a href="/api/docs/">The docs →</a></p></div><div class="step shipped rv"><div class="sh"><h3>The projected score, fenced</h3><span class="st">shipped</span><span class="micro">live in this build, 25 Jul 2026</span></div><p>A fourth number for carriers that have signed and published an aircraft count, under five rules a build tripwire checks on the bytes that ship. 19 fenced units shipped in this build. <a href="/methodology/#projected">The rules →</a></p></div><div class="step shipped rv"><div class="sh"><h3>The rollout archive</h3><span class="st">shipped</span><span class="micro">live in this build, 25 Jul 2026</span></div><p>One row per United tail, one date per install, running since the first install day on record. It is the only public per-tail archive of an inflight WiFi rollout, and every airline instrumented after this one inherits its priors. <a href="/united/fleet/">The floor →</a></p></div></div>
+
+  <span class="kicker" style="margin-top:2rem">Ahead</span>
+  <div class="steps rm"><div class="step building rv"><div class="sh"><h3>Extension v2.0.0</h3><span class="st">SOFT</span><span class="micro">in this state since 24 Jul 2026</span></div><p>alaskaair.com and Google Flights behind permissions you grant yourself, and every ConnectScore in the popup.</p><p class="micro" style="margin-top:.5rem">Waiting on: Chrome Web Store review. Submitted 24 Jul 2026; the queue is not ours to date.</p></div><div class="step building rv"><div class="sh"><h3>Tail-swap Guardian</h3><span class="st">SOFT</span><span class="micro">in this state since 24 Jul 2026</span></div><p>Watches a booked flight for an equipment swap between booking and boarding.</p><p class="micro" style="margin-top:.5rem">Waiting on: Extension 2.1, which follows 2.0.0 out of review. Built and in test, in no store build.</p></div><div class="step building rv"><div class="sh"><h3>The next instrumented airline</h3><span class="st">SOFT</span><span class="micro">in this state since 1 Jul 2026</span></div><p>Hawaiian is next on the list: the highest next-gen share of any US carrier, and already tail-verified.</p><p class="micro" style="margin-top:.5rem">Waiting on: A per-flight history to count. Verified tails are not enough on their own — that is the difference between tier A and tier B, and it is the whole reason Alaska stops at the sub-fleet.</p></div></div>
+
+  <p class="footnote" style="margin-top:1.4rem">No row above carries a horizon date, and that is deliberate. The extension items are queued behind a Chrome Web Store review nobody here schedules, and the instrumentation item lands when a tracker publishes a per-flight history. The airlines on this site are fenced by the rule that a projection with no date gets no chip, and the same rule applies to me. <a href="/methodology/#projected">The five rules →</a></p>
 </section>
 
 <section class="blk">
-  <div class="sec-h"><h2>Already shipped</h2></div>
-  <div class="grid3"><div class="card rv"><h3>The route optimizer</h3><p>57 cached United routes, every flight ranked by live Starlink odds, connection-aware.</p><a class="go" href="/united/">Open it →</a></div><div class="card rv"><h3>The hangar floor</h3><p>All 481 equipped tails, the 176-day install archive, and the full registry.</p><a class="go" href="/united/fleet/">Open it →</a></div><div class="card rv"><h3>18 ConnectScores</h3><p>One number per airline, recomputed on every build, quotable with credit.</p><a class="go" href="/airlines/">Open it →</a></div></div>
+  <span class="kicker">Live now</span>
+  <h2>The three things you can open today</h2>
+  <div class="grid3"><div class="card rv"><h3>The route optimizer</h3><p>57 cached United routes, every departure ranked by its own Starlink history, connection-aware.</p><a class="go" href="/united/">Open it →</a></div><div class="card rv"><h3>The hangar floor</h3><p>All 481 equipped tails, the 176-day install archive, and the full registry.</p><a class="go" href="/united/fleet/">Open it →</a></div><div class="card rv"><h3>18 ConnectScores</h3><p>One number per airline, recomputed on every build, quotable with credit.</p><a class="go" href="/airlines/">Open it →</a></div></div>
 </section>
 
-<p class="src"><span class="cls">Reported</span> Fleet and per-tail verification for United, Alaska and Hawaiian: unitedstarlinktracker.com and alaskastarlinktracker.com (@martinamps), 25 JUL 2026. Every other airline from public airline announcements, Jul 2026. <a href="/methodology/#credit">Full credit and citation →</a></p><footer>
+<p class="src"><span class="cls">Reported</span> Fleet and per-tail verification for United, Alaska and Hawaiian: unitedstarlinktracker.com and alaskastarlinktracker.com (@martinamps), 25 JUL 2026. Every other airline from public airline announcements, Jul 2026. <a href="/methodology/#credit">Full credit and citation →</a></p><footer class="site">
   <div class="flinks"><a href="/airlines/">Airlines</a><a href="/race/">The Race</a><a href="/systems/">Systems</a><a href="/united/">United</a><a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a><a href="/methodology/">Methodology</a><a href="/api/docs/">API</a><a href="/privacy.html">Privacy</a><a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Open source ↗</a></div>
   <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> · <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> (independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>
-  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension. The only thing stored in your browser is your light/dark choice. See the <a href="/privacy.html">privacy policy</a>.</div>
-  <div class="frow">Data updated <b>2026-07-25</b>. ConnectScores and per-flight odds are historical estimates, not guarantees. Aircraft assignments change until departure. WiFi Odds is an unofficial, free, open-source project. 🛰️</div>
+  <div class="frow">Data updated <b>2026-07-25</b>. ConnectScores and per-flight odds are historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</div>
+  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension, and nothing is stored in your browser. What the server keeps is on the <a href="/privacy.html">privacy page</a>.</div>
+  <div class="frow">The page follows your system’s light or dark setting. The switch in the header lasts until you reload, and nothing about your choice is stored.</div>
 </footer>
 </div>
-<script src="/assets/site.js?v=5eddb0b4" defer></script>
+<script>(function(){var r=document.documentElement,b=document.getElementById("themetoggle");if(!b)return;function p(){b.textContent=r.classList.contains("dark")?"Light mode":"Dark mode";}b.hidden=false;p();b.addEventListener("click",function(){var d=r.classList.contains("dark");r.classList.toggle("dark",!d);r.classList.toggle("light",d);p();});})();</script>
+<script src="/assets/site.js?v=caed77a1" defer></script>
 </body>
 </html>

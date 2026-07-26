@@ -4,62 +4,67 @@
      The day log is still client-rendered from data.json (a 176-day list of pills
      baked into the HTML would roughly double the page for no reader benefit), so
      everything below the filter row sits inside .needs-js and there is a real
-     no-JS answer next to it. Nothing here is rounded and nothing lifts. */
-  .wrap{max-width:900px}
+     no-JS answer next to it.
 
-  /* the type filter row. Same grammar as .filters in site.css: hairline boxes
-     butted together with a -1px margin, inverted when the filter is on. The JS
-     writes <span class="f">, not <button>, so the rules are duplicated rather
-     than inherited. Do not rename .f — assets are not involved, this page's own
+     THE FORECAST, on this page: this is a reference page and it is allowed to be
+     dry, but dry is not the same as monospaced. The labels here are the sans —
+     the reporting voice — because that is what the tables on every other page
+     use, and --mono is reserved for what is literally code. The tail numbers and
+     dates are tabular sans, which is a font-variant, not a font. */
+  .wrap{max-width:58rem}
+
+  /* the type filter row. Same grammar as .filters in site.css. The JS writes
+     <span class="f">, not <button>, so the rules are duplicated rather than
+     inherited. Do not rename .f — assets are not involved, this page's own
      script reads it. */
-  .controls{display:flex;flex-wrap:wrap;gap:0;margin:16px 0 4px}
-  .controls .f{font:700 10px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;
-    color:var(--ink-2);cursor:pointer;padding:8px 11px;border:1px solid var(--rule);
-    margin-left:-1px;user-select:none;white-space:nowrap}
-  .controls .f:hover{color:var(--ink);background:var(--bg-inset)}
-  .controls .f.on{color:var(--bg);background:var(--ink);border-color:var(--ink)}
+  .controls{display:flex;flex-wrap:wrap;gap:.4rem;margin:1rem 0 .3rem}
+  .controls .f{font:inherit;font-size:.82rem;color:var(--ink-soft);cursor:pointer;
+    padding:.3rem .7rem;border:1px solid var(--line);border-radius:99px;
+    user-select:none;white-space:nowrap}
+  .controls .f:hover{border-color:var(--muted)}
+  .controls .f.on{color:var(--btn-fg);background:var(--btn-bg);border-color:var(--btn-bg)}
 
-  #stat{margin:10px 0 18px}
+  #stat{margin:.7rem 0 1.1rem}
 
-  /* one ruled row per update day. A day is a record, so it gets a rule, not a
-     card: no radius, no shadow, no hover lift. The current day is marked in the
-     margin the way a plate marks the row it wants read, and the mark is grey
-     because "most recent" is not a score. */
-  .clog-days{display:grid;gap:0;border-top:1px solid var(--rule-2);padding-bottom:12px}
-  .cday{background:transparent;border:0;border-bottom:1px solid var(--rule);padding:15px 0 15px 14px;
-    position:relative}
-  .cday:before{content:"";position:absolute;left:0;top:15px;bottom:15px;width:1px;
-    background:var(--rule)}
-  .cday.today{background:var(--bg-panel);padding-left:14px}
-  .cday.today:before{background:var(--ink-2);width:3px}
-  .cday-top{display:flex;align-items:baseline;gap:8px 14px;flex-wrap:wrap;margin-bottom:4px}
-  .cday-date{font-family:var(--mono);font-weight:700;font-size:14.5px;color:var(--ink);
-    letter-spacing:.02em}
-  .cday-eq{font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
+  /* one ruled row per update day. A day is a record, so it gets a rule and a
+     tick in the margin rather than a card of its own. The tick is ink, because
+     "most recent" is a position in a list and not a score. */
+  .clog-days{display:grid;gap:0;border-top:1px solid var(--line);padding-bottom:.8rem}
+  .cday{background:transparent;border:0;border-bottom:1px solid var(--line-soft);
+    padding:.95rem 0 .95rem .9rem;position:relative}
+  .cday:before{content:"";position:absolute;left:0;top:.95rem;bottom:.95rem;width:1px;
+    background:var(--line)}
+  .cday.today{background:var(--panel);border-radius:var(--r-sm)}
+  .cday.today:before{background:var(--muted-strong);width:3px}
+  .cday-top{display:flex;align-items:baseline;gap:.5rem .9rem;flex-wrap:wrap;margin-bottom:.25rem}
+  .cday-date{font-weight:700;font-size:.95rem;color:var(--ink);
+    font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+  .cday-eq{font-size:.82rem;color:var(--ink-soft);
+    font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
   .cday-eq .up{color:var(--good);font-weight:700}
-  .cday-eq .flat{color:var(--ink-3)}
-  .cday-rows{display:grid;gap:0;margin-top:8px;border-top:1px solid var(--rule)}
-  .crow{display:flex;gap:12px;font-size:13.5px;align-items:flex-start;line-height:1.5;
-    padding:8px 0;border-bottom:1px solid var(--rule)}
+  .cday-eq .flat{color:var(--muted)}
+  .cday-rows{display:grid;gap:0;margin-top:.55rem;border-top:1px solid var(--line-soft)}
+  .crow{display:flex;gap:.8rem;font-size:.88rem;align-items:flex-start;line-height:1.5;
+    padding:.5rem 0;border-bottom:1px solid var(--line-soft)}
   .crow:last-child{border-bottom:0}
-  .crow .k{flex:0 0 120px;font:700 9.5px/1.6 var(--mono);letter-spacing:.14em;
-    text-transform:uppercase;color:var(--ink-3);padding-top:3px}
+  .crow .k{flex:0 0 7.5rem;font-size:.72rem;font-weight:600;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);padding-top:.2rem}
   .crow .v{flex:1;min-width:0}
-  .cday-steady{color:var(--ink-3);font-size:13px;font-family:var(--mono);letter-spacing:.03em}
+  .cday-steady{color:var(--muted);font-size:.86rem}
   @media(max-width:560px){
-    .crow{flex-direction:column;gap:2px}
+    .crow{flex-direction:column;gap:.15rem}
     .crow .k{flex:none}
   }
 </style>
 <!--@body-->
-<header class="hero" style="padding:22px 0 4px">
-  <p class="micro">United · Install archive</p>
+<header class="hero">
+  <span class="kicker">United · Install archive</span>
   <h1 class="ph">Every day of the United rollout</h1>
   <p class="lede">Newest first: which aircraft types and tail numbers went live on each date, plus
   the route-frequency and odds movements for the days a snapshot exists.
   <b data-bake="united.days">176</b> install days and <b data-bake="united.tails">481</b> equipped
   tails, back to <b data-bake="united.first">Mar 14, 2025</b>.</p>
-  <div class="cta-row" style="margin-top:16px">
+  <div class="cta-row">
     <a class="btn ghost" href="/united/fleet/">The hangar floor and full registry</a>
     <a class="btn ghost" href="/united/">Route optimizer</a>
   </div>

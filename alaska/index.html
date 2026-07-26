@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<script>(function(){var r=document.documentElement;r.classList.add("js");try{var t=localStorage.getItem("woTheme");if(t==="light"||t==="dark")r.setAttribute("data-theme",t);}catch(e){}})();</script>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230a0c0d'/%3E%3Cg fill='%23444d50'%3E%3Crect x='2' y='2' width='2.5' height='2.5'/%3E%3Crect x='2' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='2' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='9' y='2' width='2.5' height='2.5'/%3E%3Crect x='9' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='2' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='9' width='2.5' height='2.5'/%3E%3Crect x='9' y='9' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='9' width='2.5' height='2.5'/%3E%3C/g%3E%3Cg fill='%233fcf8e'%3E%3Crect x='2' y='9' width='2.5' height='2.5'/%3E%3Crect x='2' y='12.5' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='12.5' width='2.5' height='2.5'/%3E%3Crect x='9' y='12.5' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='12.5' width='2.5' height='2.5'/%3E%3C/g%3E%3C/svg%3E">
+<script>(function(){var r=document.documentElement;r.classList.add("js");try{r.classList.add(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");}catch(e){}})();</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2322455f'/%3E%3Cellipse cx='16' cy='16' rx='11' ry='4.6' fill='none' stroke='%23fff' stroke-width='2' transform='rotate(-22 16 16)'/%3E%3Ccircle cx='16' cy='16' r='5.2' fill='%23fff'/%3E%3Ccircle cx='26.2' cy='11.9' r='2.3' fill='%23fff'/%3E%3C/svg%3E">
 <title>WiFi Odds · Alaska — Starlink rollout &amp; ConnectScore</title>
 <meta name="description" content="Alaska Airlines’ Starlink rollout: 99 of 350 aircraft equipped (28%), the E175 regional fleet complete, mainline just starting. ConnectScore 55/100, free for everyone onboard, and per-flight odds on alaskaair.com. Fleet data from alaskastarlinktracker.com.">
 <link rel="canonical" href="https://wifiodds.com/alaska/">
@@ -13,57 +13,76 @@
 <meta property="og:title" content="WiFi Odds · Alaska — Starlink rollout &amp; ConnectScore">
 <meta property="og:description" content="Alaska Airlines’ Starlink rollout: 99 of 350 aircraft equipped (28%), the E175 regional fleet complete, mainline just starting. ConnectScore 55/100, free for everyone onboard, and per-flight odds on alaskaair.com. Fleet data from alaskastarlinktracker.com.">
 <meta property="og:url" content="https://wifiodds.com/alaska/">
-<meta property="og:image" content="https://wifiodds.com/assets/og.png?v=3">
+<meta property="og:image" content="https://wifiodds.com/assets/og.png?v=fa82ae75">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="WiFi Odds — know before you book">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="WiFi Odds · Alaska — Starlink rollout &amp; ConnectScore">
 <meta name="twitter:description" content="Alaska Airlines’ Starlink rollout: 99 of 350 aircraft equipped (28%), the E175 regional fleet complete, mainline just starting. ConnectScore 55/100, free for everyone onboard, and per-flight odds on alaskaair.com. Fleet data from alaskastarlinktracker.com.">
-<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=3">
-<link rel="preload" href="/assets/b612-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/assets/b612mono-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=2ff10b77">
+<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=fa82ae75">
+<link rel="preload" href="/assets/serif-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/serif-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=d2a06f32">
 <style>
   /* Page-scoped only. Every number marked data-bake is rewritten by
      build/prerender.js from assets/airlines.js, so this page can never disagree
      with the leaderboard, and it is correct on disk with the build never run.
 
      Layout, rules, type and colour all come from /assets/site.css. What is left
-     here is the size of the one big numeral and the two-column split under the
-     score, because neither belongs in a shared component. */
-  /* The label sits OUTSIDE the baked element on purpose: tmpl.js replaces the
+     here is the size of the one big numeral and the rule that gives it its band.
+
+     The label sits OUTSIDE the baked element on purpose: tmpl.js replaces the
      whole inner content of a data-bake node, so a <small> nested inside .big
      would be silently eaten at build time. */
   .sbscore{flex:none}
-  .scorebox .big{font-size:54px;font-weight:700;line-height:.95;letter-spacing:-.03em;
+  .scorebox .big{font-size:3.4rem;font-weight:700;line-height:.95;letter-spacing:-.03em;
     color:var(--band)}
-  .sbscore .micro{margin-top:9px}
+  .sbscore .micro{margin-top:.55rem}
   .scorebox .m{max-width:52ch}
-  .fleetnote{font-size:13px;color:var(--ink-2);max-width:74ch;margin-top:12px}
-  .fleetnote b{color:var(--ink)}
-  @media(max-width:430px){.scorebox .big{font-size:44px}}
+  @media(max-width:430px){.scorebox .big{font-size:2.8rem}}
+
+  /* ── THE SCORE WEARS ITS BAND, and this is how it reaches it ──────────────
+     The bands own every number, so the 55 must take the same colour as its own
+     band pill. site.css sets `--band` from a .sc-* class on an ANCESTOR, and it
+     falls back to plain ink with `.scorebox:not([class*="sc-"])` when there is
+     no such class — which is the case here, because the only thing on this page
+     that knows the band is the pill, and the pill is baked in as a descendant
+     (`P.bandChip()` emits one of the four .sc-* classes inside .sbmid).
+
+     Rather than invent a fifth bake key in build/lib/render.js, which this file
+     does not own, the box reads the class its own child arrived wearing. These
+     four rules match site.css's fallback at (0,2,0) and win on document order,
+     because a page-scoped <style> is emitted after site.css. If a fifth band is
+     ever added to pages.js band(), add its line here or the number goes ink. */
+  .scorebox:has(.sc-good){--band:var(--good)}
+  .scorebox:has(.sc-mix) {--band:var(--mixed)}
+  .scorebox:has(.sc-long){--band:var(--long)}
+  .scorebox:has(.sc-no)  {--band:var(--zero)}
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does Alaska have Starlink WiFi?","acceptedAnswer":{"@type":"Answer","text":"Yes — the whole E175 regional fleet plus the ex-Hawaiian widebodies carry Starlink, with the mainline 737 fleet only just starting. Alaska’s ConnectScore reflects the share of the combined fleet that is equipped."}},{"@type":"Question","name":"Is Alaska’s WiFi free?","acceptedAnswer":{"@type":"Answer","text":"Yes — where Starlink is installed it is free for everyone onboard, with no loyalty program, tier or purchase required."}},{"@type":"Question","name":"How many Alaska planes have Starlink?","acceptedAnswer":{"@type":"Answer","text":"99 of 350 (28%), verified tail by tail by alaskastarlinktracker.com (@martinamps), an independent community tracker."}}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://wifiodds.com/"},{"@type":"ListItem","position":2,"name":"Airlines","item":"https://wifiodds.com/airlines/"},{"@type":"ListItem","position":3,"name":"Alaska","item":"https://wifiodds.com/alaska/"}]}</script>
 </head>
 <body>
+<header class="site">
+  <div class="wrap masthead">
+    <a class="wordmark" href="/"><svg class="mk" viewBox="0 0 32 32" width="17" height="17" aria-hidden="true" focusable="false"><ellipse cx="16" cy="16" rx="11" ry="4.6" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(-22 16 16)"/><circle cx="16" cy="16" r="5.2" fill="currentColor"/><circle cx="26.2" cy="11.9" r="2.3" fill="currentColor"/></svg>WiFi&nbsp;Odds <em>· Alaska</em></a>
+    <nav aria-label="Main">
+      <a href="/airlines/">Airlines</a>
+      <a href="/race/">The Race</a>
+      <a href="/roadmap/">Roadmap</a>
+      <a class="cta" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Extension</a>
+    </nav>
+    <button class="themetoggle" id="themetoggle" type="button" hidden
+      title="Follows your system setting by default. The switch lasts until you reload; nothing is stored."></button>
+    <div class="datechip">Inflight WiFi as a forecast · figures checked daily · this build <b>25 Jul 2026</b></div>
+  </div>
+</header>
 <div class="wrap">
-<div class="topbar">
-  <a class="mark" href="/"><span class="glyph" aria-hidden="true"><svg width="26" height="17" viewBox="0 0 26 17" aria-hidden="true" focusable="false"><g fill="currentColor" opacity=".55"><rect x="0" y="0" width="3" height="3"/><rect x="0" y="4.6" width="3" height="3"/><rect x="4.6" y="0" width="3" height="3"/><rect x="4.6" y="4.6" width="3" height="3"/><rect x="9.2" y="0" width="3" height="3"/><rect x="9.2" y="4.6" width="3" height="3"/><rect x="13.8" y="0" width="3" height="3"/><rect x="13.8" y="4.6" width="3" height="3"/><rect x="18.4" y="0" width="3" height="3"/><rect x="18.4" y="4.6" width="3" height="3"/><rect x="23" y="0" width="3" height="3"/><rect x="23" y="4.6" width="3" height="3"/><rect x="4.6" y="9.2" width="3" height="3"/><rect x="9.2" y="9.2" width="3" height="3"/><rect x="13.8" y="9.2" width="3" height="3"/><rect x="18.4" y="9.2" width="3" height="3"/><rect x="23" y="9.2" width="3" height="3"/></g><g fill="var(--good)"><rect x="0" y="9.2" width="3" height="3"/><rect x="0" y="13.8" width="3" height="3"/><rect x="4.6" y="13.8" width="3" height="3"/><rect x="9.2" y="13.8" width="3" height="3"/><rect x="13.8" y="13.8" width="3" height="3"/><rect x="18.4" y="13.8" width="3" height="3"/><rect x="23" y="13.8" width="3" height="3"/></g></svg></span><span class="wm">WiFi Odds <em>· Alaska</em></span></a>
-  <p class="stripmeta">ConnectScore · Data eff <b>25 JUL 2026</b> · Amdt daily</p>
-  <nav class="topnav" aria-label="Main">
-    <a href="/airlines/">Airlines</a>
-    <a href="/race/">The Race</a>
-    <a href="/roadmap/">Roadmap</a>
-    <a class="cta" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Get the extension</a>
-  </nav>
-  <button class="tt" type="button" aria-label="Switch theme" title="Switch theme">☽</button>
-</div>
-<nav class="subnav" aria-label="Alaska pages"><span class="sn-air">Alaska ·</span><a class="sn-tab" href="/airlines/alaska/">Overview</a><a class="sn-tab" href="/alaska/" aria-current="page">Rollout</a><a class="sn-back" href="/airlines/">All airlines →</a></nav>
+<nav class="subnav" aria-label="Alaska pages"><span class="sn-air">Alaska</span><a class="sn-tab" href="/airlines/alaska/">Overview</a><a class="sn-tab" href="/alaska/" aria-current="page">Rollout</a><a class="sn-back" href="/airlines/">All airlines →</a></nav>
 <nav class="crumb" aria-label="Breadcrumb"><a href="/">Home</a><span class="sep">→</span><a href="/airlines/">Airlines</a><span class="sep">→</span><a href="/airlines/alaska/">Alaska</a><span class="sep">→</span><span aria-current="page">Rollout</span></nav>
-<header class="hero" style="padding:22px 0 4px">
-  <p class="micro">Alaska Airlines · Starlink rollout</p>
+<header class="hero">
+  <span class="kicker">Alaska Airlines · Starlink rollout</span>
   <h1 class="ph">Alaska is finishing its regional fleet first</h1>
   <p class="lede">Where Starlink is fitted, Alaska gives it away: <b>free for everyone onboard</b>,
   with no loyalty programme, no status tier and no purchase. The rollout runs aircraft by aircraft,
@@ -108,7 +127,7 @@ tracker.</span></div>
     <div class="stat done">
       <div class="n" style="font-size:21px">Complete</div>
       <div class="l">E175 regional fleet</div>
-      <div class="d">Every Embraer E175 is fitted, so a regional flight is close to a sure thing.</div>
+      <div class="d">Every Embraer E175 is fitted — a regional flight is close to a sure thing.</div>
     </div>
     <div class="stat early">
       <div class="n">7<small> / 258</small></div>
@@ -127,19 +146,27 @@ tracker.</span></div>
   read <span data-bake="site.updated">2026-07-25</span>. The 7-of-258 mainline figure and the
   ex-Hawaiian status come from the same roster on the same date.</p>
 
-  <div class="tbl-shell" style="margin-top:20px">
+  <div class="tbl-shell tablescroll" style="margin-top:1.3rem">
     <table class="tbl">
       <thead><tr><th>Fleet</th><th class="num">Starlink status</th><th>What that means when you book</th></tr></thead>
       <tbody>
         <tr><td><b>E175 (regional)</b></td><td class="num">Complete</td>
           <td>Regional-jet routes carry the best Starlink odds in the network.</td></tr>
         <tr><td><b>737 (mainline)</b></td><td class="num">7 of 258</td>
-          <td>Treat mainline as unlikely for now and check the specific flight.</td></tr>
+          <td>Treat mainline as unlikely for now and check the scheduled type.</td></tr>
         <tr><td><b>A330 / A321neo (ex-Hawaiian)</b></td><td class="num">Equipped</td>
           <td>Long-haul and Hawaii flying on these tails is already covered.</td></tr>
       </tbody>
     </table>
   </div>
+  <p class="footnote" style="margin-top:1rem">What Alaska's record supports is a claim about an
+  aircraft type, not about the jet you end up on. The airline publishes the scheduled type for a
+  departure, and nobody publishes which registration flies it, so the strongest thing this page can
+  say is that an E175 is fitted and a mainline 737 probably is not.
+  <a href="/united/">The United page</a> can name a tail because the tracker there checks tails.
+  This one cannot, and a per-flight number worked up from a type would read exactly like a real
+  one.</p>
+
   <div class="caveat">Aircraft assignments change until departure, so any of this can flip on the
   day. ConnectScore is the chance of drawing the <b>good</b> system: the legacy satellite service on
   the unconverted part of the fleet earns almost nothing. Nobody publishes per-tail install dates
@@ -164,7 +191,7 @@ tracker.</span></div>
       <a class="btn" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Add to Chrome, free ↗</a>
       <a class="btn ghost" href="/united/">The full United toolkit</a>
     </div>
-    <p class="note" style="margin-top:12px">alaskaair.com access is optional and stays off until you
+    <p class="note" style="margin-top:.8rem">alaskaair.com access is optional and stays off until you
     turn it on, which keeps the install prompt small. Alaska badges appear once you grant it.</p>
   </div>
   <p class="src"><span class="cls">Reported</span> Store listing body for the shipped build, read
@@ -189,18 +216,21 @@ tracker.</span></div>
       <span data-bake="site.updated">2026-07-25</span>.</p></div>
     <div class="q"><h3>Which Alaska flight should I book for wifi?</h3>
       <p>A regional flight on an E175 if the schedule offers one, because that sub-fleet is finished.
-      On mainline, check the specific tail at T-48h. Aircraft assignments publish about two days out
-      and they still change after that.</p></div>
+      On mainline, check the scheduled aircraft type before you book and again the day before. That
+      is weaker than the United answer and it is weaker for a reason: nobody publishes which tail
+      flies which Alaska departure, so the type is as far as the record goes.</p></div>
   </div>
 </section>
 
-<footer>
+<footer class="site">
   <div class="flinks"><a href="/airlines/">Airlines</a><a href="/race/">The Race</a><a href="/systems/">Systems</a><a href="/united/">United</a><a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a><a href="/methodology/">Methodology</a><a href="/api/docs/">API</a><a href="/privacy.html">Privacy</a><a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Open source ↗</a></div>
   <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> · <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> (independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>
-  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension. The only thing stored in your browser is your light/dark choice. See the <a href="/privacy.html">privacy policy</a>.</div>
-  <div class="frow">Data updated <b>2026-07-25</b>. ConnectScores and per-flight odds are historical estimates, not guarantees. Aircraft assignments change until departure. WiFi Odds is an unofficial, free, open-source project. 🛰️</div>
+  <div class="frow">Data updated <b>2026-07-25</b>. ConnectScores and per-flight odds are historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</div>
+  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension, and nothing is stored in your browser. What the server keeps is on the <a href="/privacy.html">privacy page</a>.</div>
+  <div class="frow">The page follows your system’s light or dark setting. The switch in the header lasts until you reload, and nothing about your choice is stored.</div>
 </footer>
 </div>
-<script src="/assets/site.js?v=5eddb0b4" defer></script>
+<script>(function(){var r=document.documentElement,b=document.getElementById("themetoggle");if(!b)return;function p(){b.textContent=r.classList.contains("dark")?"Light mode":"Dark mode";}b.hidden=false;p();b.addEventListener("click",function(){var d=r.classList.contains("dark");r.classList.toggle("dark",!d);r.classList.toggle("light",d);p();});})();</script>
+<script src="/assets/site.js?v=caed77a1" defer></script>
 </body>
 </html>

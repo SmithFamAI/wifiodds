@@ -113,11 +113,16 @@ function paceBars(m) {
       (w.partial ? '<text class="ax" x="' + r1(xx + bw / 2) + '" y="' + (HT - 4) +
         '" text-anchor="middle">partial</text>' : '');
   });
+  /* A bar here is a COUNT of installs, so it wears the band, flat, from
+     `.viz .bar{fill:var(--band)}` in assets/site.css. This function used to emit
+     a <linearGradient id="pacegrad"> in sky and brand and fill the bars from it.
+     Two things were wrong with that and only one of them was the gradient: the
+     sky is chrome and does not paint numbers, and the site has no gradients at
+     all. The def went unreferenced the moment the stylesheet took the fill over,
+     so it is deleted rather than left as a temptation. */
   return '<svg class="viz" viewBox="0 0 ' + W + ' ' + HT + '" role="img" aria-label="Installs per week ' +
     'for the last 10 weeks: ' + m.weeks.map(function (w) { return w.n; }).join(', ') + '">' +
-    '<defs><linearGradient id="pacegrad" x1="0" y1="0" x2="0" y2="1">' +
-    '<stop offset="0" stop-color="var(--sky)"/><stop offset="1" stop-color="var(--brand)"/>' +
-    '</linearGradient></defs>' + bars + labs + '</svg>';
+    bars + labs + '</svg>';
 }
 
 /* ── §3.3 Hangar Floor waffle ───────────────────────────────────────────── */

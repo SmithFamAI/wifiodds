@@ -1,66 +1,74 @@
 <!--@head-->
 <style>
-  /* Page-scoped only. Every colour, every rule weight and every type size comes
-     from the tokens in /assets/site.css. What is here is the reading measure and
-     one list shape: a ruled row per item, which is the plate's answer to a
-     bulleted list. Radius stays 0 and nothing lifts on hover. */
-  .wrap{max-width:820px}
-  .pol p{color:var(--ink-2);font-size:15px;max-width:72ch}
-  .pol p+p{margin-top:11px}
+  /* Page-scoped only. Every colour, rule weight and type size comes from the
+     tokens in /assets/site.css. What is here is the reading measure, one list
+     shape, and the permission table.
+
+     THE FORECAST, on this page: the reading measure is narrow because the whole
+     page is prose a reader has to be able to check, sentence by sentence, against
+     a config file. Labels are the sans, the same reporting voice the tables use.
+     The one monospace left is the permission column, and it earns it: those
+     strings are literal manifest keys, which is what --mono is reserved for. */
+  .wrap{max-width:52rem}
+  .pol p{color:var(--ink-soft);font-size:var(--fs-body);max-width:44rem}
+  .pol p+p{margin-top:.7rem}
   .pol b{color:var(--ink);font-weight:700}
-  .pol a{color:inherit}
-  .rows{list-style:none;margin:15px 0 0;display:grid;gap:0;
-    border-top:1px solid var(--rule-2)}
-  .rows li{position:relative;font-size:14.5px;color:var(--ink-2);
-    padding:11px 0 11px 24px;border-bottom:1px solid var(--rule)}
-  .rows li:before{content:"";position:absolute;left:3px;top:19px;
-    width:7px;height:7px;background:var(--ink-3)}
+  .rows{list-style:none;margin:1rem 0 0;display:grid;gap:0;
+    border-top:1px solid var(--line)}
+  .rows li{position:relative;font-size:var(--fs-small);color:var(--ink-soft);
+    padding:.75rem 0 .75rem 1.3rem;border-bottom:1px solid var(--line-soft);max-width:46rem}
+  .rows li:before{content:"";position:absolute;left:.1rem;top:1.2rem;
+    width:.4rem;height:.4rem;border-radius:50%;background:var(--muted)}
   .rows li b{color:var(--ink);font-weight:700}
-  /* the permission table stays a table down to 390px, inside .tscroll */
-  table.perms{width:100%;border-collapse:collapse;min-width:520px}
-  table.perms th,table.perms td{text-align:left;padding:9px 14px 9px 0;font-size:14px;
-    border-bottom:1px solid var(--rule);vertical-align:top}
-  table.perms thead th{font:700 9.5px/1.35 var(--mono);letter-spacing:.14em;
-    text-transform:uppercase;color:var(--ink-3);border-bottom:1px solid var(--rule-2)}
-  table.perms td.mono{font-family:var(--mono);font-size:13px;color:var(--ink);
+  /* the permission table stays a table down to 390px, inside .tablescroll */
+  table.perms{width:100%;border-collapse:collapse;min-width:30rem}
+  table.perms th,table.perms td{text-align:left;padding:.55rem .9rem .55rem 0;
+    font-size:var(--fs-small);border-bottom:1px solid var(--line-soft);vertical-align:top}
+  table.perms thead th{font-size:.72rem;font-weight:600;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--ink)}
+  table.perms td.mono{font-family:var(--mono);font-size:.82rem;color:var(--ink);
     white-space:nowrap}
 </style>
 <!--@body-->
-<header class="hero pol" style="padding:26px 0 4px">
-  <p class="micro">WiFi Odds · Policy</p>
+<header class="hero pol">
+  <span class="kicker">Policy</span>
   <h1 class="ph">Privacy policy</h1>
   <p class="lede">This covers the <b>WiFi Odds for Flights</b> browser extension and the
-  <b>wifiodds.com</b> website. Effective <b>24 Jul 2026</b>. Earlier versions stay in the
+  <b>wifiodds.com</b> website. Effective <b>25 Jul 2026</b>. Earlier versions stay in the
   public git history of the repository linked at the foot of this page.</p>
 </header>
 
-<div class="kv kv-2" style="margin-top:22px">
+<div class="kv" style="margin-top:1.4rem">
   <div><p class="micro">Accounts</p><span class="v">0</span></div>
   <div><p class="micro">Cookies set</p><span class="v">0</span></div>
   <div><p class="micro">Analytics scripts</p><span class="v">0</span></div>
-  <div><p class="micro">Off-origin requests from a page</p><span class="v">0</span></div>
+  <div><p class="micro">Pages that call another origin</p><span class="v">1<small>of 30</small></span></div>
 </div>
 
-<div class="plate-box ticked pol" style="margin-top:18px;padding:18px 20px">
-  <p class="micro">The short version</p>
-  <p style="margin-top:9px">No accounts. No analytics. No advertising. No cookies. Nothing about
-  you is sold or shared. The extension's only outbound calls are anonymous route and flight-number
-  lookups to two public community trackers. The one thing this site ever writes to your browser is
-  your light or dark preference, under the key <b>woTheme</b>.</p>
+<div class="callout pol" style="margin-top:1.2rem">
+  <span class="kicker">The short version</span>
+  <p>No accounts, no cookies, no analytics, no advertising, and nothing about you is sold or passed
+  on. Two things do leave your browser and both are named below. The extension asks two public
+  community trackers for odds. One page here, the <a href="/united/">United route optimizer</a>, asks
+  one of those trackers to plan a route while you are looking at it, and keeps the answer in your
+  browser for six hours so it does not ask twice. The other 29 pages are prerendered and call
+  nothing.</p>
 </div>
 
 <section class="blk pol">
-  <div class="sec-h"><span class="sub">§1 · The product</span><h2>What the extension does</h2></div>
+  <span class="kicker">§1 · The product</span>
+  <h2>What the extension does</h2>
   <p>It shows the historical probability that a given flight is operated by an aircraft carrying
   modern high-speed satellite wifi, meaning Starlink or Amazon Leo, rather than legacy service. The
   odds appear as colour-coded badges on airline search results and as a ConnectScore in the popup.</p>
 </section>
 
 <section class="blk pol">
-  <div class="sec-h"><span class="sub">§2 · Collection</span><h2>Nothing personal is collected</h2></div>
-  <p>The extension and this website do not collect, store, transmit, sell or share personal
-  information. There are no analytics, no tracking pixels, no accounts, no sign-in, and no server of
-  ours that receives your data. The list below is the complete set of things that happen.</p>
+  <span class="kicker">§2 · The extension</span>
+  <h2>Nothing personal is collected</h2>
+  <p>The extension does not collect, store, transmit, sell or share personal information. There are
+  no analytics, no tracking pixels, no accounts, no sign-in, and no server of mine that receives
+  anything you do. The list below is the complete set of things that happen.</p>
   <ul class="rows">
     <li><b>Reading pages, locally.</b> On a flight search at <b>united.com</b>, <b>alaskaair.com</b>
     or <b>Navan</b>, the extension reads the routes and flight numbers already displayed on the page
@@ -83,27 +91,85 @@
 </section>
 
 <section class="blk pol">
-  <div class="sec-h"><span class="sub">§3 · Intake</span><h2>Field reports you send us</h2></div>
-  <p>This site has one form. It sits on the
-  <a href="/methodology/">methodology page</a>, it posts to <b>/api/report</b>, and it asks what you
-  flew, when you flew it, and what your speed test read. There is no account step and no email
-  field, so a report is the only thing that arrives.</p>
+  <span class="kicker">§3 · The website</span>
+  <h2>What wifiodds.com does</h2>
+  <p>wifiodds.com is a static site on Cloudflare Pages. It sets no cookies, runs no analytics and
+  embeds no third-party script. Fonts are served from this origin. Cloudflare processes standard
+  short-lived request logs as the hosting provider, which I neither read nor keep.</p>
+  <p>Almost every page is prerendered, so it arrives holding its numbers and fetches nothing while
+  you read it. The exception is the route optimizer, and it is a real one.</p>
+</section>
+
+<section class="blk pol" id="offorigin">
+  <span class="kicker">§4 · The exception</span>
+  <h2>The United route optimizer calls another site</h2>
+  <p><a href="/united/">/united/</a> ranks the flights on a city pair, and the ranking comes from
+  somebody else's data. Opening that page makes your browser send three requests to
+  <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a>,
+  and picking a different route sends three more. The requests happen at the moment you look, not at
+  build time, so the tracker sees them.</p>
+  <ul class="rows">
+    <li><b>What is sent.</b> Two three-letter airport codes, and a row limit. That is the whole
+    payload: no date, no name, no flight you booked, no fare, nothing typed anywhere else on the
+    site. The page loads on DEN to SFO by default, so the first pair goes out before you have typed
+    anything.</li>
+    <li><b>What the tracker can see anyway.</b> Your IP address and your browser's user-agent
+    string, as any host sees on any request. What they do with that is their policy, not mine.</li>
+    <li><b>What is kept in your browser.</b> The answer, under a localStorage key of the form
+    <b>usl2:DEN-SFO</b>, one key per route, holding the flight list and routings the tracker
+    returned and the time it answered. It is reused for six hours so the same lookup is not
+    requested twice, and it is ignored after that. Nothing in it describes you. Clearing site data
+    for wifiodds.com removes it.</li>
+    <li><b>The round-trip builder looks up the return leg too</b>, so a page visit usually writes two
+    keys rather than one.</li>
+  </ul>
+  <p style="margin-top:1rem">To avoid the call entirely, do not open that page. The same United
+  material is prerendered and calls nothing: <a href="/united/fleet/">the hangar floor and full
+  tail registry</a>, <a href="/united/history/">the day-by-day install archive</a>, and
+  <a href="/airlines/united/">the United score page</a> with the arithmetic on it. Blocking scripts
+  on wifiodds.com also stops it, and the optimizer says as much on its own no-script notice.</p>
+  <p class="src"><span class="cls">Reported</span> Read off the page's own source on 25 Jul 2026:
+  one GET to <b>/api/plan-route</b> and two JSON-RPC calls to <b>/mcp</b>, per direction.</p>
+</section>
+
+<section class="blk pol" id="storage">
+  <span class="kicker">§5 · Storage</span>
+  <h2>What this site writes to your browser</h2>
+  <p>One thing, and only on the page above: the optimizer's route cache described in §4. No cookie
+  is set on any page, and there is no session storage, no fingerprinting and no advertising
+  identifier anywhere on the site.</p>
+  <p>The light and dark switch in the header stores nothing at all. It holds your choice in a class
+  on the page until you reload, and then the page goes back to following your operating system. An
+  earlier version of this site kept that choice under a localStorage key called <b>woTheme</b>. That
+  key is gone, along with the script that read it, and a policy that still described it was wrong
+  until this revision.</p>
+</section>
+
+<section class="blk pol" id="intake">
+  <span class="kicker">§6 · Intake</span>
+  <h2>Field reports you send me</h2>
+  <p>The report form at the foot of the airline pages posts to <b>/api/report</b>. It asks what you
+  flew, when you flew it, which system was onboard and what it did. The longer version on the
+  <a href="/methodology/#field">methodology page</a> also takes a speed and a latency reading. There
+  is no account step and no email field on either, so the report is the only thing that arrives.</p>
   <p>Something has to stop one connection filing a thousand rows, and a captcha cannot do it here:
   Turnstile, reCAPTCHA and hCaptcha are all third-party scripts, which this site does not load. The
   cap is server-side instead. Your network address goes into a SHA-256 digest along with a secret
-  salt and the current UTC hour, and the digest is what gets stored. The address itself is hashed in
-  memory. It is never written down, never logged and never sent back to you.</p>
-  <p>Because the hour is part of the input, the digest changes on the hour. Two hours of submissions
-  from one connection cannot be joined to each other. Five reports per digest per hour is the limit.
-  No cookie is set and nothing is measured about your browser.</p>
+  salt and the current UTC hour, and the digest is what gets stored beside the report. The address
+  itself is hashed in memory. It is never written down, never logged and never sent back to you.</p>
+  <p>Because the hour is part of the input, the digest changes on the hour, and a stored one stops
+  matching anything about an hour after it was written. Two hours of submissions from one connection
+  cannot be joined to each other. Five reports per digest per hour is the limit. No cookie is set,
+  no captcha is served, and nothing is measured about your browser.</p>
   <p>Every submission lands unpublished and a person reads it before it appears on the site. The
   only thing about you that can ever be published is the name or handle you type into the credit
   box, and that box can be left empty.</p>
 </section>
 
 <section class="blk pol">
-  <div class="sec-h"><span class="sub">§4 · Permissions</span><h2>Every permission, and the reason for it</h2></div>
-  <div class="tscroll">
+  <span class="kicker">§7 · Permissions</span>
+  <h2>Every permission, and the reason for it</h2>
+  <div class="tablescroll">
     <table class="perms">
       <thead><tr><th>Permission</th><th>Why the extension asks</th></tr></thead>
       <tbody>
@@ -124,31 +190,27 @@
 </section>
 
 <section class="blk pol">
-  <div class="sec-h"><span class="sub">§5 · The website</span><h2>What wifiodds.com does</h2></div>
-  <p>wifiodds.com is a static site on Cloudflare Pages. It sets no cookies, runs no analytics and
-  embeds no third-party script. Every page is prerendered, so the pages hold their numbers rather
-  than fetching them. The fonts are served from this origin. Cloudflare processes standard
-  short-lived request logs as the hosting provider, and we neither read nor keep them.</p>
-</section>
-
-<section class="blk pol">
-  <div class="sec-h"><span class="sub">§6 · Children</span><h2>Data from children</h2></div>
+  <span class="kicker">§8 · Children</span>
+  <h2>Data from children</h2>
   <p>The extension and the site are general-audience tools that collect no personal data from
   anyone, so they collect none from children.</p>
 </section>
 
 <section class="blk pol">
-  <div class="sec-h"><span class="sub">§7 · Revisions</span><h2>When this policy changes</h2></div>
+  <span class="kicker">§9 · Revisions</span>
+  <h2>When this policy changes</h2>
   <p>The effective date at the top changes with it, and the version it replaced stays in the public
-  git history of the repository below.</p>
+  git history of the repository below. This revision corrected two things: the storage claim in §5,
+  and the missing account of the optimizer's outbound calls in §4.</p>
 </section>
 
 <section class="blk pol">
-  <div class="sec-h"><span class="sub">§8 · Affiliation</span><h2>Who runs this</h2></div>
+  <span class="kicker">§10 · Affiliation</span>
+  <h2>Who runs this</h2>
   <p>WiFi Odds is an unofficial, free, open-source hobby project
   (<a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">source code</a>).
   It is not affiliated with, endorsed by or sponsored by United Airlines, Alaska Airlines, any other
-  airline, Navan, SpaceX/Starlink, Amazon, Viasat, or the community trackers whose data it credits.</p>
+  airline, Navan, SpaceX/Starlink, Amazon, Viasat, or the trackers whose data it credits.</p>
   <p>Questions go on the
   <a href="https://github.com/jeremyinthebay/united-starlink-companion/issues" target="_blank" rel="noopener">issue tracker</a>.</p>
 </section>

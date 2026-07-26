@@ -5,23 +5,39 @@
      with the leaderboard, and it is correct on disk with the build never run.
 
      Layout, rules, type and colour all come from /assets/site.css. What is left
-     here is the size of the one big numeral and the two-column split under the
-     score, because neither belongs in a shared component. */
-  /* The label sits OUTSIDE the baked element on purpose: tmpl.js replaces the
+     here is the size of the one big numeral and the rule that gives it its band.
+
+     The label sits OUTSIDE the baked element on purpose: tmpl.js replaces the
      whole inner content of a data-bake node, so a <small> nested inside .big
      would be silently eaten at build time. */
   .sbscore{flex:none}
-  .scorebox .big{font-size:54px;font-weight:700;line-height:.95;letter-spacing:-.03em;
+  .scorebox .big{font-size:3.4rem;font-weight:700;line-height:.95;letter-spacing:-.03em;
     color:var(--band)}
-  .sbscore .micro{margin-top:9px}
+  .sbscore .micro{margin-top:.55rem}
   .scorebox .m{max-width:52ch}
-  .fleetnote{font-size:13px;color:var(--ink-2);max-width:74ch;margin-top:12px}
-  .fleetnote b{color:var(--ink)}
-  @media(max-width:430px){.scorebox .big{font-size:44px}}
+  @media(max-width:430px){.scorebox .big{font-size:2.8rem}}
+
+  /* ── THE SCORE WEARS ITS BAND, and this is how it reaches it ──────────────
+     The bands own every number, so the 55 must take the same colour as its own
+     band pill. site.css sets `--band` from a .sc-* class on an ANCESTOR, and it
+     falls back to plain ink with `.scorebox:not([class*="sc-"])` when there is
+     no such class — which is the case here, because the only thing on this page
+     that knows the band is the pill, and the pill is baked in as a descendant
+     (`P.bandChip()` emits one of the four .sc-* classes inside .sbmid).
+
+     Rather than invent a fifth bake key in build/lib/render.js, which this file
+     does not own, the box reads the class its own child arrived wearing. These
+     four rules match site.css's fallback at (0,2,0) and win on document order,
+     because a page-scoped <style> is emitted after site.css. If a fifth band is
+     ever added to pages.js band(), add its line here or the number goes ink. */
+  .scorebox:has(.sc-good){--band:var(--good)}
+  .scorebox:has(.sc-mix) {--band:var(--mixed)}
+  .scorebox:has(.sc-long){--band:var(--long)}
+  .scorebox:has(.sc-no)  {--band:var(--zero)}
 </style>
 <!--@body-->
-<header class="hero" style="padding:22px 0 4px">
-  <p class="micro">Alaska Airlines · Starlink rollout</p>
+<header class="hero">
+  <span class="kicker">Alaska Airlines · Starlink rollout</span>
   <h1 class="ph">Alaska is finishing its regional fleet first</h1>
   <p class="lede">Where Starlink is fitted, Alaska gives it away: <b>free for everyone onboard</b>,
   with no loyalty programme, no status tier and no purchase. The rollout runs aircraft by aircraft,
@@ -66,7 +82,7 @@ tracker.</span></div>
     <div class="stat done">
       <div class="n" style="font-size:21px">Complete</div>
       <div class="l">E175 regional fleet</div>
-      <div class="d">Every Embraer E175 is fitted, so a regional flight is close to a sure thing.</div>
+      <div class="d">Every Embraer E175 is fitted — a regional flight is close to a sure thing.</div>
     </div>
     <div class="stat early">
       <div class="n">7<small> / 258</small></div>
@@ -85,19 +101,27 @@ tracker.</span></div>
   read <span data-bake="site.updated">2026-07-24</span>. The 7-of-258 mainline figure and the
   ex-Hawaiian status come from the same roster on the same date.</p>
 
-  <div class="tbl-shell" style="margin-top:20px">
+  <div class="tbl-shell tablescroll" style="margin-top:1.3rem">
     <table class="tbl">
       <thead><tr><th>Fleet</th><th class="num">Starlink status</th><th>What that means when you book</th></tr></thead>
       <tbody>
         <tr><td><b>E175 (regional)</b></td><td class="num">Complete</td>
           <td>Regional-jet routes carry the best Starlink odds in the network.</td></tr>
         <tr><td><b>737 (mainline)</b></td><td class="num">7 of 258</td>
-          <td>Treat mainline as unlikely for now and check the specific flight.</td></tr>
+          <td>Treat mainline as unlikely for now and check the scheduled type.</td></tr>
         <tr><td><b>A330 / A321neo (ex-Hawaiian)</b></td><td class="num">Equipped</td>
           <td>Long-haul and Hawaii flying on these tails is already covered.</td></tr>
       </tbody>
     </table>
   </div>
+  <p class="footnote" style="margin-top:1rem">What Alaska's record supports is a claim about an
+  aircraft type, not about the jet you end up on. The airline publishes the scheduled type for a
+  departure, and nobody publishes which registration flies it, so the strongest thing this page can
+  say is that an E175 is fitted and a mainline 737 probably is not.
+  <a href="/united/">The United page</a> can name a tail because the tracker there checks tails.
+  This one cannot, and a per-flight number worked up from a type would read exactly like a real
+  one.</p>
+
   <div class="caveat">Aircraft assignments change until departure, so any of this can flip on the
   day. ConnectScore is the chance of drawing the <b>good</b> system: the legacy satellite service on
   the unconverted part of the fleet earns almost nothing. Nobody publishes per-tail install dates
@@ -122,7 +146,7 @@ tracker.</span></div>
       <a class="btn" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Add to Chrome, free ↗</a>
       <a class="btn ghost" href="/united/">The full United toolkit</a>
     </div>
-    <p class="note" style="margin-top:12px">alaskaair.com access is optional and stays off until you
+    <p class="note" style="margin-top:.8rem">alaskaair.com access is optional and stays off until you
     turn it on, which keeps the install prompt small. Alaska badges appear once you grant it.</p>
   </div>
   <p class="src"><span class="cls">Reported</span> Store listing body for the shipped build, read
@@ -147,8 +171,9 @@ tracker.</span></div>
       <span data-bake="site.updated">2026-07-24</span>.</p></div>
     <div class="q"><h3>Which Alaska flight should I book for wifi?</h3>
       <p>A regional flight on an E175 if the schedule offers one, because that sub-fleet is finished.
-      On mainline, check the specific tail at T-48h. Aircraft assignments publish about two days out
-      and they still change after that.</p></div>
+      On mainline, check the scheduled aircraft type before you book and again the day before. That
+      is weaker than the United answer and it is weaker for a reason: nobody publishes which tail
+      flies which Alaska departure, so the type is as far as the record goes.</p></div>
   </div>
 </section>
 

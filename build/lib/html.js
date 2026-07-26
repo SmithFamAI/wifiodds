@@ -36,12 +36,25 @@ function assetHash(rel) {
 }
 /* build/lib/html.js — the shared shell every prerendered page is poured into.
  * One <head> builder, one credit strip, one footer, and TWO nav rows: a global
- * topnav that is byte-identical everywhere, plus an optional per-airline subnav.
- * If a page needs a different global nav, the nav is wrong, not the page. */
+ * masthead nav that is byte-identical everywhere, plus an optional per-airline
+ * subnav. If a page needs a different global nav, the nav is wrong, not the page.
+ *
+ * The chrome here is The Forecast, ported from public/wifiodds-fable/ in the
+ * websites repo. The spec is ARCHETYPES.md; where this file and that file
+ * disagree, that file wins. The pieces it fixes: the sky rule at the top edge of
+ * every page, the masthead (orbit mark, serif wordmark, nav, theme switch,
+ * datechip), crumbs below the header on every page under the homepage, the
+ * footer with its unaffiliated line and its theme sentence, and the extension
+ * banner, which is homepage-only and appears nowhere else on the site. */
 
 var ORIGIN = 'https://wifiodds.com';
 var EXT = 'https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec';
 var REPO = 'https://github.com/jeremyinthebay/united-starlink-companion';
+/* What the store serves TODAY, not what is in review. The banner prints it, so
+ * a stale value here is a wrong claim on the homepage. build/lib/pages.js also
+ * carries this string in its extension section; when the store ships a new
+ * build, both move. */
+var EXT_VERSION = '1.5.1';
 
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
@@ -54,77 +67,91 @@ function ld(obj) {
     JSON.stringify(obj).replace(/</g, '\\u003c') + '</script>';
 }
 
-/* ── THE WAFFLE MARK ───────────────────────────────────────────────────────
- * The hangar-floor waffle is the one picture on this site that is ours: a grid
- * of cells, most of them dim, a band of them lit. It means the same thing at 16
- * pixels as it does at full width on /united/fleet/ — this is the fleet, and
- * this much of it is flying. So it is also the logo, the favicon and the OG
- * image, and the old rounded-square wifi arc in United's blue-to-sky gradient
- * is gone. There is no house colour any more; the lit cells take the green end
- * of the score arc because that is what a lit cell is.
+/* ── THE ORBIT MARK ────────────────────────────────────────────────────────
+ * A ring at 22 degrees, a body on it, a satellite riding it. It is the site's
+ * one picture and it means what the site is about: something in orbit, over
+ * something in the air. It reads at 16 pixels and at poster size, so it is the
+ * favicon, the masthead lockup and the OG image, all one drawing.
  *
- * The favicon is an inline data URI so it costs no request. Sixteen pixels, a
- * 4×4 grid: the bottom row and one cell above it are lit, which is roughly
- * where the industry actually is. Regenerate the OG image with
- * `python3 build/make-brand.py og`; it draws the same mark from the same
- * tokens. */
-function _cell(x, y) {
-  return "%3Crect x='" + x + "' y='" + y + "' width='2.5' height='2.5'/%3E";
-}
-var FAVICON = (function () {
-  var col = [2, 5.5, 9, 12.5], dim = '', lit = '';
-  col.forEach(function (x) { dim += _cell(x, 2) + _cell(x, 5.5); });
-  [5.5, 9, 12.5].forEach(function (x) { dim += _cell(x, 9); });
-  lit += _cell(2, 9);
-  col.forEach(function (x) { lit += _cell(x, 12.5); });
-  return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E" +
-    "%3Crect width='16' height='16' fill='%230a0c0d'/%3E" +
-    "%3Cg fill='%23444d50'%3E" + dim + "%3C/g%3E" +
-    "%3Cg fill='%233fcf8e'%3E" + lit + "%3C/g%3E%3C/svg%3E";
-})();
+ * It is SKY, because the mark is chrome. It is never green, amber or clay —
+ * those belong to numbers. The waffle it replaced took the green end of the
+ * score arc for its lit cells, which was a logo wearing a band, and the whole
+ * point of the two-owner rule is that it does not get to do that. The waffle
+ * itself survives on /united/fleet/, where each lit cell IS a count.
+ *
+ * The favicon is an inline data URI so it costs no request. It carries the
+ * sky-deep ground and a white mark, since a favicon has no CSS to inherit from
+ * and must survive on both a light and a dark browser chrome. Regenerate the OG
+ * image with `python3 build/make-brand.py og`; it draws the same mark from the
+ * same tokens. */
+var FAVICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' " +
+  "viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2322455f'/%3E" +
+  "%3Cellipse cx='16' cy='16' rx='11' ry='4.6' fill='none' stroke='%23fff' " +
+  "stroke-width='2' transform='rotate(-22 16 16)'/%3E" +
+  "%3Ccircle cx='16' cy='16' r='5.2' fill='%23fff'/%3E" +
+  "%3Ccircle cx='26.2' cy='11.9' r='2.3' fill='%23fff'/%3E%3C/svg%3E";
 
-/* Set data-theme BEFORE first paint or the dark default flashes on a light
-   preference. localStorage.woTheme is the only key this site ever writes.
+/* The masthead lockup. Drawn in currentColor and coloured by `.wordmark .mk` in
+ * site.css, so it follows --sky in both themes. It is inline SVG in the
+ * document, which is why the custom property resolves at all — inside an <img>
+ * it would silently fall back to black. */
+var MARK_SVG = '<svg class="mk" viewBox="0 0 32 32" width="17" height="17" ' +
+  'aria-hidden="true" focusable="false">' +
+  '<ellipse cx="16" cy="16" rx="11" ry="4.6" fill="none" stroke="currentColor" ' +
+  'stroke-width="2" transform="rotate(-22 16 16)"/>' +
+  '<circle cx="16" cy="16" r="5.2" fill="currentColor"/>' +
+  '<circle cx="26.2" cy="11.9" r="2.3" fill="currentColor"/></svg>';
+
+/* ── THE THEME BOOT, AND WHY IT STORES NOTHING ─────────────────────────────
+ * Light is the default and dark is a media query, so the FIRST PAINT is already
+ * correct with this script deleted, with JavaScript off, and on a browser that
+ * never runs it. All this does is write the same answer onto <html> as a class,
+ * because a class is something the switch can toggle and a media query is not.
  *
- * It also sets html.js here rather than leaving that to site.js. site.js is
- * `defer`, so it lands after the document is parsed — which meant `.needs-js`
- * content was hidden and `.no-js-only` content was VISIBLE for the first paint of
- * every page. Invisible on the old pages (a filter chip row appearing late is
+ * There is no localStorage. The old build wrote localStorage.woTheme and the
+ * footer advertised it as "the only thing stored in your browser"; the spec
+ * allows no storage of any kind, so the key is gone, the read is gone, and the
+ * switch now lasts until you reload. That is the ceiling for cleverness here.
+ *
+ * It also sets html.js rather than leaving that to site.js. site.js is `defer`,
+ * so it lands after the document is parsed — which meant `.needs-js` content was
+ * hidden and `.no-js-only` content was VISIBLE for the first paint of every
+ * page. Invisible on the old pages (a filter chip row appearing late is
  * nothing); very visible now that the homepage's above-the-fold answer box is
  * `.needs-js` and its fallback is a list of 18 airline links. One statement, in
  * the <head>, before paint. site.js still adds the class — it is idempotent, and
  * site.js must keep working if this tag is ever dropped. */
 var THEME_BOOT = '<script>(function(){var r=document.documentElement;r.classList.add("js");' +
-  'try{var t=localStorage.getItem("woTheme");' +
-  'if(t==="light"||t==="dark")r.setAttribute("data-theme",t);}catch(e){}})();</script>';
+  'try{r.classList.add(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");}' +
+  'catch(e){}})();</script>';
 
-/* The header lockup: 24 cells, 7 lit. currentColor for the dim ones so the mark
- * follows the ink in both themes; var(--good) for the lit band so it follows the
- * score arc. Both are inline SVG in the document, so the custom property
- * resolves — this would silently fall back to black in an <img>. */
-var MARK_SVG = (function () {
-  var xs = [0, 4.6, 9.2, 13.8, 18.4, 23], dim = '', lit = '';
-  function r(x, y) { return '<rect x="' + x + '" y="' + y + '" width="3" height="3"/>'; }
-  xs.forEach(function (x) { dim += r(x, 0) + r(x, 4.6); });
-  xs.slice(1).forEach(function (x) { dim += r(x, 9.2); });
-  lit += r(0, 9.2);
-  xs.forEach(function (x) { lit += r(x, 13.8); });
-  return '<svg width="26" height="17" viewBox="0 0 26 17" aria-hidden="true" focusable="false">' +
-    '<g fill="currentColor" opacity=".55">' + dim + '</g>' +
-    '<g fill="var(--good)">' + lit + '</g></svg>';
-})();
+/* The switch itself, wired after the button exists. It flips two classes and
+ * writes nothing anywhere. If this script never runs, the button stays `hidden`
+ * and the page follows the OS — which is the correct state, not a degraded one:
+ * a control that cannot work should not be on screen. */
+var THEME_SWITCH = '<script>(function(){var r=document.documentElement,' +
+  'b=document.getElementById("themetoggle");if(!b)return;' +
+  'function p(){b.textContent=r.classList.contains("dark")?"Light mode":"Dark mode";}' +
+  'b.hidden=false;p();b.addEventListener("click",function(){' +
+  'var d=r.classList.contains("dark");r.classList.toggle("dark",!d);' +
+  'r.classList.toggle("light",d);p();});})();</script>\n';
 
-/* ── the plate header strip date ───────────────────────────────────────────
- * "2026-07-25" → "25 JUL 2026". Split the string; never hand it to `new Date()`,
- * which reads a bare ISO date as UTC midnight and then prints it in the local
- * zone, so half the planet gets the 24th. The date comes from united/data.json
- * through H.page({updated}), so the strip cannot claim a freshness the data does
- * not have. */
+/* ── dates ─────────────────────────────────────────────────────────────────
+ * "2026-07-25" → "25 JUL 2026" (plateDate, used across build/lib/render.js in
+ * source lines) and "25 Jul 2026" (chipDate, the masthead). Split the string;
+ * never hand it to `new Date()`, which reads a bare ISO date as UTC midnight and
+ * then prints it in the local zone, so half the planet gets the 24th. The date
+ * comes from united/data.json through H.page({updated}), so the masthead cannot
+ * claim a freshness the data does not have. */
 var MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 function plateDate(iso) {
   var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || ''));
   if (!m) return String(iso || '').toUpperCase();
   return String(Number(m[3])) + ' ' + MONTHS[Number(m[2]) - 1] + ' ' + m[1];
+}
+function chipDate(iso) {
+  var s = plateDate(iso);
+  return s.replace(/\b([A-Z])([A-Z]{2})\b/, function (_, a, b) { return a + b.toLowerCase(); });
 }
 
 /* ── TWO-LEVEL NAVIGATION ─────────────────────────────────────────────────
@@ -132,7 +159,13 @@ function plateDate(iso) {
  * anything airline-specific: with 18 airlines there is no version of "Fleet" or
  * "United" that belongs in a site-wide header. Per-airline pages get a SECOND
  * row (subnav) scoped to that airline instead. If you are tempted to add an
- * airline link here, add a SUBNAV section instead. */
+ * airline link here, add a SUBNAV section instead.
+ *
+ * The Extension entry is a plain nav link, not a button. It used to be a `.cta`
+ * block, which put an install ask in the masthead of thirty routes; the spec
+ * allows exactly one pitch on this site and it is the companion half of the
+ * homepage. The link keeps its `.cta` class name so nothing that targets it
+ * breaks, and the class no longer means "call to action" in the CSS. */
 var NAV = [
   ['/airlines/', 'Airlines'],
   /* /race/ earns a global slot because it is the one page that is about the whole
@@ -176,7 +209,7 @@ function subnav(section, here, label) {
       (label ? '<span class="sn-air">' + esc(label) + '</span>' : '') + '</nav>\n';
   }
   return '<nav class="subnav" aria-label="' + esc(s.label) + ' pages">' +
-    '<span class="sn-air">' + esc(s.label) + ' ·</span>' +
+    '<span class="sn-air">' + esc(s.label) + '</span>' +
     s.tabs.map(function (t) {
       return '<a class="sn-tab" href="' + t[0] + '"' +
         (t[0] === here ? ' aria-current="page"' : '') + '>' + t[1] + '</a>';
@@ -184,29 +217,55 @@ function subnav(section, here, label) {
     '<a class="sn-back" href="/airlines/">All airlines →</a></nav>\n';
 }
 
-/* THE PLATE HEADER STRIP, and it is on every page.
+/* ── THE EXTENSION BANNER ──────────────────────────────────────────────────
+ * HOMEPAGE ONLY. One strip, above the masthead, in the same sky as the rule at
+ * the page's top edge, so the rule reads as the banner's top border there.
  *
- *     WIFI ODDS · CONNECTSCORE · DATA EFF 25 JUL 2026 · AMDT DAILY
+ * It is wayfinding, not a pitch: it exists for the visitor who arrived only to
+ * install, and it hands everyone else a jump to the companion half instead of
+ * arguing with them. It carries the store link with the version the store serves
+ * today, and one jump. It never grows a second sentence, and it appears on no
+ * other route — page() emits it for canonical '/' and nothing else. */
+function extbar() {
+  return '<div class="extbar" role="navigation" aria-label="Extension shortcuts">\n' +
+    '  <div class="wrap">\n' +
+    '    <span class="q">Here for the Chrome extension?</span>\n' +
+    '    <a class="store" href="' + EXT + '" target="_blank" rel="noopener">Grab v' +
+    esc(EXT_VERSION) + ' from the Chrome Web Store</a>\n' +
+    '    <a class="jump" href="#extension">or jump to what it does</a>\n' +
+    '  </div>\n</div>\n';
+}
+
+/* THE MASTHEAD, and it is on every page.
  *
- * Read it as one line: the wordmark is the first field of the strip, not a logo
- * sitting next to it. That is the approach-plate header idiom, where the chart
- * tells you what it is, what it measures, the date it is effective and how often
- * it is amended, before it tells you anything else. The date is `updated` from
- * the build data. If you ever find yourself typing a month name in here, stop. */
-function topbar(here, suffix, updated) {
-  return '<div class="topbar">\n' +
-    '  <a class="mark" href="/"><span class="glyph" aria-hidden="true">' + MARK_SVG + '</span>' +
-    '<span class="wm">WiFi Odds' + (suffix ? ' <em>· ' + esc(suffix) + '</em>' : '') + '</span></a>\n' +
-    '  <p class="stripmeta">ConnectScore · Data eff <b>' + esc(plateDate(updated)) +
-    '</b> · Amdt daily</p>\n' +
-    '  <nav class="topnav" aria-label="Main">\n' +
+ *     ◉ WiFi Odds        Airlines  The Race  Roadmap  Extension   [Dark mode]
+ *     Inflight WiFi as a forecast · figures checked daily · this build 25 Jul 2026
+ *
+ * Orbit mark, serif wordmark, nav, the theme switch, then the datechip on its
+ * own line. The datechip is what the approach-plate strip used to be, said the
+ * way a person says it: what this site is, how often it is checked, and the date
+ * of the build in front of you. The date is `updated` from the build data. If
+ * you ever find yourself typing a month name in here, stop.
+ *
+ * The switch ships `hidden` and the inline script at the foot of the page
+ * reveals it. Its title text is deliberate down to the last clause — it is the
+ * only place a reader is told that the choice is not stored. */
+function masthead(here, suffix, updated) {
+  return '<header class="site">\n' +
+    '  <div class="wrap masthead">\n' +
+    '    <a class="wordmark" href="/">' + MARK_SVG + 'WiFi&nbsp;Odds' +
+    (suffix ? ' <em>· ' + esc(suffix) + '</em>' : '') + '</a>\n' +
+    '    <nav aria-label="Main">\n' +
     NAV.map(function (n) {
-      return '    <a href="' + n[0] + '"' + (n[0] === here ? ' aria-current="page"' : '') + '>' + n[1] + '</a>\n';
+      return '      <a href="' + n[0] + '"' + (n[0] === here ? ' aria-current="page"' : '') + '>' + n[1] + '</a>\n';
     }).join('') +
-    '    <a class="cta" href="' + EXT + '" target="_blank" rel="noopener">Get the extension</a>\n' +
-    '  </nav>\n' +
-    '  <button class="tt" type="button" aria-label="Switch theme" title="Switch theme">☽</button>\n' +
-    '</div>\n';
+    '      <a class="cta" href="' + EXT + '" target="_blank" rel="noopener">Extension</a>\n' +
+    '    </nav>\n' +
+    '    <button class="themetoggle" id="themetoggle" type="button" hidden\n' +
+    '      title="Follows your system setting by default. The switch lasts until you reload; nothing is stored."></button>\n' +
+    '    <div class="datechip">Inflight WiFi as a forecast · figures checked daily · this build <b>' +
+    esc(chipDate(updated)) + '</b></div>\n' +
+    '  </div>\n</header>\n';
 }
 
 function crumb(items) {
@@ -241,26 +300,35 @@ function credit(which) {
     ' WiFi Odds is unofficial and not affiliated with any airline, SpaceX/Starlink, Amazon, Viasat, or the trackers.</span></div>\n';
 }
 
+/* The footer: nav, the source line, the unaffiliated line, and the theme
+ * sentence. That last one is not boilerplate. The site stores nothing at all
+ * now, so the reader is told what the switch does and what happens to their
+ * choice, in one sentence, on every page. The old copy said "the only thing
+ * stored in your browser is your light/dark choice" — that key is gone, and a
+ * footer that still claimed it would be the site lying about its own storage on
+ * thirty routes. */
 function footer(updated) {
-  return '<footer>\n' +
+  return '<footer class="site">\n' +
     '  <div class="flinks"><a href="/airlines/">Airlines</a><a href="/race/">The Race</a>' +
     '<a href="/systems/">Systems</a><a href="/united/">United</a>' +
     '<a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a>' +
     /* Methodology is linked from the FOOTER and from the leaderboard's caveat, not
-       from the global topnav: NAV stays two items plus the CTA, and a provenance
-       page is something a reader goes looking for rather than something that
-       needs to compete with "Airlines" on every screen. */
+       from the masthead: the global nav stays three items plus the Extension link,
+       and a provenance page is something a reader goes looking for rather than
+       something that needs to compete with "Airlines" on every screen. */
     '<a href="/methodology/">Methodology</a>' +
     '<a href="/api/docs/">API</a><a href="/privacy.html">Privacy</a>' +
     '<a href="' + REPO + '" target="_blank" rel="noopener">Open source ↗</a></div>\n' +
     '  <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> ' +
     '· <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> ' +
     '(independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>\n' +
-    '  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension. ' +
-    'The only thing stored in your browser is your light/dark choice. See the <a href="/privacy.html">privacy policy</a>.</div>\n' +
     '  <div class="frow">Data updated <b>' + esc(updated) + '</b>. ConnectScores and per-flight odds are ' +
-    'historical estimates, not guarantees. Aircraft assignments change until departure. WiFi Odds is an ' +
-    'unofficial, free, open-source project. 🛰️</div>\n' +
+    'historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and ' +
+    'unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</div>\n' +
+    '  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension, and ' +
+    'nothing is stored in your browser. What the server keeps is on the <a href="/privacy.html">privacy page</a>.</div>\n' +
+    '  <div class="frow">The page follows your system’s light or dark setting. The switch in the header ' +
+    'lasts until you reload, and nothing about your choice is stored.</div>\n' +
     '</footer>\n';
 }
 
@@ -291,40 +359,59 @@ function page(o) {
     '<meta property="og:title" content="' + title + '">\n' +
     '<meta property="og:description" content="' + desc + '">\n' +
     '<meta property="og:url" content="' + url + '">\n' +
-    '<meta property="og:image" content="' + ORIGIN + '/assets/og.png?v=3">\n' +
+    '<meta property="og:image" content="' + ORIGIN + '/assets/og.png?v=' + assetHash('assets/og.png') + '">\n' +
     '<meta property="og:image:width" content="1200">\n' +
     '<meta property="og:image:height" content="630">\n' +
     '<meta property="og:image:alt" content="WiFi Odds — know before you book">\n' +
     '<meta name="twitter:card" content="summary_large_image">\n' +
     '<meta name="twitter:title" content="' + title + '">\n' +
     '<meta name="twitter:description" content="' + desc + '">\n' +
-    '<meta name="twitter:image" content="' + ORIGIN + '/assets/og.png?v=3">\n' +
-    /* B612, self-hosted. The two regular faces are preloaded because they are on
-     * the critical path for the first screen and the heading and every numeral
-     * are set in them; the bolds can arrive with the stylesheet. `crossorigin` is
-     * required even same-origin — a font preload without it is fetched twice.
-     * Nothing here, and nothing in site.css, points at a third party. */
-    '<link rel="preload" href="/assets/b612-400.woff2" as="font" type="font/woff2" crossorigin>\n' +
-    '<link rel="preload" href="/assets/b612mono-400.woff2" as="font" type="font/woff2" crossorigin>\n' +
+    '<meta name="twitter:image" content="' + ORIGIN + '/assets/og.png?v=' + assetHash('assets/og.png') + '">\n' +
+    /* Source Serif 4, self-hosted, both weights preloaded: the 700 sets the
+     * heading and the 400 sets the say-sentence, and both are on the first screen
+     * of every route. The reporting voice is system-ui and costs no request at
+     * all. `crossorigin` is required even same-origin — a font preload without it
+     * is fetched twice. Nothing here, and nothing in site.css, points at a third
+     * party.
+     *
+     * THESE TWO URLS CARRY NO ?v= HASH, AND THAT IS DELIBERATE. A preload only
+     * counts if its URL matches the @font-face `src` byte for byte, and that src
+     * lives in static CSS which cannot interpolate a hash. Hashing here would
+     * preload one URL and then fetch a second one — two downloads of the same
+     * font on every cold load, which is worse than the stale-cache risk it would
+     * be solving. Fonts change about once a redesign; when the bytes change,
+     * change the FILENAME (and the three places that name it: this block,
+     * assets/site.css @font-face, build/routes.js REQUIRED). */
+    '<link rel="preload" href="/assets/serif-400.woff2" as="font" type="font/woff2" crossorigin>\n' +
+    '<link rel="preload" href="/assets/serif-700.woff2" as="font" type="font/woff2" crossorigin>\n' +
     '<link rel="stylesheet" href="/assets/site.css?v=' + assetHash('assets/site.css') + '">\n' +
     (o.extraHead || '') +
     (o.jsonld || []).map(ld).join('\n') + '\n' +
     '</head>\n<body>\n' +
+    /* The banner sits OUTSIDE .wrap and above the masthead, because it is a
+       full-bleed strip of sky and the column starts under it. Homepage only. */
+    (o.canonical === '/' ? extbar() : '') +
     (o.preWrap || '') +
+    masthead(o.here, o.suffix, o.updated) +
     '<div class="wrap">\n' +
-    topbar(o.here, o.suffix, o.updated) +
     subnav(o.section, o.canonical, o.suffix) +
     (o.crumb ? crumb(o.crumb) : '') +
     o.body +
     footer(o.updated) +
     '</div>\n' +
     (o.afterWrap || '') +
+    THEME_SWITCH +
     '<script src="/assets/site.js?v=' + assetHash('assets/site.js') + '" defer></script>\n</body>\n</html>\n';
 }
 
 module.exports = {
-  ORIGIN: ORIGIN, EXT: EXT, REPO: REPO, NAV: NAV, SUBNAV: SUBNAV,
-  esc: esc, ld: ld, page: page, topbar: topbar, subnav: subnav,
-  crumb: crumb, credit: credit, footer: footer,
-  plateDate: plateDate, MARK_SVG: MARK_SVG, FAVICON: FAVICON
+  ORIGIN: ORIGIN, EXT: EXT, EXT_VERSION: EXT_VERSION, REPO: REPO,
+  NAV: NAV, SUBNAV: SUBNAV,
+  esc: esc, ld: ld, page: page, masthead: masthead, extbar: extbar,
+  /* topbar is the old name for masthead. Kept as an alias so a caller outside
+     this file cannot break on the rename; nothing in the build uses it today. */
+  topbar: masthead,
+  subnav: subnav, crumb: crumb, credit: credit, footer: footer,
+  plateDate: plateDate, chipDate: chipDate,
+  MARK_SVG: MARK_SVG, FAVICON: FAVICON
 };

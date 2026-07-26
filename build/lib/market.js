@@ -209,8 +209,13 @@ var SYSTEMS = [
     orbit: 'Low-earth orbit',
     how: 'The same physics class as Starlink: a large low-orbit constellation and a flat-panel ' +
       'aircraft antenna. Formerly Project Kuiper.',
-    speed: 'No in-cabin measurement exists, because it is not flying on a passenger aircraft yet. We ' +
-      'will not publish a number for it until there is one to publish.',
+    /* THE EMPTY CELL IS THE POINT. Amazon publishes 1 Gbps and the spec sheet is
+       real; it is a VENDOR CLAIM, which is a label for prose and never a
+       lower-confidence occupant of a measured slot. So this cell says what is
+       true — nobody has run the test — instead of promoting the claim into a
+       figure and letting the layout do the lying. */
+    speed: 'No measurement exists. Not one passenger aircraft is flying it, so nobody has run the ' +
+      'test. There will be a number here when there is a number to publish.',
     reliability: 'Unproven in service. JetBlue is first, from 2027; Delta follows on 500 aircraft ' +
       'from 2028.',
     price: 'Announced as free on both launch carriers.',
@@ -223,8 +228,17 @@ var SYSTEMS = [
       'network. The aircraft antenna points at a fixed spot in the sky.',
     speed: 'Streaming-class: enough for video, uploads and a working session. The distance costs you ' +
       'roughly half a second of round-trip lag no matter how much bandwidth is available.',
+    /* THE VIASAT-3 ASTERISK, and a reader comparing systems is owed it. The
+       first ViaSat-3 satellite suffered an antenna deployment failure and
+       delivers an estimated 5 to 10% of its design throughput (Runway Girl
+       Network, 10 Feb 2026). Every US Viasat measurement on this site went
+       through that bird, which means the Viasat numbers here are a floor set by
+       one broken satellite rather than a reading on the technology. */
     reliability: 'Coverage thins at high latitude and over open ocean, and a full cabin on a popular ' +
-      'route feels it. Delta Sync and American’s free WiFi are both this.',
+      'route feels it. Delta Sync and American’s free WiFi are both this. One caveat sits under ' +
+      'every US Viasat figure on this site: ViaSat-3 F1 failed to deploy its antenna and delivers ' +
+      'an estimated 5 to 10% of design throughput (Runway Girl Network, 10 Feb 2026), and every US ' +
+      'measurement to date went through that satellite.',
     price: 'Free for members on American, Delta and jetBlue.',
     verdict: 'The working middle. Streams, uploads, real work, with lag on every round trip.'
   },

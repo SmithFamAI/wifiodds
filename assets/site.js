@@ -4,49 +4,27 @@
  * carries every number, every table row and every chart path, baked at build
  * time by build/prerender.js. This file only adds affordances:
  *
- *   1. theme toggle          (writes localStorage.woTheme — the only key we use)
- *   2. reveal + count-up     (only when prefers-reduced-motion: no-preference)
- *   3. table sort            (reads baked data-s attributes; never parses text)
- *   4. filter chips + search (toggles the `hidden` attribute on baked rows)
- *   5. waffle tooltip        (the title attribute is the no-JS truth)
+ *   1. reveal + count-up     (only when prefers-reduced-motion: no-preference)
+ *   2. table sort            (reads baked data-s attributes; never parses text)
+ *   3. filter chips + search (toggles the `hidden` attribute on baked rows)
+ *   4. waffle tooltip        (the title attribute is the no-JS truth)
  *
  * If it throws, the page still reads correctly — which is why every block is
  * independently guarded.
+ *
+ * THE THEME TOGGLE IS NOT IN THIS FILE ANY MORE, and this file stores nothing.
+ * It used to own a `.tt` button that set data-theme and wrote
+ * localStorage.woTheme. The Forecast allows no storage of any kind, so the
+ * switch moved into build/lib/html.js as a five-line inline script that toggles
+ * a class on <html> and lasts until you reload. Nothing here reads or writes
+ * localStorage, sessionStorage or a cookie, and nothing here should start.
  */
 (function () {
   'use strict';
   var doc = document, root = doc.documentElement;
   root.classList.add('js');
 
-  /* ── 1. theme ─────────────────────────────────────────────────────────── */
-  function stored() { try { return localStorage.getItem('woTheme'); } catch (e) { return null; } }
-  function current() {
-    var a = root.getAttribute('data-theme');
-    if (a) return a;
-    try {
-      return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    } catch (e) { return 'dark'; }
-  }
-  function paintToggle(btn, t) {
-    btn.textContent = t === 'light' ? '☼' : '☽';
-    btn.setAttribute('aria-label', 'Switch to ' + (t === 'light' ? 'dark' : 'light') + ' theme');
-    btn.setAttribute('title', btn.getAttribute('aria-label'));
-  }
-  try {
-    var btns = doc.querySelectorAll('.tt');
-    Array.prototype.forEach.call(btns, function (btn) {
-      paintToggle(btn, current());
-      btn.addEventListener('click', function () {
-        var next = current() === 'light' ? 'dark' : 'light';
-        root.setAttribute('data-theme', next);
-        try { localStorage.setItem('woTheme', next); } catch (e) {}
-        Array.prototype.forEach.call(btns, function (b) { paintToggle(b, next); });
-      });
-    });
-    if (!stored() && !root.getAttribute('data-theme')) { /* media query rules */ }
-  } catch (e) {}
-
-  /* ── 2. motion: reveal + count-up ─────────────────────────────────────── */
+  /* ── 1. motion: reveal + count-up ─────────────────────────────────────── */
   var motionOK = false;
   try {
     motionOK = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
@@ -168,7 +146,7 @@
     } catch (e2) {}
   }
 
-  /* ── 3. table sort — data-s attributes are pre-resolved at build time, so the
+  /* ── 2. table sort — data-s attributes are pre-resolved at build time, so the
         sorter never parses a date or strips a comma. ──────────────────────── */
   function cellVal(tr, i) {
     var td = tr.cells[i];
@@ -210,7 +188,7 @@
     });
   } catch (e) {}
 
-  /* ── 4. filter chips + search — toggle `hidden` on baked rows ─────────── */
+  /* ── 3. filter chips + search — toggle `hidden` on baked rows ─────────── */
   function applyFilters(scope) {
     var sel = scope.getAttribute('data-target');
     var host = sel ? doc.querySelector(sel) : null;
@@ -261,7 +239,7 @@
     });
   } catch (e) {}
 
-  /* ── 5. waffle tooltip — pointer sugar over the baked title attribute ─── */
+  /* ── 4. waffle tooltip — pointer sugar over the baked title attribute ─── */
   try {
     var tip = null;
     function hide() { if (tip) { tip.remove(); tip = null; } }

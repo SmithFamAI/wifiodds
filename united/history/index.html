@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<script>(function(){var r=document.documentElement;r.classList.add("js");try{var t=localStorage.getItem("woTheme");if(t==="light"||t==="dark")r.setAttribute("data-theme",t);}catch(e){}})();</script>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230a0c0d'/%3E%3Cg fill='%23444d50'%3E%3Crect x='2' y='2' width='2.5' height='2.5'/%3E%3Crect x='2' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='2' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='9' y='2' width='2.5' height='2.5'/%3E%3Crect x='9' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='2' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='9' width='2.5' height='2.5'/%3E%3Crect x='9' y='9' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='9' width='2.5' height='2.5'/%3E%3C/g%3E%3Cg fill='%233fcf8e'%3E%3Crect x='2' y='9' width='2.5' height='2.5'/%3E%3Crect x='2' y='12.5' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='12.5' width='2.5' height='2.5'/%3E%3Crect x='9' y='12.5' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='12.5' width='2.5' height='2.5'/%3E%3C/g%3E%3C/svg%3E">
+<script>(function(){var r=document.documentElement;r.classList.add("js");try{r.classList.add(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");}catch(e){}})();</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2322455f'/%3E%3Cellipse cx='16' cy='16' rx='11' ry='4.6' fill='none' stroke='%23fff' stroke-width='2' transform='rotate(-22 16 16)'/%3E%3Ccircle cx='16' cy='16' r='5.2' fill='%23fff'/%3E%3Ccircle cx='26.2' cy='11.9' r='2.3' fill='%23fff'/%3E%3C/svg%3E">
 <title>United Starlink install history — day by day</title>
 <meta name="description" content="176 days of United Starlink install history: every tail, every aircraft type, and every route and odds movement since Mar 2025. Data by unitedstarlinktracker.com.">
 <link rel="canonical" href="https://wifiodds.com/united/history/">
@@ -13,66 +13,71 @@
 <meta property="og:title" content="United Starlink install history — day by day">
 <meta property="og:description" content="176 days of United Starlink install history: every tail, every aircraft type, and every route and odds movement since Mar 2025. Data by unitedstarlinktracker.com.">
 <meta property="og:url" content="https://wifiodds.com/united/history/">
-<meta property="og:image" content="https://wifiodds.com/assets/og.png?v=3">
+<meta property="og:image" content="https://wifiodds.com/assets/og.png?v=fa82ae75">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="WiFi Odds — know before you book">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="United Starlink install history — day by day">
 <meta name="twitter:description" content="176 days of United Starlink install history: every tail, every aircraft type, and every route and odds movement since Mar 2025. Data by unitedstarlinktracker.com.">
-<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=3">
-<link rel="preload" href="/assets/b612-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/assets/b612mono-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=2ff10b77">
+<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=fa82ae75">
+<link rel="preload" href="/assets/serif-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/serif-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=d2a06f32">
 <style>
   /* Page-scoped only. Colour, type and rule weight come from /assets/site.css.
      The day log is still client-rendered from data.json (a 176-day list of pills
      baked into the HTML would roughly double the page for no reader benefit), so
      everything below the filter row sits inside .needs-js and there is a real
-     no-JS answer next to it. Nothing here is rounded and nothing lifts. */
-  .wrap{max-width:900px}
+     no-JS answer next to it.
 
-  /* the type filter row. Same grammar as .filters in site.css: hairline boxes
-     butted together with a -1px margin, inverted when the filter is on. The JS
-     writes <span class="f">, not <button>, so the rules are duplicated rather
-     than inherited. Do not rename .f — assets are not involved, this page's own
+     THE FORECAST, on this page: this is a reference page and it is allowed to be
+     dry, but dry is not the same as monospaced. The labels here are the sans —
+     the reporting voice — because that is what the tables on every other page
+     use, and --mono is reserved for what is literally code. The tail numbers and
+     dates are tabular sans, which is a font-variant, not a font. */
+  .wrap{max-width:58rem}
+
+  /* the type filter row. Same grammar as .filters in site.css. The JS writes
+     <span class="f">, not <button>, so the rules are duplicated rather than
+     inherited. Do not rename .f — assets are not involved, this page's own
      script reads it. */
-  .controls{display:flex;flex-wrap:wrap;gap:0;margin:16px 0 4px}
-  .controls .f{font:700 10px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;
-    color:var(--ink-2);cursor:pointer;padding:8px 11px;border:1px solid var(--rule);
-    margin-left:-1px;user-select:none;white-space:nowrap}
-  .controls .f:hover{color:var(--ink);background:var(--bg-inset)}
-  .controls .f.on{color:var(--bg);background:var(--ink);border-color:var(--ink)}
+  .controls{display:flex;flex-wrap:wrap;gap:.4rem;margin:1rem 0 .3rem}
+  .controls .f{font:inherit;font-size:.82rem;color:var(--ink-soft);cursor:pointer;
+    padding:.3rem .7rem;border:1px solid var(--line);border-radius:99px;
+    user-select:none;white-space:nowrap}
+  .controls .f:hover{border-color:var(--muted)}
+  .controls .f.on{color:var(--btn-fg);background:var(--btn-bg);border-color:var(--btn-bg)}
 
-  #stat{margin:10px 0 18px}
+  #stat{margin:.7rem 0 1.1rem}
 
-  /* one ruled row per update day. A day is a record, so it gets a rule, not a
-     card: no radius, no shadow, no hover lift. The current day is marked in the
-     margin the way a plate marks the row it wants read, and the mark is grey
-     because "most recent" is not a score. */
-  .clog-days{display:grid;gap:0;border-top:1px solid var(--rule-2);padding-bottom:12px}
-  .cday{background:transparent;border:0;border-bottom:1px solid var(--rule);padding:15px 0 15px 14px;
-    position:relative}
-  .cday:before{content:"";position:absolute;left:0;top:15px;bottom:15px;width:1px;
-    background:var(--rule)}
-  .cday.today{background:var(--bg-panel);padding-left:14px}
-  .cday.today:before{background:var(--ink-2);width:3px}
-  .cday-top{display:flex;align-items:baseline;gap:8px 14px;flex-wrap:wrap;margin-bottom:4px}
-  .cday-date{font-family:var(--mono);font-weight:700;font-size:14.5px;color:var(--ink);
-    letter-spacing:.02em}
-  .cday-eq{font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
+  /* one ruled row per update day. A day is a record, so it gets a rule and a
+     tick in the margin rather than a card of its own. The tick is ink, because
+     "most recent" is a position in a list and not a score. */
+  .clog-days{display:grid;gap:0;border-top:1px solid var(--line);padding-bottom:.8rem}
+  .cday{background:transparent;border:0;border-bottom:1px solid var(--line-soft);
+    padding:.95rem 0 .95rem .9rem;position:relative}
+  .cday:before{content:"";position:absolute;left:0;top:.95rem;bottom:.95rem;width:1px;
+    background:var(--line)}
+  .cday.today{background:var(--panel);border-radius:var(--r-sm)}
+  .cday.today:before{background:var(--muted-strong);width:3px}
+  .cday-top{display:flex;align-items:baseline;gap:.5rem .9rem;flex-wrap:wrap;margin-bottom:.25rem}
+  .cday-date{font-weight:700;font-size:.95rem;color:var(--ink);
+    font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+  .cday-eq{font-size:.82rem;color:var(--ink-soft);
+    font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
   .cday-eq .up{color:var(--good);font-weight:700}
-  .cday-eq .flat{color:var(--ink-3)}
-  .cday-rows{display:grid;gap:0;margin-top:8px;border-top:1px solid var(--rule)}
-  .crow{display:flex;gap:12px;font-size:13.5px;align-items:flex-start;line-height:1.5;
-    padding:8px 0;border-bottom:1px solid var(--rule)}
+  .cday-eq .flat{color:var(--muted)}
+  .cday-rows{display:grid;gap:0;margin-top:.55rem;border-top:1px solid var(--line-soft)}
+  .crow{display:flex;gap:.8rem;font-size:.88rem;align-items:flex-start;line-height:1.5;
+    padding:.5rem 0;border-bottom:1px solid var(--line-soft)}
   .crow:last-child{border-bottom:0}
-  .crow .k{flex:0 0 120px;font:700 9.5px/1.6 var(--mono);letter-spacing:.14em;
-    text-transform:uppercase;color:var(--ink-3);padding-top:3px}
+  .crow .k{flex:0 0 7.5rem;font-size:.72rem;font-weight:600;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);padding-top:.2rem}
   .crow .v{flex:1;min-width:0}
-  .cday-steady{color:var(--ink-3);font-size:13px;font-family:var(--mono);letter-spacing:.03em}
+  .cday-steady{color:var(--muted);font-size:.86rem}
   @media(max-width:560px){
-    .crow{flex-direction:column;gap:2px}
+    .crow{flex-direction:column;gap:.15rem}
     .crow .k{flex:none}
   }
 </style>
@@ -80,28 +85,31 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://wifiodds.com/"},{"@type":"ListItem","position":2,"name":"United","item":"https://wifiodds.com/united/"},{"@type":"ListItem","position":3,"name":"History","item":"https://wifiodds.com/united/history/"}]}</script>
 </head>
 <body>
+<header class="site">
+  <div class="wrap masthead">
+    <a class="wordmark" href="/"><svg class="mk" viewBox="0 0 32 32" width="17" height="17" aria-hidden="true" focusable="false"><ellipse cx="16" cy="16" rx="11" ry="4.6" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(-22 16 16)"/><circle cx="16" cy="16" r="5.2" fill="currentColor"/><circle cx="26.2" cy="11.9" r="2.3" fill="currentColor"/></svg>WiFi&nbsp;Odds <em>· United</em></a>
+    <nav aria-label="Main">
+      <a href="/airlines/">Airlines</a>
+      <a href="/race/">The Race</a>
+      <a href="/roadmap/">Roadmap</a>
+      <a class="cta" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Extension</a>
+    </nav>
+    <button class="themetoggle" id="themetoggle" type="button" hidden
+      title="Follows your system setting by default. The switch lasts until you reload; nothing is stored."></button>
+    <div class="datechip">Inflight WiFi as a forecast · figures checked daily · this build <b>25 Jul 2026</b></div>
+  </div>
+</header>
 <div class="wrap">
-<div class="topbar">
-  <a class="mark" href="/"><span class="glyph" aria-hidden="true"><svg width="26" height="17" viewBox="0 0 26 17" aria-hidden="true" focusable="false"><g fill="currentColor" opacity=".55"><rect x="0" y="0" width="3" height="3"/><rect x="0" y="4.6" width="3" height="3"/><rect x="4.6" y="0" width="3" height="3"/><rect x="4.6" y="4.6" width="3" height="3"/><rect x="9.2" y="0" width="3" height="3"/><rect x="9.2" y="4.6" width="3" height="3"/><rect x="13.8" y="0" width="3" height="3"/><rect x="13.8" y="4.6" width="3" height="3"/><rect x="18.4" y="0" width="3" height="3"/><rect x="18.4" y="4.6" width="3" height="3"/><rect x="23" y="0" width="3" height="3"/><rect x="23" y="4.6" width="3" height="3"/><rect x="4.6" y="9.2" width="3" height="3"/><rect x="9.2" y="9.2" width="3" height="3"/><rect x="13.8" y="9.2" width="3" height="3"/><rect x="18.4" y="9.2" width="3" height="3"/><rect x="23" y="9.2" width="3" height="3"/></g><g fill="var(--good)"><rect x="0" y="9.2" width="3" height="3"/><rect x="0" y="13.8" width="3" height="3"/><rect x="4.6" y="13.8" width="3" height="3"/><rect x="9.2" y="13.8" width="3" height="3"/><rect x="13.8" y="13.8" width="3" height="3"/><rect x="18.4" y="13.8" width="3" height="3"/><rect x="23" y="13.8" width="3" height="3"/></g></svg></span><span class="wm">WiFi Odds <em>· United</em></span></a>
-  <p class="stripmeta">ConnectScore · Data eff <b>25 JUL 2026</b> · Amdt daily</p>
-  <nav class="topnav" aria-label="Main">
-    <a href="/airlines/">Airlines</a>
-    <a href="/race/">The Race</a>
-    <a href="/roadmap/">Roadmap</a>
-    <a class="cta" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Get the extension</a>
-  </nav>
-  <button class="tt" type="button" aria-label="Switch theme" title="Switch theme">☽</button>
-</div>
-<nav class="subnav" aria-label="United pages"><span class="sn-air">United ·</span><a class="sn-tab" href="/airlines/united/">Overview</a><a class="sn-tab" href="/united/">Route optimizer</a><a class="sn-tab" href="/united/fleet/">Fleet</a><a class="sn-tab" href="/united/history/" aria-current="page">History</a><a class="sn-back" href="/airlines/">All airlines →</a></nav>
+<nav class="subnav" aria-label="United pages"><span class="sn-air">United</span><a class="sn-tab" href="/airlines/united/">Overview</a><a class="sn-tab" href="/united/">Route optimizer</a><a class="sn-tab" href="/united/fleet/">Fleet</a><a class="sn-tab" href="/united/history/" aria-current="page">History</a><a class="sn-back" href="/airlines/">All airlines →</a></nav>
 <nav class="crumb" aria-label="Breadcrumb"><a href="/">Home</a><span class="sep">→</span><a href="/airlines/united/">United</a><span class="sep">→</span><span aria-current="page">History</span></nav>
-<header class="hero" style="padding:22px 0 4px">
-  <p class="micro">United · Install archive</p>
+<header class="hero">
+  <span class="kicker">United · Install archive</span>
   <h1 class="ph">Every day of the United rollout</h1>
   <p class="lede">Newest first: which aircraft types and tail numbers went live on each date, plus
   the route-frequency and odds movements for the days a snapshot exists.
   <b data-bake="united.days">176</b> install days and <b data-bake="united.tails">481</b> equipped
   tails, back to <b data-bake="united.first">Mar 14, 2025</b>.</p>
-  <div class="cta-row" style="margin-top:16px">
+  <div class="cta-row">
     <a class="btn ghost" href="/united/fleet/">The hangar floor and full registry</a>
     <a class="btn ghost" href="/united/">Route optimizer</a>
   </div>
@@ -172,11 +180,30 @@ affiliated with United Airlines, SpaceX/Starlink, or the tracker.</span></div>
   </div>
 </section>
 
-<footer>
+<section class="blk" id="observe">
+  <span class="kicker">Add an observation</span>
+  <h2>What the record cannot see</h2>
+  <p class="say">This log knows the day each tail was first seen equipped. It does not know what the connection did on any of them afterwards. If you flew a United aircraft this month, thirty seconds here is a data point nobody else has.</p>
+  <form class="frm" method="post" action="/api/report" enctype="application/x-www-form-urlencoded">
+    <div class="hp" aria-hidden="true"><label for="hist-website">Leave this empty</label><input id="hist-website" name="website" type="text" value="" tabindex="-1" autocomplete="off"></div>
+    <div class="ffgrid">
+      <div class="ff"><label for="hist-air">Airline</label><input id="hist-air" name="airline" type="text" required maxlength="60"></div>
+      <div class="ff"><label for="hist-fn">Flight number</label><input id="hist-fn" name="flightNumber" type="text" required spellcheck="false" autocapitalize="characters" placeholder="UA2402"></div>
+      <div class="ff"><label for="hist-on">Date you flew</label><input id="hist-on" name="flownOn" type="date" required></div>
+      <div class="ff"><label for="hist-sys">System</label><select id="hist-sys" name="system" required><option value="">Pick one</option><option value="starlink">Starlink</option><option value="leo">Amazon Leo</option><option value="viasat">Viasat</option><option value="panasonic">Panasonic</option><option value="intelsat">Intelsat or 2Ku</option><option value="hughes">Hughes</option><option value="none">There was no wifi to test</option><option value="unsure">The portal did not say</option></select><span class="fh">The captive portal usually names it.</span></div>
+      <div class="ff full"><label for="hist-note">What happened, or what we got wrong</label><textarea id="hist-note" name="note" maxlength="500" rows="3" placeholder="Whether the login worked, what a call survived, which badge was wrong"></textarea></div>
+    </div>
+    <div class="frm-ft"><p class="note">Every submission lands unpublished and a person reads it before it appears here. No account, no cookie, no email field. The full form, with speed and latency boxes, is on <a href="/methodology/#field">the methodology page</a>.</p>
+      <button class="btn" type="submit">Send it</button></div>
+  </form>
+</section>
+
+<footer class="site">
   <div class="flinks"><a href="/airlines/">Airlines</a><a href="/race/">The Race</a><a href="/systems/">Systems</a><a href="/united/">United</a><a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a><a href="/methodology/">Methodology</a><a href="/api/docs/">API</a><a href="/privacy.html">Privacy</a><a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Open source ↗</a></div>
   <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> · <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> (independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>
-  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension. The only thing stored in your browser is your light/dark choice. See the <a href="/privacy.html">privacy policy</a>.</div>
-  <div class="frow">Data updated <b>2026-07-25</b>. ConnectScores and per-flight odds are historical estimates, not guarantees. Aircraft assignments change until departure. WiFi Odds is an unofficial, free, open-source project. 🛰️</div>
+  <div class="frow">Data updated <b>2026-07-25</b>. ConnectScores and per-flight odds are historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</div>
+  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension, and nothing is stored in your browser. What the server keeps is on the <a href="/privacy.html">privacy page</a>.</div>
+  <div class="frow">The page follows your system’s light or dark setting. The switch in the header lasts until you reload, and nothing about your choice is stored.</div>
 </footer>
 </div>
 <script>
@@ -249,6 +276,7 @@ fetch(`../data.json?cb=${Date.now()}`,{cache:"no-store"})
   .then(r=>r.json()).then(d=>{DATA=d;build();})
   .catch(e=>{$("stat").textContent="Could not load data.json: "+e;});
 </script>
-<script src="/assets/site.js?v=5eddb0b4" defer></script>
+<script>(function(){var r=document.documentElement,b=document.getElementById("themetoggle");if(!b)return;function p(){b.textContent=r.classList.contains("dark")?"Light mode":"Dark mode";}b.hidden=false;p();b.addEventListener("click",function(){var d=r.classList.contains("dark");r.classList.toggle("dark",!d);r.classList.toggle("light",d);p();});})();</script>
+<script src="/assets/site.js?v=caed77a1" defer></script>
 </body>
 </html>

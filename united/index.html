@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<script>(function(){var r=document.documentElement;r.classList.add("js");try{var t=localStorage.getItem("woTheme");if(t==="light"||t==="dark")r.setAttribute("data-theme",t);}catch(e){}})();</script>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230a0c0d'/%3E%3Cg fill='%23444d50'%3E%3Crect x='2' y='2' width='2.5' height='2.5'/%3E%3Crect x='2' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='2' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='9' y='2' width='2.5' height='2.5'/%3E%3Crect x='9' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='2' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='5.5' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='9' width='2.5' height='2.5'/%3E%3Crect x='9' y='9' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='9' width='2.5' height='2.5'/%3E%3C/g%3E%3Cg fill='%233fcf8e'%3E%3Crect x='2' y='9' width='2.5' height='2.5'/%3E%3Crect x='2' y='12.5' width='2.5' height='2.5'/%3E%3Crect x='5.5' y='12.5' width='2.5' height='2.5'/%3E%3Crect x='9' y='12.5' width='2.5' height='2.5'/%3E%3Crect x='12.5' y='12.5' width='2.5' height='2.5'/%3E%3C/g%3E%3C/svg%3E">
+<script>(function(){var r=document.documentElement;r.classList.add("js");try{r.classList.add(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");}catch(e){}})();</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2322455f'/%3E%3Cellipse cx='16' cy='16' rx='11' ry='4.6' fill='none' stroke='%23fff' stroke-width='2' transform='rotate(-22 16 16)'/%3E%3Ccircle cx='16' cy='16' r='5.2' fill='%23fff'/%3E%3Ccircle cx='26.2' cy='11.9' r='2.3' fill='%23fff'/%3E%3C/svg%3E">
 <title>WiFi Odds · United — Starlink Route Optimizer</title>
 <meta name="description" content="Pick any United route and get the best plan to land a Starlink-equipped plane — every flight ranked by live odds, the smartest routings, confirmed tails, and a booking playbook. Updated daily and on demand.">
 <link rel="canonical" href="https://wifiodds.com/united/">
@@ -13,59 +13,62 @@
 <meta property="og:title" content="WiFi Odds · United — Starlink Route Optimizer">
 <meta property="og:description" content="Pick any United route and get the best plan to land a Starlink-equipped plane — every flight ranked by live odds, the smartest routings, confirmed tails, and a booking playbook. Updated daily and on demand.">
 <meta property="og:url" content="https://wifiodds.com/united/">
-<meta property="og:image" content="https://wifiodds.com/assets/og.png?v=3">
+<meta property="og:image" content="https://wifiodds.com/assets/og.png?v=fa82ae75">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="WiFi Odds — know before you book">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="WiFi Odds · United — Starlink Route Optimizer">
 <meta name="twitter:description" content="Pick any United route and get the best plan to land a Starlink-equipped plane — every flight ranked by live odds, the smartest routings, confirmed tails, and a booking playbook. Updated daily and on demand.">
-<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=3">
-<link rel="preload" href="/assets/b612-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/assets/b612mono-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=2ff10b77">
+<meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=fa82ae75">
+<link rel="preload" href="/assets/serif-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/serif-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=d2a06f32">
 <style>
-  /* ═══ /united/ — THE PAGE-SCOPED SHEET · READ THE FENCE FIRST ══════════════
+  /* ═══ /united/ — THE PAGE-SCOPED SHEET · READ THIS BEFORE EDITING ══════════
      Below this block sit ~1,400 lines of live-tested app JS. No id and no class
-     that script touches has been renamed. What changed in the A′ re-skin is the
-     SKIN, and it changed in three ways:
+     that script touches has been renamed, in this re-skin or the one before it.
+     What changed is the SKIN, and under THE FORECAST it changed in four ways:
 
-     1. United's blue left the page chrome. The --united and --united-deep
-        aliases, the bright-blue button hover, the glow shadows and the sky-blue
-        starfield are all gone, canvas and script with them. Grep the built page
-        for United's three hex values and every hit you get should now be inside
-        the .plc drawing; a hit anywhere else is a regression. There is no house
-        hue any more.
-     2. Every shared component was DELETED from here so it inherits
+     1. THE TWO VOICES REPLACED THE MONOSPACE. Every label, tag and figure on
+        this page used to be set in var(--mono), which was the plate idiom and
+        left with it. Labels and tables are the sans, because that is the voice
+        that reports. Large figures are the serif, whose numerals are tabular by
+        default, so a percentage does not change width when it changes value.
+        --mono survives on this page in exactly one place, the .plc drawing,
+        where it is standing in for somebody else's UI type.
+     2. SQUARE BECAME SOFT. Radii come from --r-sm/--r-md/--r-lg. The butted
+        -1px hairline strips (chips, tabs, filter rows) are gapped pills now,
+        which is the grammar site.css uses for .pill, .badge and .filters.
+     3. Every shared component stays DELETED from here so it inherits
         /assets/site.css: .btn, .badge, .pill, .panel, .credit, .chip, .track,
-        footer, body type. If a rule below duplicates one over there, delete the
-        one below rather than tuning it.
-     3. What is left is the handful of layouts this page alone owns, all of them
-        hairline-ruled, square, flat, and with nothing that lifts on hover.
+        .empty-state, .meta-pill, footer, body type. If a rule below duplicates
+        one over there, delete the one below rather than tuning it.
+     4. NO GRADIENTS, NO GLOWS, NO STARFIELD, anywhere — including inside the
+        .plc drawing, which used to carry a six-dot radial-gradient starfield
+        and nine linear gradients. Those are the exact vocabulary two rejected
+        designs were built from. Flat colour only.
 
      United's blue survives in exactly ONE place: the .plc-* block further down
      the body, which is a DRAWING of united.com and Navan. A picture of somebody
-     else's website has to look like their website. Nothing outside that drawing
-     is allowed to use it.
+     else's website has to look like their website, and united.com's own header
+     is flat #0033A0. Nothing outside that drawing may use it.
 
-     THE ONE COLOUR RULE holds here too. The only coloured things on this page
-     are odds: the ring, the verdict tag and the confirmed-tail chip, and they
-     take the score-arc stops from site.css. Chrome is grey. ══════════════════ */
+     THE COLOUR RULE holds here. The bands own every number: the ring, the
+     verdict tag, the type bars and the confirmed-tail chip, all taking the
+     score arc from site.css. The sky owns the chrome: links, buttons, kickers.
+     Nothing else on this page is coloured at all. ══════════════════════════ */
 
   /* ── header ─────────────────────────────────────────────────────────────── */
-  .ustat{margin-top:15px;max-width:80ch}
-  .ustat b{color:var(--ink);font-family:var(--mono)}
-  .ustat a{color:inherit}
+  .ustat{margin-top:.9rem;max-width:44rem}
+  .ustat b{color:var(--ink);font-variant-numeric:tabular-nums}
 
-  /* ── quick nav: the same tab grammar as .topnav ─────────────────────────── */
-  .qnav{display:flex;flex-wrap:wrap;gap:0;margin:18px 0 2px}
-  .qnav a{font:700 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
-    color:var(--ink-2);text-decoration:none;padding:8px 11px;border:1px solid var(--rule);
-    margin:0 -1px -1px 0;white-space:nowrap}
-  .qnav a:hover{color:var(--ink);background:var(--bg-inset)}
-  .qnav a.cta{color:var(--ink);border-color:var(--rule-2)}
-  .qnav a.cta:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-  section[id]{scroll-margin-top:14px}
+  /* ── quick nav: pills, and they are links, so they are the sky ─────────── */
+  .qnav{display:flex;flex-wrap:wrap;gap:.4rem;margin:1.2rem 0 .2rem}
+  .qnav a{font-size:.82rem;color:var(--link);text-decoration:none;padding:.3rem .7rem;
+    border:1px solid var(--line);border-radius:99px;white-space:nowrap}
+  .qnav a:hover{border-color:var(--sky);text-decoration:none}
+  section[id]{scroll-margin-top:1rem}
 
   /* The chips grid, the .n and the .l all come from site.css. Only .glow differs,
      and it differs by NOT taking a colour: these four cells carry no score band,
@@ -73,292 +76,285 @@
   .chips:empty{display:none}
   .chip.glow .n{color:var(--ink)}
 
-  /* ── route picker: one control, butted together ────────────────────────── */
-  .picker{background:var(--bg-panel);border:1px solid var(--rule);padding:20px}
-  .picker-row{display:flex;gap:0;align-items:flex-end;flex-wrap:wrap}
-  .field{flex:1 1 180px;min-width:0}
-  .field label{display:block;font:700 10px/1.4 var(--mono);letter-spacing:.155em;
-    text-transform:uppercase;color:var(--ink-3);margin-bottom:8px}
-  .field input{width:100%;padding:13px 14px;border-radius:0;font:700 17px/1 var(--mono);
-    letter-spacing:.12em;text-transform:uppercase;background:var(--bg-inset);color:var(--ink);
-    border:1px solid var(--rule-2);-webkit-appearance:none;appearance:none}
-  .field input:focus{outline:none;border-color:var(--ink-2)}
-  .swap{flex:none;width:46px;height:46px;border-radius:0;border:1px solid var(--rule-2);
-    background:var(--bg-inset);color:var(--ink-2);font-size:17px;line-height:1;cursor:pointer;
-    margin:0 -1px}
-  .swap:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-  .route-strip{margin-top:16px;padding-top:14px;border-top:1px solid var(--rule);
-    display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-  .route-strip .rt{font-family:var(--mono);font-size:24px;font-weight:700;letter-spacing:.1em;
-    color:var(--ink)}
-  .lb{margin-top:16px}
-  .lb .lbt{font:700 10px/1.4 var(--mono);letter-spacing:.155em;text-transform:uppercase;
-    color:var(--ink-3);margin-bottom:9px}
-  .lb-chips{display:flex;gap:0;flex-wrap:wrap}
-  .lb-chip{font-family:var(--mono);font-size:12.5px;padding:7px 11px;cursor:pointer;
-    background:transparent;border:1px solid var(--rule);color:var(--ink-2);margin:0 -1px -1px 0}
-  .lb-chip:hover{color:var(--ink);background:var(--bg-inset);border-color:var(--rule-2)}
+  /* ── route picker ──────────────────────────────────────────────────────── */
+  .picker{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);
+    padding:1.2rem 1.3rem;box-shadow:var(--sheen)}
+  .picker-row{display:flex;gap:.6rem;align-items:flex-end;flex-wrap:wrap}
+  .field{flex:1 1 11rem;min-width:0}
+  .field label{display:block;font-size:.72rem;font-weight:600;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
+  .field input{width:100%;padding:.72rem .9rem;border-radius:var(--r-md);font:inherit;
+    font-weight:700;font-size:1.05rem;letter-spacing:.1em;text-transform:uppercase;
+    font-variant-numeric:tabular-nums;background:var(--field);color:var(--ink);
+    border:1px solid var(--line);-webkit-appearance:none;appearance:none}
+  .field input:focus{outline:none;border-color:var(--sky);
+    box-shadow:0 0 0 2px rgb(45 90 125 / .18)}
+  .swap{flex:none;width:2.9rem;height:2.9rem;border-radius:var(--r-md);
+    border:1px solid var(--line);background:var(--card);color:var(--ink-soft);
+    font-size:1.05rem;line-height:1;cursor:pointer}
+  .swap:hover{border-color:var(--sky);color:var(--ink)}
+  .route-strip{margin-top:1rem;padding-top:.9rem;border-top:1px solid var(--line-soft);
+    display:flex;gap:.8rem;flex-wrap:wrap;align-items:baseline}
+  .route-strip .rt{font-family:var(--serif);font-size:1.5rem;font-weight:700;
+    letter-spacing:.02em;color:var(--ink)}
+  .lb{margin-top:1rem}
+  .lb .lbt{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:.5rem}
+  .lb-chips{display:flex;gap:.4rem;flex-wrap:wrap}
+  .lb-chip{font:inherit;font-size:.82rem;padding:.3rem .7rem;cursor:pointer;
+    background:transparent;border:1px solid var(--line);border-radius:99px;
+    color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .lb-chip:hover{border-color:var(--muted);color:var(--ink)}
   .lb-chip b{color:var(--ink)}
 
   /* ── loading ───────────────────────────────────────────────────────────── */
-  .loadbar{display:none;align-items:center;gap:10px;color:var(--ink-2);margin:16px 0;
-    font:700 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase}
+  .loadbar{display:none;align-items:center;gap:.6rem;color:var(--muted);margin:1rem 0;
+    font-size:.82rem}
   .loadbar.on{display:flex}
-  .orb{width:9px;height:9px;background:var(--ink-2);flex:none}
+  .orb{width:.5rem;height:.5rem;border-radius:50%;background:var(--muted);flex:none}
   html.anim .orb{animation:uoblink 1s steps(2,end) infinite}
   @keyframes uoblink{50%{opacity:.2}}
 
   /* ── the ranked flights ────────────────────────────────────────────────── */
-  .meta-row{display:flex;gap:0;flex-wrap:wrap;margin:14px 0 16px}
+  /* .meta-pill itself is site.css's; only the inner label and the row are here */
+  .meta-row{display:flex;gap:.5rem;flex-wrap:wrap;margin:1rem 0}
   .meta-row:empty{display:none}
-  .meta-pill{font-size:13px;color:var(--ink-2);background:var(--bg-panel);
-    border:1px solid var(--rule);padding:9px 14px;margin:0 -1px -1px 0}
+  .meta-pill{padding:.35rem .75rem;font-size:.82rem}
   .meta-pill b{color:var(--ink)}
-  .meta-pill .k{font:700 9px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;
-    color:var(--ink-3);margin-right:8px}
-  .flights{display:grid;gap:0;border-top:1px solid var(--rule-2)}
+  .meta-pill .k{font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);margin-right:.5rem}
+  .flights{display:grid;gap:0;border-top:1px solid var(--line)}
   .flights:empty{display:none}
   /* a flight is a record, so it is a ruled row with a tick in the margin, not a
      card. The best row is marked by weight, never by a second hue. */
-  .fcard{display:grid;grid-template-columns:72px 1fr auto;gap:16px;align-items:center;
-    background:transparent;border:0;border-bottom:1px solid var(--rule);
-    padding:14px 0 14px 12px;position:relative}
-  .fcard:before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:1px;
-    background:var(--rule)}
-  .fcard.best{background:var(--bg-panel)}
-  .fcard.best:before{width:3px;background:var(--ink-2)}
+  .fcard{display:grid;grid-template-columns:4.5rem 1fr auto;gap:1rem;align-items:center;
+    background:transparent;border:0;border-bottom:1px solid var(--line-soft);
+    padding:.9rem 0 .9rem .8rem;position:relative}
+  .fcard:before{content:"";position:absolute;left:0;top:.9rem;bottom:.9rem;width:1px;
+    background:var(--line)}
+  .fcard.best{background:var(--panel);border-radius:var(--r-sm)}
+  .fcard.best:before{width:3px;background:var(--muted-strong)}
   .fcard.avoid{opacity:.66}
-  .ring{position:relative;width:72px;height:72px}
+  .ring{position:relative;width:4.5rem;height:4.5rem}
   .ring svg{transform:rotate(-90deg);width:100%;height:100%;display:block}
   .ring .pct{position:absolute;inset:0;display:grid;place-items:center;
-    font-family:var(--mono);font-weight:700;font-size:18px;letter-spacing:-.02em}
-  .fmain .fn{font-family:var(--mono);font-weight:700;font-size:18px;letter-spacing:.06em;
-    color:var(--ink)}
-  .fmain .meta{color:var(--ink-2);font-size:13px;margin-top:4px}
-  .fmain .note{color:var(--ink-3);font-size:12px;margin-top:4px}
-  .fmain .conf-tail{display:inline-block;font:700 9px/1.35 var(--mono);letter-spacing:.12em;
-    text-transform:uppercase;color:var(--good);border:1px solid var(--good);padding:4px 6px;
-    margin-top:8px}
+    font-family:var(--serif);font-weight:700;font-size:1.15rem;letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums}
+  .fmain .fn{font-weight:700;font-size:1.05rem;letter-spacing:.03em;color:var(--ink);
+    font-variant-numeric:tabular-nums}
+  .fmain .meta{color:var(--ink-soft);font-size:.82rem;margin-top:.25rem}
+  .fmain .note{color:var(--muted);font-size:.78rem;margin-top:.25rem}
+  /* a confirmed tail is a fact about a specific aircraft, not an estimate, so it
+     takes the green the way a SHIPPED item does on /roadmap/ */
+  .fmain .conf-tail{display:inline-block;font-size:.68rem;font-weight:700;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--good);border:1px solid currentColor;border-radius:99px;
+    padding:.14rem .5rem;margin-top:.5rem}
   .verdict{justify-self:end;text-align:right}
   /* the verdict IS the score band, which is why it is allowed the colour. The
      five stops are site.css's arc, so a tag and a ring never disagree. */
-  .v-tag{font:700 9.5px/1.35 var(--mono);letter-spacing:.13em;text-transform:uppercase;
-    padding:5px 8px;border:1px solid;white-space:nowrap;display:inline-block}
-  .v-best{color:var(--good);border-color:var(--good)}
-  .v-good{color:var(--s-good);border-color:var(--s-good)}
-  .v-ok{color:var(--s-mix);border-color:var(--s-mix)}
-  .v-risky{color:var(--s-long);border-color:var(--s-long)}
-  .v-avoid{color:var(--s-rare);border-color:var(--s-rare)}
-  .verdict .conf{display:block;font:700 9px/1 var(--mono);letter-spacing:.13em;
-    text-transform:uppercase;color:var(--ink-3);margin-top:9px}
-  .verdict .conf a{text-decoration:none}
-  .empty-state{background:var(--bg-panel);border:1px dashed var(--rule-2);padding:20px;
-    color:var(--ink-2);font-size:14px}
-  .empty-state .k{font:700 9.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
-    color:var(--ink-3);display:block;margin-bottom:9px}
-  .empty-state .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .v-tag{font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+    padding:.14rem .5rem;border:1px solid currentColor;border-radius:99px;white-space:nowrap;
+    display:inline-block}
+  .v-best{color:var(--good)}
+  .v-good{color:var(--s-good)}
+  .v-ok{color:var(--s-mix)}
+  .v-risky{color:var(--s-long)}
+  .v-avoid{color:var(--s-rare)}
+  .verdict .conf{display:block;font-size:.75rem;color:var(--muted);margin-top:.55rem}
+  /* .empty-state is site.css's box; these two are the pieces only this page uses */
+  .empty-state .k{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);display:block;margin-bottom:.5rem}
+  .empty-state .btns{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:.9rem}
 
   /* ── best routings ─────────────────────────────────────────────────────── */
-  .itins{display:grid;gap:0;border-top:1px solid var(--rule-2)}
-  .icard{background:transparent;border:0;border-bottom:1px solid var(--rule);
-    padding:14px 0 14px 12px;position:relative}
-  .icard:before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:1px;
-    background:var(--rule)}
-  .icard.top{background:var(--bg-panel)}
-  .icard.top:before{width:3px;background:var(--ink-2)}
-  .icard .ihead{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
-  .icard .rank{font-family:var(--mono);font-weight:700;color:var(--ink-3);font-size:12px}
-  .icard .chain{font-family:var(--mono);font-weight:700;font-size:16px;letter-spacing:.08em;
-    color:var(--ink)}
-  .icard .jp{margin-left:auto;font-family:var(--mono);font-weight:700;font-size:19px;
-    color:var(--ink);letter-spacing:-.02em}
+  .itins{display:grid;gap:0;border-top:1px solid var(--line)}
+  .icard{background:transparent;border:0;border-bottom:1px solid var(--line-soft);
+    padding:.9rem 0 .9rem .8rem;position:relative}
+  .icard:before{content:"";position:absolute;left:0;top:.9rem;bottom:.9rem;width:1px;
+    background:var(--line)}
+  .icard.top{background:var(--panel);border-radius:var(--r-sm)}
+  .icard.top:before{width:3px;background:var(--muted-strong)}
+  .icard .ihead{display:flex;gap:.7rem;align-items:baseline;flex-wrap:wrap}
+  .icard .rank{color:var(--muted);font-size:.8rem;font-variant-numeric:tabular-nums}
+  .icard .chain{font-weight:700;font-size:1rem;letter-spacing:.04em;color:var(--ink)}
+  .icard .jp{margin-left:auto;font-family:var(--serif);font-weight:700;font-size:1.25rem;
+    color:var(--ink);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
   /* coverage is a CATEGORY, not a score: monochrome, separated by border style */
-  .cov{font:700 9px/1.35 var(--mono);letter-spacing:.13em;text-transform:uppercase;
-    padding:4px 6px;border:1px solid var(--rule-2);color:var(--ink-3);white-space:nowrap}
-  .cov.full{color:var(--ink);border-color:var(--ink-2)}
+  .cov{font-size:.68rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+    padding:.14rem .5rem;border:1px solid var(--line);border-radius:99px;color:var(--muted);
+    white-space:nowrap}
+  .cov.full{color:var(--muted-strong);border-color:var(--muted)}
   .cov.partial{border-style:dashed}
-  .cov.direct{color:var(--ink-2)}
-  .icard .legs{margin-top:10px;display:grid;gap:0}
-  .icard .leg{display:flex;gap:10px;font-size:13px;color:var(--ink-2);font-family:var(--mono);
-    padding:6px 0;border-top:1px solid var(--rule)}
+  .icard .legs{margin-top:.6rem;display:grid;gap:0}
+  .icard .leg{display:flex;gap:.7rem;font-size:.85rem;color:var(--ink-soft);
+    font-variant-numeric:tabular-nums;padding:.35rem 0;border-top:1px solid var(--line-soft)}
   .icard .leg b{color:var(--ink)}
   .icard .leg .lp{margin-left:auto}
-  .icard .isub{color:var(--ink-3);font-size:12.5px;margin-top:9px}
+  .icard .isub{color:var(--muted);font-size:.8rem;margin-top:.55rem}
 
   /* ── confirmed departures ──────────────────────────────────────────────── */
-  .confirmed-list{display:grid;gap:0;border-top:1px solid var(--rule-2)}
-  .dep{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:transparent;
-    border:0;border-bottom:1px solid var(--rule);padding:10px 0;
-    font-family:var(--mono);font-size:13px;color:var(--ink-2)}
-  .dep b{color:var(--good)}
-  .dep .tail{color:var(--ink-3);margin-left:auto}
+  /* every row here is a published tail assignment, so the list wears the green
+     tick in the margin and the flight numbers stay ink */
+  .confirmed-list{display:grid;gap:0;border-top:1px solid var(--line)}
+  .dep{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap;background:transparent;
+    border:0;border-bottom:1px solid var(--line-soft);padding:.6rem 0 .6rem .7rem;
+    font-size:.85rem;color:var(--ink-soft);font-variant-numeric:tabular-nums;
+    box-shadow:inset 2px 0 0 var(--good)}
+  .dep b{color:var(--ink);font-weight:700}
+  .dep .tail{color:var(--muted);margin-left:auto}
 
   /* ── round-trip builder ────────────────────────────────────────────────── */
-  .trip{background:var(--bg-panel);border:1px solid var(--rule);padding:20px}
-  .trip-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .trip{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);
+    padding:1.2rem 1.3rem;box-shadow:var(--sheen)}
+  .trip-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
   @media(max-width:640px){.trip-grid{grid-template-columns:1fr}}
-  .trip-col label{display:block;font:700 10px/1.4 var(--mono);letter-spacing:.155em;
-    text-transform:uppercase;color:var(--ink-3);margin-bottom:8px}
-  .trip-col select{width:100%;padding:11px 12px;border-radius:0;background:var(--bg-inset);
-    color:var(--ink);border:1px solid var(--rule-2);font-size:15px;font-family:var(--mono)}
-  .trip-out{display:flex;gap:1px;flex-wrap:wrap;margin-top:18px;background:var(--rule);
-    border:1px solid var(--rule)}
-  .trip-big{background:var(--bg-panel);padding:14px 16px;flex:1 1 150px}
-  .trip-big .v{font-family:var(--mono);font-size:32px;font-weight:700;line-height:1;
-    color:var(--ink);letter-spacing:-.02em}
-  .trip-big .l{font:700 9.5px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;
-    color:var(--ink-3);margin-top:8px}
-  .trip-note{background:var(--bg-panel);padding:14px 16px;flex:2 1 250px;
-    color:var(--ink-2);font-size:13px}
+  .trip-col label{display:block;font-size:.72rem;font-weight:600;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
+  .trip-col select{width:100%;padding:.6rem .7rem;border-radius:var(--r-md);
+    background:var(--field);color:var(--ink);border:1px solid var(--line);font:inherit;
+    font-size:.92rem}
+  .trip-out{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1.2rem}
+  .trip-big{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+    box-shadow:var(--sheen);padding:.9rem 1rem;flex:1 1 9.5rem}
+  .trip-big .v{font-family:var(--serif);font-size:2rem;font-weight:700;line-height:1;
+    color:var(--ink);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .trip-big .l{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);margin-top:.5rem}
+  .trip-note{flex:2 1 16rem;color:var(--ink-soft);font-size:.85rem;align-self:center}
 
-  /* ── the playbook ──────────────────────────────────────────────────────── */
-  .steps{display:grid;gap:0;border-top:1px solid var(--rule-2)}
-  .step{display:grid;grid-template-columns:70px 1fr;gap:18px;padding:16px 0;
-    border-bottom:1px solid var(--rule)}
-  .step .dot{width:70px;height:26px;border:1px solid var(--rule-2);display:grid;place-items:center;
-    font:700 9px/1 var(--mono);letter-spacing:.12em;color:var(--ink-2)}
-  .step h3{font-size:16px;margin-bottom:5px}
-  .step p{color:var(--ink-2);font-size:14px;max-width:74ch}
+  /* ── the playbook. Same shape as .moves in site.css, with the tag in the
+        margin; the markup is a <div class="step"> grid rather than an <ol>. ── */
+  .steps{display:grid;gap:0;border-top:1px solid var(--line)}
+  .step{display:grid;grid-template-columns:4.4rem 1fr;gap:1.1rem;padding:.9rem 0;
+    border-bottom:1px solid var(--line-soft)}
+  .step .dot{align-self:start;font-size:.68rem;font-weight:700;letter-spacing:.1em;
+    color:var(--muted-strong);border:1px solid var(--line);border-radius:99px;
+    padding:.1rem .4rem;background:var(--card);text-align:center;margin-top:.15rem}
+  .step h3{font-size:1.02rem;margin-bottom:.2rem}
+  .step p{color:var(--ink-soft);font-size:.92rem;max-width:46rem}
   .step p b{color:var(--ink)}
-  .step a{color:inherit}
-  .checkbar{display:flex;gap:0;flex-wrap:wrap;margin-top:12px;align-items:stretch}
-  .checkbar select,.checkbar input{padding:11px 12px;border-radius:0;background:var(--bg-inset);
-    color:var(--ink);border:1px solid var(--rule-2);font-size:15px;font-family:var(--mono);
-    margin:0 -1px 0 0}
-  .checkbar .btn{margin-left:0}
+  .checkbar{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.8rem;align-items:stretch}
+  .checkbar select,.checkbar input{padding:.6rem .7rem;border-radius:var(--r-md);
+    background:var(--field);color:var(--ink);border:1px solid var(--line);font:inherit;
+    font-size:.92rem;font-variant-numeric:tabular-nums}
+  .checkbar select:focus,.checkbar input:focus{outline:none;border-color:var(--sky)}
 
   /* ── fleet pulse ───────────────────────────────────────────────────────── */
-  .fleet-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);
-    border:1px solid var(--rule)}
+  .fleet-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
   @media(max-width:760px){.fleet-grid{grid-template-columns:1fr}}
-  .fleet-grid .panel{border:0}
   .fleet-grid .wide{grid-column:1/-1}
-  .panel h3{font:700 10px/1.4 var(--mono);letter-spacing:.155em;text-transform:uppercase;
-    color:var(--ink-3);margin-bottom:14px}
-  .tbar{margin-bottom:12px}
-  .tbar .tl{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin-bottom:5px}
+  .fleet-grid .panel h3{font-size:1.02rem;margin-bottom:.9rem}
+  .tbar{margin-bottom:.8rem}
+  .tbar .tl{display:flex;justify-content:space-between;gap:.7rem;font-size:.85rem;
+    margin-bottom:.3rem}
   .tbar .tl .nm{font-weight:700;color:var(--ink)}
-  .tbar .tl .val{font-family:var(--mono);color:var(--ink-2)}
+  .tbar .tl .val{color:var(--ink-soft);font-variant-numeric:tabular-nums}
   /* site.css wraps its own fill selector in :where() so these win. The app JS
-     sets the width inline; all that is set here is the ink. */
-  .track .fill{background:var(--ink-2)}
-  .track .fill.hot{background:var(--good)}
-  .track .fill.zero{background:var(--rule-2)}
-  .pace{color:var(--ink-2);font-size:13.5px;margin-top:14px;padding-top:12px;
-    border-top:1px solid var(--rule)}
-  .pace b{color:var(--ink);font-family:var(--mono)}
+     sets the width inline; all that is set here is the ink — and a bar beside an
+     equipped count is a COUNT, so it takes the same green the waffle's lit cells
+     take, not the chrome ink the plate skin used to give it. */
+  .track .fill{background:var(--viz-equipped)}
+  .track .fill.zero{background:var(--zero)}
+  .pace{color:var(--ink-soft);font-size:.86rem;margin-top:.9rem;padding-top:.8rem;
+    border-top:1px solid var(--line-soft)}
+  .pace b{color:var(--ink);font-variant-numeric:tabular-nums}
   #spark{width:100%;height:120px}
-  .spark-note{font-size:12.5px;color:var(--ink-3);margin-top:8px}
+  .spark-note{font-size:.78rem;color:var(--muted);margin-top:.5rem}
   /* .targets, not .tgts — site.css scopes its own bullet to .tgts precisely so
      that it cannot give these items a second marker. */
-  .targets{margin-top:12px;list-style:none}
-  .targets li{color:var(--ink-2);font-size:13px;padding:7px 0 7px 22px;position:relative;
-    border-top:1px solid var(--rule)}
-  .targets li:before{content:"";position:absolute;left:2px;top:14px;width:7px;height:7px;
-    background:var(--ink-3)}
+  .targets{margin-top:.8rem;list-style:none}
+  .targets li{color:var(--ink-soft);font-size:.85rem;padding:.45rem 0 .45rem 1.3rem;
+    position:relative;border-top:1px solid var(--line-soft)}
+  .targets li:before{content:"";position:absolute;left:.1rem;top:.85rem;width:.4rem;
+    height:.4rem;border-radius:50%;background:var(--muted)}
 
-  /* ── the route note ────────────────────────────────────────────────────── */
-  .callout{display:flex;gap:12px;align-items:flex-start;background:var(--bg-panel);
-    border:1px solid var(--rule);border-left:3px solid var(--rule-2);border-radius:0;
-    padding:13px 16px;margin-top:16px;color:var(--ink-2);font-size:13.5px}
-  .callout .k{flex:none;font:700 9px/1.5 var(--mono);letter-spacing:.13em;text-transform:uppercase;
-    color:var(--ink-3)}
+  /* ── the route note. site.css's .callout is a panel with a serif paragraph;
+        this one carries a micro label beside the text, so it keeps its own
+        layout and inherits everything else. ── */
+  .callout{display:flex;gap:.8rem;align-items:flex-start;border-left:3px solid var(--line);
+    margin-top:1rem;color:var(--ink-soft);font-size:.88rem}
+  .callout .k{flex:0 0 4.5rem;font-size:.68rem;font-weight:600;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);padding-top:.15rem}
 
   /* ── daily updates ─────────────────────────────────────────────────────── */
-  .clog{margin:38px 0 10px;border-top:1px solid var(--rule-2);padding-top:30px;position:relative}
-  .clog-h{display:flex;align-items:baseline;gap:8px 16px;flex-wrap:wrap;margin-bottom:12px}
-  .clog-h h2{font-size:22px;font-weight:700;letter-spacing:-.005em}
-  .clog-h .sub{font:700 10px/1.4 var(--mono);letter-spacing:.155em;text-transform:uppercase;
-    color:var(--ink-3)}
-  .clog-h .sub.tab{position:absolute;top:-7px;left:0;background:var(--bg);padding-right:13px}
-  .clog-days{display:grid;gap:0;border-top:1px solid var(--rule-2)}
-  .cday{background:transparent;border:0;border-bottom:1px solid var(--rule);
-    padding:14px 0 14px 12px;position:relative}
-  .cday:before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:1px;
-    background:var(--rule)}
-  .cday.today{background:var(--bg-panel)}
-  .cday.today:before{width:3px;background:var(--ink-2)}
-  .cday-top{display:flex;align-items:baseline;gap:8px 14px;flex-wrap:wrap;margin-bottom:4px}
-  .cday-date{font-family:var(--mono);font-weight:700;font-size:14.5px;color:var(--ink)}
-  .cday-eq{font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
+  .clog-days{display:grid;gap:0;border-top:1px solid var(--line)}
+  .cday{background:transparent;border:0;border-bottom:1px solid var(--line-soft);
+    padding:.9rem 0 .9rem .8rem;position:relative}
+  .cday:before{content:"";position:absolute;left:0;top:.9rem;bottom:.9rem;width:1px;
+    background:var(--line)}
+  .cday.today{background:var(--panel);border-radius:var(--r-sm)}
+  .cday.today:before{width:3px;background:var(--muted-strong)}
+  .cday-top{display:flex;align-items:baseline;gap:.5rem .9rem;flex-wrap:wrap;margin-bottom:.25rem}
+  .cday-date{font-weight:700;font-size:.95rem;color:var(--ink);
+    font-variant-numeric:tabular-nums}
+  .cday-eq{font-size:.82rem;color:var(--ink-soft);font-variant-numeric:tabular-nums}
   .cday-eq .up{color:var(--good);font-weight:700}
-  .cday-eq .flat{color:var(--ink-3)}
-  .cday-rows{display:grid;gap:0;margin-top:8px;border-top:1px solid var(--rule)}
-  .crow{display:flex;gap:12px;font-size:13.5px;align-items:flex-start;line-height:1.5;
-    padding:8px 0;border-bottom:1px solid var(--rule)}
+  .cday-eq .flat{color:var(--muted)}
+  .cday-rows{display:grid;gap:0;margin-top:.55rem;border-top:1px solid var(--line-soft)}
+  .crow{display:flex;gap:.8rem;font-size:.88rem;align-items:flex-start;line-height:1.5;
+    padding:.5rem 0;border-bottom:1px solid var(--line-soft)}
   .crow:last-child{border-bottom:0}
-  .crow .k{flex:0 0 120px;font:700 9.5px/1.6 var(--mono);letter-spacing:.14em;
-    text-transform:uppercase;color:var(--ink-3);padding-top:3px}
+  .crow .k{flex:0 0 7.5rem;font-size:.72rem;font-weight:600;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);padding-top:.2rem}
   .crow .v{flex:1;min-width:0}
-  .cday-steady{color:var(--ink-3);font-size:13px;font-family:var(--mono);letter-spacing:.03em}
-  .clog-foot{color:var(--ink-3);font-size:12.5px;margin-top:14px;line-height:1.6}
-  .clog-foot a{color:var(--ink-2)}
-  .clog-foot a.clog-more{display:inline-flex;align-items:center;gap:8px;margin-top:14px;
-    font:700 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink);
-    text-decoration:none;padding:11px 16px;border:1px solid var(--rule-2)}
-  .clog-foot a.clog-more:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .cday-steady{color:var(--muted);font-size:.86rem}
+  .clog-foot{color:var(--muted);font-size:.8rem;margin-top:.9rem;line-height:1.6}
+  .clog-foot a.clog-more{display:inline-block;margin-top:.9rem}
 
   /* ── the extension block ───────────────────────────────────────────────── */
-  .xhero{margin:22px 0 8px;background:var(--bg-panel);border:1px solid var(--rule);padding:22px}
-  .xhero-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;
-    padding-bottom:12px;border-bottom:1px solid var(--rule)}
-  .xnew{font:700 9.5px/1 var(--mono);letter-spacing:.15em;text-transform:uppercase;
-    color:var(--ink);border:1px solid var(--ink-2);padding:6px 9px}
-  .xver{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);letter-spacing:.06em}
-  .xhero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:24px;
+  .xhero{margin:1.4rem 0 .5rem;background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--r-xl);padding:1.4rem;box-shadow:var(--sheen)}
+  .xhero-top{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin-bottom:1rem;
+    padding-bottom:.8rem;border-bottom:1px solid var(--line-soft)}
+  .xnew{font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--muted-strong);border:1px solid var(--muted);border-radius:99px;
+    padding:.14rem .5rem}
+  .xver{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+  .xhero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:1.5rem;
     align-items:center}
-  @media(max-width:820px){.xhero-grid{grid-template-columns:1fr;gap:18px}}
-  .xhero-copy h2{font-size:22px;line-height:1.24;letter-spacing:-.012em;margin-bottom:10px}
-  .xhero-copy p{color:var(--ink-2);font-size:14.5px;margin-bottom:14px;max-width:54ch}
-  .xbands{display:flex;flex-wrap:wrap;gap:0;margin:14px 0 18px}
-  .xbands .b{font:700 9.5px/1.35 var(--mono);letter-spacing:.1em;text-transform:uppercase;
-    padding:5px 8px;border:1px solid var(--rule);color:var(--ink-2);margin:0 -1px -1px 0;
-    white-space:nowrap}
-  .xhero-cta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:16px 0 12px}
-  .xhero-cta .xlink{font:700 10px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;
-    color:var(--ink-2);text-decoration:none}
-  .xhero-cta .xlink:hover{color:var(--ink)}
-  .xhero-links{display:flex;flex-wrap:wrap;gap:0;margin-top:12px}
-  .xhero-links a{font:700 9.5px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;
-    color:var(--ink-2);text-decoration:none;padding:9px 10px;border:1px solid var(--rule);
-    margin:0 -1px -1px 0}
-  .xhero-links a:hover{color:var(--ink);background:var(--bg-inset)}
+  @media(max-width:820px){.xhero-grid{grid-template-columns:1fr;gap:1.2rem}}
+  .xhero-copy h2{font-size:1.35rem;line-height:1.24;margin-bottom:.6rem}
+  .xhero-copy p{color:var(--ink-soft);font-size:.92rem;margin-bottom:.9rem;max-width:54ch}
+  .xbands{display:flex;flex-wrap:wrap;gap:.35rem;margin:.9rem 0 1.1rem}
+  .xbands .b{font-size:.72rem;font-weight:600;letter-spacing:.06em;padding:.14rem .5rem;
+    border:1px solid var(--line);border-radius:99px;color:var(--ink-soft);white-space:nowrap}
+  .xhero-cta{display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;margin:1rem 0 .8rem}
+  .xhero-links{display:flex;flex-wrap:wrap;gap:1.1rem;margin-top:.8rem;font-size:.85rem}
   .xhero-demo{min-width:0}
-  .xcredit{margin-top:16px;padding-top:13px;border-top:1px solid var(--rule);
-    font-size:12.5px;color:var(--ink-3)}
-  .xcredit a{color:var(--ink-2)}
+  .xcredit{margin-top:1rem;padding-top:.8rem;border-top:1px solid var(--line-soft);
+    font-size:.8rem;color:var(--muted)}
 
-  .updated{font-family:var(--mono);color:var(--ink)}
+  .updated{font-variant-numeric:tabular-nums;color:var(--ink)}
   .hidden{display:none!important}
 
   /* ── responsive, down to 390px ─────────────────────────────────────────── */
   @media(max-width:620px){
-    .picker{padding:16px}
-    .picker-row{flex-direction:column;align-items:stretch;gap:0}
+    .picker{padding:1rem}
+    .picker-row{flex-direction:column;align-items:stretch}
     .field{min-width:0}
-    .swap{align-self:flex-start;margin:9px 0;transform:rotate(90deg)}
-    .route-strip .rt{font-size:20px;letter-spacing:.06em}
-    .fcard{grid-template-columns:60px 1fr;gap:12px}
-    .ring{width:60px;height:60px}
-    .ring .pct{font-size:15px}
-    .fmain .fn{font-size:16px}
+    .swap{align-self:flex-start;transform:rotate(90deg)}
+    .route-strip .rt{font-size:1.3rem}
+    .fcard{grid-template-columns:3.75rem 1fr;gap:.8rem}
+    .ring{width:3.75rem;height:3.75rem}
+    .ring .pct{font-size:.95rem}
+    .fmain .fn{font-size:1rem}
     .verdict{grid-column:1/-1;justify-self:stretch;text-align:left;display:flex;
-      align-items:center;justify-content:space-between;gap:10px;
-      border-top:1px solid var(--rule);padding-top:10px}
+      align-items:center;justify-content:space-between;gap:.7rem;
+      border-top:1px solid var(--line-soft);padding-top:.6rem}
     .verdict .conf{margin-top:0}
-    .icard .chain{font-size:14px}
-    .icard .jp{font-size:17px}
-    .trip{padding:16px}
-    .trip-big .v{font-size:27px}
-    .step{grid-template-columns:1fr;gap:9px}
-    .checkbar select,.checkbar input{flex:1 1 130px;min-width:0}
-    .checkbar .btn{flex:1 0 100%;justify-content:center;margin-top:-1px}
-    .xhero{padding:16px}
+    .icard .chain{font-size:.92rem}
+    .icard .jp{font-size:1.1rem}
+    .trip{padding:1rem}
+    .trip-big .v{font-size:1.7rem}
+    .step{grid-template-columns:1fr;gap:.5rem}
+    .step .dot{justify-self:start}
+    .checkbar select,.checkbar input{flex:1 1 8rem;min-width:0}
+    .checkbar .btn{flex:1 0 100%;justify-content:center}
+    .xhero{padding:1rem}
   }
   @media(max-width:430px){
-    .clog-h h2{font-size:19px}
-    .lb-chip{font-size:11.5px;padding:6px 9px}
-    .crow{flex-direction:column;gap:2px}
+    .lb-chip{font-size:.78rem;padding:.25rem .6rem}
+    .crow{flex-direction:column;gap:.15rem}
     .crow .k{flex:none}
   }
 </style>
@@ -366,22 +362,25 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://wifiodds.com/"},{"@type":"ListItem","position":2,"name":"United","item":"https://wifiodds.com/united/"}]}</script>
 </head>
 <body>
+<header class="site">
+  <div class="wrap masthead">
+    <a class="wordmark" href="/"><svg class="mk" viewBox="0 0 32 32" width="17" height="17" aria-hidden="true" focusable="false"><ellipse cx="16" cy="16" rx="11" ry="4.6" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(-22 16 16)"/><circle cx="16" cy="16" r="5.2" fill="currentColor"/><circle cx="26.2" cy="11.9" r="2.3" fill="currentColor"/></svg>WiFi&nbsp;Odds <em>· United</em></a>
+    <nav aria-label="Main">
+      <a href="/airlines/">Airlines</a>
+      <a href="/race/">The Race</a>
+      <a href="/roadmap/">Roadmap</a>
+      <a class="cta" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Extension</a>
+    </nav>
+    <button class="themetoggle" id="themetoggle" type="button" hidden
+      title="Follows your system setting by default. The switch lasts until you reload; nothing is stored."></button>
+    <div class="datechip">Inflight WiFi as a forecast · figures checked daily · this build <b>25 Jul 2026</b></div>
+  </div>
+</header>
 <div class="wrap">
-<div class="topbar">
-  <a class="mark" href="/"><span class="glyph" aria-hidden="true"><svg width="26" height="17" viewBox="0 0 26 17" aria-hidden="true" focusable="false"><g fill="currentColor" opacity=".55"><rect x="0" y="0" width="3" height="3"/><rect x="0" y="4.6" width="3" height="3"/><rect x="4.6" y="0" width="3" height="3"/><rect x="4.6" y="4.6" width="3" height="3"/><rect x="9.2" y="0" width="3" height="3"/><rect x="9.2" y="4.6" width="3" height="3"/><rect x="13.8" y="0" width="3" height="3"/><rect x="13.8" y="4.6" width="3" height="3"/><rect x="18.4" y="0" width="3" height="3"/><rect x="18.4" y="4.6" width="3" height="3"/><rect x="23" y="0" width="3" height="3"/><rect x="23" y="4.6" width="3" height="3"/><rect x="4.6" y="9.2" width="3" height="3"/><rect x="9.2" y="9.2" width="3" height="3"/><rect x="13.8" y="9.2" width="3" height="3"/><rect x="18.4" y="9.2" width="3" height="3"/><rect x="23" y="9.2" width="3" height="3"/></g><g fill="var(--good)"><rect x="0" y="9.2" width="3" height="3"/><rect x="0" y="13.8" width="3" height="3"/><rect x="4.6" y="13.8" width="3" height="3"/><rect x="9.2" y="13.8" width="3" height="3"/><rect x="13.8" y="13.8" width="3" height="3"/><rect x="18.4" y="13.8" width="3" height="3"/><rect x="23" y="13.8" width="3" height="3"/></g></svg></span><span class="wm">WiFi Odds <em>· United</em></span></a>
-  <p class="stripmeta">ConnectScore · Data eff <b>25 JUL 2026</b> · Amdt daily</p>
-  <nav class="topnav" aria-label="Main">
-    <a href="/airlines/">Airlines</a>
-    <a href="/race/">The Race</a>
-    <a href="/roadmap/">Roadmap</a>
-    <a class="cta" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Get the extension</a>
-  </nav>
-  <button class="tt" type="button" aria-label="Switch theme" title="Switch theme">☽</button>
-</div>
-<nav class="subnav" aria-label="United pages"><span class="sn-air">United ·</span><a class="sn-tab" href="/airlines/united/">Overview</a><a class="sn-tab" href="/united/" aria-current="page">Route optimizer</a><a class="sn-tab" href="/united/fleet/">Fleet</a><a class="sn-tab" href="/united/history/">History</a><a class="sn-back" href="/airlines/">All airlines →</a></nav>
+<nav class="subnav" aria-label="United pages"><span class="sn-air">United</span><a class="sn-tab" href="/airlines/united/">Overview</a><a class="sn-tab" href="/united/" aria-current="page">Route optimizer</a><a class="sn-tab" href="/united/fleet/">Fleet</a><a class="sn-tab" href="/united/history/">History</a><a class="sn-back" href="/airlines/">All airlines →</a></nav>
 <nav class="crumb" aria-label="Breadcrumb"><a href="/">Home</a><span class="sep">→</span><a href="/airlines/united/">United</a><span class="sep">→</span><span aria-current="page">Route optimizer</span></nav>
 <header class="hero">
-  <p class="micro">United · Route optimizer</p>
+  <span class="kicker">United · Route optimizer</span>
   <h1 class="ph">Every United flight on your route, ranked by Starlink odds</h1>
   <p class="lede">Give it a city pair. The page ranks each flight number by how often that departure
   has drawn a Starlink-equipped tail, scores the connections against the non-stops, lists the tails
@@ -411,12 +410,15 @@
   <a href="#trip-sec">Trip planner</a>
   <a href="#fleet">Fleet pulse</a>
   <a href="/united/fleet/">Hangar floor ↗</a>
-  <a class="cta" href="#plugin">Get the extension</a>
+  <a href="#plugin">The extension</a>
 </nav>
 
 <div class="no-js-only">
-  <div class="caveat">The optimizer queries the tracker as you type, so it needs JavaScript. Three
-  prerendered pages carry the same underlying data without it:
+  <div class="caveat">The optimizer asks unitedstarlinktracker.com for the route while you are
+  looking at it, so it needs JavaScript, and it is the one page here that calls another site. What
+  it sends and what it keeps in your browser are set out in
+  <a href="/privacy.html#storage">the privacy policy</a>. Three prerendered pages carry the same
+  underlying data without any of that:
   <a href="/united/fleet/">the hangar floor and full registry</a>,
   <a href="/united/history/">the day-by-day install archive</a>, and
   <a href="/airlines/united/">the United score page</a> with the ConnectScore arithmetic on it.</div>
@@ -440,7 +442,7 @@
       </div>
       <div class="xhero-cta">
         <a class="btn" href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec" target="_blank" rel="noopener">Add to Chrome, free ↗</a>
-        <a class="xlink" href="#route">Or try the route optimizer</a>
+        <a href="#route">Or try the route optimizer</a>
       </div>
       <div class="xhero-links">
         <a href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec/reviews" target="_blank" rel="noopener">Leave a review ↗</a>
@@ -455,9 +457,28 @@
    This is a picture of united.com and of Navan with the extension running in
    them, drawn in CSS. It is the one place on this site where United's blue is
    correct, because a drawing of somebody's website has to look like their
-   website, and it is why the A′ re-skin stopped at the frame. Everything OUTSIDE
-   the .plc-viewport is plate: square, hairline, unglazed. Everything inside is
-   somebody else's UI and stays as it is.
+   website. Everything outside the .plc-viewport is the page's own skin;
+   everything inside is somebody else's UI.
+
+   TWO THINGS THIS BLOCK IS NOT ALLOWED, and both were removed:
+
+   · GRADIENTS. It carried nine, from the fake united.com nav bar to the
+     extension's own panel. The site has none, and a drawing does not get an
+     exemption from the one rule the whole design rests on. They are flat colour
+     now, which is also what united.com's real header is.
+   · A STARFIELD. Scene 4's background was six radial-gradient star dots over a
+     dark gradient — the last surviving piece of the vocabulary that got two
+     earlier designs rejected. It is one flat dark ground now.
+
+   The glows went with them: the coloured box-shadows under the badges, the
+   satellite dot's halo and the two "winning row" rings. A ring that has to be
+   coloured to be seen is doing the band's job.
+
+   --mono is NOT redeclared here any more. It used to be set to "B612 Mono",
+   which the site stopped shipping when Source Serif 4 arrived with tabular
+   figures of its own; the declaration pointed at a font file that does not
+   exist, and the drawing has been rendering in the fallback ever since. It
+   inherits the system stack from site.css now, which is what it was showing.
 
    Do not lift a colour out of this block for use elsewhere on the page. ═════ */
 .plc{
@@ -465,9 +486,6 @@
   --ink:#e8eefb;--dim:#93a1c0;--faint:#5c688a;--bg:#040816;
   --card:rgba(148,178,255,.055);--card-edge:rgba(148,178,255,.14);
   --gold:#ffd166;--green:#35d07f;--blue:#4da6ff;--red:#ff5a6e;
-  /* B612 Mono, like every other numeral on the site. The drawing keeps a system
-     sans for the emulated UI, because that is what those sites look like. */
-  --mono:"B612 Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   display:block;max-width:920px;margin:0 auto;color:var(--ink);
   font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;outline:none;
@@ -475,22 +493,24 @@
 .plc *,.plc *::before,.plc *::after{margin:0;padding:0;box-sizing:border-box;font-family:inherit}
 .plc:focus-visible{outline:2px solid var(--sky);outline-offset:6px}
 
-/* ── header row: OUTSIDE the drawing, so it is plate ── */
+/* ── header row, tabs, frame, arrows, dots, caption: these are OUTSIDE the
+      emulated screenshot, so they are the page's own chrome and they follow the
+      Forecast — sans labels, soft corners. The dark ground stays, the way
+      .extdemo on the homepage is a dark stage in both themes. ── */
 .plc-head{display:flex;align-items:baseline;gap:8px 13px;margin-bottom:14px;flex-wrap:wrap;
   padding-bottom:11px;border-bottom:1px solid var(--card-edge)}
 .plc-titles h2{font-size:17px;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
 .plc-titles p{font-size:12px;color:var(--dim);margin-top:2px}
-.plc-ver{font-family:var(--mono);font-size:10px;color:var(--dim);border:1px solid var(--card-edge);
-  padding:2px 6px;margin-left:6px;letter-spacing:.06em}
-.plc-sitetab{margin-left:auto;display:flex;gap:0}
-.plc-site{font:700 9.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
-  color:var(--faint);padding:7px 11px;border:1px solid var(--card-edge);margin-left:-1px;
+.plc-ver{font-size:10px;color:var(--dim);border:1px solid var(--card-edge);border-radius:99px;
+  padding:2px 8px;margin-left:6px;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.plc-sitetab{margin-left:auto;display:flex;gap:5px}
+.plc-site{font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--faint);padding:5px 11px;border:1px solid var(--card-edge);border-radius:99px;
   transition:color .45s ease,background .45s ease;white-space:nowrap}
 .plc-site.on{color:var(--bg);background:var(--ink);border-color:var(--ink)}
 
 /* ── viewport & scaling stage (scenes designed at 720×440, scaled by JS) ── */
-/* the frame is plate: square, one hairline, no lift off the page */
-.plc-viewport{position:relative;aspect-ratio:720/440;border-radius:0;overflow:hidden;
+.plc-viewport{position:relative;aspect-ratio:720/440;border-radius:var(--r-lg);overflow:hidden;
   border:1px solid var(--card-edge);background:#04091c;box-shadow:none}
 .plc-scale{position:absolute;left:0;top:0;width:720px;height:440px;transform-origin:0 0}
 
@@ -512,12 +532,12 @@
 .plc-url b{color:#20242e;font-weight:600}
 .plc-lock{font-size:8px;color:#28a745}
 .plc-ext{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:9.5px;font-weight:600;color:#3c4356;background:#fff;border:1px solid #d4d7de;border-radius:6px;padding:3px 8px;white-space:nowrap}
-.plc-pip{width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#8ecdff,#0033A0)}
+.plc-pip{width:8px;height:8px;border-radius:50%;background:#0033A0}
 
 /* ── emulated united.com ── */
 .plc-usite{flex:1;background:#f4f6f9;display:flex;flex-direction:column;overflow:hidden}
-.plc-unav{height:34px;flex:0 0 34px;background:linear-gradient(180deg,#0033A0,#002b8a);display:flex;align-items:center;gap:15px;padding:0 16px;box-shadow:0 1px 0 rgba(0,0,0,.12)}
-.plc-tulip{width:11px;height:11px;border-radius:2px 50% 2px 50%;background:linear-gradient(135deg,#69B3E7,#fff);transform:rotate(45deg);flex:0 0 11px}
+.plc-unav{height:34px;flex:0 0 34px;background:#0033A0;display:flex;align-items:center;gap:15px;padding:0 16px}
+.plc-tulip{width:11px;height:11px;border-radius:2px 50% 2px 50%;background:#69B3E7;transform:rotate(45deg);flex:0 0 11px}
 .plc-uwm{font-size:13px;font-weight:800;letter-spacing:.13em;color:#fff;margin-right:4px}
 .plc-ulink{font-size:10.5px;color:rgba(255,255,255,.85);font-weight:500;white-space:nowrap}
 .plc-ulink.on{color:#fff;font-weight:700}
@@ -526,10 +546,10 @@
 .plc-uhead h3{font-size:15px;font-weight:700;color:#001A57;letter-spacing:-.01em}
 .plc-uhead p{font-size:10px;color:#4b5563;margin-top:2px}
 .plc-uhead p b{color:#1f2937}
-.plc-sortpill{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(180deg,#0a1230,#040816);border:1px solid rgba(142,205,255,.4);border-radius:999px;padding:6px 13px;font-size:10.5px;font-weight:600;color:var(--sky-bright);white-space:nowrap;box-shadow:0 3px 10px rgba(3,10,40,.35),inset 0 1px 0 rgba(142,205,255,.18)}
-.plc-satdot{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px 2px rgba(255,209,102,.5)}
+.plc-sortpill{display:inline-flex;align-items:center;gap:7px;background:#0a1230;border:1px solid rgba(142,205,255,.4);border-radius:999px;padding:6px 13px;font-size:10.5px;font-weight:600;color:var(--sky-bright);white-space:nowrap}
+.plc-satdot{width:6px;height:6px;border-radius:50%;background:var(--gold)}
 .plc-s2.is-active .plc-sortpill{animation:plc-press .55s ease .4s both}
-@keyframes plc-press{0%{transform:scale(1)}35%{transform:scale(.93);border-color:var(--sky-bright);box-shadow:0 0 0 4px rgba(142,205,255,.18),0 3px 10px rgba(3,10,40,.35)}100%{transform:scale(1)}}
+@keyframes plc-press{0%{transform:scale(1)}35%{transform:scale(.93);border-color:var(--sky-bright)}100%{transform:scale(1)}}
 
 /* flight rows (united) */
 .plc-rows{display:flex;flex-direction:column;gap:8px;padding:0 16px}
@@ -542,19 +562,19 @@
 .plc-flno b{display:block;font-size:11px;font-weight:700;color:#1f2937;white-space:nowrap}
 .plc-flno small{font-size:9.5px;color:#6b7280;white-space:nowrap}
 .plc-odds{flex:1;display:flex;align-items:center;gap:8px;min-width:0}
-.plc-badge{position:relative;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(180deg,#0b1330,#040816);border:1px solid;border-radius:999px;padding:4px 10px;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.01em;white-space:nowrap;box-shadow:0 2px 8px rgba(3,10,40,.28)}
+.plc-badge{position:relative;display:inline-flex;align-items:center;gap:6px;background:#0b1330;border:1px solid;border-radius:999px;padding:4px 10px;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.01em;white-space:nowrap}
 .plc-badge i{width:7px;height:7px;border-radius:50%;flex:0 0 7px}
 .plc-b-gold{border-color:rgba(255,209,102,.65);color:var(--gold)}
-.plc-b-gold i{background:var(--gold);box-shadow:0 0 6px 2px rgba(255,209,102,.45)}
+.plc-b-gold i{background:var(--gold)}
 .plc-b-green{border-color:rgba(53,208,127,.6);color:var(--green)}
-.plc-b-green i{background:var(--green);box-shadow:0 0 5px 1px rgba(53,208,127,.4)}
+.plc-b-green i{background:var(--green)}
 .plc-b-blue{border-color:rgba(77,166,255,.6);color:var(--blue)}
-.plc-b-blue i{background:var(--blue);box-shadow:0 0 5px 1px rgba(77,166,255,.4)}
+.plc-b-blue i{background:var(--blue)}
 .plc-b-red{border-color:rgba(255,90,110,.6);color:var(--red)}
-.plc-b-red i{background:var(--red);box-shadow:0 0 5px 1px rgba(255,90,110,.4)}
+.plc-b-red i{background:var(--red)}
 .plc-b-gray{border-color:rgba(147,161,192,.4);color:var(--dim)}
 .plc-b-gray i{background:var(--faint)}
-.plc-conf{display:inline-flex;align-items:center;gap:3px;font-size:8.5px;font-weight:700;color:#8a6d1a;background:linear-gradient(180deg,#fff7e0,#ffedbe);border:1px solid #f0d789;border-radius:999px;padding:2px 8px;white-space:nowrap}
+.plc-conf{display:inline-flex;align-items:center;gap:3px;font-size:8.5px;font-weight:700;color:#8a6d1a;background:#fff7e0;border:1px solid #f0d789;border-radius:999px;padding:2px 8px;white-space:nowrap}
 .plc-price{flex:0 0 62px;text-align:right}
 .plc-price b{display:block;font-size:13px;font-weight:700;color:#0033A0}
 .plc-price small{font-size:8.5px;color:#8a90a0}
@@ -566,7 +586,7 @@
 .plc-s2.is-sorted .plc-row{top:calc(var(--y1)*60px)}
 /* scene 2 — after the sort lands, the winning row gets a soft gold ring */
 .plc-s2 .plc-win{transition:top .85s cubic-bezier(.22,.9,.24,1) var(--d,0s),box-shadow .6s ease 1s,border-color .6s ease 1s}
-.plc-s2.is-sorted .plc-win{border-color:#f0d789;box-shadow:0 4px 16px rgba(255,209,102,.3),0 1px 3px rgba(16,32,73,.06)}
+.plc-s2.is-sorted .plc-win{border-color:#f0d789}
 
 /* ── scene-entry choreography (scenes 1 & 3) — re-fires every time .is-active returns ── */
 .plc-s1.is-active .plc-row{animation:plc-rowin .55s cubic-bezier(.2,.7,.3,1) both;animation-delay:calc(.1s + var(--i,0)*.07s)}
@@ -584,24 +604,12 @@
 .plc-scene.is-active .plc-satdot{animation:plc-breathe 2s ease-in-out .6s infinite}
 @keyframes plc-breathe{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.35);opacity:.72}}
 
-/* glimmer sweep across gold/green badges (base opacity 0 → invisible under reduced motion) */
-.plc-b-gold,.plc-b-green{overflow:hidden}
-.plc-b-gold::after,.plc-b-green::after{content:"";position:absolute;top:-6px;bottom:-6px;left:0;width:18px;opacity:0;pointer-events:none;
-  background:linear-gradient(100deg,transparent,rgba(255,255,255,.34),transparent);transform:translateX(-26px) rotate(14deg)}
-.plc-scene.is-active .plc-b-gold::after,.plc-scene.is-active .plc-b-green::after{animation:plc-shine 3.4s ease-in-out 1.1s infinite}
-@keyframes plc-shine{0%{opacity:0;transform:translateX(-26px) rotate(14deg)}8%{opacity:1}30%{opacity:1;transform:translateX(130px) rotate(14deg)}31%,100%{opacity:0;transform:translateX(130px) rotate(14deg)}}
-
-/* soft highlight sweeping down the result rows (scenes 1 & 3) */
+/* The glimmer that swept across the gold and green badges, and the highlight
+   that swept down the result rows, were both built out of a linear-gradient
+   over the top of somebody else's UI. Both are gone. The reorder in scenes 2
+   and 3 is what those scenes are about, and it reads without a shine on it.
+   .plc-s1 .plc-rows keeps position:relative because the row slots use it. */
 .plc-s1 .plc-rows,.plc-s3 .plc-nrows{position:relative}
-.plc-s1 .plc-rows::before,.plc-s3 .plc-nrows::before{content:"";position:absolute;left:16px;right:16px;top:0;height:52px;border-radius:8px;
-  opacity:0;pointer-events:none;z-index:1;
-  background:linear-gradient(90deg,rgba(105,179,231,0),rgba(105,179,231,.13) 30%,rgba(142,205,255,.09) 70%,rgba(105,179,231,0));
-  box-shadow:inset 0 0 0 1px rgba(105,179,231,.3)}
-.plc-s3 .plc-nrows::before{left:0;right:0;height:64px;border-radius:9px}
-.plc-s1.is-active .plc-rows::before{animation:plc-sweep 3s ease-in-out .9s forwards}
-.plc-s3.is-active .plc-nrows::before{animation:plc-sweep3 3s ease-in-out .9s forwards}
-@keyframes plc-sweep{0%{opacity:0;transform:translateY(0)}12%{opacity:1;transform:translateY(0)}88%{opacity:1}100%{opacity:0;transform:translateY(240px)}}
-@keyframes plc-sweep3{0%{opacity:0;transform:translateY(0)}12%{opacity:1;transform:translateY(0)}88%{opacity:1}100%{opacity:0;transform:translateY(210px)}}
 
 /* ── emulated navan (light SaaS UI — top nav, trip strip, filter sidebar, fare columns) ── */
 .plc-nv{position:relative;flex:1;display:flex;flex-direction:column;background:#fff;overflow:hidden;color:#1c1f2e}
@@ -649,7 +657,7 @@
 /* dark navy UNITED section header with fare-class columns */
 .plc-nvua{height:24px;flex:0 0 24px;background:#1e2b4a;border-radius:7px 7px 0 0;display:flex;align-items:center;padding:0 10px;margin-bottom:6px}
 .plc-nvualogo{display:flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;letter-spacing:.14em;color:#fff;white-space:nowrap}
-.plc-nvuag{width:11px;height:11px;flex:0 0 11px;border-radius:50%;background:radial-gradient(circle at 35% 32%,#8ecdff,#0033A0 75%)}
+.plc-nvuag{width:11px;height:11px;flex:0 0 11px;border-radius:50%;background:#0033A0}
 .plc-nvcols{margin-left:auto;display:flex;gap:6px}
 .plc-nvcol{width:86px;text-align:center;font-size:7.5px;font-weight:600;color:#cdd4e4;white-space:nowrap}
 .plc-nvcol i{font-style:normal;opacity:.6;font-size:6.5px}
@@ -658,7 +666,7 @@
 .plc-nrow{background:#fff;border:1px solid #e6e7ec;border-radius:9px;height:64px;flex:0 0 64px;padding:0 10px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 2px rgba(20,22,28,.05)}
 .plc-nleft{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
 .plc-nfl{display:flex;align-items:center;gap:5px;font-size:8.5px;color:#4a4f60;white-space:nowrap}
-.plc-nlogo{width:14px;height:14px;flex:0 0 14px;border-radius:50%;background:radial-gradient(circle at 35% 32%,#69B3E7,#0033A0 78%)}
+.plc-nlogo{width:14px;height:14px;flex:0 0 14px;border-radius:50%;background:#0033A0}
 .plc-ntimes{display:flex;align-items:center;gap:7px}
 .plc-ntimes b{font-size:12.5px;font-weight:800;color:#16192a;letter-spacing:-.01em;white-space:nowrap}
 .plc-ntimes b small{font-size:8px;font-weight:700}
@@ -688,12 +696,12 @@
 .plc-s3.is-sorted .plc-nrow{top:calc(var(--y1)*70px)}
 /* winning Navan row gets a soft green ring once the sort lands */
 .plc-s3 .plc-nwin{transition:top .85s cubic-bezier(.22,.9,.24,1) var(--d,0s),box-shadow .6s ease .95s,border-color .6s ease .95s}
-.plc-s3.is-sorted .plc-nwin{border-color:#9fe3bf;box-shadow:0 4px 16px rgba(53,208,127,.26),0 1px 2px rgba(20,22,28,.05)}
+.plc-s3.is-sorted .plc-nwin{border-color:#9fe3bf}
 
 /* scene 3 — the extension's floating panel over Navan (lower-right) */
 .plc-npanel{position:absolute;right:10px;bottom:10px;z-index:4;width:212px;border-radius:11px;overflow:hidden;
-  background:linear-gradient(165deg,#0a1233 0%,#040816 70%);border:1px solid rgba(142,205,255,.32);
-  box-shadow:0 14px 34px rgba(2,8,32,.55),0 2px 8px rgba(2,8,32,.4),inset 0 1px 0 rgba(142,205,255,.16);color:var(--ink)}
+  background:#0a1233;border:1px solid rgba(142,205,255,.32);
+  box-shadow:0 14px 34px rgba(2,8,32,.55);color:var(--ink)}
 .plc-nph{display:flex;align-items:center;gap:5px;padding:8px 10px 7px;font-family:var(--mono);font-size:9.5px;font-weight:700;color:var(--sky-bright);letter-spacing:.02em;border-bottom:1px solid rgba(148,178,255,.14);white-space:nowrap}
 .plc-nph .plc-satdot{margin-left:auto}
 .plc-npr{display:flex;align-items:center;gap:5px;padding:4px 10px;border-bottom:1px solid rgba(148,178,255,.06);font-family:var(--mono);font-size:8.5px;white-space:nowrap}
@@ -704,7 +712,7 @@
 .plc-npb-b{color:#04182e;background:var(--blue)}
 .plc-npb-a{color:#2b1c02;background:var(--gold)}
 .plc-npb-r{color:#33060d;background:var(--red)}
-.plc-npbtn{display:block;margin:8px 9px 7px;background:linear-gradient(180deg,#2f7bff,#1e5ede);border:1px solid rgba(142,205,255,.55);border-radius:7px;padding:6px 0;text-align:center;font-size:9px;font-weight:700;color:#fff;white-space:nowrap;box-shadow:0 3px 10px rgba(31,95,224,.38),inset 0 1px 0 rgba(255,255,255,.22)}
+.plc-npbtn{display:block;margin:8px 9px 7px;background:#2f7bff;border:1px solid rgba(142,205,255,.55);border-radius:7px;padding:6px 0;text-align:center;font-size:9px;font-weight:700;color:#fff;white-space:nowrap}
 .plc-npck{display:flex;align-items:center;gap:5px;padding:0 11px 5px;font-size:7.5px;color:var(--dim);white-space:nowrap}
 .plc-npck:last-child{padding-bottom:10px}
 .plc-npbox{position:relative;width:9px;height:9px;flex:0 0 9px;border-radius:2.5px;border:1px solid rgba(148,178,255,.4);background:rgba(148,178,255,.08)}
@@ -715,23 +723,18 @@
 @keyframes plc-npanelin{from{opacity:0;transform:translateY(10px) scale(.95)}to{opacity:1;transform:none}}
 .plc-s3.is-active .plc-npbtn{animation:plc-press .55s ease 1.05s both}
 
-/* ── scene 4 — route panel close-up ── */
-.plc-s4bg{flex:1;position:relative;overflow:hidden;background:
-  radial-gradient(1px 1px at 12% 24%,rgba(232,238,251,.5) 50%,transparent 51%),
-  radial-gradient(1px 1px at 30% 72%,rgba(232,238,251,.3) 50%,transparent 51%),
-  radial-gradient(1.5px 1.5px at 52% 16%,rgba(142,205,255,.4) 50%,transparent 51%),
-  radial-gradient(1px 1px at 71% 60%,rgba(232,238,251,.3) 50%,transparent 51%),
-  radial-gradient(1px 1px at 88% 30%,rgba(142,205,255,.35) 50%,transparent 51%),
-  radial-gradient(1px 1px at 44% 88%,rgba(232,238,251,.28) 50%,transparent 51%),
-  linear-gradient(160deg,#081231 0%,#040816 70%)}
+/* ── scene 4 — route panel close-up. The ground behind the panel was six
+      radial-gradient star dots over a gradient: a starfield, which this design
+      does not have anywhere. One flat colour. ── */
+.plc-s4bg{flex:1;position:relative;overflow:hidden;background:#060d22}
 .plc-ghost{position:absolute;left:44px;right:44px;height:44px;border-radius:8px;background:rgba(244,246,249,.045);border:1px solid rgba(244,246,249,.06)}
 .plc-panel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:404px;border-radius:14px;overflow:hidden;
-  background:linear-gradient(165deg,#0a1233 0%,#040816 70%);border:1px solid rgba(142,205,255,.32);
-  box-shadow:0 18px 44px rgba(2,8,32,.6),0 2px 8px rgba(2,8,32,.4),inset 0 1px 0 rgba(142,205,255,.16)}
+  background:#0a1233;border:1px solid rgba(142,205,255,.32);
+  box-shadow:0 18px 44px rgba(2,8,32,.6)}
 .plc-ph{display:flex;align-items:center;gap:8px;padding:12px 14px 10px;border-bottom:1px solid rgba(148,178,255,.12)}
 .plc-pmark{position:relative;width:18px;height:18px;flex:0 0 18px}
 .plc-pmark b{position:absolute;inset:0;border:1px solid rgba(142,205,255,.55);border-radius:50%;transform:rotate(-24deg) scaleY(.6)}
-.plc-pmark i{position:absolute;left:5px;top:5px;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#8ecdff,#0033A0)}
+.plc-pmark i{position:absolute;left:5px;top:5px;width:8px;height:8px;border-radius:50%;background:#0033A0}
 .plc-ph .plc-pt{font-size:12.5px;font-weight:700;color:var(--ink);white-space:nowrap}
 .plc-proute{margin-left:auto;position:relative;display:grid;font-family:var(--mono);font-size:10px}
 .plc-proute span{grid-area:1/1;white-space:nowrap;color:var(--sky);text-align:right}
@@ -764,7 +767,7 @@
 .plc-pfoot b{color:var(--dim);font-weight:600}
 
 /* ── prev/next arrows ── */
-.plc-nav{position:absolute;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:0;
+.plc-nav{position:absolute;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:99px;
   border:1px solid var(--card-edge);background:rgba(4,9,28,.82);color:var(--ink);font-size:17px;line-height:1;
   cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5;opacity:0;
   transition:opacity .25s ease,border-color .25s ease;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
@@ -782,12 +785,12 @@
 .plc-cap b{color:var(--ink);font-weight:600}
 .plc-cap.is-active{opacity:1;transform:none}
 .plc-dots{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:2px}
-.plc-dot{position:relative;width:9px;height:9px;border-radius:0;border:0;padding:0;
+.plc-dot{position:relative;width:9px;height:9px;border-radius:99px;border:0;padding:0;
   background:rgba(148,178,255,.25);cursor:pointer;overflow:hidden;flex:0 0 auto;
   transition:width .35s ease,background .35s ease}
 .plc-dot:hover{background:rgba(148,178,255,.45)}
 .plc-dot.is-active{width:34px;background:rgba(148,178,255,.18)}
-.plc-fillbar{position:absolute;inset:0;width:0;border-radius:0;background:var(--dim)}
+.plc-fillbar{position:absolute;inset:0;width:0;border-radius:99px;background:var(--dim)}
 .plc-dot.is-active .plc-fillbar{animation:plc-prog var(--plc-dur,4.2s) linear forwards}
 .plc.is-paused .plc-fillbar{animation-play-state:paused}
 .plc-dot:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
@@ -1309,10 +1312,9 @@
 <!-- DAILY UPDATES / CHANGELOG. The `hidden` attribute is the no-JS answer here:
      the section carries nothing but empty containers until renderChangelog()
      fills them, so it stays hidden until it has something to say. -->
-<section class="clog" id="changelog-sec" hidden>
-  <div class="clog-h">
-    <span class="sub tab">Fleet log</span>
-    <h2>What changed each day</h2>
+<section class="blk" id="changelog-sec" hidden>
+  <span class="kicker">Fleet log</span>
+  <div class="sec-h"><h2>What changed each day</h2>
     <span class="sub">New tails · routes that gained flights · odds movers</span>
   </div>
   <div class="clog-days" id="changelog"></div>
@@ -1351,7 +1353,7 @@
 <!-- ROUTE RESULTS -->
 <section class="blk needs-js" id="results">
   <div class="sec-h"><span class="sub">§2 · The answer</span><h2>Every flight, ranked</h2>
-    <span class="sub" style="position:static" id="rank-sub"></span></div>
+    <span class="sub" id="rank-sub"></span></div>
   <div class="loadbar" id="loadbar"><span class="orb"></span><span id="load-msg">Querying the tracker</span></div>
 
   <div id="flights-sec">
@@ -1366,14 +1368,14 @@
     </div>
   </div>
 
-  <div id="itins-sec" style="margin-top:32px">
+  <div id="itins-sec" style="margin-top:2rem">
     <div class="sec-h"><span class="sub">§2.1 · Connections</span><h2>Best routings</h2></div>
     <p class="sec-lede">Non-stops and connections on one scale, ranked by the odds that every leg of
     the trip is equipped.</p>
     <div class="itins" id="itins"></div>
   </div>
 
-  <div id="confirmed-sec" style="margin-top:32px">
+  <div id="confirmed-sec" style="margin-top:2rem">
     <div class="sec-h"><span class="sub">§2.2 · Assigned</span><h2>Confirmed Starlink departures</h2></div>
     <p class="sec-lede">Tail assignments already published for this route, roughly the next 72
     hours. These are records, not estimates.</p>
@@ -1492,11 +1494,12 @@
   <a href="https://unitedstarlinktracker.com/methodology" target="_blank" rel="noopener">unitedstarlinktracker.com/methodology</a>.</p>
 </section>
 
-<footer>
+<footer class="site">
   <div class="flinks"><a href="/airlines/">Airlines</a><a href="/race/">The Race</a><a href="/systems/">Systems</a><a href="/united/">United</a><a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a><a href="/methodology/">Methodology</a><a href="/api/docs/">API</a><a href="/privacy.html">Privacy</a><a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Open source ↗</a></div>
   <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> · <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> (independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>
-  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension. The only thing stored in your browser is your light/dark choice. See the <a href="/privacy.html">privacy policy</a>.</div>
-  <div class="frow">Data updated <b>2026-07-25</b>. ConnectScores and per-flight odds are historical estimates, not guarantees. Aircraft assignments change until departure. WiFi Odds is an unofficial, free, open-source project. 🛰️</div>
+  <div class="frow">Data updated <b>2026-07-25</b>. ConnectScores and per-flight odds are historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</div>
+  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension, and nothing is stored in your browser. What the server keeps is on the <a href="/privacy.html">privacy page</a>.</div>
+  <div class="frow">The page follows your system’s light or dark setting. The switch in the header lasts until you reload, and nothing about your choice is stored.</div>
 </footer>
 </div>
 
@@ -1504,8 +1507,23 @@
 /* The starfield that used to run here is gone, canvas and all: it was a
    fixed-position <canvas id="stars"> painting pale-blue dots behind the whole
    document, which was the last of United's sky on this page. Nothing replaced it.
-   site.css still carries `[data-theme="light"] #stars{display:none}`; that rule
-   now matches nothing, and it is not this file's to remove. */
+   An earlier version of this comment pointed at a leftover rule in site.css,
+   `[data-theme="light"] #stars{display:none}`. That rule is gone too — site.css
+   was rewritten for the Forecast and has no #stars selector and no data-theme
+   attribute; the theme is a class on <html> now. Nothing here to clean up.
+
+   ═══ THIS PAGE MAKES OFF-ORIGIN REQUESTS, AND IT IS THE ONLY ONE THAT DOES ═══
+   Everything below fetchLive() talks to unitedstarlinktracker.com from the
+   reader's browser: one GET to /api/plan-route and two JSON-RPC POSTs to /mcp,
+   per direction, fired on load and again on every route change. The answers are
+   cached in localStorage under `usl2:<ORIG>-<DEST>` for CACHE_TTL.
+
+   The site's stated budget is zero off-origin requests and no storage of any
+   kind, so this page is a documented exception rather than an oversight, and
+   §4 and §5 of /privacy.html describe it in the reader's own words: what is
+   sent, what is kept, for how long, and which prerendered pages carry the same
+   material without any of it. If you change the hosts, the payloads, the key
+   or the TTL below, that page is wrong until you change it too. */
 
 /* ── constants ── */
 const AIRPORTS={DEN:"Denver",SFO:"San Francisco",ORD:"Chicago O'Hare",IAH:"Houston",EWR:"Newark",
@@ -1681,7 +1699,7 @@ function renderFlights(m){
 function renderItins(m){
   const el=$("itins");
   if(!m.itins.length){
-    el.innerHTML=`<div class="empty-state" style="padding:16px">No routings came back for this pair.
+    el.innerHTML=`<div class="empty-state">No routings came back for this pair.
       <a href="${TRACKER}/route-planner/${orig}/${dest}" target="_blank" rel="noopener">Try the tracker's own planner ↗</a></div>`;
     return;
   }
@@ -1703,7 +1721,7 @@ function renderItins(m){
 function renderDeps(m){
   const el=$("confirmed");
   if(!m.deps.length){
-    el.innerHTML=`<div class="empty-state" style="padding:16px;font-size:14px">No published Starlink tail
+    el.innerHTML=`<div class="empty-state">No published Starlink tail
       assignments for this route right now. They usually appear about 48 hours before departure.</div>`;
     return;
   }
@@ -1783,8 +1801,12 @@ function renderFleet(){
 function sparkInk(){
   const cs=getComputedStyle(document.documentElement);
   const g=n=>cs.getPropertyValue(n).trim();
-  return {line:g("--good")||"#3fcf8e",ink:g("--ink")||"#e9ecec",
-    dim:g("--ink-3")||"#6a7377",font:getComputedStyle(document.body).fontFamily};
+  /* THE LINE IS INK. /race/ sets the rule for every time series on this site:
+     chart lines are ink told apart by weight, never a band colour, because a
+     line is not a score. It used to read --good, which borrowed the green the
+     equipped COUNT wears in the bars beside it. */
+  return {line:g("--viz-mainline")||g("--ink")||"#29241c",ink:g("--ink")||"#29241c",
+    dim:g("--muted")||"#6e6557",font:getComputedStyle(document.body).fontFamily};
 }
 function drawSpark(){
   const cv=$("spark"),x=cv.getContext("2d"),C=sparkInk();
@@ -1941,6 +1963,7 @@ fetch(`data.json?cb=${Date.now()}`,{cache:"no-store"})
 </script>
 <!-- Shared shell behaviour only (theme toggle + reveal). It touches nothing this
      page's app JS owns: no ids, no classes, no data. Loaded last and deferred. -->
-<script src="/assets/site.js?v=5eddb0b4" defer></script>
+<script>(function(){var r=document.documentElement,b=document.getElementById("themetoggle");if(!b)return;function p(){b.textContent=r.classList.contains("dark")?"Light mode":"Dark mode";}b.hidden=false;p();b.addEventListener("click",function(){var d=r.classList.contains("dark");r.classList.toggle("dark",!d);r.classList.toggle("light",d);p();});})();</script>
+<script src="/assets/site.js?v=caed77a1" defer></script>
 </body>
 </html>

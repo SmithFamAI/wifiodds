@@ -122,21 +122,29 @@ function assertShots() {
  * inheriting --ink here would give white text on white in light mode. */
 function css() {
   return '<style>\n' +
-    '.rlc{--rlc-ink:#eaf0ff;--rlc-dim:#9fb0d8;--rlc-edge:rgba(148,178,255,.22);' +
-    '--rlc-hi:#69B3E7;--rlc-go:#35d07f;color:var(--rlc-ink);font-size:14px}\n' +
+    /* THE PALETTE, AND THE ONE COLOUR THAT LEFT IT. This block is light-on-dark
+       constants because .extdemo is a dark stage in BOTH themes; inheriting --ink
+       would give white on white in light mode. --rlc-hi is the stage's sky and it
+       paints chrome only: the active caption's rule and the nav buttons' hover.
+       There was a --rlc-go:#35d07f as well, on the "Real screenshots" badge and
+       nowhere else. A badge saying which build was captured is a category, not a
+       count, and green on this site means a score of 60 or better. It is the
+       stage's own dim ink now. */
+    '.rlc{--rlc-ink:#f2e9db;--rlc-dim:#a4988a;--rlc-edge:rgba(242,233,219,.16);' +
+    '--rlc-hi:#9dc2dc;color:var(--rlc-ink);font-size:14px}\n' +
     '.rlc-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}\n' +
     '.rlc-badge{font-family:var(--mono);font-size:10.5px;font-weight:800;letter-spacing:.7px;' +
-    'text-transform:uppercase;color:var(--rlc-go);border:1px solid rgba(53,208,127,.45);' +
+    'text-transform:uppercase;color:var(--rlc-dim);border:1px solid var(--rlc-edge);' +
     'border-radius:999px;padding:3px 9px}\n' +
     '.rlc-where{font-family:var(--mono);font-size:11.5px;color:var(--rlc-dim);margin-right:auto}\n' +
     '.rlc-nav{display:flex;gap:6px}\n' +
-    '.rlc-nav button{background:rgba(148,178,255,.1);color:var(--rlc-ink);border:1px solid var(--rlc-edge);' +
+    '.rlc-nav button{background:rgba(242,233,219,.06);color:var(--rlc-ink);border:1px solid var(--rlc-edge);' +
     'border-radius:8px;width:30px;height:28px;font-size:15px;line-height:1;cursor:pointer}\n' +
     '.rlc-nav button:hover{border-color:var(--rlc-hi);color:var(--rlc-hi)}\n' +
     /* the stage: fixed 1280×800 aspect, the shot scaled inside it */
     '.rlc-stage{position:relative;aspect-ratio:1280/800;overflow:hidden;border-radius:12px;' +
-    'border:1px solid var(--rlc-edge);background:#0b1230;' +
-    'box-shadow:0 14px 40px rgba(2,8,32,.5)}\n' +
+    'border:1px solid var(--rlc-edge);background:#241f19;' +
+    'box-shadow:0 14px 40px rgba(10,7,4,.45)}\n' +
     '.rlc-shot{position:absolute;inset:0;opacity:0;visibility:hidden}\n' +
     '.rlc-shot.is-active{opacity:1;visibility:visible}\n' +
     '.rlc-shot img{display:block;width:100%;height:100%;object-fit:cover;' +
@@ -146,14 +154,14 @@ function css() {
     'margin:12px 0 0;padding:0}\n' +
     '@media(max-width:760px){.rlc-cl{grid-template-columns:repeat(2,1fr)}}\n' +
     '@media(max-width:430px){.rlc-cl{grid-template-columns:1fr}}\n' +
-    '.rlc-c{border:1px solid var(--rlc-edge);border-top:2px solid rgba(148,178,255,.18);' +
-    'border-radius:10px;padding:10px 12px;background:rgba(10,18,46,.55)}\n' +
+    '.rlc-c{border:1px solid var(--rlc-edge);border-top:2px solid var(--rlc-edge);' +
+    'border-radius:10px;padding:10px 12px;background:rgba(242,233,219,.03)}\n' +
     'html.js .rlc-c{cursor:pointer}\n' +
-    '.rlc-c.is-active{border-top-color:var(--rlc-hi);background:rgba(105,179,231,.1)}\n' +
+    '.rlc-c.is-active{border-top-color:var(--rlc-hi);background:rgba(157,194,220,.09)}\n' +
     '.rlc-ch{display:flex;align-items:center;gap:7px;font-weight:800;font-size:13.5px;' +
     'color:var(--rlc-dim)}\n' +
     '.rlc-c.is-active .rlc-ch{color:var(--rlc-ink)}\n' +
-    '.rlc-n{font-family:var(--mono);font-size:10.5px;font-weight:800;color:#0b1230;' +
+    '.rlc-n{font-family:var(--mono);font-size:10.5px;font-weight:800;color:#1b1713;' +
     'background:var(--rlc-dim);border-radius:5px;padding:1px 5px}\n' +
     '.rlc-c.is-active .rlc-n{background:var(--rlc-hi)}\n' +
     '.rlc-c p{margin:6px 0 0;font-size:12.5px;line-height:1.55;color:var(--rlc-dim)}\n' +

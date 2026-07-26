@@ -1,154 +1,216 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    assets/site.css — the WiFi Odds design system. ONE file, every page.
 
-   THE PLATE. The reference is an instrument panel and an approach plate, not a
-   marketing site: hairline rules, square corners, near-monochrome ink on panel
-   charcoal, and colour reserved for one job. See public/wifiodds-mockups/a2/ in
-   the websites repo for the direction this was ported from.
+   THE FORECAST. The reference is a weather forecast delivered by a colleague who
+   flies every week: warm paper, two voices in type, and colour that only ever
+   means something. It replaced The Plate, whose reference was an approach plate
+   — a document written for a trained, calm, paid reader, which ours is not. The
+   spec is public/wifiodds-fable/ARCHETYPES.md in the websites repo; where this
+   file and that file disagree, that file wins.
 
-   THE ONE COLOUR RULE
-   -------------------
-   Colour on this site means SCORE BAND. A surface takes its accent from the
-   number it is showing, through --band, which the .sc-* classes set (the same
-   six thresholds build/lib/pages.js:15 uses). Nothing else gets to be coloured:
-   not chrome, not links, not a provenance tag, not a call to action. If you add
-   a hue for emphasis, the arc stops meaning anything.
+   THE COLOUR RULE. Colour has two owners and no third.
+   -----------------------------------------------------
+   THE BANDS own every number. Green 60-100, amber 40-59, clay 1-39, grey for
+   zero and for every projection. Scores, odds, badges and score chips wear a
+   band, through --band, which the .sc-* classes set.
+
+   THE SKY owns the chrome. Links, buttons, kickers, the rule at the top of every
+   page, the homepage banner and the orbit mark. One blue at two altitudes —
+   stratosphere-deep over the paper, pale night-sky over the dark ground — and
+   always flat. No gradients, no glows, no starfields. The old site had a
+   starfield canvas and a gradient wordmark and both were deleted for cause.
+
+   Nothing that encodes a number may take the sky. Nothing decorative may take a
+   band. Provenance lines stay muted ink, because they sit inside the data's
+   screen space. The first chart line that borrows green is the day the score
+   stops meaning anything, and the first score that turns blue is the day links
+   stop meaning anything.
 
    The projected score is the standing exception and it is a NEGATIVE one: it
-   never takes --band. Grey outline, always. See .proj at the end of this file.
+   never takes --band. Grey outline, always. See .proj near the end of this file.
 
-   TYPE — B612, self-hosted, four faces, ~53 KB
-   -------------------------------------------
-   B612 is the typeface Airbus commissioned for cockpit display legibility, and
-   it is SIL-OFL, so it ships from /assets/ as subset woff2. Nothing on this site
-   fetches anything from a third party at runtime, fonts included. Regenerate the
-   files with `python3 build/make-brand.py fonts`. Licence: assets/B612-OFL.txt.
+   TWO THEMES, ONE TOKEN SET
+   -------------------------
+   LIGHT IS THE DEFAULT (:root) and it is the register decision, not a taste one:
+   cockpits are dark because they fly at night, and the reader booking a Tuesday
+   flight is not. Dark is the same room with the lamp on — a warm brown-black
+   ground and cream ink, never a cold inversion of the light theme.
 
-   Headings and display text in B612. EVERY numeral in B612 Mono. On an
-   instrument a digit does not change width when it changes value.
+   The dark values appear twice because CSS cannot alias a declaration block:
+   once under the OS preference, so pages are correct with JavaScript off, and
+   once under the manual .dark class the masthead switch sets. IF YOU CHANGE A
+   DARK VALUE, CHANGE IT IN BOTH PLACES.
 
-   DARK IS THE DEFAULT (:root). Light is an override:
-     [data-theme="light"]                       — an explicit stored choice
-     @media (prefers-color-scheme: light)       — only when nothing is stored
-   The boot script in every <head> sets data-theme before paint so there is no
-   flash. That localStorage key ('woTheme') is the entire persistence story on
-   this site: a preference, not tracking.
+   NOTHING IS STORED. No cookie, no localStorage, no fingerprint. The switch
+   holds its state in a class on <html> until you reload, and that is the ceiling
+   for cleverness here. The old build wrote localStorage.woTheme; that key is
+   gone, and so is the boot script that read it.
+
+   TYPE — two voices, one webfont, 41 KB
+   -------------------------------------
+   THE SERIF SPEAKS TO THE READER: headings, the say-sentence, the wordmark, and
+   every large figure. Source Serif 4 (Adobe, SIL OFL), self-hosted, subset, two
+   real weights. Self-hosted rather than a system stack because Charter/Georgia/
+   Noto Serif is three different faces for one voice depending on who is reading.
+
+   THE SANS REPORTS: tables, labels, provenance, footnotes, micro-caps. That one
+   stays on system-ui and costs zero bytes. It is the right call rather than a
+   budget one — this voice lives at 12 to 14px, where the reader's own OS face is
+   already hinted and rasterised for their screen, and where an unhinted webfont
+   is measurably worse. A table set in the platform's own UI face also reads as
+   the system reporting, which is the register the spec asks for.
+
+   Source Serif's figures are tabular by default (all ten digits measure 529
+   units), so a numeral does not change width when it changes value. That was the
+   whole job B612 Mono was doing, and it no longer needs a fourth font file.
+   --mono is a system stack now and is reserved for what is literally code: the
+   API paths, the formula blocks.
+
+   Regenerate the faces with `python3 build/make-brand.py fonts`.
+   Licence: assets/SourceSerif4-OFL.txt.
 
    ANIMATION IS A PRIVILEGE, NOT A DEFAULT. Every animated rule is scoped under
    html.anim, a class site.js adds only when prefers-reduced-motion is
    no-preference. No JS / reduced motion => the page is already finished.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── B612, self-hosted ────────────────────────────────────────────────────
+/* ── Source Serif 4, self-hosted ──────────────────────────────────────────
    Subset with fontTools to Latin plus the punctuation and symbols the pages
    actually use (checked by counting the non-ASCII characters in the built HTML,
-   not by guessing). font-display:swap, so a slow font never blocks the text. */
-@font-face{font-family:"B612";font-style:normal;font-weight:400;font-display:swap;
-  src:url(/assets/b612-400.woff2) format("woff2")}
-@font-face{font-family:"B612";font-style:normal;font-weight:700;font-display:swap;
-  src:url(/assets/b612-700.woff2) format("woff2")}
-@font-face{font-family:"B612 Mono";font-style:normal;font-weight:400;font-display:swap;
-  src:url(/assets/b612mono-400.woff2) format("woff2")}
-@font-face{font-family:"B612 Mono";font-style:normal;font-weight:700;font-display:swap;
-  src:url(/assets/b612mono-700.woff2) format("woff2")}
+   not by guessing). font-display:swap, so a slow font never blocks the text —
+   and the fallback stack below is metric-adjacent enough that the swap does not
+   reflow a heading into a second line. */
+@font-face{font-family:"Source Serif 4";font-style:normal;font-weight:400;font-display:swap;
+  src:url(/assets/serif-400.woff2) format("woff2")}
+@font-face{font-family:"Source Serif 4";font-style:normal;font-weight:700;font-display:swap;
+  src:url(/assets/serif-700.woff2) format("woff2")}
 
 :root{
-  color-scheme:dark;
-  /* ── surfaces and ink. Near-monochrome on purpose. ── */
-  --bg:#0a0c0d;
-  --bg-panel:#0f1214;
-  --bg-inset:#14181a;
-  --ink:#e9ecec;
-  --ink-2:#a3acb0;
-  --ink-3:#6a7377;
-  --rule:#212829;
-  --rule-2:#353e41;
+  /* ── the two voices, plus code ── */
+  --serif:"Source Serif 4",Charter,"Bitstream Charter","Iowan Old Style",Georgia,"Times New Roman",serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,"DejaVu Sans Mono",Consolas,monospace;
 
-  /* ── the score arc. The only colour on the site. ──
-     Six stops because build/lib/pages.js bands at 85/60/35/20/5. The four a2
-     anchors (good/mixed/low/none) keep their names because the mockup, the
-     waffle and the extension all speak them. */
-  --good:#3fcf8e;
-  --mixed:#e2a838;
-  --low:#e0713d;
-  --none:#77817f;
-  --s-exc:var(--good);
-  --s-good:#a9c95e;
-  --s-mix:var(--mixed);
-  --s-long:#d98b3e;
-  --s-rare:#d1495b;
-  --s-no:var(--none);
+  color-scheme:light;
+  /* ── surfaces and ink. Warm paper, warm near-black. ── */
+  --paper:#fbf8f2; --panel:#f4eee2; --card:#ffffff; --field:#ffffff;
+  --ink:#29241c; --ink-soft:#443d32; --muted:#6e6557; --muted-strong:#59503f;
+  --line:#e3daca; --line-soft:#ece5d6;
+
+  /* ── the bands. Every number on the site, and nothing else. ── */
+  --good:#1e7a46; --mixed:#a06400; --long:#a84b2f; --zero:#8a8177;
+  --proj:#7c7568; --proj-bg:#efe9dc;
+
+  /* ── the sky. Every piece of chrome, and nothing else. ── */
+  --sky:#2d5a7d; --sky-deep:#22455f; --sky-fg:#e9f1f7;
+  --link:var(--sky); --placeholder:#9b917f;
+  --btn-bg:var(--sky); --btn-fg:#f5f9fc;
+  --sheen:none;
+
   /* --band is what every accented surface reads. Un-scored chrome inherits the
-     grey, which is the correct answer for chrome. */
-  --band:var(--ink-2);
+     muted ink, which is the correct answer for chrome. */
+  --band:var(--muted-strong);
 
-  --mono:"B612 Mono",ui-monospace,"SF Mono",Menlo,"DejaVu Sans Mono",Consolas,monospace;
-  --sans:"B612","Avenir Next",Corbel,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  /* ── the six-stop score arc ──────────────────────────────────────────────
+     build/lib/pages.js bands at 85/60/35/20/5 and emits six .sc-* classes. The
+     spec has four bands. Six map onto four, so a score cannot invent a fifth
+     hue: exc and good are both green, long and rare are both clay. The one real
+     seam is at 35-39, which pages.js calls `mix` (amber) and the spec calls clay
+     — moving that threshold is a data-layer change and does not belong here. */
+  --s-exc:var(--good);
+  --s-good:var(--good);
+  --s-mix:var(--mixed);
+  --s-long:var(--long);
+  --s-rare:var(--long);
+  --s-no:var(--zero);
 
   /* ── compatibility aliases ───────────────────────────────────────────────
-     build/lib/render.js, build/lib/viz.js and build/lib/pages.js reference these
-     names inline (var(--faint), var(--sky) inside an SVG gradient, and so on).
-     They are kept as aliases pointing at the plate tokens so that a re-skin of
-     this file cannot silently blank out an SVG or a caption in a file it does
-     not own. New rules should use the tokens above. --brand and --sky no longer
-     carry United's blue; there is no house hue any more. */
-  --surface:var(--bg-panel);
-  --edge:var(--rule);
-  --edge-strong:var(--rule-2);
-  --body:var(--ink-2);
-  --dim:var(--ink-2);
-  --faint:var(--ink-3);
+     build/lib/render.js, build/lib/viz.js, build/lib/pages.js and the four page
+     templates reference these names inline (var(--faint) in a span style,
+     var(--r-md) in a border-radius, and so on). They are kept as aliases onto
+     the tokens above so that a re-skin of this file cannot silently blank out an
+     SVG or a caption in a file it does not own. New rules should use the tokens
+     above. --gold/--green/--blue/--red are only ever read inside .plc and .rlc,
+     both of which redeclare them; they are aliased here so that nothing goes
+     undefined if that ever stops being true. */
+  --bg:var(--paper);
+  --bg-panel:var(--panel);
+  --bg-inset:var(--panel);
+  --ink-2:var(--ink-soft);
+  --ink-3:var(--muted);
+  --rule:var(--line-soft);
+  --rule-2:var(--line);
+  --low:var(--long);
+  --none:var(--zero);
+  --surface:var(--panel);
+  --edge:var(--line);
+  --edge-strong:var(--line);
+  --body:var(--ink-soft);
+  --dim:var(--ink-soft);
+  --faint:var(--muted);
   --accent:var(--ink);
-  --brand:var(--good);
-  --brand-deep:var(--rule-2);
-  --brand-lift:var(--good);
-  --sky:var(--good);
-  --sky-bright:var(--good);
-  --gold:var(--mixed);  --green:var(--good);  --blue:var(--ink-2);
-  --amber:var(--mixed); --red:var(--s-rare);
-  --field-bg:var(--bg-inset);
+  --brand:var(--sky);
+  --brand-deep:var(--sky-deep);
+  --brand-lift:var(--sky);
+  --sky-bright:var(--sky);
+  --gold:var(--mixed);  --green:var(--good);  --blue:var(--sky);
+  --amber:var(--mixed); --red:var(--long);
+  --field-bg:var(--field);
   --shadow:none;
   --bg-glow-a:transparent; --bg-glow-b:transparent;
 
-  /* chart semantics — used by every visualization, no exceptions */
+  /* ── chart semantics — used by every visualization, no exceptions ────────
+     A chart line is not a score, so lines are INK, told apart by weight and dash
+     pattern and labelled at the line's end. The waffle's lit cells are the one
+     exception and they earn it: a lit cell is a count of equipped aircraft, so
+     it takes the green it would take as a number. */
   --viz-equipped:var(--good);
-  --viz-empty:var(--bg-inset);
+  --viz-empty:var(--panel);
   --viz-mainline:var(--ink);
-  --viz-express:var(--ink-3);
-  --sys-starlink:var(--good); --sys-leo:var(--ink-2); --sys-viasat:var(--mixed);
-  --sys-legacy:var(--ink-3);  --sys-none:transparent;
+  --viz-express:var(--muted);
+  --sys-starlink:var(--ink); --sys-leo:var(--muted); --sys-viasat:var(--muted-strong);
+  --sys-legacy:var(--muted);  --sys-none:transparent;
 
-  /* radii. The plate has corners, not curves. Kept as tokens because render.js
-     asks for var(--r-md) in two inline styles. */
-  --r-sm:0; --r-md:0; --r-lg:0; --r-xl:0;
-  /* type scale */
-  --fs-body:15px; --fs-small:13.5px; --fs-micro:11.5px;
+  /* radii. The Forecast has soft corners; the Plate had none. Kept as tokens
+     because render.js asks for var(--r-md) in an inline style. */
+  --r-sm:6px; --r-md:8px; --r-lg:10px; --r-xl:12px;
+  /* type scale. Body never drops below 16px — that is a spec line, not a taste. */
+  --fs-body:16px; --fs-small:14px; --fs-micro:12px;
 }
 
-[data-theme="light"]{
-  color-scheme:light;
-  --bg:#f4f2ed; --bg-panel:#fbfaf7; --bg-inset:#e9e6df;
-  --ink:#14181a; --ink-2:#4c5457; --ink-3:#7c8487;
-  --rule:#cdc9bf; --rule-2:#9c988c;
-  --good:#12784a; --mixed:#8a6006; --low:#a8420f; --none:#6f7876;
-  --s-good:#4f6b12; --s-long:#96540a; --s-rare:#98202f;
+:root.dark{
+  color-scheme:dark;
+  --paper:#1b1713; --panel:#241f19; --card:#2b251d; --field:#241f19;
+  --ink:#f2e9db; --ink-soft:#cfc4b3; --muted:#a4988a; --muted-strong:#c9bda9;
+  --line:#3a332a; --line-soft:#2e2820;
+  --good:#63c98a; --mixed:#e0a53f; --long:#e07a5f; --zero:#8d8172;
+  --proj:#a99e8e; --proj-bg:#2b251d;
+  --sky:#9dc2dc; --sky-deep:#16293a; --sky-fg:#c9dcea;
+  --link:var(--sky); --placeholder:#7d7264;
+  --btn-bg:#9dc2dc; --btn-fg:#12222f;
+  --sheen:inset 0 1px 0 rgba(242,233,219,.06);
+  --viz-empty:var(--panel);
 }
 
-@media (prefers-color-scheme: light){
-  :root:not([data-theme]){
-    color-scheme:light;
-    --bg:#f4f2ed; --bg-panel:#fbfaf7; --bg-inset:#e9e6df;
-    --ink:#14181a; --ink-2:#4c5457; --ink-3:#7c8487;
-    --rule:#cdc9bf; --rule-2:#9c988c;
-    --good:#12784a; --mixed:#8a6006; --low:#a8420f; --none:#6f7876;
-    --s-good:#4f6b12; --s-long:#96540a; --s-rare:#98202f;
+@media (prefers-color-scheme:dark){
+  :root:not(.light){
+    color-scheme:dark;
+    --paper:#1b1713; --panel:#241f19; --card:#2b251d; --field:#241f19;
+    --ink:#f2e9db; --ink-soft:#cfc4b3; --muted:#a4988a; --muted-strong:#c9bda9;
+    --line:#3a332a; --line-soft:#2e2820;
+    --good:#63c98a; --mixed:#e0a53f; --long:#e07a5f; --zero:#8d8172;
+    --proj:#a99e8e; --proj-bg:#2b251d;
+    --sky:#9dc2dc; --sky-deep:#16293a; --sky-fg:#c9dcea;
+    --link:var(--sky); --placeholder:#7d7264;
+    --btn-bg:#9dc2dc; --btn-fg:#12222f;
+    --sheen:inset 0 1px 0 rgba(242,233,219,.06);
+    --viz-empty:var(--panel);
   }
 }
 
 /* ── the band map ─────────────────────────────────────────────────────────
    Put a .sc-* class on any element and its whole subtree accents to that score.
-   [data-band] is the same switch under the name the a2 mockup used, so markup
-   ported from there keeps working. */
+   [data-band] is the same switch under the name the older markup used. */
 .sc-exc {--band:var(--s-exc)}
 .sc-good{--band:var(--s-good)}
 .sc-mix {--band:var(--s-mix)}
@@ -157,473 +219,535 @@
 .sc-no  {--band:var(--s-no)}
 [data-band="good"] {--band:var(--good)}
 [data-band="mixed"]{--band:var(--mixed)}
-[data-band="low"]  {--band:var(--low)}
-[data-band="none"] {--band:var(--none)}
+[data-band="low"]  {--band:var(--long)}
+[data-band="none"] {--band:var(--zero)}
+.s-good{color:var(--good)} .s-mixed{color:var(--mixed)}
+.s-long{color:var(--long)} .s-zero{color:var(--zero)}
 
 /* ── base ─────────────────────────────────────────────────────────────── */
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{
-  background:var(--bg);
-  color:var(--ink-2);
-  font:400 var(--fs-body)/1.6 var(--sans);
+  background:var(--paper);
+  color:var(--ink);
+  font:400 var(--fs-body)/1.55 var(--sans);
   -webkit-font-smoothing:antialiased;min-height:100vh;
   -webkit-tap-highlight-color:transparent;
+  /* Every page opens on a thin rule of sky at its top edge. On the homepage the
+     extension banner sits directly under it in the same colour, so the rule
+     reads as the banner's top edge there. */
+  border-top:4px solid var(--sky-deep);
 }
-/* Every numeral on the site is B612 Mono and tabular. If you add a class that
-   holds a number, add it here rather than setting font-family locally. */
-.n,.sco,.num,.mono,.big,.v,.ct,.dn,.fa-big,.stat .n,.chip .n,.usrow .sco,
-td.num,th.num,input,.code,.rank,.tblcap,.fchk-in,.fa-as{
-  font-family:var(--mono);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
-/* The column rules are the approach-plate margin. .wrap wraps the whole page,
-   header and footer included, so the rule runs the full height of the document
-   the way a plate's margin does. */
-.wrap{max-width:1060px;margin:0 auto;position:relative;
-  border-left:1px solid var(--rule);border-right:1px solid var(--rule);
-  padding:0 max(24px,env(safe-area-inset-right)) 0 max(24px,env(safe-area-inset-left))}
-.wrap::before,.wrap::after{content:"";position:absolute;top:0;bottom:0;width:5px;
-  pointer-events:none;background:repeating-linear-gradient(180deg,var(--rule) 0 1px,transparent 1px 26px)}
-.wrap::before{left:0}
-.wrap::after{right:0}
-a{color:inherit}
-h1,h2,h3,h4{color:var(--ink);font-weight:700;letter-spacing:-.01em}
-:focus-visible{outline:2px solid var(--band);outline-offset:2px}
+/* Links are the sky and they are underlined. An underline that thickens on
+   hover is the whole interaction; there is no colour change, because the colour
+   already means "this is chrome you can press". */
+a{color:var(--link);text-decoration:underline;text-underline-offset:2px;
+  text-decoration-thickness:1px}
+a:hover{text-decoration-thickness:2px}
+h1,h2,h3,h4{font-family:var(--serif);color:var(--ink);font-weight:700;letter-spacing:-.012em;
+  line-height:1.18}
+/* THE SPEAKING VOICE. Anything that sounds like a colleague talking takes the
+   serif; anything that reports takes the sans. Read the block aloud if unsure. */
+.say,.lede,.sec-lede,.callout p,.moves b,dl.loop dt{font-family:var(--serif)}
+.lede,.sec-lede{font-size:1.06rem;color:var(--ink-soft);max-width:44rem}
+.lede b,.sec-lede b{color:var(--ink);font-weight:700}
+.say{font-size:1.18rem;line-height:1.5;margin:.35rem 0 .6rem;max-width:38rem}
+/* THE FIGURES. Serif, tabular by default in this face, so a digit does not
+   change width when it changes value. If you add a class that holds a large
+   number, add it here rather than setting font-family locally. */
+.n,.sco,.big,.v,.fa-big,.chip .n,.stat .n,.kv .v,.scorenum .n,.proj .pv,
+.usrow .sco{
+  font-family:var(--serif);font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum" 1}
+/* THE REPORTING NUMERALS. Sans, tabular. Table cells, ranks, counts, captions. */
+.num,.ct,.dn,.rank,.tblcap,.fa-as,.fchk-in,td.num,th.num,input{
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+/* Literal code: API paths, formula blocks. The only monospace on the site. */
+.mono,.code{font-family:var(--mono)}
+/* The column is a column, not a ruled margin. The Plate drew hairlines and
+   ticks down both edges of .wrap; that was the plate idiom and it left with it. */
+.wrap{max-width:66rem;margin:0 auto;position:relative;
+  padding:0 max(1.25rem,env(safe-area-inset-right)) 0 max(1.25rem,env(safe-area-inset-left))}
+.prose{max-width:44rem}
+:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .needs-js{display:none}
 html.js .needs-js{display:revert}
 html.js .no-js-only{display:none}
 
-/* ── the plate header strip ───────────────────────────────────────────────
-   Every page carries it, and the date in it comes from united/data.json by way
-   of H.page({updated}). Nothing here is hard-coded; a stale date on a plate is
-   worse than no date. */
-.topbar{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;
-  padding:13px 0;border-bottom:1px solid var(--rule-2)}
-.mark{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
-.mark .glyph{width:26px;height:17px;flex:none;display:block;color:var(--ink-3)}
-.mark .glyph svg{width:26px;height:17px;display:block}
-.mark .wm{font:700 13px/1 var(--sans);letter-spacing:.19em;text-transform:uppercase}
-.mark .wm em{font-style:normal;color:var(--ink-3);font-weight:400;letter-spacing:.14em}
-/* The strip has to survive on one line next to a four-item nav at 1060px, which
-   is why the tracking is tighter here than anywhere else on the site. If you
-   loosen it, check the header at 1024 and 1280 before you commit. */
-.stripmeta{font:700 9.5px/1.4 var(--mono);letter-spacing:.105em;text-transform:uppercase;
-  color:var(--ink-3);margin-right:auto;flex:1 1 auto;min-width:0}
-.stripmeta b{color:var(--ink-2);font-weight:700}
-.topnav{display:flex;gap:0;flex-wrap:wrap;align-items:center}
-.topnav a{font:700 9.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
-  text-decoration:none;color:var(--ink-2);padding:8px 9px;border:1px solid var(--rule);
-  margin-left:-1px}
-.topnav a:hover{color:var(--ink);background:var(--bg-inset)}
-.topnav a[aria-current="page"]{color:var(--bg);background:var(--ink);border-color:var(--ink)}
-.topnav a.cta{color:var(--ink);border-color:var(--rule-2)}
-.topnav a.cta:hover{color:var(--bg);background:var(--ink);border-color:var(--ink)}
-/* The theme button's face is a moon or a sun, written by assets/site.js. B612
-   has no U+263D, and neither does most of a normal text stack, so this control
-   asks for a symbol font by name. Everything else on the site is B612. */
-.tt{background:transparent;border:1px solid var(--rule);color:var(--ink-2);
-  width:32px;height:30px;cursor:pointer;font-size:13px;line-height:1;
-  font-family:"Apple Symbols","Segoe UI Symbol","Noto Sans Symbols 2",
-    "Noto Sans Symbols",system-ui,sans-serif;
-  display:inline-grid;place-items:center;margin-left:-1px}
-.tt:hover{color:var(--ink);background:var(--bg-inset)}
-.crumb{margin-top:13px;font:700 9.5px/1.6 var(--mono);letter-spacing:.13em;
-  text-transform:uppercase;color:var(--ink-3)}
-.crumb a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid var(--rule)}
-.crumb a:hover{color:var(--ink);border-bottom-color:currentColor}
-.crumb .sep{padding:0 7px;color:var(--ink-3)}
+/* ── the extension banner ─────────────────────────────────────────────────
+   HOMEPAGE ONLY, one instance, above the masthead. Two jobs: the store link for
+   the visitor who came only to install, and a jump to the companion half for
+   everyone else. It is chrome, not a pitch — the one pitch on this site is the
+   companion half of the homepage and there is no second one. It never grows a
+   second sentence, and its version number tracks what the store serves today. */
+.extbar{background:var(--sky-deep);color:var(--sky-fg);font-size:.85rem;line-height:1.45}
+.extbar .wrap{display:flex;align-items:baseline;gap:.25rem 1rem;flex-wrap:wrap;
+  padding-top:.55rem;padding-bottom:.55rem}
+.extbar .q{font-weight:600}
+.extbar a{color:inherit;text-decoration:underline;text-underline-offset:2px;
+  text-decoration-thickness:1px}
+.extbar a:hover{text-decoration-thickness:2px}
+.extbar .jump{opacity:.85}
+
+/* ── the masthead ─────────────────────────────────────────────────────────
+   Orbit mark, serif wordmark, nav, the theme switch and the datechip. Every page
+   carries it, and the date in it comes from united/data.json by way of
+   H.page({updated}). Nothing here is hard-coded; a stale date is worse than
+   no date. */
+header.site{border-bottom:1px solid var(--line);background:var(--paper)}
+.masthead{display:flex;align-items:baseline;gap:.6rem 1.25rem;flex-wrap:wrap;padding:1rem 0}
+.wordmark{font-family:var(--serif);font-size:1.35rem;font-weight:700;letter-spacing:-.01em;
+  color:var(--ink);text-decoration:none;white-space:nowrap}
+.wordmark:hover{text-decoration:none}
+/* The orbit mark. Inline SVG drawn in currentColor; this sets the colour, and
+   the colour is the sky, because the mark is chrome. It is inline in the
+   document so the custom property resolves — inside an <img> it would silently
+   fall back to black. */
+.wordmark .mk{color:var(--sky);vertical-align:-.12em;margin-right:.35rem}
+.masthead nav{margin-left:auto;display:flex;gap:1.1rem;font-size:.92rem;flex-wrap:wrap}
+.masthead nav a{color:var(--link)}
+.masthead nav a[aria-current="page"]{color:var(--ink);text-decoration-thickness:2px}
+/* The Extension link is the quiet one the spec allows on every page. It is a
+   nav link, not a button: a call to action in the masthead of thirty routes is
+   the scattered pitch that killed version one. */
+.masthead nav a.cta{color:var(--link)}
+.datechip{font-size:.78rem;color:var(--muted);letter-spacing:.02em;width:100%;
+  padding-bottom:.15rem}
+.datechip b{color:var(--muted-strong);font-weight:600}
+/* The switch is hidden until the inline script reveals it, so a page without
+   JavaScript never shows a control that cannot work. Its title text is
+   deliberate down to the clause about storage; do not shorten it. */
+.themetoggle{font:inherit;font-size:.78rem;letter-spacing:.02em;padding:.22rem .75rem;
+  border:1px solid var(--line);border-radius:99px;background:transparent;
+  color:var(--muted);cursor:pointer}
+.themetoggle:hover{border-color:var(--muted);color:var(--ink)}
+
+/* ── crumbs ─────────────────────────────────────────────────────────────── */
+.crumb{font-size:.82rem;color:var(--muted);padding:1rem 0 0}
+.crumb a{color:var(--link)}
+.crumb .sep{padding:0 .45rem;color:var(--muted)}
+.crumb [aria-current="page"]{color:var(--muted-strong)}
 
 /* ── airline sub-nav: the SECOND header row ───────────────────────────────
-   .topnav says where you are on the SITE and is identical on every page.
-   .subnav says where you are inside ONE airline. Anything airline-specific
-   belongs here — with 18 airlines it can never live in .topnav. Same tab
-   grammar as .topnav: a hairline box, inverted when it is the current page. */
-.subnav{display:flex;align-items:center;flex-wrap:wrap;gap:0 6px;
-  padding:10px 0;border-bottom:1px solid var(--rule)}
-.subnav .sn-air{font:700 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;
-  color:var(--ink);white-space:nowrap;margin-right:8px}
-.subnav a{font:700 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;
-  text-decoration:none;color:var(--ink-2);white-space:nowrap;
-  padding:7px 11px;border:1px solid var(--rule);margin-left:-1px}
-.subnav a:hover{color:var(--ink);background:var(--bg-inset)}
-.subnav a[aria-current="page"]{color:var(--bg);background:var(--ink);border-color:var(--ink)}
-.subnav .sn-back{margin-left:auto;border-color:transparent;color:var(--ink-3);padding-right:0}
-.subnav .sn-back:hover{background:none;color:var(--ink);border-color:transparent}
-/* the 16 single-page airlines: no tabs to choose between, just the way back */
-.subnav.lone .sn-back{margin-left:0;padding-left:0}
-.subnav.lone .sn-air{margin-left:auto;margin-right:0;color:var(--ink-2)}
-@media(max-width:560px){.subnav .sn-back{margin-left:0;padding-left:0}}
+   The masthead nav says where you are on the SITE and is identical on every
+   page. .subnav says where you are inside ONE airline. Anything airline-specific
+   belongs here — with 18 airlines it can never live in the masthead. */
+.subnav{display:flex;align-items:baseline;flex-wrap:wrap;gap:.35rem 1rem;
+  padding:.7rem 0;border-bottom:1px solid var(--line-soft);font-size:.9rem}
+.subnav .sn-air{font-family:var(--serif);font-weight:700;color:var(--ink);
+  white-space:nowrap}
+.subnav a{white-space:nowrap}
+.subnav a[aria-current="page"]{color:var(--ink);text-decoration-thickness:2px}
+.subnav .sn-back{margin-left:auto;color:var(--muted)}
+.subnav.lone .sn-back{margin-left:0}
+.subnav.lone .sn-air{margin-left:auto}
+@media(max-width:560px){.subnav .sn-back{margin-left:0}.subnav.lone .sn-air{margin-left:0}}
 
 /* ── type ─────────────────────────────────────────────────────────────── */
-.hero{padding:34px 0 4px}
-.hero h1{font-size:clamp(28px,4.4vw,44px);font-weight:700;letter-spacing:-.018em;
-  line-height:1.12;max-width:21ch}
-h1.ph{font-size:clamp(24px,3.6vw,34px);font-weight:700;letter-spacing:-.014em;
-  line-height:1.14;margin:8px 0 0}
-/* the old gradient-filled tagline was United's blue on United's sky. It is a
-   plain second line now, one step down the scale. */
-.hero h1 .tag{display:block;font-size:clamp(17px,2.6vw,23px);font-weight:400;
-  letter-spacing:-.004em;margin-top:10px;color:var(--ink-2)}
-.lede{font-size:16px;color:var(--ink-2);max-width:64ch;margin-top:15px}
-.lede b{color:var(--ink);font-weight:700}
-.kicker{display:inline-flex;align-items:center;gap:8px;font:700 9.5px/1 var(--mono);
-  letter-spacing:.15em;text-transform:uppercase;color:var(--ink-2);
-  border:1px solid var(--rule-2);padding:6px 10px}
-.kicker .dot{width:7px;height:7px;background:var(--band);flex:none}
+.hero{padding:2.6rem 0 .4rem}
+.hero h1{font-size:clamp(1.9rem,5.2vw,3rem);line-height:1.12;letter-spacing:-.015em;
+  max-width:21ch}
+h1.ph{font-size:clamp(1.7rem,4vw,2.4rem);line-height:1.14;margin:.5rem 0 0}
+/* the second line of the hero, one step down the scale */
+.hero h1 .tag{display:block;font-size:clamp(1.05rem,2.4vw,1.4rem);font-weight:400;
+  letter-spacing:-.004em;margin-top:.6rem;color:var(--ink-soft)}
+.lede{margin-top:.9rem}
+/* THE KICKER IS SKY. It is the one all-caps label that is chrome rather than
+   provenance: it names the section the way a forecast names a panel. Provenance
+   labels stay muted ink — see .cls and .src. */
+.kicker{display:block;font-family:var(--sans);font-size:.75rem;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--sky);margin:0 0 .6rem}
+.kicker .dot{display:inline-block;width:.44rem;height:.44rem;border-radius:50%;
+  background:var(--band);margin-right:.5rem;vertical-align:.06em}
 
-/* Sections divide with a full-width rule, broken at the left by an all-caps
-   micro-label. That is the whole section grammar; there are no cards around
+/* Sections divide with a hairline and a sky kicker. There are no cards around
    sections and no headings floating in space. */
-section.blk{position:relative;border-top:1px solid var(--rule-2);
-  margin:40px 0 0;padding-top:30px}
-.sec-h{display:flex;align-items:baseline;gap:8px 16px;margin-bottom:10px;flex-wrap:wrap}
-.sec-h h2{font-size:22px;font-weight:700;letter-spacing:-.005em;line-height:1.25}
-.sec-h .sub{font:700 10px/1.4 var(--mono);letter-spacing:.155em;text-transform:uppercase;
-  color:var(--ink-3)}
-section.blk>.sec-h>.sub{position:absolute;top:-7px;left:0;background:var(--bg);
-  padding-right:13px}
-.sec-h .more{margin-left:auto;font:700 10px/1 var(--mono);letter-spacing:.14em;
-  text-transform:uppercase;text-decoration:none;color:var(--ink-2)}
-.sec-h .more:hover{color:var(--ink)}
-.sec-lede{color:var(--ink-2);font-size:15px;max-width:70ch;margin-bottom:18px}
-.micro{font:700 10px/1.4 var(--mono);letter-spacing:.155em;text-transform:uppercase;
-  color:var(--ink-3)}
-.note{font-size:13px;color:var(--ink-2)}
+section.blk{position:relative;border-top:1px solid var(--line-soft);
+  margin:2.6rem 0 0;padding-top:2rem}
+.sec-h{display:flex;align-items:baseline;gap:.5rem 1rem;margin-bottom:.6rem;flex-wrap:wrap}
+.sec-h h2{font-size:clamp(1.35rem,3.4vw,1.8rem);line-height:1.2}
+.sec-h .sub{font-size:.75rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--sky)}
+section.blk>.sec-h>.sub{display:block;width:100%;margin-bottom:.1rem}
+.sec-h .more{margin-left:auto;font-size:.85rem}
+.sec-lede{margin-bottom:1.1rem}
+/* .micro is the reporting label: quiet ink, never sky, because it sits inside
+   the data's screen space. */
+.micro{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted)}
+.note{font-size:.86rem;color:var(--ink-soft)}
+.footnote{font-size:.84rem;color:var(--muted);max-width:44rem}
 
-/* ── boxes. Hairline ruled, square, flat. ─────────────────────────────────
-   The glass card is gone: no translucent fill, no rgba edge, no lift on hover,
-   no glow. A box on a plate is a box. */
-.card,.panel{background:var(--bg-panel);border:1px solid var(--rule);border-radius:0;
-  padding:18px 20px;box-shadow:none;color:inherit}
-a.card{text-decoration:none;display:flex;flex-direction:column;gap:8px}
-a.card:hover{border-color:var(--rule-2);background:var(--bg-inset)}
-.card h3{font-size:15.5px;font-weight:700;letter-spacing:-.006em}
-.card p{font-size:var(--fs-small);color:var(--ink-2)}
-.card .go{margin-top:auto;font:700 10px/1 var(--mono);letter-spacing:.14em;
-  text-transform:uppercase;color:var(--ink-2)}
-a.card:hover .go{color:var(--ink)}
-/* One-pixel gaps over a rule-coloured ground: the cells look ruled, not spaced,
-   and there is exactly one line between two neighbours. */
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);
-  border:1px solid var(--rule)}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);
-  border:1px solid var(--rule)}
-.grid2>*,.grid3>*{border:0}
+/* ── boxes ────────────────────────────────────────────────────────────── */
+.card,.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:1.1rem 1.2rem;box-shadow:var(--sheen);color:inherit}
+a.card{text-decoration:none;display:flex;flex-direction:column;gap:.5rem}
+a.card:hover{border-color:var(--muted);text-decoration:none}
+.card h3{font-size:1.05rem}
+.card p{font-size:var(--fs-small);color:var(--ink-soft)}
+.card .go{margin-top:auto;font-size:.78rem;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--link)}
+a.card:hover .go{text-decoration:underline;text-decoration-thickness:2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
 @media(max-width:860px){.grid3{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){.grid2,.grid3{grid-template-columns:1fr}}
 
-.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);
-  border:1px solid var(--rule);margin:20px 0 8px}
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin:1.4rem 0 .5rem}
 @media(max-width:860px){.chips{grid-template-columns:1fr 1fr}}
 @media(max-width:420px){.chips{grid-template-columns:1fr}}
-.chip{background:var(--bg-panel);border:0;padding:14px 16px}
-.chip .n{font-size:26px;font-weight:700;line-height:1.05;color:var(--ink);letter-spacing:-.02em}
-.chip .n small{font-size:14px;color:var(--ink-3);font-weight:400}
-.chip .l{font:700 9.5px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;
-  color:var(--ink-3);margin-top:8px}
-.chip .d{font-size:12.5px;color:var(--ink-2);margin-top:5px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--sheen);padding:.9rem 1rem}
+.chip .n{font-size:1.7rem;font-weight:700;line-height:1.05;color:var(--ink);
+  letter-spacing:-.02em}
+.chip .n small{font-size:.9rem;color:var(--muted);font-weight:400}
+.chip .l{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);margin-top:.5rem}
+.chip .d{font-size:.8rem;color:var(--ink-soft);margin-top:.3rem}
 .chip .d .up{color:var(--good);font-weight:700}
+/* .glow is a name from the old system. It means "this number wears its band",
+   and there is no glow: it is flat colour, like everything else. */
 .chip.glow .n{color:var(--band)}
-.chip.hero-kpi .n{font-size:40px}
+.chip.hero-kpi .n{font-size:2.6rem}
 
 /* ── US airlines at a glance (homepage only) ───────────────────────────────
    Seven fixed carriers (build/lib/pages.js US_MAJORS), four across, so the last
    row is three. The set never grows with the data, which is why the column count
    is a literal 4 and not an auto-fit: a row that reflows on every data pull is a
-   layout that nobody has actually looked at.
+   layout nobody has actually looked at.
    The score reuses the leaderboard's `.sco` NAME but not its rule — that one is
-   scoped `table.tbl .sco` and these cards are anchors, not a table. Do not
-   "dedupe" the two by unscoping the table rule; it would resize every leaderboard
-   cell on /airlines/. */
-.usrow{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);
-  border:1px solid var(--rule);margin:16px 0 10px}
+   scoped `table.tbl .sco`. Do not "dedupe" the two by unscoping the table rule;
+   it would resize every leaderboard cell on /airlines/. */
+.usrow{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin:1.2rem 0 .6rem}
 @media(max-width:980px){.usrow{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:720px){.usrow{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:430px){.usrow{grid-template-columns:1fr}}
-.usrow .card{padding:14px 16px;gap:6px;border:0}
-.ush{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.ush h3{margin-right:auto;font-size:14.5px}
-.usrow .sco{font-size:21px;font-weight:700;color:var(--band);line-height:1;letter-spacing:-.02em}
+.usrow .card{padding:.9rem 1rem;gap:.35rem}
+.ush{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap}
+.ush h3{margin-right:auto;font-size:1rem}
+.usrow .sco{font-size:1.5rem;font-weight:700;color:var(--band);line-height:1;
+  letter-spacing:-.02em}
 /* the three stacked lines: next-gen headline, today's tier, and the ConnectScore
    footer that lets a reader reconcile this row's order with /airlines/. See the
    comment above usGlance() in build/lib/pages.js for why there are three. */
-.usng{font-weight:700;color:var(--ink-2)}
-.usnow{color:var(--ink-2)}
-.uscs{margin-top:auto;padding-top:8px;border-top:1px solid var(--rule);
-  font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--ink-3)}
+.usng{font-weight:700;color:var(--ink-soft);font-size:.92rem}
+.usnow{color:var(--ink-soft);font-size:.92rem}
+.uscs,.ustat{margin-top:auto;padding-top:.5rem;border-top:1px solid var(--line-soft);
+  font-size:.75rem;letter-spacing:.04em;color:var(--muted)}
 
 /* ── buttons, badges, pills ───────────────────────────────────────────────
-   One button: ink block, square, inverts on hover. The ghost is its outline. */
-.btn{display:inline-flex;align-items:center;gap:10px;padding:13px 18px;border-radius:0;
-  font:700 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;
-  background:var(--ink);color:var(--bg);text-decoration:none;border:1px solid var(--ink);
-  cursor:pointer}
-.btn:hover{background:transparent;color:var(--ink)}
-.btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule-2)}
-.btn.ghost:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.cta-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:20px}
-.microlinks{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;
-  font:700 10px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase}
-.microlinks a{color:var(--ink-2);text-decoration:none}
-.microlinks a:hover{color:var(--ink)}
+   One button and it is the sky, because a button is chrome. The ghost is its
+   outline. Nothing here ever takes a band. */
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.72rem 1.15rem;
+  border-radius:var(--r-md);font:inherit;font-weight:600;font-size:.95rem;
+  background:var(--btn-bg);color:var(--btn-fg);text-decoration:none;
+  border:1px solid var(--btn-bg);cursor:pointer}
+.btn:hover{text-decoration:none;filter:saturate(1.1)}
+.btn.ghost{background:transparent;color:var(--link);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--sky);filter:none}
+.cta-row{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;margin-top:1.3rem}
+.microlinks{display:flex;gap:1.1rem;flex-wrap:wrap;margin-top:.9rem;font-size:.85rem}
 
-.badge{display:inline-block;font:700 9px/1.35 var(--mono);letter-spacing:.13em;
-  text-transform:uppercase;padding:4px 6px;border-radius:0;border:1px solid var(--rule-2);
-  color:var(--ink-3);white-space:nowrap}
-.badge.live{color:var(--good);border-color:var(--good)}
-.badge.cachetag{color:var(--ink-2);border-color:var(--rule-2)}
-.badge.offline{color:var(--mixed);border-color:var(--mixed)}
+/* Badges. A badge that carries a NUMBER wears its band; a badge that carries a
+   CATEGORY stays ink and tells itself apart by border style. */
+.badge{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;padding:.14rem .5rem;border-radius:99px;
+  border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.badge.good{color:var(--good);border-color:currentColor}
+.badge.mixed{color:var(--mixed);border-color:currentColor}
+.badge.long,.badge.low{color:var(--long);border-color:currentColor}
+.badge.zero,.badge.none{color:var(--zero);border-color:currentColor}
+.badge.live{color:var(--good);border-color:currentColor}
+.badge.cachetag,.badge.offline{color:var(--muted-strong);border-color:var(--line)}
 /* mainline vs express is a category, not a score, so it stays monochrome and
    separates itself with the border style instead of a hue. */
-.badge.mainline{color:var(--ink);border-color:var(--ink-2)}
-.badge.express{color:var(--ink-2);border-style:dashed}
-.pill{display:inline-block;font:400 12px/1.4 var(--mono);letter-spacing:.04em;
-  padding:4px 7px;border-radius:0;margin:2px 5px 2px 0;background:transparent;
-  border:1px solid var(--rule);color:var(--ink-2)}
-.pill.add{color:var(--good);border-color:var(--good)}
-.pill.tail{color:var(--ink-2)}
+.badge.mainline{color:var(--muted-strong);border-color:var(--muted)}
+.badge.express{color:var(--muted);border-style:dashed}
+.pill{display:inline-block;font-size:.8rem;padding:.14rem .5rem;border-radius:99px;
+  margin:.12rem .35rem .12rem 0;background:transparent;border:1px solid var(--line);
+  color:var(--ink-soft)}
+.pill.add{color:var(--good);border-color:currentColor}
+.pill.tail{color:var(--ink-soft)}
+.pill.soon{color:var(--muted-strong);border-style:dashed;font-size:.75rem;margin:0}
+.pill.live{color:var(--good);border-color:currentColor;font-size:.75rem;margin:0}
 a.pill{text-decoration:none}
-a.pill:hover{border-color:var(--rule-2);color:var(--ink)}
+a.pill:hover{border-color:var(--muted)}
 /* The score band chip. This one IS allowed the colour: it is the score. */
-.band{font:700 9.5px/1.35 var(--mono);letter-spacing:.13em;text-transform:uppercase;
-  padding:4px 7px;border-radius:0;border:1px solid;white-space:nowrap;display:inline-block;
-  color:var(--band);border-color:var(--band)}
-.legend{display:flex;gap:8px 18px;flex-wrap:wrap;margin:8px 0 12px;
-  font:700 9.5px/1.5 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
-.legend span{display:inline-flex;align-items:center;gap:7px}
-.legend i{width:9px;height:9px;border-radius:0;display:inline-block;flex:none;background:var(--rule-2)}
+.band{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;padding:.14rem .5rem;border-radius:99px;white-space:nowrap;
+  color:var(--band);border:1px solid currentColor}
+.band.good{color:var(--good)} .band.mixed{color:var(--mixed)}
+.band.long{color:var(--long)} .band.zero{color:var(--zero)}
+.legend{display:flex;gap:.5rem 1.1rem;flex-wrap:wrap;margin:.5rem 0 .8rem;
+  font-size:.75rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:.45rem}
+.legend i{width:.6rem;height:.6rem;display:inline-block;flex:none;background:var(--line)}
 .legend i.eq{background:var(--viz-equipped)}
-.legend i.no{background:var(--viz-empty);border:1px solid var(--rule)}
+.legend i.no{background:var(--viz-empty);border:1px solid var(--line)}
 .legend i.ml{background:var(--viz-mainline)}
 .legend i.ex{background:var(--viz-express)}
-.sysdot{width:8px;height:8px;border-radius:0;display:inline-block;flex:none;margin-right:7px;
-  background:var(--sys-legacy)}
+/* System dots key a CATEGORY, not a score, so they are ink graded by weight —
+   no legend on this site resolves by colour alone. */
+.sysdot{width:.5rem;height:.5rem;display:inline-block;flex:none;margin-right:.45rem;
+  border-radius:50%;background:var(--sys-legacy)}
 .sysdot.starlink{background:var(--sys-starlink)}
-.sysdot.leo{background:var(--sys-leo)}
+.sysdot.leo{background:var(--sys-leo);box-shadow:inset 0 0 0 1px var(--muted)}
 .sysdot.viasat,.sysdot.ku,.sysdot.intelsat{background:var(--sys-viasat)}
+.sysdot.panasonic,.sysdot.thales,.sysdot.inmarsat,.sysdot.anuvu{background:var(--sys-legacy)}
+.meta-pill{display:inline-block;font-size:.75rem;color:var(--muted);
+  border:1px solid var(--line);border-radius:99px;padding:.1rem .5rem}
 
 /* ── progress tapes ───────────────────────────────────────────────────────
-   Was a rounded gradient bar; is now a tape: a ruled inset with a solid band
-   fill. The colour is the band, so a bar next to a score always agrees with it.
-   COLLISION NOTE: /united/ has its own .track/.fill pair (9px, inline widths set
-   by 1400 lines of live-tested app JS). These rules must not outrank it, which is
+   A ruled inset with a solid band fill. The colour is the band, so a bar next to
+   a score always agrees with it.
+   COLLISION NOTE: /united/ has its own .track/.fill pair (inline widths set by
+   1400 lines of live-tested app JS). These rules must not outrank it, which is
    why the fill selector is wrapped in :where() — that keeps it at .fill-level
    specificity, so the optimizer's own later rules win on that page and these win
    everywhere else. Do not "simplify" the :where() away.
    Width comes from a baked --pct custom property, not an inline width, so the
    html.anim rules further down can start it at 0 and grow it. No JS => --pct is
    used directly and the bar is already correct. */
-.track{display:block;height:9px;border-radius:0;background:var(--bg-inset);
-  border:1px solid var(--rule);overflow:hidden}
-.chip .track,.stat .track,.hpanel .track,.scorebox .track{margin-top:9px}
-:where(.track) .fill{display:block;height:100%;border-radius:0;width:var(--pct,0%);
+.track{display:block;height:.5rem;border-radius:99px;background:var(--proj-bg);
+  border:1px solid var(--line);overflow:hidden}
+.chip .track,.stat .track,.hpanel .track,.scorebox .track{margin-top:.55rem}
+:where(.track) .fill{display:block;height:100%;border-radius:99px;width:var(--pct,0%);
   background:var(--band);transition:width 1s ease-out}
 :where(.track) .fill.ml{background:var(--viz-mainline)}
 :where(.track) .fill.ex{background:var(--viz-express)}
-.track.mini{height:7px;width:92px;margin:0}
+.track.mini{height:.4rem;width:5.75rem;margin:0}
 
 /* ── tables. Real tables, ruled rows, no shell. ─────────────────────────── */
-.tbl-shell{background:transparent;border:0;border-radius:0;overflow-x:auto;box-shadow:none;
+.tbl-shell,.tscroll{background:transparent;border:0;overflow-x:auto;
   -webkit-overflow-scrolling:touch}
-table.tbl{width:100%;border-collapse:collapse;min-width:640px}
-table.tbl th,table.tbl td{text-align:left;padding:9px 14px 9px 0;font-size:14px;
-  border-bottom:1px solid var(--rule);vertical-align:middle}
-table.tbl thead th{font:700 9.5px/1.35 var(--mono);letter-spacing:.14em;text-transform:uppercase;
-  color:var(--ink-3);white-space:nowrap;position:sticky;top:0;background:var(--bg);
-  border-bottom:1px solid var(--rule-2);padding-bottom:8px;vertical-align:bottom}
-table.tbl tbody tr:last-child td{border-bottom:1px solid var(--rule)}
-table.tbl tbody tr:hover{background:var(--bg-panel)}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+table.tbl{min-width:40rem}
+table.tbl th,table.tbl td{text-align:left;padding:.5rem .6rem .5rem 0;font-size:.92rem;
+  border-bottom:1px solid var(--line-soft);vertical-align:middle}
+table.tbl thead th{font-size:.72rem;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);white-space:nowrap;position:sticky;top:0;
+  background:var(--paper);border-bottom:1px solid var(--ink);padding-bottom:.45rem;
+  vertical-align:bottom}
+table.tbl tbody tr:last-child td{border-bottom:1px solid var(--line)}
+table.tbl tbody tr:hover{background:var(--panel)}
 table.tbl td.num,table.tbl td.mono{white-space:nowrap}
+th.num,td.num{text-align:right}
 table.tbl td b{color:var(--ink);font-weight:700}
-table.tbl .rank{color:var(--ink-3);font-size:12px;width:38px}
-table.tbl .aname{font-weight:700;color:var(--ink);text-decoration:none;
-  border-bottom:1px solid var(--rule-2)}
-table.tbl .aname:hover{border-bottom-color:currentColor}
-table.tbl .code{font-size:11.5px;font-weight:700;color:var(--ink-3);margin-left:7px;
-  letter-spacing:.12em}
-table.tbl .sco{font-size:22px;font-weight:700;color:var(--band);line-height:1;letter-spacing:-.02em}
-/* the instrumented carriers get a tick in the margin, the way a plate marks the
-   row it wants you to read. It is grey: instrumentation is a provenance class,
-   not a score. */
-table.tbl tr.instr{box-shadow:inset 3px 0 0 var(--ink-2)}
-table.tbl tr.instr td:first-child{padding-left:11px}
+table.tbl .rank{color:var(--muted);font-size:.8rem;width:2.6rem}
+table.tbl .aname{font-weight:700}
+table.tbl .code{font-size:.72rem;font-weight:600;color:var(--muted);margin-left:.45rem;
+  letter-spacing:.1em}
+table.tbl .sco{font-size:1.4rem;font-weight:700;color:var(--band);line-height:1;
+  letter-spacing:-.02em}
+/* the instrumented carriers get a tick in the margin, the way a forecast marks
+   the row it wants you to read. It is ink: instrumentation is a provenance
+   class, not a score. */
+table.tbl tr.instr{box-shadow:inset 2px 0 0 var(--muted-strong)}
+table.tbl tr.instr td:first-child{padding-left:.6rem}
 html.js table.tbl th[data-k]{cursor:pointer;user-select:none}
-html.js table.tbl th[data-k]:after{content:"\2195";opacity:.4;margin-left:5px;font-size:10px}
+html.js table.tbl th[data-k]:after{content:"\2195";opacity:.45;margin-left:.3rem;font-size:.72rem}
 html.js table.tbl th[data-k][aria-sort="ascending"]:after{content:"\2191";opacity:1}
 html.js table.tbl th[data-k][aria-sort="descending"]:after{content:"\2193";opacity:1}
 @media(max-width:720px){.hide-sm{display:none}}
-.tblcap{font:700 9.5px/1.7 var(--mono);letter-spacing:.11em;text-transform:uppercase;
-  color:var(--ink-3);margin-top:12px}
-.caveat{margin-top:14px;font-size:13px;color:var(--ink-2);border:1px solid var(--rule);
-  border-left:3px solid var(--rule-2);background:var(--bg-panel);border-radius:0;padding:12px 16px}
+.tblcap{font-size:.75rem;letter-spacing:.05em;color:var(--muted);margin-top:.7rem}
+.caveat{margin-top:.9rem;font-size:.86rem;color:var(--ink-soft);
+  border:1px solid var(--line);border-left:3px solid var(--line);
+  background:var(--panel);border-radius:var(--r-md);padding:.8rem 1rem}
+.empty-state{font-size:.86rem;color:var(--muted);border:1px dashed var(--line);
+  border-radius:var(--r-md);padding:.8rem 1rem}
 
 /* ── filter chips + search (JS-only affordances) ──────────────────────── */
-.filters{display:flex;flex-wrap:wrap;gap:0 6px;margin:4px 0 14px}
-.filters button{font:700 10px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;
-  color:var(--ink-2);cursor:pointer;padding:8px 11px;border:1px solid var(--rule);
-  border-radius:0;background:transparent;margin-left:-1px}
-.filters button:hover{color:var(--ink);background:var(--bg-inset)}
-.filters button[aria-pressed="true"]{color:var(--bg);background:var(--ink);border-color:var(--ink)}
-.srch{display:inline-flex;align-items:center;gap:8px;margin:0 0 14px}
-.srch input{padding:9px 12px;border-radius:0;font-size:13.5px;letter-spacing:.06em;
-  background:var(--bg-inset);color:var(--ink);border:1px solid var(--rule-2);min-width:180px}
-.srch input:focus{outline:none;border-color:var(--ink-2)}
+.filters{display:flex;flex-wrap:wrap;gap:.4rem;margin:.3rem 0 .9rem}
+.filters button{font:inherit;font-size:.82rem;color:var(--ink-soft);cursor:pointer;
+  padding:.3rem .7rem;border:1px solid var(--line);border-radius:99px;background:transparent}
+.filters button:hover{border-color:var(--muted)}
+.filters button[aria-pressed="true"]{color:var(--btn-fg);background:var(--btn-bg);
+  border-color:var(--btn-bg)}
+.srch{display:inline-flex;align-items:center;gap:.5rem;margin:0 0 .9rem}
+.srch input{font:inherit;padding:.5rem .7rem;border-radius:var(--r-md);font-size:.9rem;
+  background:var(--field);color:var(--ink);border:1px solid var(--line);min-width:11rem}
+.srch input::placeholder{color:var(--placeholder)}
+.srch input:focus{outline:none;border-color:var(--sky)}
 
-/* ── Hangar Floor waffle: the mark, at full size ──────────────────────────
-   This grid is the site's one original picture and it is also the logo. Dim
-   cells are the fleet, lit cells are what is flying. Nothing else on the page is
-   allowed to look like this. */
-.hangar{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule)}
-.hpanel{background:var(--bg-panel);border:0;border-radius:0;padding:16px 18px}
-.hpanel-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
-.hpanel-h .ty{font-size:14.5px;font-weight:700;color:var(--ink)}
-.hpanel-h .ct{font-size:12.5px;color:var(--ink-2);margin-left:auto}
+/* ── Hangar Floor waffle ──────────────────────────────────────────────────
+   Dim cells are the fleet, lit cells are what is flying. A lit cell is a count,
+   so it takes the band's green; the dim ones are ink at low opacity. */
+.hangar{display:grid;gap:1rem}
+.hpanel{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--sheen);padding:1rem 1.1rem}
+.hpanel-h{display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap;margin-bottom:.25rem}
+.hpanel-h .ty{font-family:var(--serif);font-size:1.02rem;font-weight:700;color:var(--ink)}
+.hpanel-h .ct{font-size:.82rem;color:var(--muted);margin-left:auto}
 .hpanel-h .ct b{color:var(--ink);font-weight:700}
-.waffle{display:grid;grid-template-columns:repeat(auto-fill,minmax(10px,1fr));gap:2px;margin-top:12px}
-.waffle i{display:block;aspect-ratio:1;border-radius:0;background:var(--ink-3);opacity:.24}
-.waffle i.eq{background:var(--good);opacity:1;box-shadow:none}
-[data-theme="light"] .waffle i{opacity:.38}
+.waffle{display:grid;grid-template-columns:repeat(auto-fill,minmax(10px,1fr));gap:2px;
+  margin-top:.7rem}
+.waffle i{display:block;aspect-ratio:1;border-radius:1px;background:var(--muted);opacity:.28}
+.waffle i.eq{background:var(--viz-equipped);opacity:1}
 .waffle i.eq:hover{transform:scale(1.6);position:relative;z-index:2}
-.hpanel .cap{font-size:12px;color:var(--ink-3);margin-top:9px}
-.mini-waffle{display:grid;grid-template-columns:repeat(auto-fill,minmax(9px,1fr));gap:2px;margin:4px 0 2px}
-.mini-waffle i{display:block;aspect-ratio:1;border-radius:0;background:var(--ink-3);opacity:.24}
-.mini-waffle i.eq{background:var(--good);opacity:1}
-[data-theme="light"] .mini-waffle i{opacity:.38}
+.hpanel .cap{font-size:.78rem;color:var(--muted);margin-top:.55rem}
+.mini-waffle{display:grid;grid-template-columns:repeat(auto-fill,minmax(9px,1fr));gap:2px;
+  margin:.25rem 0 .15rem}
+.mini-waffle i{display:block;aspect-ratio:1;border-radius:1px;background:var(--muted);opacity:.28}
+.mini-waffle i.eq{background:var(--viz-equipped);opacity:1}
 
-/* ── visualizations (baked SVG) ───────────────────────────────────────── */
+/* ── visualizations (baked SVG) ───────────────────────────────────────────
+   Lines are ink, told apart by weight and dash pattern, labelled at each line's
+   end. No chart line borrows a band. */
 .viz{width:100%;height:auto;display:block;overflow:visible}
-.viz .gl{stroke:var(--rule);stroke-width:1}
-.viz .ax{fill:var(--ink-3);font-family:var(--mono);font-size:10px}
-.viz .lbl{fill:var(--ink);font-family:var(--mono);font-size:12px;font-weight:700}
-.viz .a-ml{fill:var(--viz-mainline);fill-opacity:.12}
-.viz .a-ex{fill:var(--viz-express);fill-opacity:.12}
-.viz .s-ml{stroke:var(--viz-mainline);stroke-width:1.6;fill:none}
-.viz .s-ex{stroke:var(--viz-express);stroke-width:1.6;fill:none;stroke-dasharray:4 3}
+.viz .gl{stroke:var(--line-soft);stroke-width:1}
+.viz .ax{fill:var(--muted);font-family:var(--sans);font-size:10px}
+.viz .lbl{fill:var(--ink);font-family:var(--sans);font-size:12px;font-weight:700}
+.viz .a-ml{fill:var(--viz-mainline);fill-opacity:.10}
+.viz .a-ex{fill:var(--viz-express);fill-opacity:.10}
+.viz .s-ml{stroke:var(--viz-mainline);stroke-width:1.8;fill:none}
+.viz .s-ex{stroke:var(--viz-express);stroke-width:1.4;fill:none;stroke-dasharray:4 3}
 .viz .dot-ml{fill:var(--viz-mainline)}
 .viz .dot-ex{fill:var(--viz-express)}
-.viz .bar{fill:url(#pacegrad)}
+/* THE PACE BARS ARE A COUNT, SO THEY WEAR THE BAND, FLAT.
+   build/lib/viz.js still emits a <linearGradient id="pacegrad"> for these — that
+   file is not this agent's to edit and the gradient is now unreferenced. Do not
+   "restore" fill:url(#pacegrad): the sky does not paint numbers, and the site
+   has no gradients at all. */
+.viz .bar{fill:var(--band)}
 .viz .bar.partial{opacity:.45}
-.viz .ring-bg{stroke:var(--bg-inset);fill:none}
+.viz .ring-bg{stroke:var(--proj-bg);fill:none}
 .viz .ring-fg{stroke:var(--band);fill:none;stroke-linecap:butt}
-.viz .ring-n{fill:var(--ink);font-family:var(--mono);font-weight:700}
+.viz .ring-n{fill:var(--ink);font-family:var(--serif);font-weight:700}
 .spark{width:100%;height:auto;display:block}
-.spark path.s{stroke:var(--good);stroke-width:1.6;fill:none}
-.spark path.f{fill:var(--good);fill-opacity:.12;stroke:none}
+.spark path.s{stroke:var(--viz-mainline);stroke-width:1.6;fill:none}
+.spark path.f{fill:var(--viz-mainline);fill-opacity:.10;stroke:none}
+.spark-note{font-size:.78rem;color:var(--muted);margin-top:.35rem}
 
 /* ── roadmap vertical timeline ────────────────────────────────────────────
    EVERY rule is scoped under .rm. /united/ has its own .steps/.step playbook
-   component with a different geometry (52px grid + .dot), and an unscoped
-   .step:before here painted a rogue circle on top of it. Keep the .rm scope. */
-.steps.rm{display:grid;gap:0;position:relative;padding-left:26px}
-.steps.rm:before{content:"";position:absolute;left:6px;top:0;bottom:0;width:1px;
-  background:var(--rule-2)}
-.rm .step{position:relative;display:block;padding:16px 0;border-bottom:1px solid var(--rule)}
-.rm .step:before{content:"";position:absolute;left:-26px;top:20px;width:13px;height:13px;
-  border-radius:0;background:var(--bg);border:1px solid var(--rule-2)}
+   component with a different geometry, and an unscoped .step:before here painted
+   a rogue circle on top of it. Keep the .rm scope. */
+.steps.rm{display:grid;gap:0;position:relative;padding-left:1.6rem}
+.steps.rm:before{content:"";position:absolute;left:.35rem;top:0;bottom:0;width:1px;
+  background:var(--line)}
+.rm .step{position:relative;display:block;padding:1rem 0;border-bottom:1px solid var(--line-soft)}
+.rm .step:before{content:"";position:absolute;left:-1.6rem;top:1.3rem;width:.8rem;height:.8rem;
+  border-radius:50%;background:var(--paper);border:1px solid var(--line)}
 .rm .step.shipped:before{border-color:var(--good);background:var(--good)}
-.rm .step.building:before{border-color:var(--ink);background:var(--bg)}
-.rm .step.planned:before{border-color:var(--ink-3)}
-.rm .step .sh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.rm .step h3{font-size:15.5px;font-weight:700;color:var(--ink)}
-.rm .step .st{font:700 9px/1.35 var(--mono);letter-spacing:.13em;text-transform:uppercase;
-  border:1px solid;border-radius:0;padding:3px 6px}
-.rm .step.shipped .st{color:var(--good);border-color:var(--good)}
-.rm .step.building .st{color:var(--ink);border-color:var(--ink-2)}
-.rm .step.planned .st{color:var(--ink-3);border-color:var(--rule-2);border-style:dashed}
-.rm .step p{font-size:var(--fs-small);color:var(--ink-2);margin-top:6px;max-width:74ch}
+.rm .step.building:before{border-color:var(--sky);background:var(--paper)}
+.rm .step.planned:before{border-color:var(--muted)}
+.rm .step .sh{display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap}
+.rm .step h3{font-size:1.05rem}
+/* SHIPPED / BUILDING / PLANNED is a state, not a score. Shipped earns the green
+   because it is a fact about the world; planned stays grey and dashed, which is
+   the same fence the projected score wears. */
+.rm .step .st{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid;border-radius:99px;padding:.1rem .45rem}
+.rm .step.shipped .st{color:var(--good);border-color:currentColor}
+.rm .step.building .st{color:var(--muted-strong);border-color:var(--line)}
+.rm .step.planned .st{color:var(--proj);border-color:var(--line);border-style:dashed}
+.rm .step p{font-size:var(--fs-small);color:var(--ink-soft);margin-top:.35rem;max-width:44rem}
 /* .tgts, not .targets — /united/ already owns a .targets list and an unscoped
    :before here gave its items a second bullet. */
-.tgts{list-style:none;margin-top:12px;display:grid;gap:0}
-.tgts li{font-size:13px;color:var(--ink-2);padding:7px 0 7px 24px;position:relative;
-  border-top:1px solid var(--rule)}
-.tgts li:before{content:"";position:absolute;left:2px;top:14px;width:7px;height:7px;
-  background:var(--ink-3)}
+.tgts{list-style:none;margin-top:.7rem;display:grid;gap:0}
+.tgts li{font-size:.86rem;color:var(--ink-soft);padding:.45rem 0 .45rem 1.3rem;
+  position:relative;border-top:1px solid var(--line-soft)}
+.tgts li:before{content:"";position:absolute;left:.1rem;top:.85rem;width:.4rem;height:.4rem;
+  border-radius:50%;background:var(--muted)}
 
 /* ── credit strip (credits are architecture, not a footnote) ───────────── */
-.credit{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-top:18px;
-  padding:13px 16px;border-radius:0;text-decoration:none;background:var(--bg-panel);
-  border:1px solid var(--rule);border-left:3px solid var(--rule-2);
-  color:var(--ink-2);font-size:13.5px}
-.credit .cb{flex:none;font:700 9px/1.35 var(--mono);letter-spacing:.14em;text-transform:uppercase;
-  color:var(--ink-3);border:1px solid var(--rule-2);border-radius:0;padding:4px 6px;
-  background:transparent;margin-top:2px}
-.credit .cbody{flex:1;min-width:220px}
+.credit{display:flex;gap:.8rem;align-items:flex-start;flex-wrap:wrap;margin-top:1.1rem;
+  padding:.8rem 1rem;text-decoration:none;background:var(--panel);
+  border:1px solid var(--line);border-left:3px solid var(--line);border-radius:var(--r-md);
+  color:var(--ink-soft);font-size:.86rem}
+.credit .cb{flex:none;font-size:.68rem;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted);border:1px solid var(--line);
+  border-radius:99px;padding:.14rem .5rem;background:transparent;margin-top:.1rem}
+.credit .cbody{flex:1;min-width:14rem}
 .credit b{color:var(--ink);font-weight:700}
-.credit a{color:inherit}
 
 /* ── footer ───────────────────────────────────────────────────────────── */
-footer{margin:44px 0 0;border-top:1px solid var(--rule-2);padding:22px 0 34px;
-  color:var(--ink-3);font-size:13px}
-footer a{color:var(--ink-2)}
-footer .frow{margin-top:9px;max-width:88ch}
-footer .flinks{display:flex;gap:0 18px;flex-wrap:wrap;margin-bottom:12px;
-  font:700 10px/1.8 var(--mono);letter-spacing:.14em;text-transform:uppercase}
-footer .flinks a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid transparent}
-footer .flinks a:hover{color:var(--ink);border-bottom-color:currentColor}
-footer b{color:var(--ink-2)}
+footer.site{margin-top:2.8rem;border-top:1px solid var(--line);padding:1.6rem 0 2.2rem;
+  color:var(--muted);font-size:.84rem}
+footer.site .frow{margin-top:.6rem;max-width:52rem}
+footer.site .flinks{display:flex;gap:.5rem 1.1rem;flex-wrap:wrap;margin-bottom:.9rem;
+  font-size:.9rem}
+footer.site b{color:var(--muted-strong)}
 
 /* ── faq ──────────────────────────────────────────────────────────────── */
-.faq{display:grid;gap:0;border-top:1px solid var(--rule)}
-.faq .q{background:transparent;border:0;border-bottom:1px solid var(--rule);
-  border-radius:0;padding:15px 0}
-.faq .q h3{font-size:15px;font-weight:700}
-.faq .q p{font-size:var(--fs-small);color:var(--ink-2);margin-top:6px;max-width:80ch}
+.faq{display:grid;gap:0;border-top:1px solid var(--line-soft)}
+.faq .q{background:transparent;border:0;border-bottom:1px solid var(--line-soft);
+  padding:.9rem 0}
+.faq .q h3{font-size:1.02rem}
+.faq .q p{font-size:var(--fs-small);color:var(--ink-soft);margin-top:.35rem;max-width:48rem}
 
 /* ── score hero (airline pages) ───────────────────────────────────────── */
-.scorebox{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:22px;
-  background:var(--bg-panel);border:1px solid var(--rule);border-top:2px solid var(--band);
-  border-radius:0;padding:20px 22px;box-shadow:none}
+.scorebox{display:flex;gap:1.4rem;align-items:center;flex-wrap:wrap;margin-top:1.4rem;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r-xl);
+  padding:1.3rem 1.4rem;box-shadow:var(--sheen)}
 /* THE RING IS 120px. It arrives from V.scoreRing() as <svg class="viz" width="120">,
    and `.viz{width:100%}` — which is right for a full-width chart — turned it into
-   a 966px circle that filled the screen on all 18 airline pages. It has been
-   doing that on the live site; I found it by measuring the element against the
-   deployed stylesheet, because at that size it reads as a design choice rather
-   than a bug. Give it its intrinsic size and take it out of the flex maths. */
+   a 966px circle that filled the screen on all 18 airline pages. It shipped that
+   way, because at that size it reads as a design choice rather than a bug. Give
+   it its intrinsic size and take it out of the flex maths. */
 .scorebox .viz{flex:0 0 120px;width:120px;height:120px}
 /* Until the page markup carries a .sc-* class on the box itself, the ring has no
-   score to take its colour from and would draw in chrome grey. Ink is the honest
-   default for "a number with no band applied yet"; the moment a .sc-* lands on
-   .scorebox this rule stops matching and the arc takes over. */
+   score to take its colour from. Ink is the honest default for "a number with no
+   band applied yet"; the moment a .sc-* lands on .scorebox this rule stops
+   matching and the band takes over. */
 .scorebox:not([class*="sc-"]){--band:var(--ink)}
-.scorebox .sbmid{flex:1;min-width:240px}
-.scorebox .sbmid .t{font:700 10px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;
-  color:var(--ink-3)}
-.scorebox .sbmid .m{font-family:var(--mono);font-size:13px;color:var(--ink-2);margin-top:6px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);
-  border:1px solid var(--rule)}
+.scorebox .sbmid{flex:1;min-width:15rem}
+.scorebox .sbmid .t{font-size:.72rem;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted)}
+.scorebox .sbmid .m{font-size:.86rem;color:var(--ink-soft);margin-top:.35rem}
+.scorebox .sbscore{font-family:var(--serif);font-weight:700;font-size:3.4rem;line-height:1;
+  color:var(--band);font-variant-numeric:tabular-nums}
+/* the scorehead: the number, its band word, the rank, then the say-sentence */
+.scorenum{text-align:center}
+.scorenum .n{font-size:4.2rem;font-weight:700;line-height:1;color:var(--band)}
+.scorenum .b{font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--band)}
+.scorenum .scale{font-size:.72rem;color:var(--muted);margin-top:.2rem}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
 @media(max-width:860px){.stats{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:440px){.stats{grid-template-columns:1fr}}
-.stat{background:var(--bg-panel);border:0;border-radius:0;padding:14px 16px}
-.stat .n{font-size:26px;font-weight:700;color:var(--ink);line-height:1.1;letter-spacing:-.02em}
-.stat .n small{font-size:14px;color:var(--ink-3);font-weight:400}
-.stat .l{font:700 9.5px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;
-  color:var(--ink-3);margin-top:8px}
-.stat .d{font-size:12.5px;color:var(--ink-2);margin-top:5px}
-.stat.done{box-shadow:inset 3px 0 0 var(--good)}
-.stat.early{box-shadow:inset 3px 0 0 var(--mixed)}
-.callout{margin-top:8px;background:var(--bg-panel);border:1px solid var(--rule);
-  border-radius:0;padding:18px 20px;box-shadow:none}
-.callout h3{font-size:17px;font-weight:700;letter-spacing:-.01em}
-.callout p{font-size:14.5px;color:var(--ink-2);margin-top:8px;max-width:70ch}
-.callout ul{margin:10px 0 0 18px;font-size:14px;color:var(--ink-2)}
-.callout li{margin:4px 0}
-.movers{display:grid;gap:0;border-top:1px solid var(--rule)}
-.mover{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;font-size:13.5px;
-  padding:9px 0;background:transparent;border:0;border-bottom:1px solid var(--rule);border-radius:0}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--sheen);padding:.9rem 1rem}
+.stat .n{font-size:1.7rem;font-weight:700;color:var(--ink);line-height:1.1;letter-spacing:-.02em}
+.stat .n small{font-size:.9rem;color:var(--muted);font-weight:400}
+.stat .l{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);margin-top:.5rem}
+.stat .d,.stat .k{font-size:.8rem;color:var(--ink-soft);margin-top:.3rem}
+.stat.done{box-shadow:var(--sheen),inset 3px 0 0 var(--good)}
+.stat.early{box-shadow:var(--sheen),inset 3px 0 0 var(--mixed)}
+.callout{margin-top:.6rem;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r-lg);padding:1.1rem 1.2rem}
+.callout h3{font-size:1.15rem}
+.callout p{font-size:1.02rem;color:var(--ink-soft);margin-top:.5rem;max-width:44rem}
+.callout ul{margin:.6rem 0 0 1.1rem;font-size:.92rem;color:var(--ink-soft)}
+.callout li{margin:.25rem 0}
+.movers{display:grid;gap:0;border-top:1px solid var(--line-soft)}
+.mover{display:flex;gap:.7rem;align-items:baseline;flex-wrap:wrap;font-size:.9rem;
+  padding:.55rem 0;background:transparent;border:0;border-bottom:1px solid var(--line-soft)}
 .mover .fn{font-weight:700;color:var(--ink)}
 .mover .dn{margin-left:auto}
 .mover .dn.up{color:var(--good)}
-.mover .dn.dn2{color:var(--s-rare)}
-.steady{color:var(--ink-3);font-size:13px;padding:13px 16px;border:1px dashed var(--rule-2);
-  border-radius:0}
+.mover .dn.dn2{color:var(--long)}
+.steady{color:var(--muted);font-size:.86rem;padding:.8rem 1rem;border:1px dashed var(--line);
+  border-radius:var(--r-md)}
+/* the four playbook moves, numbered by their own tag rather than a counter */
+.moves{list-style:none;margin:1.2rem 0 0;padding:0;max-width:46rem}
+.moves li{position:relative;padding:.9rem 0 .9rem 4.4rem;border-top:1px solid var(--line-soft)}
+.moves .tag{position:absolute;left:0;top:1rem;font-size:.68rem;font-weight:700;
+  letter-spacing:.1em;color:var(--muted-strong);border:1px solid var(--line);
+  border-radius:99px;padding:.1rem .4rem;background:var(--card);min-width:2.9rem;
+  text-align:center}
+.moves b{font-size:1.02rem}
+.moves p{margin:.2rem 0 0;font-size:.92rem;color:var(--ink-soft)}
 
 /* ── tooltip (pointer users only; the title attribute is the no-JS truth) ── */
-.wtip{position:fixed;z-index:50;pointer-events:none;font-family:var(--mono);font-size:11.5px;
-  background:var(--bg-inset);color:var(--ink);border:1px solid var(--rule-2);
-  border-radius:0;padding:5px 8px;box-shadow:none;white-space:nowrap}
-
-/* the /united/ starfield is that page's flourish only, and never in light */
-[data-theme="light"] #stars{display:none}
+.wtip{position:fixed;z-index:50;font-size:.75rem;pointer-events:none;
+  background:var(--card);color:var(--ink);border:1px solid var(--line);
+  border-radius:var(--r-sm);padding:.25rem .5rem;box-shadow:0 2px 8px rgb(0 0 0 / .12);
+  white-space:nowrap}
 
 /* ═══ HOMEPAGE FLIGHT CHECK — the above-the-fold answer ════════════════════
    The hero IS the tool.
@@ -634,83 +758,81 @@ footer b{color:var(--ink-2)}
    (0,1,0) and would quietly turn the row back into a block. Layout lives on the
    children for exactly that reason.
    ═════════════════════════════════════════════════════════════════════════ */
-.heroq{padding:34px 0 0}
-.heroq h1{max-width:22ch}
-.heroq .lede{font-size:16px;margin-top:13px}
+.heroq{padding:2.6rem 0 0}
+.heroq h1{font-size:clamp(1.9rem,5.2vw,3rem);line-height:1.12;letter-spacing:-.015em;
+  max-width:22ch}
+.heroq .lede{margin-top:.85rem}
 
-/* The field and its button butt together into one control, the way an entry
-   field on a panel does. -1px margins, never a gap. */
-.fchk{margin-top:24px}
-.fchk-lb{display:block;font:700 10px/1.4 var(--mono);letter-spacing:.155em;
-  text-transform:uppercase;color:var(--ink-3);margin-bottom:8px}
-.fchk-row{display:flex;gap:0;flex-wrap:wrap;align-items:stretch}
-.fchk-in{flex:1 1 240px;min-width:0;padding:13px 14px;border-radius:0;
-  font:700 17px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;
-  background:var(--bg-inset);color:var(--ink);border:1px solid var(--rule-2);
-  -webkit-appearance:none;appearance:none}
-.fchk-in::placeholder{color:var(--ink-3);letter-spacing:.09em}
-.fchk-in:focus{outline:none;border-color:var(--ink-2)}
+.fchk{margin-top:1.4rem}
+.fchk-lb{display:block;font-size:.72rem;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
+.fchk-row,.fchk-form{display:flex;gap:.6rem;flex-wrap:wrap;align-items:stretch;
+  max-width:34rem}
+.fchk-in{flex:1 1 14rem;min-width:0;font:inherit;padding:.72rem .9rem;
+  border-radius:var(--r-md);background:var(--field);color:var(--ink);
+  border:1px solid var(--line);-webkit-appearance:none;appearance:none}
+.fchk-in::placeholder{color:var(--placeholder)}
+.fchk-in:focus{outline:none;border-color:var(--sky);box-shadow:0 0 0 2px rgb(45 90 125 / .18)}
 .fchk-in::-webkit-search-cancel-button{-webkit-appearance:none}
-.fchk-go{flex:0 0 auto;padding:13px 20px;margin-left:-1px}
-.fchk-hint{font-size:12.5px;color:var(--ink-3);margin-top:10px;max-width:74ch}
-.fchk-hint b{color:var(--ink-2);font-family:var(--mono)}
-.fchk-hint a{text-decoration:none;border-bottom:1px solid var(--rule)}
-.fchk-links{margin-top:8px}
-.fchk-links b{font-family:var(--mono);color:var(--ink)}
-.fchk-nojs{margin-top:20px}
-.fchk-out{margin-top:18px}
+.fchk-go{flex:0 0 auto;padding:.72rem 1.15rem}
+/* The smallprint pattern: say what needs script, and say where the same answer
+   lives without it. Every JS-only affordance on this site owes the reader that. */
+.fchk-hint{font-size:.82rem;color:var(--muted);margin-top:.6rem;max-width:34rem}
+.fchk-hint b{color:var(--muted-strong)}
+.fchk-links{margin-top:.4rem}
+.fchk-links b{color:var(--ink)}
+.fchk-nojs{margin-top:1.2rem}
+.fchk-out{margin-top:1.1rem}
 .fchk-out:empty{display:none}
-.fchk-busy,.fchk-err{font-size:14px;color:var(--ink-2);padding:13px 16px;
-  border:1px dashed var(--rule-2);border-radius:0}
-.fchk-busy b{color:var(--ink);font-family:var(--mono)}
-.fchk-err{color:var(--mixed);border-color:var(--mixed)}
-.fchk-err b{font-family:var(--mono)}
+.fchk-busy,.fchk-err{font-size:.9rem;color:var(--ink-soft);padding:.8rem 1rem;
+  border:1px dashed var(--line);border-radius:var(--r-md)}
+.fchk-busy b{color:var(--ink)}
+.fchk-err{color:var(--long);border-color:currentColor}
 
 /* the answer card. The one surface on the site that breathes, and the tier tag
    is not decoration: no number appears on this card without the method that
    produced it sitting next to it. */
-.fa{background:var(--bg-panel);border:1px solid var(--rule);border-top:2px solid var(--band);
-  border-radius:0;padding:20px 22px;box-shadow:none}
-.fa-h{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.fa-big{font-weight:700;line-height:1;display:flex;align-items:baseline;gap:1px;color:var(--band)}
-.fa-big b{font-size:clamp(34px,7vw,46px);letter-spacing:-.03em;color:inherit}
-.fa-big small{font-size:14px;color:var(--ink-3);font-weight:400}
-.fa-t{flex:1 1 200px;min-width:0}
-.fa-t h3{font-size:19px;font-weight:700;letter-spacing:-.012em}
-.fa-air{color:var(--ink-2);font-weight:700}
-.fa-what{font-size:12px;color:var(--ink-3);margin-top:3px}
+.fa{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-xl);
+  padding:1.3rem 1.4rem 1.1rem;box-shadow:var(--sheen);max-width:44rem}
+.fa-h{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.fa-big{font-weight:700;line-height:1;display:flex;align-items:baseline;gap:1px;
+  color:var(--band)}
+.fa-big b{font-size:clamp(2.4rem,7vw,3.1rem);letter-spacing:-.03em;color:inherit}
+.fa-big small{font-size:1.5rem;color:inherit;font-weight:400}
+.fa-t{flex:1 1 12rem;min-width:0}
+.fa-t h3{font-size:1.15rem}
+.fa-air{color:var(--ink-soft);font-weight:700}
+.fa-what{font-size:.78rem;color:var(--muted);margin-top:.15rem}
 .fa-band{margin-left:auto}
-.fa-tier{font-size:13px;color:var(--ink-2);margin-top:14px;
-  border-top:1px solid var(--rule);padding-top:13px}
-.fa-tag{display:inline-block;font:700 9px/1.35 var(--mono);letter-spacing:.13em;
-  text-transform:uppercase;padding:4px 6px;border-radius:0;border:1px solid;margin-right:8px;
-  white-space:nowrap}
+/* the provenance block: the tier word, then the source and the date. Muted ink,
+   never sky and never a band, because it sits inside the data's screen space. */
+.fa-tier,.prov{font-size:.78rem;color:var(--muted);margin-top:.8rem;
+  border-top:1px solid var(--line);padding-top:.7rem}
+.prov{letter-spacing:.05em;text-transform:uppercase;max-width:44rem}
+.prov b{font-weight:700;color:var(--muted-strong)}
+.fa-tag,.cls{display:inline-block;font-size:.68rem;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;padding:.12rem .45rem;border-radius:99px;border:1px solid var(--line);
+  color:var(--muted);white-space:nowrap;margin-right:.5rem}
 /* tier tags are PROVENANCE, not score. Monochrome, and they separate by border
-   style. A tag competing with the arc would break the one colour rule. */
-.fa-tag.tv{color:var(--ink);border-color:var(--ink-2)}
-.fa-tag.tf{color:var(--ink-2);border-color:var(--rule-2)}
-.fa-tag.tc{color:var(--ink-2);border-color:var(--rule-2);border-style:dashed}
-.fa-fleet{font-size:13px;color:var(--ink-2);margin-top:9px}
-.fa-links{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;
-  font:700 10px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase}
-.fa-links a{text-decoration:none;color:var(--ink-2)}
-.fa-links a:hover{color:var(--ink)}
-.fa-ext{font-size:13px;color:var(--ink-2);margin-top:14px;
-  border-top:1px solid var(--rule);padding-top:12px}
-.fa-as{font-size:11.5px;color:var(--ink-3);margin-top:8px;letter-spacing:.06em}
+   style. A tag competing with the bands would break the colour rule. */
+.fa-tag.tv,.cls-m{color:var(--muted-strong);border-color:var(--muted)}
+.fa-tag.tf{color:var(--muted);border-color:var(--line)}
+.fa-tag.tc,.cls-f{color:var(--muted);border-color:var(--line);border-style:dashed}
+.fa-fleet{font-size:.86rem;color:var(--ink-soft);margin-top:.55rem}
+.fa-links{display:flex;gap:1.1rem;flex-wrap:wrap;margin-top:.9rem;font-size:.85rem}
+.fa-ext{font-size:.86rem;color:var(--ink-soft);margin-top:.9rem;
+  border-top:1px solid var(--line-soft);padding-top:.75rem}
+.fa-as{font-size:.75rem;color:var(--muted);margin-top:.5rem;letter-spacing:.04em}
+/* the umbrella: what to do when the answer is bad. It never leaves the card. */
+.umbrella{font-size:.95rem;margin:.2rem 0 .8rem;color:var(--ink-soft)}
+.umbrella b{color:var(--ink)}
 
-/* the compact above-the-fold extension plug — a signpost to #extension, not the
-   pitch. One line by design; the sell is the section further down. */
-.extplug{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:18px;
-  font-size:13.5px;color:var(--ink-2);background:var(--bg-inset);border:1px solid var(--rule);
-  border-radius:0;padding:10px 14px}
+/* the compact above-the-fold extension line — a signpost to #extension, not the
+   pitch. One line by design; the one pitch is the companion half further down. */
+.extplug{display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap;margin-top:1.1rem;
+  font-size:.86rem;color:var(--ink-soft)}
 .extplug b{color:var(--ink)}
-.extplug-go{font:700 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
-  text-decoration:none;color:var(--ink);background:transparent;border:1px solid var(--rule-2);
-  border-radius:0;padding:7px 10px;white-space:nowrap}
-.extplug-go:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.extplug-alt{font-size:12.5px;color:var(--ink-3);text-decoration:none;white-space:nowrap}
-.extplug-alt:hover{color:var(--ink)}
+.extplug-go,.extplug-alt{font-size:.86rem}
 
 /* ═══ HOMEPAGE EXTENSION SECTION ═══════════════════════════════════════════
    .extdemo is a DARK STAGE in BOTH themes, deliberately. Inside it sits the
@@ -720,108 +842,133 @@ footer b{color:var(--ink-2)}
    because a screenshot of a white airline website needs a dark surround to read
    as a screenshot; on the light theme, inheriting would give white on white.
    Every `.rlc*` rule lives in that block's scoped <style>; nothing here reaches
-   inside it. The stage is flat charcoal now instead of two radial glows.
+   inside it. The stage is the dark theme's own warm ground, so the two themes
+   agree about what dark means on this site.
    ═════════════════════════════════════════════════════════════════════════ */
-.extdemo{background:#0a0c0d;border:1px solid #353e41;border-radius:0;
-  padding:clamp(14px,3vw,26px);overflow:hidden;box-shadow:none}
-.extfeat{margin-top:18px}
-.extfeat .card h3{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-/* live vs next-release, and the distinction is load-bearing: the store ships
-   1.5.1 today. See the claim rules in build/lib/pages.js extensionSection(). */
-.pill.soon{color:var(--mixed);border-color:var(--mixed);font-size:10.5px;margin:0}
-.pill.live{color:var(--good);border-color:var(--good);font-size:10.5px;margin:0}
-.extwhere{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
-.extwhere .micro{flex:0 0 92px}
+.extdemo{background:#1b1713;border:1px solid #3a332a;border-radius:var(--r-xl);
+  padding:clamp(.9rem,3vw,1.6rem);overflow:hidden}
+.extfeat{margin-top:1.1rem}
+.extfeat .card h3{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap}
+.extwhere{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;margin-top:.9rem}
+.extwhere .micro{flex:0 0 6rem}
 @media(max-width:520px){.extwhere .micro{flex:1 0 100%}}
 .extwhere .pill{margin:0}
-.extwhere .pill em{font-style:normal;color:var(--ink-3);font-size:11px}
-.extwhy{margin-top:10px;max-width:80ch}
-.extfine{margin-top:16px;font-size:12px;color:var(--ink-3);max-width:90ch;
-  border-top:1px solid var(--rule);padding-top:14px}
-.extfine b{color:var(--ink-2)}
+.extwhere .pill em{font-style:normal;color:var(--muted);font-size:.75rem}
+.extwhy{margin-top:.6rem;max-width:48rem}
+.extfine{margin-top:1rem;font-size:.8rem;color:var(--muted);max-width:52rem;
+  border-top:1px solid var(--line-soft);padding-top:.9rem}
+.extfine b{color:var(--muted-strong)}
+/* the release-state list: in the store, submitted, built but unreleased. State
+   grammar, never a promise — the horizons live on /roadmap/, dated and fenced. */
+ul.vstate{list-style:none;margin:1.2rem 0 0;padding:0;max-width:44rem}
+ul.vstate li{padding:.6rem 0;border-top:1px solid var(--line-soft);font-size:.92rem}
+ul.vstate .st{display:inline-block;min-width:10rem;font-size:.68rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--muted-strong)}
 
-/* ═══ A′ PLATE PRIMITIVES ══════════════════════════════════════════════════
-   Ported from the a2 mockup for the page re-skin to build on. Nothing in the
-   current markup uses them yet, and every name here was checked against the
-   class vocabulary the build emits so that adding them cannot restyle anything
-   that already exists.
+/* ═══ SHARED PRIMITIVES ════════════════════════════════════════════════════
+   The pieces every archetype reuses. Renaming one of these breaks a page
+   function in build/lib/, so extend rather than rename.
    ═════════════════════════════════════════════════════════════════════════ */
-/* a ruled box with plate ticks at the corners */
-.plate-box{border:1px solid var(--rule);background:var(--bg-panel);position:relative}
+/* a ruled box, with optional corner ticks */
+.plate-box{border:1px solid var(--line);background:var(--panel);border-radius:var(--r-lg);
+  position:relative}
 .ticked::before,.ticked::after{content:"";position:absolute;width:8px;height:8px;
-  pointer-events:none;border-color:var(--rule-2);border-style:solid}
+  pointer-events:none;border-color:var(--line);border-style:solid}
 .ticked::before{top:-1px;left:-1px;border-width:1px 0 0 1px}
 .ticked::after{bottom:-1px;right:-1px;border-width:0 1px 1px 0}
-/* provenance: every figure carries a class, a source and a date. Monochrome,
-   because colour is the arc. */
-.cls{font:700 9px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;
-  border:1px solid var(--rule-2);color:var(--ink-3);padding:4px 5px;white-space:nowrap;
-  display:inline-block;vertical-align:2px}
-.cls-m{color:var(--ink);border-color:var(--ink-2)}
-.cls-f{border-style:dashed;color:var(--ink-2)}
-.src{font:700 9.5px/1.6 var(--mono);letter-spacing:.07em;color:var(--ink-3);margin-top:7px}
-.src a{text-decoration:none;border-bottom:1px solid var(--rule)}
-.src a:hover{border-bottom-color:currentColor}
-/* THE PROJECTED SCORE. Outline, grey, never the arc, never sorted, never
-   without its date and its confidence word. See the fencing rules in the ship
-   plan; this rule is the visual half of them. */
-.proj{display:inline-flex;align-items:baseline;gap:8px;border:1px solid var(--rule-2);
-  background:transparent;padding:4px 8px;font-family:var(--mono);color:var(--ink-2);
-  white-space:nowrap}
-.proj .pv{font-size:17px;font-weight:700;letter-spacing:-.01em}
-.proj .ph{font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3)}
-.proj.slipped{border-color:var(--ink-3);color:var(--ink-3);
-  background:repeating-linear-gradient(135deg,transparent 0 3px,var(--bg-inset) 3px 6px)}
-.conf{font:700 9px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;
-  color:var(--ink-3);border-bottom:1px solid var(--rule-2);padding-bottom:2px}
-.conf.slip{color:var(--ink);border-bottom-color:var(--ink)}
+/* the source line under a figure. Muted ink, and it always carries a date. */
+.src{font-size:.78rem;letter-spacing:.02em;color:var(--muted);margin-top:.5rem}
+/* THE PROJECTED SCORE. Grey, always. It never sorts a table, it carries its
+   horizon date and a confidence word everywhere it goes, and a passed horizon
+   flips to SLIPPED while keeping the date it missed. All five fence rules are
+   asserted by build/prerender.js; this rule is the visual half of them. */
+.proj{display:inline-flex;align-items:baseline;gap:.45rem;color:var(--proj);
+  background:var(--proj-bg);border:1px solid var(--line);border-radius:var(--r-sm);
+  padding:.12rem .5rem;font-size:.8rem;white-space:nowrap}
+.proj b,.proj .pv{font-size:.95rem;font-weight:700;letter-spacing:-.01em}
+.proj .ph{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--proj)}
+.proj.slipped{border-color:var(--muted);color:var(--muted-strong);
+  background:repeating-linear-gradient(135deg,transparent 0 3px,var(--proj-bg) 3px 6px)}
+.conf{font-size:.64rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--proj)}
+.conf.slip{color:var(--muted-strong)}
+.dash{color:var(--muted)}
 /* the tape: a score drawn as a length rather than a number */
-.tape{position:relative;height:9px;background:var(--bg-inset);border:1px solid var(--rule);
-  margin:12px 0 8px}
+.tape{position:relative;height:.5rem;background:var(--proj-bg);border:1px solid var(--line);
+  border-radius:99px;margin:.7rem 0 .5rem;overflow:hidden}
 .tape i{position:absolute;left:0;top:0;bottom:0;background:var(--band);display:block}
-.tape .tk{position:absolute;top:-4px;bottom:-4px;width:1px;background:var(--rule-2)}
+.tape .tk{position:absolute;top:0;bottom:0;width:1px;background:var(--line)}
 .tapescale{display:flex;justify-content:space-between}
-/* key-value plate rows */
-.kv{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);
-  border:1px solid var(--rule)}
-.kv>div{background:var(--bg-panel);padding:14px 16px}
+/* key-value rows */
+.kv{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+.kv>div{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--sheen);padding:.9rem 1rem}
 .kv.kv-2{grid-template-columns:1fr 1fr}
-.kv .v{font:700 24px/1.1 var(--mono);letter-spacing:-.01em;display:block;margin-top:8px}
-.kv .v small{font-size:12px;letter-spacing:.1em;color:var(--ink-3);display:block;
-  margin-top:6px;font-weight:700}
+.kv .v{font-size:1.5rem;font-weight:700;letter-spacing:-.01em;display:block;margin-top:.4rem}
+.kv .v small{font-size:.72rem;letter-spacing:.1em;color:var(--muted);display:block;
+  margin-top:.35rem;font-weight:600;text-transform:uppercase}
 @media(max-width:900px){.kv,.kv.kv-2{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.kv,.kv.kv-2{grid-template-columns:1fr 1fr}}
-/* a scrollable frame for a table that must stay a table */
-.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 
 /* ═══ RESPONSIVE ═══════════════════════════════════════════════════════════
-   Down to 390px. Tables stay tables: they get a scroll frame, never a stack of
-   pseudo-rows. A schedule that reflows into cards stops being readable as a
-   schedule. ═══════════════════════════════════════════════════════════════ */
+   Down to 390px, where the first full screen must contain the page's answer.
+   Tables stay tables: they get a scroll frame under their own heading, never a
+   stack of pseudo-rows. A schedule that reflows into cards stops being readable
+   as a schedule. Body text never drops below 16px.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media(max-width:700px){
+  .tablescroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tablescroll table{min-width:34rem}
+}
 @media(max-width:600px){
-  .topbar{gap:9px 14px;padding:11px 0}
-  .stripmeta{order:3;flex:1 0 100%;margin-right:0;font-size:9px;letter-spacing:.12em}
-  .topnav{order:2;margin-left:auto}
-  .topnav a{padding:7px 8px;letter-spacing:.12em}
-  .hero,.heroq{padding-top:26px}
-  .fchk-go{width:100%;justify-content:center;margin-left:0;margin-top:-1px}
+  .masthead{gap:.5rem .9rem;padding:.85rem 0}
+  .masthead nav{gap:.8rem;font-size:.88rem;margin-left:0;order:3;flex:1 0 100%}
+  .themetoggle{margin-left:auto}
+  .hero,.heroq{padding-top:2rem}
+  .fchk-go{width:100%;justify-content:center}
   .fchk-in{flex:1 0 100%}
 }
 @media(max-width:430px){
-  .wrap{padding-left:max(14px,env(safe-area-inset-left));
-    padding-right:max(14px,env(safe-area-inset-right))}
-  .wrap::before,.wrap::after{display:none}
-  .mark .wm{font-size:12px;letter-spacing:.15em}
-  .sec-h h2{font-size:19px}
-  .card,.panel{padding:15px 16px}
-  .fa{padding:16px 15px}
+  .wrap{padding-left:max(.9rem,env(safe-area-inset-left));
+    padding-right:max(.9rem,env(safe-area-inset-right))}
+  .wordmark{font-size:1.2rem}
+  .sec-h h2{font-size:1.25rem}
+  .card,.panel{padding:.9rem 1rem}
+  .fa{padding:1rem 1rem .9rem}
+  .scorenum .n{font-size:3.2rem}
+  ul.vstate .st{display:block;margin-bottom:.15rem}
 }
 
 /* ═══ ANIMATION — every rule below is scoped under html.anim ═══════════════
    site.js adds .anim to <html> only when matchMedia('(prefers-reduced-motion:
    no-preference)') matches. No JS, or reduced motion => none of this exists and
    the page is already in its finished state. ═══════════════════════════════ */
-body{transition:background .2s,color .2s}
+/* ── THERE IS NO TRANSITION ON <body>, AND THAT IS THE FIX FOR A REAL BUG ──
+   This file used to carry `body{transition:background .2s,color .2s}` so the
+   theme switch cross-faded. It does not cross-fade. It STICKS: when the new
+   value arrives because a custom property changed (--paper and --ink change when
+   a class lands on <html>), Chrome never starts the transition and the property
+   holds the OLD theme's value indefinitely. Flipping the switch recoloured the
+   links, the rules, the mark and every card, and left the page's ground and its
+   body text in the theme you just left.
+
+   Measured on a built page, not guessed. 1,500 ms after the class change, with a
+   200 ms transition declared:
+
+     getComputedStyle(body).backgroundColor  rgb(27,23,19)   ← the dark ground
+     getComputedStyle(body).color            rgb(242,233,219)← the dark ink
+     getComputedStyle(body)['--paper']       #fbf8f2         ← the LIGHT ground
+     getComputedStyle(body)['--ink']         #29241c         ← the LIGHT ink
+
+   Setting transition:none unfroze both in the same tick, with no theme change.
+   The old stylesheet had the same declaration against the same var swap, so the
+   live site has been doing this the whole time — a green build, a 200, and the
+   wrong bytes on screen, which is this project's recurring failure mode.
+
+   A theme cross-fade is decoration, and decoration does not get to break the
+   thing it decorates. If you want it back, transition a wrapper element that
+   does not own the vars, and verify it by reading the COMPUTED value in a
+   browser rather than by watching it once. */
 html.anim .rv{opacity:0;transform:translateY(8px);
   transition:opacity .3s ease-out,transform .3s ease-out}
 html.anim .rv.in{opacity:1;transform:none}
@@ -874,3 +1021,55 @@ html.anim .track.in .fill{width:var(--pct)}
   html{scroll-behavior:auto}
   *{animation:none!important;transition:none!important}
 }
+
+/* ── THE REPORT FORM, AND A HONEYPOT THAT WAS ADVERTISING ITSELF ───────────
+ * Found on the branch before it ever reached a preview: `.hp` had no rule at
+ * all, so the anti-spam honeypot rendered as a visible field labelled "Leave
+ * this empty" on all 23 pages carrying the report block. A honeypot a human can
+ * read is not a honeypot, and it is also the single most broken-looking element
+ * we could have put under a form that asks for trust.
+ *
+ * It is off-screen rather than `display:none`, because some bots skip inputs
+ * that are display-none and fill everything else. `aria-hidden` and
+ * `tabindex="-1"` are already on the markup, so no screen reader or keyboard
+ * user ever reaches it.
+ *
+ * The rest of these were the same omission with milder symptoms: the form
+ * rendered in browser defaults on every page it appears. */
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+.frm{margin:18px 0 0}
+.ffgrid{display:grid;gap:14px 16px;grid-template-columns:1fr}
+@media (min-width:620px){.ffgrid{grid-template-columns:1fr 1fr}}
+.ff{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ff.wide{grid-column:1/-1}
+.ff label,.fh{font:600 12px/1.4 var(--sans);letter-spacing:.04em;
+  text-transform:uppercase;color:var(--ink-3)}
+.fh{margin:20px 0 2px;grid-column:1/-1}
+.ff input,.ff select,.ff textarea{
+  font:400 15px/1.45 var(--sans);color:var(--ink);background:var(--field-bg);
+  border:1px solid var(--line);border-radius:3px;padding:9px 11px;width:100%;
+  min-width:0;-webkit-appearance:none;appearance:none}
+.ff select{background-image:none}
+.ff textarea{min-height:82px;resize:vertical}
+.ff input:focus-visible,.ff select:focus-visible,.ff textarea:focus-visible{
+  outline:2px solid var(--sky);outline-offset:1px;border-color:var(--sky)}
+.ff input::placeholder,.ff textarea::placeholder{color:var(--ink-3);opacity:.75}
+
+/* An error only occupies space once the endpoint has put a sentence in it. */
+.ferr{margin:0;font:400 13px/1.4 var(--sans);color:var(--s-long)}
+.ferr:empty{display:none}
+.ferr.frm-top{margin-bottom:10px}
+.frm-ft{margin:16px 0 0;display:flex;flex-wrap:wrap;gap:12px;align-items:baseline}
+.frm-ft .note{margin:0;flex:1 1 16rem;min-width:0}
+
+/* ── the split-homepage seam ──────────────────────────────────────────────
+ * The reader has to know which half they are in. A full-bleed band, the sky
+ * for the label because a half-name is chrome, never a number. */
+.seam{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+  background:var(--bg-inset);margin:44px 0 0;padding:11px 0}
+.halfmark{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline}
+.halfmark b{font:600 12px/1.4 var(--sans);letter-spacing:.1em;
+  text-transform:uppercase;color:var(--sky)}
+.halfmark strong{font:600 17px/1.3 var(--serif);color:var(--ink)}
+.halfmark span{font:400 14px/1.4 var(--sans);color:var(--ink-3)}
