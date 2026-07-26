@@ -459,7 +459,7 @@ async function main() {
   eq(res.status, 200, '/api/airlines/qatar status');
   assertEnvelope(res, qr, '/api/airlines/qatar');
   eq(qr.airline.key, 'qatar', 'qatar key');
-  eq(qr.airline.fleet.equipped, 140, 'qatar equipped');
+  eq(qr.airline.fleet.equipped, 120, 'qatar equipped');
   eq(qr.airline.fleet.total, 241, 'qatar fleet total');
 
   /* case-insensitive and trailing-slash tolerant */
@@ -741,17 +741,19 @@ async function main() {
   var rendered = Object.keys(seen).map(function (k) { return seen[k] ? Number(seen[k][1]) : -1; });
   ok(rendered.every(function (n) { return n === rendered[0]; }),
     'the four places /airlines/qatar/ prints its score disagree with each other', rendered);
-  /* 58 → 61. The 58 was 140/241 Starlink and nothing else counted. The segmented
-     score adds the 53 pre-Starlink widebodies on Inmarsat or SITA at the legacy
-     weight and a paid factor (+3.4), and puts the 48 aircraft Qatar has never
-     listed as connected in a zero row. 58.1 + 3.4 + 0 = 61. */
-  eq(rendered[0], 61, 'the rendered /airlines/qatar/ page shows 61');
+  /* 54.3 + 3.7 + 0 = 58. CORRECTED 2026-07-26 alongside the 140 → 120 src fix
+     in assets/airlines.js: the Starlink row shrank to 120 and the 20-aircraft
+     gap moved to unresolved, out of the denominator, so `known` is 221 rather
+     than 241. The segmented score is 120/221 Starlink at leo/free (+54.3),
+     plus the 53 pre-Starlink widebodies on Inmarsat or SITA at the legacy
+     weight and a paid factor (+3.7), plus the 48 aircraft Qatar has never
+     listed as connected in a zero row. */
+  eq(rendered[0], 58, 'the rendered /airlines/qatar/ page shows 58');
   eq(qr.airline.connectScore, rendered[0],
     'PARITY: the API score for qatar equals the score rendered on /airlines/qatar/');
-  eq(qr.airline.connectScore, 61, 'PARITY: the API score for qatar is 61');
-  /* next-gen odds are UNCHANGED at 58: the Starlink row is the same row it was,
-     and that is the contract the two-number split exists to protect. */
-  eq(qr.airline.nextGenScore, 58, 'qatar next-gen odds are still 58 — the Starlink row alone');
+  eq(qr.airline.connectScore, 58, 'PARITY: the API score for qatar is 58');
+  /* next-gen odds move with the same correction: 120/221, not 140/241. */
+  eq(qr.airline.nextGenScore, 54, 'qatar next-gen odds are 54 — the Starlink row alone, corrected denominator');
 
   /* ── PARITY, second axis: the homepage card and the API must agree about the
    * NEXT-GEN number too. Same rule, same reason — read the bytes of the page a

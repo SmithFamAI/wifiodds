@@ -97,25 +97,25 @@ curl -s https://wifiodds.com/api/score/AS15</div>
     &quot;key&quot;: &quot;qatar&quot;,
     &quot;name&quot;: &quot;Qatar Airways&quot;,
     &quot;code&quot;: &quot;QR&quot;,
-    &quot;connectScore&quot;: 61,
-    &quot;band&quot;: &quot;good&quot;,
-    &quot;nextGenScore&quot;: 58,
-    &quot;nextGen&quot;: { &quot;score&quot;: 58, &quot;system&quot;: &quot;starlink&quot;, &quot;pct&quot;: 58 },
+    &quot;connectScore&quot;: 58,
+    &quot;band&quot;: &quot;mixed&quot;,
+    &quot;nextGenScore&quot;: 54,
+    &quot;nextGen&quot;: { &quot;score&quot;: 54, &quot;system&quot;: &quot;starlink&quot;, &quot;pct&quot;: 54 },
     &quot;serviceTier&quot;: &quot;mixed&quot;,
     &quot;service&quot;: { &quot;tier&quot;: &quot;mixed&quot;, &quot;label&quot;: &quot;mixed&quot;, &quot;rest&quot;: &quot;basic&quot; },
     &quot;system&quot;:  { &quot;key&quot;: &quot;starlink&quot;, &quot;label&quot;: &quot;Starlink&quot;, &quot;quality&quot;: 1.00 },
     &quot;free&quot;:    { &quot;status&quot;: &quot;free&quot;, &quot;factor&quot;: 1.00 },
-    &quot;fleet&quot;:   { &quot;equipped&quot;: 140, &quot;total&quot;: 241, &quot;equippedShare&quot;: 0.5809, &quot;equippedPct&quot;: 58, &quot;basis&quot;: &quot;tail-counts&quot; },
+    &quot;fleet&quot;:   { &quot;equipped&quot;: 120, &quot;total&quot;: 241, &quot;equippedShare&quot;: 0.4979, &quot;equippedPct&quot;: 50, &quot;basis&quot;: &quot;tail-counts&quot; },
     &quot;perFlightOdds&quot;: false,
     &quot;tracker&quot;: null,
     &quot;future&quot;: null,
     &quot;note&quot;: &quot;…&quot;,
-    &quot;asOf&quot;: &quot;2026-07&quot;,
+    &quot;asOf&quot;: &quot;2026-01&quot;,
     &quot;url&quot;: &quot;https://wifiodds.com/airlines/qatar/&quot;
   },
   &quot;sources&quot;: [ … ]
 }</div>
-  <p class="tblcap">Abridged, and the response carries more: <span class="mono">floor</span>, <span class="mono">ceiling</span>, <span class="mono">resolution</span> and the <span class="mono">segments[]</span> array the ledger is drawn from. Qatar Airways really is 61: Starlink 140 at 58.1 + Inmarsat or SITA 53 at 3.4 + no wifi 48 at 0.0 points. <a href="/airlines/qatar/">Same number on the page →</a></p>
+  <p class="tblcap">Abridged, and the response carries more: <span class="mono">floor</span>, <span class="mono">ceiling</span>, <span class="mono">resolution</span> and the <span class="mono">segments[]</span> array the ledger is drawn from. Qatar Airways really is 58: Starlink 120 at 54.3 + Inmarsat or SITA 53 at 3.7 + no wifi 48 at 0.0 points. <a href="/airlines/qatar/">Same number on the page →</a></p>
   <h3 class="apih">GET /api/score/{flightNumber}</h3>
   <p class="sec-lede">Accepts <span class="apip">UA212</span>, <span class="apip">ua 212</span>, <span class="apip">UA0212</span>. Case, spaces, hyphens and leading zeros are all normalised away. Prefixes we know: <span class="apip">AA AC AF AS B6 BA BT DL EK HA QR SK UA VS WN WS XE ZG</span></p>
   <p class="sec-lede">The <b>method</b> field is the whole point of this endpoint. It tells you how much to trust the number, and it is never blurred:</p>

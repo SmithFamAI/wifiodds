@@ -300,14 +300,32 @@ const WIFI_AIRLINES = {
   zipair: {
     name: "ZIPAIR", code: "ZG", asOf: "2026-07",
     nextGenSplit: "no-regional-fleet",
-    system: "starlink", equipped: 9, fleet: 9, free: "free",
+    /* CORRECTED 2026-07-26. This entry said 9 of 9 and cited "ZIPAIR
+       announcements," which names no document. NO SOURCE FOUND for a ninth
+       aircraft: ZIPAIR's own notification #298, 19 Mar 2025
+       (https://www.zipair.net/en/notification/298), gives the fleet as "8
+       aircraft" of the Boeing 787-8, and the 787-9s the same release announces
+       are a different, not-yet-delivered type due "the early 2030s," not 2026.
+       The ninth aircraft in the old figure does not exist yet.
+       Denominator corrected to 8. The equipped count stays at 8 rather than
+       moving to unresolved, because unlike SAS or Qatar there is no gap to
+       represent: ZIPAIR is a single aircraft type with no report anywhere of a
+       partial rollout, and Runway Girl Network (Feb 2026) states plainly that
+       Starlink is live on ZIPAIR's fleet, not that it is still being
+       installed. Two dated publishers, one fleet size and one fleetwide claim
+       — not an invented number, but flag it if ZIPAIR ever reports a partial
+       install; nobody has. */
+    system: "starlink", equipped: 8, fleet: 8, free: "free",
     resolution: "type",
     serviceTier: "next-gen", restTier: null,
     segments: [
-      { system: "starlink", n: 9, free: "free", as: "2026-07",
-        src: "ZIPAIR announcements", note: "All nine 787s." },
+      { system: "starlink", n: 8, free: "free", as: "2026-02",
+        src: "ZIPAIR notification #298, 19 Mar 2025 (fleet size); Runway Girl " +
+          "Network, Feb 2026 (Starlink live on the fleet)",
+        note: "All eight 787-8s. The 787-9s ZIPAIR has announced are a separate, " +
+          "not-yet-delivered type, due \"the early 2030s.\"" },
     ],
-    note: "All nine 787s equipped, free onboard.",
+    note: "All eight 787-8s, free onboard. ZIPAIR's incoming 787-9s are a different aircraft, not due until the early 2030s.",
   },
   westjet: {
     name: "WestJet", code: "WS", asOf: "2026-07",
@@ -390,16 +408,34 @@ const WIFI_AIRLINES = {
     note: "42 of 66. The A330 and A321neo fit is complete; the 19 Boeing 717s have never had wifi at all.",
   },
   qatar: {
-    name: "Qatar Airways", code: "QR", asOf: "2026-07",
+    name: "Qatar Airways", code: "QR", asOf: "2026-01",
     nextGenSplit: "no-regional-fleet",
-    system: "starlink", equipped: 140, fleet: 241, free: "free",
+    /* CORRECTED 2026-07-26. This entry said 140 of 241 and cited "Qatar
+       Airways press releases; OMAAT, Jul 2026" — but no Qatar release and no
+       OMAAT piece from Jul 2026 exists giving 140. NO SOURCE FOUND for 140: it
+       traces to starlinkflights.com, a banned aggregator (rule 3). The
+       arithmetic gives away how it got there — Qatar's own newsroom, 7 Jan
+       2026, states "nearly 120 widebody aircraft, representing over 58% of
+       its widebody fleet" now have Starlink; apply that same 58% to the 241
+       total here instead of Qatar's own ~207 widebody base and you land near
+       140. Same January data, wrong denominator, not a second source.
+       Qatar's newsroom archive has nothing dated between Jan and Jul 2026
+       revising the count, so 120 (7 Jan 2026) is the newest confirmed figure.
+       The 20-aircraft gap between 120 and the old 140 moves to unresolved
+       rather than being carried forward on the aggregator's number. The other
+       two rows (inmarsat/sita 53, none 48) are untouched — both are
+       independent of the Starlink figure. */
+    system: "starlink", equipped: 120, fleet: 241, free: "free",
     resolution: "systems",
     serviceTier: "mixed", restTier: "basic",
     segments: [
-      { system: "starlink", n: 140, free: "free", as: "2026-07",
-        src: "Qatar Airways press releases; OMAAT, Jul 2026",
+      { system: "starlink", n: 120, free: "free", as: "2026-01-07",
+        src: "Qatar Airways newsroom, \"Qatar Airways Launches World's First " +
+          "Starlink-Equipped Boeing 787 and Completes Airbus A350 Starlink " +
+          "Rollout,\" 7 Jan 2026",
         note: "Free for every passenger in every cabin, no sign-up. Qatar advertises " +
-          "up to 500 Mbps per aircraft." },
+          "up to 500 Mbps per aircraft. \"Nearly 120,\" over 58% of the widebody fleet, " +
+          "as of 7 Jan 2026 — the newest count Qatar has published." },
       { system: ["inmarsat", "sita"], n: 53, free: "paid", split: "unpublished", as: "2026-01",
         src: "Qatar Airways connectivity page",
         note: "The pre-Starlink widebody fit. Qatar names both systems and publishes no split." },
@@ -407,18 +443,41 @@ const WIFI_AIRLINES = {
         src: "inferred: Qatar's fleet count less the aircraft it lists as connected",
         note: "INFERRED, not published. Qatar has never listed these aircraft as connected." },
     ],
-    note: "140 of 241 fitted with Starlink; free for every passenger in every cabin, no sign-up (OMAAT, Jul 2026).",
+    unresolved: { n: 20, why: "Qatar's newest confirmed Starlink count is \"nearly 120\" as of " +
+      "7 Jan 2026; the old 140 traced to an aggregator applying Qatar's own percentage to the " +
+      "wrong denominator, and nothing Qatar has published since narrows this gap" },
+    note: "120 of 241 fitted with Starlink as of 7 Jan 2026, Qatar's newest published count; free for every passenger in every cabin, no sign-up.",
   },
   sas: {
     name: "SAS", code: "SK", asOf: "2026-07",
     nextGenSplit: "split-not-published",
-    system: "starlink", equipped: 60, fleet: 123, free: "loyalty-free",
+    /* CORRECTED 2026-07-26. This entry said 60 of 123 and cited "SAS;
+       Business Travel News Europe." NO SOURCE FOUND for 60 as an installed
+       count: it traces to SAS's own CCO, Paul Verhagen, telling Rhys Jones of
+       Head for Points on a 15 Jan 2026 test flight that SAS "expected" 60
+       A320s equipped "by May-ish this year." That is a dated, named-executive
+       quote — it clears the aggregator bar — but it is a January PROJECTION
+       for a May target, not a confirmed count. SAS's own 24 Mar 2026 release
+       gives no aircraft figure, and no SAS interim report, investor update or
+       fleet page from Feb–Jul 2026 gives one either. Today is six weeks past
+       Verhagen's own target and nothing newer confirms it landed at 60, or at
+       any other number.
+       The other two rows are untouched — SAS's own wifi availability table
+       (none, 45) and connectivity page (viasat/panasonic, 18) are independent
+       of the Starlink figure and still support what they always did. What
+       changes is the remainder: 123 − 45 − 18 = 60 aircraft whose Starlink
+       status nobody has published moves to unresolved, excluded from the
+       denominator rather than assumed equipped on the strength of a January
+       guess. */
+    system: "starlink", equipped: 0, fleet: 123, free: "loyalty-free",
     resolution: "systems",
-    serviceTier: "mixed", restTier: "unknown",
+    /* serviceTier moved from "mixed" to "basic": with the starlink segment
+       gone, nextGenShare is 0 and the two remaining rows (mostly no-wifi
+       Embraers/CRJs/ATRs, the rest legacy GEO) don't clear the streaming
+       threshold. build/prerender.js asserts this against nextGenShare/
+       fleetQuality on every build. */
+    serviceTier: "basic", restTier: null,
     segments: [
-      { system: "starlink", n: 60, free: "loyalty-free", as: "2026-03-24",
-        src: "SAS; Business Travel News Europe",
-        note: "Free for EuroBonus members, and joining is free." },
       { system: "none", n: 45, free: "none", as: "2026-07", assumed: true,
         src: "inferred: absent from SAS's own wifi availability table",
         note: "E190/E195, CRJ900 and ATR 72. SAS's availability table puts this between " +
@@ -428,7 +487,10 @@ const WIFI_AIRLINES = {
         src: "SAS connectivity page",
         note: "The pre-Starlink mainline fit. Both systems named, no split published." },
     ],
-    note: "About half the fleet equipped and still installing; free for EuroBonus members (free to join) since 2026-03-24 (SAS/Business Travel News Europe).",
+    unresolved: { n: 60, why: "the only figure ever published for SAS's Starlink installs is " +
+      "its CCO's 15 Jan 2026 projection of 60 A320s \"by May-ish.\" That is a target, not a " +
+      "confirmed count. Nothing since, including SAS's own 24 Mar 2026 release, gives an actual number." },
+    note: "SAS started free Starlink service for EuroBonus members (free to join) on 2026-03-24 but has published no aircraft count since a January target of 60 by \"May-ish\" that nothing since confirms.",
   },
   emirates: {
     name: "Emirates", code: "EK", asOf: "2026-07",
