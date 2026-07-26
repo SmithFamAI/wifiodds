@@ -226,15 +226,31 @@ const WIFI_AIRLINES = {
 
   /* ── Starlink, no per-flight instrumentation ── */
   jsx: {
-    name: "JSX", code: "XE", asOf: "2026-07",
-    system: "starlink", equipped: 75, fleet: 75, free: "free",
+    name: "JSX", code: "XE", asOf: "2026-04",
+    system: "starlink", equipped: 56, fleet: 56, free: "free",
     resolution: "type",
     serviceTier: "next-gen", restTier: null,
+    /* CORRECTED 2026-07-26. This entry said 75 of 75 and cited "JSX fleet
+       announcements", which names no document. I could not find any JSX
+       release, page or filing giving 75, and two dated trade sources
+       contradict it. Doug Gollan, Private Jet Card Comparisons, 21 Apr 2026:
+       "JSX currently operates 54 Embraer 135/145 jets and two ATR 42-600s",
+       stated twice in the piece and again in its meta description. Air Data
+       News, 7 Oct 2025, independently has JSX taking delivery of its 50th
+       aircraft. So 56, not 75: the old figure overstated the fleet by a third.
+       asOf moved from 2026-07 to 2026-04 to match the source date rather than
+       implying a July count nobody published. The same Gollan piece expects
+       five more E145s and two more ATRs during 2026, so this number should
+       rise; do not carry it forward without a newer dated source. The
+       fleetwide-and-free claim survives the correction: the same article lists
+       Starlink wifi alongside checked bags and drinks as standard on JSX. */
     segments: [
-      { system: "starlink", n: 75, free: "free", as: "2026-07",
-        src: "JSX fleet announcements", note: "The whole fleet, and the first anywhere to finish." },
+      { system: "starlink", n: 56, free: "free", as: "2026-04",
+        src: "Doug Gollan, Private Jet Card Comparisons, 21 Apr 2026 " +
+          "(54 Embraer 135/145 + 2 ATR 42-600); Air Data News, 7 Oct 2025",
+        note: "The whole fleet. Standard on JSX, like checked bags." },
     ],
-    note: "Every aircraft in the fleet. The first airline anywhere to finish a Starlink rollout.",
+    note: "Every aircraft in the fleet, free. JSX finished a Starlink rollout before anyone else.",
   },
   airbaltic: {
     name: "airBaltic", code: "BT", asOf: "2026-03",

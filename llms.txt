@@ -162,7 +162,7 @@ rules; read them and follow them.
 ## ConnectScores (18 airlines, regenerated on every build)
 
 1. airBaltic (BT) · ConnectScore 100/100, excellent · next-gen 100 · today: next-gen fleetwide · Starlink, 28/55 equipped · https://wifiodds.com/airlines/airbaltic/
-2. JSX (XE) · ConnectScore 100/100, excellent · next-gen 100 · today: next-gen fleetwide · Starlink, 75/75 equipped · https://wifiodds.com/airlines/jsx/
+2. JSX (XE) · ConnectScore 100/100, excellent · next-gen 100 · today: next-gen fleetwide · Starlink, 56/56 equipped · https://wifiodds.com/airlines/jsx/
 3. ZIPAIR (ZG) · ConnectScore 100/100, excellent · next-gen 100 · today: next-gen fleetwide · Starlink, 9/9 equipped · https://wifiodds.com/airlines/zipair/
 4. Air France (AF) · ConnectScore 80/100, good · next-gen 75 · today: mixed (rest basic) · Starlink, 172/229 equipped · https://wifiodds.com/airlines/airfrance/
 5. WestJet (WS) · ConnectScore 72/100, good · next-gen 72 · today: mixed (rest streaming-class or basic) · Starlink, 100/193 equipped · https://wifiodds.com/airlines/westjet/

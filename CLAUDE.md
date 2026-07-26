@@ -101,9 +101,21 @@ hand-edit a file listed in `build/routes.js`.** A drift guard fails the build, a
 overwrites you anyway. Change the generator.
 
 The deploy publishes the **repository root**, because the Cloudflare build output directory is
-empty. That means every tracked file is a public URL: 26 internal files are served today, all of
-them already public on GitHub. `build/leak-canary.sh` reports what is exposed; it is detect-only and
-must stay that way. See `~/websites/wifiodds-publication-audit.md`.
+empty. That means every tracked file is a public URL: **29** internal files are served as of 26 Jul
+2026, all of them already public on GitHub. `build/leak-canary.sh` reports what is exposed; it is
+detect-only and must stay that way. See `~/websites/wifiodds-publication-audit.md`.
+
+**Do not trust that number, and do not add a new one when it moves.** It has been written down as
+26, 28, 21 and 29 in four places, and the count climbs every time anyone commits a build script,
+because a new tracked file at the repo root is a new public URL. A count going from 28 to 29 is
+indistinguishable from a leak. The fix is a committed manifest so a NEW NAME is the signal instead
+of a bigger total; the design is in `~/websites/wifiodds-publication-default-deny-plan.md`.
+
+**`leak-canary.sh` exits 1, not 0.** Two documents and one session said 0. All three had measured
+it through a pipe, and `cmd | tail` reports `tail`'s status. Run it bare and read `$?`, or use
+`${PIPESTATUS[0]}`. The script also prints a reassuring "Expected while the Pages build output
+directory is empty" while returning non-zero, so its message and its exit code disagree. Believe
+neither until you have run it bare.
 
 ---
 
