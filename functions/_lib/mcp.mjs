@@ -7,18 +7,17 @@
  * flight — and the difference is not the transport, it is the `instructions`
  * field returned by initialize. That field is the product: it carries the
  * decision rules (maximise working-WiFi hours, prefer the higher ConnectScore,
- * use route-history for United, never invent a per-flight number, always credit
- * the trackers). A data API with no opinion gets averaged into mush by whatever
- * model is holding it. See INSTRUCTIONS below.
+ * never invent a per-flight number, always credit the trackers). A data API
+ * with no opinion gets averaged into mush by whatever model is holding it.
+ * See INSTRUCTIONS below.
  *
  * THREE RULES, same as the REST API:
  *
  * 1. ONE FORMULA, ONE IMPLEMENTATION. Every tool here is a thin wrapper around
  *    the very handlers that serve /api/** — it builds a synthetic GET context,
  *    awaits the handler's Response, and re-shapes the parsed body. There is no
- *    second copy of the scoring, the flight-number parsing, the route-history
- *    lookup or the `sources` block. If /api/score/UA212 is right, so is
- *    score_flight("UA212"), because it IS /api/score/UA212.
+ *    second copy of the scoring or the `sources` block. If /api/airlines/qatar
+ *    is right, so is get_airline_score("qatar"), because it IS /api/airlines/qatar.
  *
  * 2. NO THIRD-PARTY REQUESTS. This file never calls fetch. The only network read
  *    in the whole stack is readAsset() in api.mjs, which reads this deploy's own
@@ -35,7 +34,7 @@
  * is the one-line shim at functions/mcp.js.
  */
 
-import { airlinesAll, airlineOne, scoreFlight } from './handlers.mjs';
+import { airlinesAll, airlineOne } from './handlers.mjs';
 import { API_VERSION, ORIGIN, DOCS, SOURCES } from './api.mjs';
 import { WIFI_AIRLINES } from './score.mjs';
 
@@ -75,22 +74,25 @@ export const INSTRUCTIONS = [
   'flight but the value is per hour.',
   '',
   'TOOL SELECTION',
-  '- The user named a flight number (UA212, AS15): call score_flight. Always.',
+  '- The user named a flight number (UA212, AS15): map it to its airline and call get_airline_score —',
+  '  this server answers at the airline level ONLY, never a single departure. If the user is on',
+  '  united.com, Navan, alaskaair.com or Google Flights, point them at the WiFi Odds browser extension',
+  '  (' + ORIGIN + '), which reads the flight and date off the page itself and answers per flight.',
+  '  That is a deterministic answer this server cannot give without a date.',
   '- The user named one airline: call get_airline_score.',
   '- The user is comparing, or has not chosen: call list_airline_scores once and reason over the list.',
   '  Do not call get_airline_score in a loop.',
   '',
-  'UNITED IS DIFFERENT — USE IT',
-  'For United flights, score_flight returns method "route-history": a real probability for THAT flight',
-  'number, computed from how often recent departures of it were flown by a Starlink aircraft, with the',
-  'observation count in `evidence`. Quote that number and the sample size. It is far better than the',
-  'fleet-wide United score and you should say which one you are using. When the method is',
-  '"airline-coarse", `prob` is null — give the airline score, state that there is no per-flight data',
-  'for that carrier, and do NOT interpolate a per-flight number. Inventing precision is the one',
-  'failure mode that makes this whole tool worse than nothing.',
+  'NEVER GIVE A PER-FLIGHT NUMBER',
+  'This server has no `score_flight` tool on purpose: a flight number without a date answers "what',
+  'usually happens on this route," not "will MY flight have it," and the two get conflated easily.',
+  'get_airline_score is always a fleet-wide figure, even for United — give it as that, name the',
+  'confidence tier, and do NOT interpolate a per-flight probability from it. Inventing precision is the',
+  'one failure mode that makes this whole tool worse than nothing.',
   '',
   'CONFIDENCE TIERS — NAME THE ONE YOU ARE USING',
-  '- Verified: United. Per-tail verification plus per-flight history.',
+  '- Verified: United. Per-tail verification; per-flight history exists but only the extension',
+  '  exposes it, because it needs a date this server does not have.',
   '- Type-derived: Alaska. Tails verified, no per-flight feed — answer by aircraft type/sub-fleet.',
   '- Coarse: every other airline. A fleet-share model from public announcements. Fine for choosing an',
   '  airline, never a claim about one departure.',
@@ -150,26 +152,12 @@ export const TOOLS = [
       'calling get_airline_score repeatedly.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false }
   },
-  {
-    name: 'score_flight',
-    title: 'Score a specific flight number',
-    description: 'WiFi odds for one flight number. For United this returns a per-flight probability ' +
-      'from observed recent departures (method "route-history") with the sample size; for every other ' +
-      'carrier it returns the fleet-wide ConnectScore with prob null (method "airline-coarse"). Always ' +
-      'use this when the user gives a flight number.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        flight_number: {
-          type: 'string',
-          description: 'Flight number, e.g. "UA212", "ua 212", "UA0212", "AS15". Case, spaces, ' +
-            'hyphens and leading zeros are normalised away.'
-        }
-      },
-      required: ['flight_number'],
-      additionalProperties: false
-    }
-  }
+  /* score_flight was retired 2026-07-26 (spec D7). It took a flight number with
+     no date and answered "what usually happens on this route," which is not the
+     question a traveller with a booked seat is actually asking. That answer is
+     now the WiFi Odds browser extension's job — it runs on the airline's own
+     booking page, where the flight AND the date are already known. This server
+     stays airline-level: get_airline_score and list_airline_scores only. */
 ];
 
 /* ── HTTP plumbing ────────────────────────────────────────────────────────── */
@@ -290,8 +278,9 @@ async function toolGetAirlineScore(context, args) {
     a.note || '',
     'As of ' + a.asOf + '. Page: ' + a.url + ' · method: ' + METHODOLOGY,
     a.key === 'united'
-      ? 'This fleet has per-flight history — if the user has a flight number, call score_flight for a ' +
-        'much better answer than this fleet-wide figure.'
+      ? 'United has real per-flight history, but this server only answers fleet-wide — if the user is ' +
+        'on united.com, Navan or Google Flights, point them at the WiFi Odds extension for a per-flight ' +
+        'number instead of estimating one here.'
       : a.perFlightOdds
         ? 'Tails are verified for this fleet but there is no per-flight feed: answer by aircraft type, ' +
           'not by flight number.'
@@ -337,73 +326,11 @@ async function toolListAirlineScores(context) {
   });
 }
 
-async function toolScoreFlight(context, args) {
-  const asked = String((args && args.flight_number) || '').trim();
-  if (!asked) {
-    return toolErr('score_flight needs a `flight_number`, e.g. "UA212". If the user has not given one, ' +
-      'call list_airline_scores or get_airline_score instead.');
-  }
-  const out = await viaHandler(scoreFlight, context, '/api/score/' + encodeURIComponent(asked),
-    { flight: asked });
-  const d = out.data;
-
-  if (out.status !== 200 || d.error) {
-    const e = d.error || {};
-    /* An unknown prefix or an unparseable string is a TOOL error, not a protocol
-     * error: the model should be told what went wrong and be free to retry. */
-    return toolErr((e.message || 'Could not score "' + asked + '".') +
-      (e.code === 'unknown_airline_prefix'
-        ? ' We do not track that carrier at all, so there is no score for it — say so rather than ' +
-          'estimating. Airlines we do track: ' + AIRLINE_KEYS.join(', ') + '.'
-        : e.code === 'unparseable_flight'
-          ? ' Expected an airline code plus up to four digits, e.g. UA212.'
-          : ''));
-  }
-
-  const a = d.airline || {};
-  const lines = [];
-  if (d.method === 'route-history' && d.prob !== null) {
-    const ev = d.evidence || {};
-    lines.push(d.flight + ' — per-flight Starlink odds ' + d.prob + '%' +
-      (ev.observations ? ' from ' + ev.observations + ' recent observed departures' : '') +
-      (ev.confidence ? ' (confidence: ' + ev.confidence + ')' : '') + '.');
-    if (ev.routeLabel || ev.route) lines.push('Route: ' + (ev.routeLabel || ev.route) + '.');
-    if (ev.aircraft) lines.push('Usually flown by: ' + ev.aircraft + '.');
-    if (ev.departure) lines.push('Departure: ' + ev.departure + '.');
-    lines.push('Confidence tier: Verified — this is a real probability for this flight number, not the ' +
-      'fleet average. Quote the ' + d.prob + '% and the sample size, not United\'s fleet-wide ' +
-      a.connectScore + '.');
-  } else {
-    lines.push(d.flight + ' — no per-flight data. ' + (a.name || 'This airline') +
-      '\'s fleet-wide ConnectScore is ' + d.connectScore + '/100.');
-    lines.push('Confidence tier: ' + tierOf(a) + '. `prob` is null on purpose — do not turn this ' +
-      'airline-level number into a claim about this departure.');
-  }
-  if (d.interpretation) lines.push('', d.interpretation);
-  lines.push('', 'Aircraft assignments change until departure — a tail swap inside 48 hours can undo ' +
-    'any of this. As of ' + (d.asOf || a.asOf) + '. More: ' + (d.moreDetail || a.url) +
-    ' · method: ' + METHODOLOGY);
-  lines.push('', CREDIT_LINE);
-
-  return toolOk(lines.join('\n'), {
-    flight: d.flight,
-    prob: d.prob,
-    connectScore: d.connectScore,
-    method: d.method,
-    confidenceTier: d.method === 'route-history' ? 'Verified (per-flight route history)' : tierOf(a),
-    evidence: d.evidence || null,
-    airline: a,
-    asOf: d.asOf || null,
-    methodology: METHODOLOGY,
-    docs: DOCS,
-    sources: d.sources || SOURCES
-  });
-}
-
+/* score_flight (toolScoreFlight) was retired 2026-07-26 (spec D7) along with
+   /api/score/{flightNumber} — see the TOOLS array above for why. */
 async function callTool(context, name, args) {
   if (name === 'get_airline_score') return toolGetAirlineScore(context, args);
   if (name === 'list_airline_scores') return toolListAirlineScores(context);
-  if (name === 'score_flight') return toolScoreFlight(context, args);
   return null; /* unknown tool → -32602, handled by the caller */
 }
 

@@ -14,7 +14,7 @@ import { TIER_METHOD_LINE, SCORE_METHOD_LINE, PROJECTION_METHOD_LINE,
   PROJECTION_CONFIDENCE } from './score.mjs';
 import {
   API_VERSION, ORIGIN, DOCS, SOURCES,
-  json, fail, guard, airlineJson, allAirlinesJson, parseFlight, findUnitedFlight, readAsset
+  json, fail, guard, airlineJson, allAirlinesJson
 } from './api.mjs';
 
 /* ── GET /api ─────────────────────────────────────────────────────────── */
@@ -66,9 +66,13 @@ export function apiIndex(context) {
       },
       {
         path: '/api/score/{flightNumber}',
-        returns: 'per-flight odds where we have route history (United), otherwise the coarse ' +
-          'airline ConnectScore; 404 JSON for an untracked airline prefix',
-        prefixes: airlines.map(function (a) { return a.code; }).filter(Boolean).sort(),
+        retired: '2026-07-26',
+        returns: '410 Gone. A flight number with no date answers "what usually happens on this ' +
+          'route," not "will MY flight have it." For United, the per-tail source of truth is ' +
+          'https://unitedstarlinktracker.com — check-flight/{flightNumber}/{date} there answers a ' +
+          'specific departure. The WiFi Odds browser extension reads the flight and date off the ' +
+          'airline\'s own booking page and answers the same way. Use /api/airlines/{key} here for ' +
+          'the fleet-wide figure.',
         example: ORIGIN + '/api/score/UA212'
       }
     ],
@@ -109,117 +113,27 @@ export function airlineOne(context) {
   return json({ airline: a, docs: DOCS, sources: SOURCES });
 }
 
-/* ── GET /api/score/{flightNumber} ────────────────────────────────────────
- * Two honest answers, never blurred together:
- *
- *   method "route-history"  — we found this exact flight number in our cached
- *                             United route history, so `prob` is the odds for
- *                             THIS flight, from observations.
- *   method "airline-coarse" — we have no per-flight history for it, so all we
- *                             can offer is the airline's fleet-wide
- *                             ConnectScore. `prob` is null. Saying anything else
- *                             would be inventing precision.
- *
- * There is no third option where we go and ask a flight tracker. */
-export async function scoreFlight(context) {
+/* ── GET /api/score/{flightNumber} — RETIRED 2026-07-26 (spec D7) ──────────
+ * This endpoint took a flight number with no date and answered "what usually
+ * happens on this route," which is not the question a traveller with a booked
+ * seat is actually asking — that needs a date, and this endpoint never took
+ * one. The deterministic per-flight answer is the WiFi Odds browser
+ * extension's job: it runs on united.com, Navan, alaskaair.com and Google
+ * Flights, where the flight AND the date are already on the page, so it needs
+ * no proxy and no scraping. 410, not 404: this was a documented public
+ * endpoint and a reader who bookmarked it deserves to be told where the
+ * answer went, not a bare "not found." get_airline_score / GET
+ * /api/airlines/{key} is unaffected — the fleet-wide figure was never this
+ * endpoint's job either. */
+export function scoreFlightGone(context) {
   const stop = guard(context.request);
   if (stop) return stop;
-
-  const raw = (context.params && context.params.flight) || '';
-  const asked = String(Array.isArray(raw) ? raw[0] : raw).replace(/\/+$/, '');
-  const f = parseFlight(asked);
-
-  if (!f) {
-    return fail(400, 'unparseable_flight',
-      '"' + asked + '" is not shaped like a flight number. Expected an airline code and up to ' +
-      'four digits, e.g. UA212 or AS15.');
-  }
-  if (!f.key) {
-    return fail(404, 'unknown_airline_prefix',
-      'We do not track airline "' + f.code + '", so there is no ConnectScore for ' + f.flight + '.',
-      { flight: f.flight, prefix: f.code, prefixes: Object.keys(WIFI_AIRLINES).map(function (k) {
-        return WIFI_AIRLINES[k].code;
-      }).filter(Boolean).sort() });
-  }
-
-  const airline = airlineJson(f.key);
-
-  /* United is the only fleet with a per-flight history in this dataset. */
-  if (f.key === 'united') {
-    let data;
-    try {
-      data = await readAsset(context, '/united/data.json');
-    } catch (e) {
-      /* Loud, not quiet. data.json ships in this same deploy and the build asserts
-       * it exists, so a failure here means the deploy is broken — answering with
-       * the coarse score would hide that behind a plausible number. */
-      return fail(503, 'dataset_unavailable',
-        'The United dataset could not be read from this deploy: ' + e.message);
-    }
-    const hit = findUnitedFlight(data, f.flight);
-    if (hit) {
-      return json({
-        flight: f.flight,
-        airline: airline,
-        prob: hit.prob,
-        connectScore: airline.connectScore,
-        method: 'route-history',
-        evidence: {
-          route: hit.route,
-          routeLabel: hit.routeLabel,
-          aircraft: hit.aircraft,
-          departure: hit.departure,
-          observations: hit.observations,
-          confidence: hit.confidence,
-          verdict: hit.verdict,
-          dataset: hit.source,
-          cachedAt: hit.cachedAt
-        },
-        interpretation: 'prob ' + hit.prob + '% is the share of recent observations of ' + f.flight +
-          ' that were flown by a Starlink-equipped aircraft. connectScore ' + airline.connectScore +
-          ' is the fleet-wide United figure, for comparison. Aircraft assignments change until ' +
-          'departure — this is a historical estimate, not a guarantee.',
-        asOf: data.updated || airline.asOf,
-        moreDetail: ORIGIN + '/united/',
-        docs: DOCS,
-        sources: SOURCES
-      });
-    }
-    return json({
-      flight: f.flight,
-      airline: airline,
-      prob: null,
-      connectScore: airline.connectScore,
-      method: 'airline-coarse',
-      evidence: null,
-      interpretation: f.flight + ' is not in our cached route history, so there is no per-flight ' +
-        'number for it. connectScore ' + airline.connectScore + ' is United fleet-wide: ' +
-        airline.fleet.equipped + ' of ' + airline.fleet.total + ' aircraft equipped. Search the ' +
-        'route at ' + ORIGIN + '/united/ to have it cached.',
-      asOf: data.updated || airline.asOf,
-      moreDetail: ORIGIN + '/united/',
-      docs: DOCS,
-      sources: SOURCES
-    });
-  }
-
-  return json({
-    flight: f.flight,
-    airline: airline,
-    prob: null,
-    connectScore: airline.connectScore,
-    method: 'airline-coarse',
-    evidence: null,
-    interpretation: 'We have no per-flight history for ' + airline.name + ' — no verified per-tail ' +
-      'feed exists for this fleet yet. connectScore ' + airline.connectScore + ' is fleet-wide: ' +
-      (airline.fleet.total
-        ? airline.fleet.equipped + ' of ' + airline.fleet.total + ' aircraft carry ' +
-          airline.system.label + ' (' + airline.fleet.equippedPct + '%)'
-        : airline.system.label + ' fleetwide') +
-      ', weighted by system quality and by whether it is free for you.',
-    asOf: airline.asOf,
-    moreDetail: airline.url,
-    docs: DOCS,
-    sources: SOURCES
-  });
+  return fail(410, 'endpoint_retired',
+    'GET /api/score/{flightNumber} was retired 2026-07-26. A flight number with no date only ever ' +
+    'answered "what usually happens on this route," not "will MY flight have it." For a real ' +
+    'per-flight answer, check https://unitedstarlinktracker.com/check-flight/{flightNumber}/{date} ' +
+    '(United) or install the WiFi Odds browser extension, which reads the flight and date off the ' +
+    'airline\'s own booking page. For the fleet-wide figure, use GET /api/airlines/{key}.',
+    { retiredAt: '2026-07-26', useInstead: ORIGIN + '/api/airlines/{key}',
+      handoff: 'https://unitedstarlinktracker.com', docs: DOCS });
 }

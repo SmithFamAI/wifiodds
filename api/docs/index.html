@@ -65,8 +65,7 @@
   <div class="sec-h"><h2>Try it</h2></div>
 <div class="apic">curl -s https://wifiodds.com/api/airlines | head -40
 curl -s https://wifiodds.com/api/airlines/qatar
-curl -s https://wifiodds.com/api/score/UA212
-curl -s https://wifiodds.com/api/score/AS15</div>
+curl -s https://wifiodds.com/api/airlines/united</div>
   <p class="tblcap">Responses are pretty-printed and gzipped. Cache-Control: public, max-age=3600 on success (the data is refreshed once a day), 300 on errors.</p>
 </section>
 
@@ -78,7 +77,7 @@ curl -s https://wifiodds.com/api/score/AS15</div>
       <tr><td class="mono"><b>GET</b></td><td class="mono">/api</td><td>This index: every endpoint, the airline keys, the flight-number prefixes.</td></tr>
       <tr><td class="mono"><b>GET</b></td><td class="mono">/api/airlines</td><td>All 18 airlines, best ConnectScore first.</td></tr>
       <tr><td class="mono"><b>GET</b></td><td class="mono">/api/airlines/{key}</td><td>One airline. Unknown key → 404 JSON with the list of valid keys.</td></tr>
-      <tr><td class="mono"><b>GET</b></td><td class="mono">/api/score/{flightNumber}</td><td>Per-flight odds where we have route history, otherwise the coarse airline score. Untracked prefix → 404 JSON.</td></tr>
+      <tr><td class="mono"><b>GET</b></td><td class="mono">/api/score/{flightNumber}</td><td>RETIRED 2026-07-26. 410 Gone. A flight number with no date only ever answered what usually happens on the route, not whether YOUR flight has it. Use /api/airlines/{key}, or the WiFi Odds extension for a real per-flight answer.</td></tr>
     </tbody>
   </table></div>
   <h3 class="apih">GET /api/airlines</h3>
@@ -116,28 +115,18 @@ curl -s https://wifiodds.com/api/score/AS15</div>
   &quot;sources&quot;: [ … ]
 }</div>
   <p class="tblcap">Abridged, and the response carries more: <span class="mono">floor</span>, <span class="mono">ceiling</span>, <span class="mono">resolution</span> and the <span class="mono">segments[]</span> array the ledger is drawn from. Qatar Airways really is 58: Starlink 120 at 54.3 + Inmarsat or SITA 53 at 3.7 + no wifi 48 at 0.0 points. <a href="/airlines/qatar/">Same number on the page →</a></p>
-  <h3 class="apih">GET /api/score/{flightNumber}</h3>
-  <p class="sec-lede">Accepts <span class="apip">UA212</span>, <span class="apip">ua 212</span>, <span class="apip">UA0212</span>. Case, spaces, hyphens and leading zeros are all normalised away. Prefixes we know: <span class="apip">AA AC AF AS B6 BA BT DL EK HA QR SK UA VS WN WS XE ZG</span></p>
-  <p class="sec-lede">The <b>method</b> field is the whole point of this endpoint. It tells you how much to trust the number, and it is never blurred:</p>
-  <div class="tbl-shell"><table class="tbl">
-    <thead><tr><th scope="col">method</th><th scope="col">prob</th><th scope="col">What it means</th></tr></thead>
-    <tbody>
-      <tr><td class="mono"><b>route-history</b></td><td class="mono">0–100</td><td>We found this exact flight number in our cached United route history. <b>prob</b> is the share of recent observations of that flight that were flown by a Starlink aircraft, with the observation count and confidence in <b>evidence</b>.</td></tr>
-      <tr><td class="mono"><b>airline-coarse</b></td><td class="mono">null</td><td>We have no per-flight history for it, so all we can offer is the airline’s fleet-wide ConnectScore. <b>prob</b> is <b>null</b> and not a guess. Inventing precision here would be the worst thing this API could do.</td></tr>
-    </tbody>
-  </table></div>
-<div class="apic">{
-  &quot;flight&quot;: &quot;UA212&quot;,
-  &quot;airline&quot;: { &quot;key&quot;: &quot;united&quot;, &quot;connectScore&quot;: 48, … },
-  &quot;prob&quot;: 47,
-  &quot;connectScore&quot;: 48,
-  &quot;method&quot;: &quot;route-history&quot;,
-  &quot;evidence&quot;: { &quot;route&quot;: &quot;LAX-ORD&quot;, &quot;observations&quot;: 20, &quot;confidence&quot;: &quot;high&quot;,
-                &quot;dataset&quot;: &quot;routeCache&quot;, &quot;cachedAt&quot;: &quot;…&quot; },
-  &quot;asOf&quot;: &quot;2026-07-26&quot;,
-  &quot;sources&quot;: [ … ]
+  <h3 class="apih">GET /api/score/{flightNumber}, retired 2026-07-26</h3>
+  <p class="sec-lede">Answers <b>410 Gone</b> now. It used to take a flight number with no date and answer "what usually happens on this route," which reads like "will MY flight have it" but is a different question. A route history is not a guarantee about one departure, and the real per-flight answer needs a date this endpoint never took.</p>
+  <p class="sec-lede">The deterministic answer moved to the <a href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec">WiFi Odds browser extension →</a>, which runs on united.com, Navan, alaskaair.com and Google Flights. Those pages already carry the flight and the date, so it needs no proxy and no scraping. For United specifically, <span class="mono">unitedstarlinktracker.com/check-flight/{flightNumber}/{date}</span> answers the same way. Prefixes we used to route: <span class="apip">AA AC AF AS B6 BA BT DL EK HA QR SK UA VS WN WS XE ZG</span></p>
+<div class="apic">$ curl -s https://wifiodds.com/api/score/UA212
+{
+  &quot;error&quot;: { &quot;status&quot;: 410, &quot;code&quot;: &quot;endpoint_retired&quot;,
+             &quot;message&quot;: &quot;GET /api/score/{flightNumber} was retired 2026-07-26 …&quot; },
+  &quot;useInstead&quot;: &quot;https://wifiodds.com/api/airlines/{key}&quot;,
+  &quot;handoff&quot;: &quot;https://unitedstarlinktracker.com&quot;,
+  &quot;docs&quot;: &quot;https://wifiodds.com/api/docs/&quot;
 }</div>
-  <p class="tblcap">United is the only fleet with per-flight history today; every other prefix returns <span class="mono">airline-coarse</span>. <a href="/united/">Rank a whole route →</a></p>
+  <p class="tblcap">Use <span class="mono">GET /api/airlines/{key}</span> for the fleet-wide figure instead. <a href="/united/">Rank a whole route →</a></p>
 </section>
 
 <section class="blk">
@@ -199,21 +188,17 @@ curl -s https://wifiodds.com/api/score/AS15</div>
   <div class="tbl-shell"><table class="tbl">
     <thead><tr><th scope="col">Status</th><th scope="col">code</th><th scope="col">When</th></tr></thead>
     <tbody>
-      <tr><td class="mono"><b>400</b></td><td class="mono">unparseable_flight</td><td>The path segment is not shaped like a flight number.</td></tr>
       <tr><td class="mono"><b>404</b></td><td class="mono">unknown_airline</td><td>No airline with that key.</td></tr>
-      <tr><td class="mono"><b>404</b></td><td class="mono">unknown_airline_prefix</td><td>The flight number parses, but we do not track that carrier.</td></tr>
       <tr><td class="mono"><b>405</b></td><td class="mono">method_not_allowed</td><td>Read-only API. GET or HEAD.</td></tr>
-      <tr><td class="mono"><b>503</b></td><td class="mono">dataset_unavailable</td><td>The cached United dataset could not be read from this deploy. This should never happen; it means the deploy is broken, and we would rather say so than quietly hand back the coarse score as if nothing were wrong.</td></tr>
+      <tr><td class="mono"><b>410</b></td><td class="mono">endpoint_retired</td><td>/api/score/{flightNumber} only. Retired 2026-07-26, see above.</td></tr>
     </tbody>
   </table></div>
-<div class="apic">$ curl -s https://wifiodds.com/api/score/XX999
+<div class="apic">$ curl -s https://wifiodds.com/api/airlines/nope
 {
-  &quot;error&quot;: { &quot;status&quot;: 404, &quot;code&quot;: &quot;unknown_airline_prefix&quot;,
-             &quot;message&quot;: &quot;We do not track airline \&quot;XX\&quot; …&quot; },
+  &quot;error&quot;: { &quot;status&quot;: 404, &quot;code&quot;: &quot;unknown_airline&quot;,
+             &quot;message&quot;: &quot;No airline with key \&quot;nope\&quot; …&quot; },
   &quot;docs&quot;: &quot;https://wifiodds.com/api/docs/&quot;,
-  &quot;flight&quot;: &quot;XX999&quot;,
-  &quot;prefix&quot;: &quot;XX&quot;,
-  &quot;prefixes&quot;: [ … ],
+  &quot;keys&quot;: [ … ],
   &quot;sources&quot;: [ … ]
 }</div>
 </section>
@@ -226,19 +211,19 @@ curl -s https://wifiodds.com/api/score/AS15</div>
     <tbody>
       <tr><td class="mono"><b>get_airline_score</b></td><td class="mono">key</td><td>One airline: ConnectScore, system, fleet share, cost onboard, and the confidence tier the number comes from.</td></tr>
       <tr><td class="mono"><b>list_airline_scores</b></td><td class="mono">none</td><td>All 18 airlines, best odds first. One call instead of eighteen.</td></tr>
-      <tr><td class="mono"><b>score_flight</b></td><td class="mono">flight_number</td><td>One flight. United returns a per-flight probability with its sample size; every other carrier returns the coarse airline score with <span class="mono">prob: null</span>.</td></tr>
     </tbody>
   </table></div>
+  <p class="tblcap">No <span class="mono">score_flight</span> tool. Retired 2026-07-26 alongside <span class="mono">/api/score/{flightNumber}</span>, for the same reason: a flight number with no date is not the question a traveller with a booked seat is actually asking. This server answers at the airline level only. The <a href="https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec">browser extension →</a> has the date.</p>
 <div class="apic">curl -sS -X POST https://wifiodds.com/mcp -H 'content-type: application/json' \
   -d '{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:1,&quot;method&quot;:&quot;tools/list&quot;}'
 
 curl -sS -X POST https://wifiodds.com/mcp -H 'content-type: application/json' \
   -d '{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:2,&quot;method&quot;:&quot;tools/call&quot;,&quot;params&quot;:
-       {&quot;name&quot;:&quot;score_flight&quot;,&quot;arguments&quot;:{&quot;flight_number&quot;:&quot;UA212&quot;}}}'</div>
+       {&quot;name&quot;:&quot;get_airline_score&quot;,&quot;arguments&quot;:{&quot;key&quot;:&quot;united&quot;}}}'</div>
   <p class="tblcap">Every tool result comes back twice: a text block for the model to relay and a <span class="mono">structuredContent</span> object for the client to parse. The data credits are in both, because the text is what usually reaches the user.</p>
   <div class="faq" style="margin-top:16px">
-    <div class="q"><h3>The <span class="mono">instructions</span> field is the point</h3><p>What <span class="mono">initialize</span> returns is not a description of the endpoints. It is the decision layer: someone asking about flight WiFi is trying to maximise <b>hours of working WiFi</b>, so prefer the higher ConnectScore, use United's route history when there is a flight number, name which confidence tier you are quoting, never invent a per-flight number for a fleet we have no history for, and always pass the credits through. A data endpoint with no opinion gets averaged into mush by whichever model is holding it.</p></div>
-    <div class="q"><h3>It is the same code as the REST API</h3><p>Each tool is a thin wrapper around the very handler that serves <span class="mono">/api/**</span>. It builds a synthetic GET request and re-shapes the answer. So <span class="mono">score_flight("UA212")</span> and <span class="mono">GET /api/score/UA212</span> cannot disagree: they are the same call. The acceptance suite asserts exactly that.</p></div>
+    <div class="q"><h3>The <span class="mono">instructions</span> field is the point</h3><p>What <span class="mono">initialize</span> returns is not a description of the endpoints. It is the decision layer: someone asking about flight WiFi is trying to maximise <b>hours of working WiFi</b>, so prefer the higher ConnectScore, name which confidence tier you are quoting, never invent a per-flight number from a fleet-wide one, and always pass the credits through. A data endpoint with no opinion gets averaged into mush by whichever model is holding it.</p></div>
+    <div class="q"><h3>It is the same code as the REST API</h3><p>Each tool is a thin wrapper around the very handler that serves <span class="mono">/api/**</span>. It builds a synthetic GET request and re-shapes the answer. So <span class="mono">get_airline_score("qatar")</span> and <span class="mono">GET /api/airlines/qatar</span> cannot disagree: they are the same call. The acceptance suite asserts exactly that.</p></div>
     <div class="q"><h3>GET returns 405, on purpose</h3><p>This server opens no server-initiated SSE stream, so there is nothing for a GET to subscribe to. It answers with a 405 whose <i>body</i> tells you the POST to make instead. A bare 405 with no bytes is the kind of unhelpful signal this project has been bitten by before.</p></div>
   </div>
 </section>

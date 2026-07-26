@@ -14,9 +14,18 @@
  * plain cacheable asset with no generated blob inside it.
  *
  * Everything else comes from our own API, client-side, same origin:
- *   /api/score/{flightNumber}  — per-flight where we have route history
  *   /api/airlines/{key}        — the coarse ConnectScore for a whole fleet
  * No third party is contacted. Nothing is stored.
+ *
+ * A FLIGHT NUMBER RESOLVES TO ITS AIRLINE, NOT A PER-FLIGHT ANSWER. This box
+ * used to call /api/score/{flightNumber} (retired 2026-07-26, spec D7): a
+ * flight number with no date can only ever answer "what usually happens on
+ * this route," not "will MY flight have it," and typing UA212 here looked
+ * like the second question while answering the first. The real per-flight
+ * answer is the WiFi Odds browser extension's job — it runs on the airline's
+ * own booking page, where the flight AND the date are already known. This box
+ * still recognises a flight number so a reader can type one without thinking,
+ * but it answers with the fleet-wide ConnectScore, honestly labelled.
  *
  * HONEST TIERING IS THE POINT. The card never shows a number without saying
  * which method produced it (`method` in the response) and what that method can
@@ -78,6 +87,11 @@
     var s = String(raw || '').toUpperCase().replace(/[\s\-_./]/g, '');
     var m = FLIGHT.exec(s);
     return m ? m[1] + String(parseInt(m[2], 10)) : null;
+  }
+  function airlineByCode(code) {
+    var up = String(code || '').toUpperCase();
+    for (var i = 0; i < AIR.length; i++) { if (AIR[i].code && AIR[i].code.toUpperCase() === up) return AIR[i]; }
+    return null;
   }
   function asAirline(raw) {
     var s = String(raw || '').trim().toLowerCase().replace(/\s+/g, ' ');
@@ -217,14 +231,35 @@
       return;
     }
     var fn = asFlight(raw);
-    if (fn) { busy(fn); get('/api/score/' + encodeURIComponent(fn), function (j) { say('is-ok', card(j)); }); return; }
+    if (fn) {
+      /* A flight number resolves to its AIRLINE, never a per-flight answer —
+         /api/score/{flightNumber} is retired (spec D7). Same code path as
+         typing the airline name, just with the flight number carried through
+         so the card header still reads "UA212 United." */
+      var fm = FLIGHT.exec(String(raw || '').toUpperCase().replace(/[\s\-_./]/g, ''));
+      var air = fm ? airlineByCode(fm[1]) : null;
+      if (!air) {
+        oops('We don’t track airline <b>' + esc(fm ? fm[1] : '') +
+          '</b> yet, so there is no ConnectScore for <b>' + esc(fn) + '</b>.');
+        return;
+      }
+      busy(fn);
+      get('/api/airlines/' + encodeURIComponent(air.key), function (j) {
+        var a2 = j.airline || {};
+        say('is-ok', card({
+          flight: fn, airline: a2, prob: null, connectScore: a2.connectScore,
+          method: 'airline-coarse', evidence: null, asOf: a2.asOf, moreDetail: a2.url
+        }));
+      });
+      return;
+    }
     var a = asAirline(raw);
     if (a) {
       busy(a.name);
-      /* /api/airlines/{key} answers {airline:{…}}; /api/score/{fn} answers a flat
-         envelope with method/prob/evidence. Normalise the airline reply into the
-         same envelope so card() has exactly one shape to render — and set the
-         method to what it honestly is: coarse, no per-flight number. */
+      /* /api/airlines/{key} answers {airline:{…}}; card() wants the same flat
+         envelope the flight-number branch above builds. Normalise the airline
+         reply into it — method is honestly "airline-coarse", no per-flight
+         number. */
       get('/api/airlines/' + encodeURIComponent(a.key), function (j) {
         var air = j.airline || {};
         say('is-ok', card({

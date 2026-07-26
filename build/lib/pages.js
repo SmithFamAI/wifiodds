@@ -1079,9 +1079,9 @@ var SHIPPED = [
   ['2026-07-24', 'Extension v1.5.1', 'Odds badges and a one-click odds sort on united.com and ' +
     'app.navan.com, plus the route panel. The date and the coverage are read off the Chrome Web ' +
     'Store listing body, not off the repository manifest, which is already at 2.0.0.'],
-  [null, 'The public ConnectScore API', 'Answering today: <code>GET /api/airlines</code>, ' +
-    '<code>GET /api/airlines/qatar</code> and <code>GET /api/score/UA212</code>. No key, CORS ' +
-    'open, credits in every response body. <a href="/api/docs/">The docs →</a>'],
+  [null, 'The public ConnectScore API', 'Answering today: <code>GET /api/airlines</code> and ' +
+    '<code>GET /api/airlines/qatar</code>. No key, CORS open, credits in every response body. ' +
+    '<a href="/api/docs/">The docs →</a>'],
   [null, 'The projected score, fenced', 'A fourth number for carriers that have signed and ' +
     'published an aircraft count, under five rules a build tripwire checks on the bytes that ship. ' +
     '19 fenced units shipped in this build. <a href="/methodology/#projected">The rules →</a>'],
@@ -1139,9 +1139,12 @@ function roadmapSteps(limit) {
 /* ── §A the flight check — the above-the-fold ANSWER ──────────────────────
  * The first screenful used to describe our ability to answer the stranger's
  * question ("will MY flight have WiFi that works?") and then hand them a
- * leaderboard whose top three are airBaltic, JSX and ZIPAIR. This box answers it
- * instead: one input, one card, from /api/score/{flightNumber} (per-flight where
- * we have route history) or /api/airlines/{key} (the coarse fleet score).
+ * leaderboard whose top three are airBaltic, JSX and ZIPAIR. This box answers
+ * with one input, one card, from /api/airlines/{key} — the fleet-wide
+ * ConnectScore. A flight number resolves to its airline, not a per-flight
+ * claim: /api/score/{flightNumber} was retired 2026-07-26 (spec D7), because a
+ * flight number with no date only ever answered "what usually happens on this
+ * route." See assets/flightcheck.js.
  *
  * PROGRESSIVE ENHANCEMENT, and read this before you touch the classes:
  *   - the whole box is `.needs-js`, so with JS off it is NEVER SHOWN. There is no

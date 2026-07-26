@@ -475,89 +475,24 @@ async function main() {
   ok(Array.isArray(miss.keys) && miss.keys.length === 18, '404 lists the valid keys', miss.keys);
   assertEnvelope(res, miss, '404 airline');
 
-  /* ── GET /api/score/{flightNumber} ── */
-  /* The expected prob and observation count are READ OUT OF THE CACHE, not
-     frozen here. Until 26 Jul 2026 they were the literals 47 and 20, and the
-     04:32 data refresh moved UA212 to 46 / 21 and pushed to main with these six
-     checks red — the suite failed on a number doing exactly what a daily
-     refresh is for. Freezing a value the refresh owns tests the refresh, not
-     the API. What the endpoint actually promises is that it returns the cached
-     route history for that flight, so that is what is asserted: the same row
-     the cache holds, looked up independently of the handler. If the join
-     breaks, the lookup below still finds the row and the assertion still
-     fires. */
-  var ua212row = (function () {
-    var rc = require(path.join(ROOT, 'united', 'data.json')).routeCache || {};
-    var keys = Object.keys(rc);
-    for (var i = 0; i < keys.length; i++) {
-      var hit = (rc[keys[i]].flights || []).filter(function (f) { return f.fn === 'UA212'; })[0];
-      if (hit) return { route: keys[i], f: hit };
-    }
-    return null;
-  })();
-  ok(ua212row && typeof ua212row.f.prob === 'number' && typeof ua212row.f.obs === 'number',
-    'UA212 is present in the route cache with a prob and an obs count', ua212row);
-
-  res = await H.scoreFlight(ctx('https://wifiodds.com/api/score/UA212', { flight: 'UA212' }));
-  var s = await body(res);
-  eq(res.status, 200, '/api/score/UA212 status');
-  assertEnvelope(res, s, '/api/score/UA212');
-  eq(s.flight, 'UA212', 'UA212 flight echo');
-  eq(s.airline.key, 'united', 'UA212 → united');
-  eq(s.method, 'route-history', 'UA212 method');
-  eq(s.prob, ua212row.f.prob, 'UA212 prob comes from the cached route history');
-  eq(s.evidence.route, ua212row.route, 'UA212 evidence route');
-  eq(s.evidence.observations, ua212row.f.obs, 'UA212 evidence observations');
-  eq(s.connectScore, A.scoreAirline('united').score, 'UA212 carries the coarse United score too');
-
-  /* normalisation: all four spellings must land on the same answer */
-  for (var v of ['ua212', 'UA 212', 'ua-212', 'UA0212']) {
-    res = await H.scoreFlight(ctx('https://wifiodds.com/api/score/x', { flight: v }));
-    var n = await body(res);
-    eq(n.flight, 'UA212', 'normalised "' + v + '"');
-    eq(n.prob, ua212row.f.prob, 'normalised "' + v + '" prob');
+  /* ── GET /api/score/{flightNumber} — RETIRED 2026-07-26 (spec D7) ──────────
+   * This used to be six assertions' worth of per-flight route-history checks.
+   * The endpoint took a flight number with no date and answered "what usually
+   * happens on this route," not "will MY flight have it" — that job moved to
+   * the WiFi Odds browser extension, which has the date because it runs on the
+   * airline's own booking page. What is asserted now is the negative: every
+   * shape of request to this path answers 410, never 200, so the endpoint
+   * cannot silently come back to life in a later refactor. */
+  for (var retired of ['UA212', 'ua212', 'AS15', 'XX999', 'hello']) {
+    res = await H.scoreFlightGone(ctx('https://wifiodds.com/api/score/' + retired, { flight: retired }));
+    var gone = await body(res);
+    eq(res.status, 410, '/api/score/' + retired + ' → 410 Gone');
+    eq(gone.error.code, 'endpoint_retired', '/api/score/' + retired + ' error code');
+    assertEnvelope(res, gone, '/api/score/' + retired);
+    ok(gone.error.message.indexOf('unitedstarlinktracker.com') !== -1,
+      '/api/score/' + retired + ' 410 body names unitedstarlinktracker.com', gone.error.message);
   }
-
-  /* a United flight we have no history for — coarse, and prob must be null, not 0 */
-  res = await H.scoreFlight(ctx('https://wifiodds.com/api/score/UA9999', { flight: 'UA9999' }));
-  var cold = await body(res);
-  eq(res.status, 200, 'UA9999 status');
-  eq(cold.method, 'airline-coarse', 'UA9999 method');
-  eq(cold.prob, null, 'UA9999 prob is null, never a guess');
-  eq(cold.connectScore, A.scoreAirline('united').score, 'UA9999 coarse score');
-
-  /* Alaska: known prefix, no per-flight feed */
-  res = await H.scoreFlight(ctx('https://wifiodds.com/api/score/AS15', { flight: 'AS15' }));
-  var as = await body(res);
-  eq(res.status, 200, 'AS15 status');
-  assertEnvelope(res, as, 'AS15');
-  eq(as.flight, 'AS15', 'AS15 flight echo');
-  eq(as.airline.key, 'alaska', 'AS15 → alaska');
-  eq(as.method, 'airline-coarse', 'AS15 method');
-  eq(as.prob, null, 'AS15 prob is null');
-  eq(as.connectScore, A.scoreAirline('alaska').score, 'AS15 coarse score');
-
-  /* Hawaiian, and a two-character code with a digit in it */
-  res = await H.scoreFlight(ctx('https://wifiodds.com/api/score/HA50', { flight: 'HA50' }));
-  eq((await body(res)).airline.key, 'hawaiian', 'HA50 → hawaiian');
-  res = await H.scoreFlight(ctx('https://wifiodds.com/api/score/B6123', { flight: 'B6123' }));
-  var b6 = await body(res);
-  eq(b6.airline.key, 'jetblue', 'B6123 → jetblue');
-  eq(b6.airline.fleet.basis, 'fleetwide-coverage', 'jetblue is fleetwide-coverage');
-
-  /* unknown prefix → 404 JSON */
-  res = await H.scoreFlight(ctx('https://wifiodds.com/api/score/XX999', { flight: 'XX999' }));
-  var xx = await body(res);
-  eq(res.status, 404, 'XX999 → 404');
-  eq(xx.error.code, 'unknown_airline_prefix', 'XX999 error code');
-  eq(xx.flight, 'XX999', 'XX999 flight echo');
-  assertEnvelope(res, xx, 'XX999');
-
-  /* not a flight number at all → 400, still JSON */
-  res = await H.scoreFlight(ctx('https://wifiodds.com/api/score/hello', { flight: 'hello' }));
-  var bad = await body(res);
-  eq(res.status, 400, 'garbage → 400');
-  eq(bad.error.code, 'unparseable_flight', 'garbage error code');
+  ok(H.scoreFlight === undefined, 'scoreFlight is not exported any more — only scoreFlightGone');
 
   /* ── methods ── */
   res = await H.airlinesAll(ctx('https://wifiodds.com/api/airlines', {}, 'OPTIONS'));
@@ -572,8 +507,8 @@ async function main() {
    * pre-ship test is to import the module and POST real JSON-RPC bodies at it
    * with a mock Pages context, then assert on the parsed responses. The tools are
    * wrappers around the handlers above, so the assertion that matters most is
-   * that they return the SAME numbers — a per-flight probability that disagrees
-   * with /api/score/ would mean there are two implementations again. */
+   * that they return the SAME numbers — get_airline_score disagreeing with
+   * /api/airlines/{key} would mean there are two implementations again. */
   var MCP = await import('../functions/_lib/mcp.mjs');
 
   function mcpCtx(payload, method) {
@@ -614,7 +549,7 @@ async function main() {
   eq(init.j.result.serverInfo.name, 'wifiodds', 'MCP serverInfo.name');
   var instr = init.j.result.instructions || '';
   ok(instr.length > 1500, 'MCP instructions are substantial (they are the product)', instr.length);
-  [/HOURS OF WORKING WIFI/, /Prefer the higher ConnectScore/, /route-history/, /Never/,
+  [/HOURS OF WORKING WIFI/, /Prefer the higher ConnectScore/, /browser extension/, /Never/,
     /martinamps/, /methodology/].forEach(function (re) {
     ok(re.test(instr), 'MCP instructions carry ' + re);
   });
@@ -627,9 +562,11 @@ async function main() {
   /* tools/list */
   var tl = await rpc({ jsonrpc: '2.0', id: 3, method: 'tools/list' });
   eq(tl.res.status, 200, 'MCP tools/list HTTP 200');
-  eq(tl.j.result.tools.length, 3, 'MCP exposes exactly 3 tools');
+  /* score_flight retired 2026-07-26 (spec D7): a flight number with no date
+     answered a question nobody was really asking. Airline-level only now. */
+  eq(tl.j.result.tools.length, 2, 'MCP exposes exactly 2 tools');
   eq(tl.j.result.tools.map(function (t) { return t.name; }).sort().join(','),
-    'get_airline_score,list_airline_scores,score_flight', 'MCP tool names');
+    'get_airline_score,list_airline_scores', 'MCP tool names');
   tl.j.result.tools.forEach(function (t) {
     ok(t.description && t.description.length > 40, t.name + ': has a real description');
     eq(t.inputSchema.type, 'object', t.name + ': inputSchema is an object schema');
@@ -670,34 +607,12 @@ async function main() {
   ok(r2.structuredContent.airlines.every(function (a) { return !!a.confidenceTier; }),
     'every airline in the list is labelled with its confidence tier');
 
-  /* tools/call score_flight — United, the Verified tier */
+  /* score_flight retired 2026-07-26 (spec D7): calling it by name must fail the
+     same way any unknown tool does, so the tool cannot silently reappear in a
+     later refactor. */
   var t3 = await rpc({ jsonrpc: '2.0', id: 7, method: 'tools/call',
-    params: { name: 'score_flight', arguments: { flight_number: 'ua 212' } } });
-  var r3 = t3.j.result;
-  assertToolResult(r3, 'score_flight(UA212)');
-  eq(r3.structuredContent.flight, 'UA212', 'score_flight normalises the flight number');
-  eq(r3.structuredContent.prob, s.prob, 'PARITY: MCP score_flight prob equals /api/score/UA212');
-  eq(r3.structuredContent.method, 'route-history', 'UA212 keeps its route-history method');
-  ok(/Verified/.test(r3.structuredContent.confidenceTier), 'UA212 is the Verified tier');
-  ok(r3.content[0].text.indexOf(String(s.prob) + '%') >= 0,
-    'the per-flight probability is in the text, not only the structured payload');
-  ok(/change until departure/.test(r3.content[0].text),
-    'the tail-swap caveat rides along with every per-flight answer');
-
-  /* score_flight — no per-flight feed: prob must stay null in the payload AND the
-     text must not contain an invented number */
-  var t4 = await rpc({ jsonrpc: '2.0', id: 8, method: 'tools/call',
-    params: { name: 'score_flight', arguments: { flight_number: 'AS15' } } });
-  var r4 = t4.j.result;
-  eq(r4.structuredContent.prob, null, 'AS15 prob is null, never a guess');
-  eq(r4.structuredContent.method, 'airline-coarse', 'AS15 method');
-  ok(/do not turn this/i.test(r4.content[0].text), 'AS15 text tells the model not to invent precision');
-
-  /* score_flight — an airline we do not track at all */
-  var t5 = await rpc({ jsonrpc: '2.0', id: 9, method: 'tools/call',
-    params: { name: 'score_flight', arguments: { flight_number: 'XX999' } } });
-  eq(t5.j.result.isError, true, 'XX999 → isError:true');
-  ok(/do not track/i.test(t5.j.result.content[0].text), 'XX999 says we do not track it');
+    params: { name: 'score_flight', arguments: { flight_number: 'UA212' } } });
+  eq(t3.j.error.code, -32602, 'score_flight is gone: calling it by name → -32602, same as any unknown tool');
 
   /* protocol edges */
   var t6 = await rpc({ jsonrpc: '2.0', id: 10, method: 'tools/call',
@@ -820,7 +735,10 @@ async function main() {
   /* the docs page exists and is the page we think it is */
   var docs = fs.readFileSync(path.join(ROOT, 'api', 'docs', 'index.html'), 'utf8');
   ok(/<title>ConnectScore API/.test(docs), '/api/docs/ has the API title');
-  ok(docs.indexOf('/api/score/{flightNumber}') !== -1, '/api/docs/ documents the score endpoint');
+  ok(docs.indexOf('/api/score/{flightNumber}') !== -1,
+    '/api/docs/ still names the retired score endpoint, so a bookmark leads somewhere');
+  ok(/410/.test(docs) && /retired/i.test(docs),
+    '/api/docs/ says the score endpoint is retired (410), not just documents it as live');
   ok(/href="\/api\/docs\/"/.test(docs), '/api/docs/ is linked from the shared footer');
 
   /* ── POST /api/report — the field-report intake ───────────────────────────
@@ -1123,8 +1041,7 @@ async function main() {
   console.log('  /api/airlines: ' + all.count + ' airlines, ' + all.airlines[0].name + ' ' +
     all.airlines[0].connectScore + ' → ' + all.airlines[all.airlines.length - 1].name + ' ' +
     all.airlines[all.airlines.length - 1].connectScore);
-  console.log('  /api/score/UA212: prob ' + s.prob + '% via ' + s.method + ' (' + s.evidence.route +
-    ', ' + s.evidence.observations + ' obs) · /api/score/AS15: ' + as.method + ', prob ' + as.prob);
+  console.log('  /api/score/{flightNumber}: retired 2026-07-26, 410 on every shape tried');
   console.log('  tiers: Delta nextGenScore ' + dl.nextGenScore + ' / serviceTier ' + dl.serviceTier +
     ' / connectScore ' + dl.connectScore + ' — and the homepage card agrees (7 cards checked)');
   console.log('  projected: ' + projected.map(function (a) {

@@ -109,7 +109,8 @@ These are link counts. They run higher than four for that reason. Read a change
 in one as a prompt to go look. Read the total as nothing at all.
 
 ```
-url       links
-/         8
-/united/  3
+url         links
+/           8
+/united/    3
+/api/docs/  3
 ```

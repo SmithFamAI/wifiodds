@@ -103,9 +103,10 @@ function home(m) {
    * the failure that killed version one of this site, and no linter catches it.
    *
    * The check is first because the reader arrives with one question and the
-   * first thing on the page answers it (P.flightCheck → /api/score/{fn} or
-   * /api/airlines/{key}, client-side, same origin). The worked card under it is
-   * that answer already filled in, from today's route cache, so a reader who
+   * first thing on the page answers it (P.flightCheck → /api/airlines/{key},
+   * client-side, same origin — a flight number resolves to its airline, never
+   * a per-flight claim; /api/score/{flightNumber} retired 2026-07-26, spec D7).
+   * The worked card under it is that answer already filled in, so a reader who
    * types nothing still sees what an answer looks like. */
   var body =
     P.halfmark(1, 'The record', 'the odds, with the source and the date on every figure', 'record') +
@@ -2144,8 +2145,9 @@ function apiDocs(m) {
     ['GET', '/api', 'This index: every endpoint, the airline keys, the flight-number prefixes.'],
     ['GET', '/api/airlines', 'All ' + m.airlineCount + ' airlines, best ConnectScore first.'],
     ['GET', '/api/airlines/{key}', 'One airline. Unknown key → 404 JSON with the list of valid keys.'],
-    ['GET', '/api/score/{flightNumber}', 'Per-flight odds where we have route history, otherwise the ' +
-      'coarse airline score. Untracked prefix → 404 JSON.']
+    ['GET', '/api/score/{flightNumber}', 'RETIRED 2026-07-26. 410 Gone. A flight number with no ' +
+      'date only ever answered what usually happens on the route, not whether YOUR flight has it. ' +
+      'Use /api/airlines/{key}, or the WiFi Odds extension for a real per-flight answer.']
   ].map(function (r) {
     return '      <tr><td class="mono"><b>' + r[0] + '</b></td>' +
       '<td class="mono">' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td></tr>';
@@ -2165,13 +2167,9 @@ function apiDocs(m) {
   }).join('\n');
 
   var errRows = [
-    ['400', 'unparseable_flight', 'The path segment is not shaped like a flight number.'],
     ['404', 'unknown_airline', 'No airline with that key.'],
-    ['404', 'unknown_airline_prefix', 'The flight number parses, but we do not track that carrier.'],
     ['405', 'method_not_allowed', 'Read-only API. GET or HEAD.'],
-    ['503', 'dataset_unavailable', 'The cached United dataset could not be read from this deploy. ' +
-      'This should never happen; it means the deploy is broken, and we would rather say so than ' +
-      'quietly hand back the coarse score as if nothing were wrong.']
+    ['410', 'endpoint_retired', '/api/score/{flightNumber} only. Retired 2026-07-26, see above.']
   ].map(function (r) {
     return '      <tr><td class="mono"><b>' + r[0] + '</b></td><td class="mono">' + esc(r[1]) +
       '</td><td>' + esc(r[2]) + '</td></tr>';
@@ -2192,8 +2190,7 @@ function apiDocs(m) {
     '<section class="blk">\n  <div class="sec-h"><h2>Try it</h2></div>\n' +
     code('curl -s ' + ORIGIN + '/api/airlines | head -40\n' +
       'curl -s ' + ORIGIN + '/api/airlines/qatar\n' +
-      'curl -s ' + ORIGIN + '/api/score/UA212\n' +
-      'curl -s ' + ORIGIN + '/api/score/AS15') +
+      'curl -s ' + ORIGIN + '/api/airlines/united') +
     '  <p class="tblcap">Responses are pretty-printed and gzipped. ' +
     'Cache-Control: public, max-age=3600 on success (the data is refreshed once a day), 300 on errors.</p>\n' +
     '</section>\n\n' +
@@ -2253,38 +2250,27 @@ function apiDocs(m) {
       return esc(r.systemLabel) + ' ' + num(r.n) + ' at ' + r.pointsMin.toFixed(1);
     }).join(' + ') + ' points. <a href="/airlines/qatar/">Same number on the page →</a></p>\n' +
 
-    '  <h3 class="apih">GET /api/score/{flightNumber}</h3>\n' +
-    '  <p class="sec-lede">Accepts <span class="apip">UA212</span>, <span class="apip">ua 212</span>, ' +
-    '<span class="apip">UA0212</span>. Case, spaces, hyphens and leading zeros are all normalised ' +
-    'away. Prefixes we know: <span class="apip">' + esc(codes.join(' ')) + '</span></p>\n' +
-    '  <p class="sec-lede">The <b>method</b> field is the whole point of this endpoint. It tells you ' +
-    'how much to trust the number, and it is never blurred:</p>\n' +
-    '  <div class="tbl-shell"><table class="tbl">\n' +
-    '    <thead><tr><th scope="col">method</th><th scope="col">prob</th><th scope="col">What it means</th></tr></thead>\n' +
-    '    <tbody>\n' +
-    '      <tr><td class="mono"><b>route-history</b></td><td class="mono">0–100</td>' +
-    '<td>We found this exact flight number in our cached United route history. <b>prob</b> is the ' +
-    'share of recent observations of that flight that were flown by a Starlink aircraft, with the ' +
-    'observation count and confidence in <b>evidence</b>.</td></tr>\n' +
-    '      <tr><td class="mono"><b>airline-coarse</b></td><td class="mono">null</td>' +
-    '<td>We have no per-flight history for it, so all we can offer is the airline’s ' +
-    'fleet-wide ConnectScore. <b>prob</b> is <b>null</b> and not a guess. Inventing precision here ' +
-    'would be the worst thing this API could do.</td></tr>\n' +
-    '    </tbody>\n  </table></div>\n' +
-    code('{\n' +
-      '  "flight": "UA212",\n' +
-      '  "airline": { "key": "united", "connectScore": ' + ua.score + ', … },\n' +
-      '  "prob": 47,\n' +
-      '  "connectScore": ' + ua.score + ',\n' +
-      '  "method": "route-history",\n' +
-      '  "evidence": { "route": "LAX-ORD", "observations": 20, "confidence": "high",\n' +
-      '                "dataset": "routeCache", "cachedAt": "…" },\n' +
-      '  "asOf": "' + m.updated + '",\n' +
-      '  "sources": [ … ]\n' +
+    '  <h3 class="apih">GET /api/score/{flightNumber}, retired 2026-07-26</h3>\n' +
+    '  <p class="sec-lede">Answers <b>410 Gone</b> now. It used to take a flight number with no date ' +
+    'and answer "what usually happens on this route," which reads like "will MY flight have it" but ' +
+    'is a different question. A route history is not a guarantee about one departure, and the real ' +
+    'per-flight answer needs a date this endpoint never took.</p>\n' +
+    '  <p class="sec-lede">The deterministic answer moved to the ' +
+    '<a href="' + esc(H.EXT) + '">WiFi Odds browser extension →</a>, which runs on united.com, Navan, ' +
+    'alaskaair.com and Google Flights. Those pages already carry the flight and the date, so it needs ' +
+    'no proxy and no scraping. For United specifically, ' +
+    '<span class="mono">unitedstarlinktracker.com/check-flight/{flightNumber}/{date}</span> answers ' +
+    'the same way. Prefixes we used to route: <span class="apip">' + esc(codes.join(' ')) + '</span></p>\n' +
+    code('$ curl -s ' + ORIGIN + '/api/score/UA212\n' +
+      '{\n' +
+      '  "error": { "status": 410, "code": "endpoint_retired",\n' +
+      '             "message": "GET /api/score/{flightNumber} was retired 2026-07-26 …" },\n' +
+      '  "useInstead": "' + ORIGIN + '/api/airlines/{key}",\n' +
+      '  "handoff": "https://unitedstarlinktracker.com",\n' +
+      '  "docs": "' + ORIGIN + '/api/docs/"\n' +
       '}') +
-    '  <p class="tblcap">United is the only fleet with per-flight history today; ' +
-    'every other prefix returns <span class="mono">airline-coarse</span>. ' +
-    '<a href="/united/">Rank a whole route →</a></p>\n' +
+    '  <p class="tblcap">Use <span class="mono">GET /api/airlines/{key}</span> for the fleet-wide ' +
+    'figure instead. <a href="/united/">Rank a whole route →</a></p>\n' +
     '</section>\n\n' +
 
     /* ── the two-number section. Added when the site stopped leading with a single
@@ -2346,12 +2332,12 @@ function apiDocs(m) {
     '  <div class="tbl-shell"><table class="tbl">\n' +
     '    <thead><tr><th scope="col">Status</th><th scope="col">code</th><th scope="col">When</th></tr></thead>\n' +
     '    <tbody>\n' + errRows + '\n    </tbody>\n  </table></div>\n' +
-    code('$ curl -s ' + ORIGIN + '/api/score/XX999\n' +
+    code('$ curl -s ' + ORIGIN + '/api/airlines/nope\n' +
       '{\n' +
-      '  "error": { "status": 404, "code": "unknown_airline_prefix",\n' +
-      '             "message": "We do not track airline \\"XX\\" …" },\n' +
+      '  "error": { "status": 404, "code": "unknown_airline",\n' +
+      '             "message": "No airline with key \\"nope\\" …" },\n' +
       '  "docs": "' + ORIGIN + '/api/docs/",\n' +
-      '  "flight": "XX999",\n  "prefix": "XX",\n  "prefixes": [ … ],\n' +
+      '  "keys": [ … ],\n' +
       '  "sources": [ … ]\n}') +
     '</section>\n\n' +
 
@@ -2373,15 +2359,17 @@ function apiDocs(m) {
     'number comes from.</td></tr>\n' +
     '      <tr><td class="mono"><b>list_airline_scores</b></td><td class="mono">none</td>' +
     '<td>All ' + m.airlineCount + ' airlines, best odds first. One call instead of eighteen.</td></tr>\n' +
-    '      <tr><td class="mono"><b>score_flight</b></td><td class="mono">flight_number</td>' +
-    '<td>One flight. United returns a per-flight probability with its sample size; every other ' +
-    'carrier returns the coarse airline score with <span class="mono">prob: null</span>.</td></tr>\n' +
     '    </tbody>\n  </table></div>\n' +
+    '  <p class="tblcap">No <span class="mono">score_flight</span> tool. Retired 2026-07-26 ' +
+    'alongside <span class="mono">/api/score/{flightNumber}</span>, for the same reason: a flight ' +
+    'number with no date is not the question a traveller with a booked seat is actually asking. This ' +
+    'server answers at the airline level only. The ' +
+    '<a href="' + esc(H.EXT) + '">browser extension →</a> has the date.</p>\n' +
     code('curl -sS -X POST ' + ORIGIN + '/mcp -H \'content-type: application/json\' \\\n' +
       '  -d \'{"jsonrpc":"2.0","id":1,"method":"tools/list"}\'\n\n' +
       'curl -sS -X POST ' + ORIGIN + '/mcp -H \'content-type: application/json\' \\\n' +
       '  -d \'{"jsonrpc":"2.0","id":2,"method":"tools/call","params":\n' +
-      '       {"name":"score_flight","arguments":{"flight_number":"UA212"}}}\'') +
+      '       {"name":"get_airline_score","arguments":{"key":"united"}}}\'') +
     '  <p class="tblcap">Every tool result comes back twice: a text block for the model to relay and ' +
     'a <span class="mono">structuredContent</span> object for the client to parse. The data credits are ' +
     'in both, because the text is what usually reaches the user.</p>\n' +
@@ -2389,14 +2377,13 @@ function apiDocs(m) {
     '    <div class="q"><h3>The <span class="mono">instructions</span> field is the point</h3>' +
     '<p>What <span class="mono">initialize</span> returns is not a description of the endpoints. It ' +
     'is the decision layer: someone asking about flight WiFi is trying to maximise <b>hours of working ' +
-    'WiFi</b>, so prefer the higher ConnectScore, use United\'s route history when there is a flight ' +
-    'number, name which confidence tier you are quoting, never invent a per-flight number for a fleet ' +
-    'we have no history for, and always pass the credits through. A data endpoint with no opinion gets ' +
-    'averaged into mush by whichever model is holding it.</p></div>\n' +
+    'WiFi</b>, so prefer the higher ConnectScore, name which confidence tier you are quoting, never ' +
+    'invent a per-flight number from a fleet-wide one, and always pass the credits through. A data ' +
+    'endpoint with no opinion gets averaged into mush by whichever model is holding it.</p></div>\n' +
     '    <div class="q"><h3>It is the same code as the REST API</h3><p>Each tool is a thin wrapper ' +
     'around the very handler that serves <span class="mono">/api/**</span>. It builds a synthetic GET ' +
-    'request and re-shapes the answer. So <span class="mono">score_flight("UA212")</span> and ' +
-    '<span class="mono">GET /api/score/UA212</span> cannot disagree: they are the same call. The ' +
+    'request and re-shapes the answer. So <span class="mono">get_airline_score("qatar")</span> and ' +
+    '<span class="mono">GET /api/airlines/qatar</span> cannot disagree: they are the same call. The ' +
     'acceptance suite asserts exactly that.</p></div>\n' +
     '    <div class="q"><h3>GET returns 405, on purpose</h3><p>This server opens no server-initiated ' +
     'SSE stream, so there is nothing for a GET to subscribe to. It answers with a 405 whose <i>body</i> ' +
