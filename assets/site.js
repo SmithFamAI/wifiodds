@@ -257,4 +257,63 @@
     });
     window.addEventListener('scroll', hide, { passive: true });
   } catch (e) {}
+
+  /* ── 5. rank boards — the Big 4 / all-18 "Rank by" control ─────────────
+   * ONE handler moves four things together: the pressed button, the header's
+   * aria-sort, the baked rank numbers (ties share a rank; unranked rows get
+   * "—", never a 0) and the caption paragraph under the control. Nothing here
+   * reorders on load — the table already ships in ConnectScore order, so
+   * script-off and the default state agree. */
+  try {
+    Array.prototype.forEach.call(doc.querySelectorAll('.rankb'), function (root) {
+      var table = root.querySelector('table');
+      if (!table) return;
+      var tbody = table.tBodies[0];
+      var orig = [].slice.call(tbody.rows);
+      var caps = [].slice.call(root.querySelectorAll('.sortcap p'));
+      var btns = [].slice.call(root.querySelectorAll('.filters button[data-sort]'));
+      function val(r, k) {
+        var v = r.getAttribute('data-' + k);
+        return v === '' || v === null ? null : parseFloat(v);
+      }
+      btns.forEach(function (b) {
+        b.addEventListener('click', function () {
+          var k = b.getAttribute('data-sort');
+          btns.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+          table.setAttribute('data-active', k);
+          Array.prototype.forEach.call(table.querySelectorAll('th[data-rc]'), function (th) {
+            if (th.getAttribute('data-rc') === k) th.setAttribute('aria-sort', 'descending');
+            else th.removeAttribute('aria-sort');
+          });
+          caps.forEach(function (p) { p.hidden = p.getAttribute('data-for') !== k; });
+          var list;
+          if (k === 'score') {
+            list = orig.slice();
+            list.forEach(function (r, i) { r.querySelector('.rank').textContent = String(i + 1); });
+          } else {
+            var ranked = orig.filter(function (r) { return val(r, k) !== null; })
+              .sort(function (a, b2) {
+                return (val(b2, k) - val(a, k)) ||
+                  a.getAttribute('data-name').localeCompare(b2.getAttribute('data-name'));
+              });
+            var un = orig.filter(function (r) { return val(r, k) === null; })
+              .sort(function (a, b2) {
+                return a.getAttribute('data-name').localeCompare(b2.getAttribute('data-name'));
+              });
+            var prev = null, rank = 0;
+            ranked.forEach(function (r, i) {
+              var v = val(r, k);
+              if (v !== prev) { rank = i + 1; prev = v; }
+              r.querySelector('.rank').textContent = String(rank);
+            });
+            un.forEach(function (r) { r.querySelector('.rank').textContent = '—'; });
+            list = ranked.concat(un);
+          }
+          var frag = doc.createDocumentFragment();
+          list.forEach(function (r) { frag.appendChild(r); });
+          tbody.appendChild(frag);
+        });
+      });
+    });
+  } catch (e) {}
 })();

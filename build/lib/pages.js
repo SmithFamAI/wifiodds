@@ -517,6 +517,170 @@ function leaderboard(m, limit) {
     '  </table></div>\n';
 }
 
+/* ── Option A leaderboard: Big 4 board + full 18, one Rank-by control each ──
+ * Ported from the reviewed mockup at websites/public/wifiodds-big4/ (Version A,
+ * approved by Jeremy 26 Jul 2026 — Version B in that file is reference only and
+ * does not ship). ONE client handler (assets/site.js, the rankb section) moves
+ * the button state, the header aria-sort, the rank column and the caption
+ * together, so the label can never point one way while the rows sort another —
+ * this site once shipped an A-Z control that sorted Z-A and the label never
+ * caught up.
+ *
+ * COLOUR: only the actively ranked column wears its band colour and chip; the
+ * rest render in ink (site.css .rankb block, keyed off table[data-active]).
+ * That is how four score-ish columns share a row without turning into a
+ * rainbow, and it is what satisfies rule 8 here.
+ *
+ * MAINLINE/REGIONAL ARE READ, NEVER RECOMPUTED. a.nextGenSplit comes straight
+ * from assets/airlines.js nextGenSplitFor() — United carries real numbers,
+ * every other row carries the STATE ITSELF as content ("no regional fleet",
+ * "split not published", "no mainline fleet" for JSX). A state is not a zero,
+ * so it never sorts as one and never fills a cell with a dash.
+ *
+ * THE RANK COLUMN header uses `data-rc`, not `data-k` — `data-k` is what
+ * site.js's generic column-click sorter (§2) hooks on every `table.tbl`, and
+ * this board is sorted by the Rank-by control, not by clicking a header. */
+
+/* Per-airline gloss for the "no regional fleet" empty state, ported verbatim
+ * from the approved mockup — D3: "adapted per airline". These are the plain
+ * facts of each fleet's composition (all-737, all-A220, ...), not a figure
+ * that needs a citation of its own. */
+var NO_REGIONAL_NOTE = {
+  southwest: 'every aircraft is a 737', jetblue: 'all A320/A321/A220',
+  airbaltic: 'all A220', zipair: 'all 787', emirates: 'all widebody',
+  virginatlantic: 'all widebody'
+};
+function splitEmptyText(state, key) {
+  if (state === 'no-mainline-fleet') return 'no mainline fleet';
+  if (state === 'no-regional-fleet') {
+    var note = NO_REGIONAL_NOTE[key];
+    return 'no regional fleet' + (note ? ' · ' + note : '');
+  }
+  return 'split not published';
+}
+/* Returns { v, col, html }: `v` is the numeric value for the data-mainline /
+ * data-regional sort attribute ('' when there is none, never 0), `col` is the
+ * band class to put on the <td> (empty when there is no number), `html` is the
+ * cell body. */
+function splitCell(a, part) {
+  var s = a.nextGenSplit || { state: 'split-not-published' };
+  var seg = s[part];
+  if (s.state !== 'value' || !seg) {
+    return { v: '', col: '', html: '<span class="empty-state cell">' +
+      esc(splitEmptyText(s.state, a.key)) + '</span>' };
+  }
+  return {
+    v: seg.pct, col: band(seg.pct),
+    html: '<span class="lab">' + num(seg.n) + '/' + num(seg.of) + '</span>' +
+      '<span class="sco pct">' + seg.pct + '%</span> ' + bandChip(seg.pct)
+  };
+}
+/* The fleet count under the next-gen number. Generic and data-driven — no
+ * per-airline commentary invented here, just whichever denominator the model
+ * already carries (a.fleet, else a.known for a segments-only entry). */
+function nextGenLab(a) {
+  if (a.fleet) return num(a.equipped || 0) + '/' + num(a.fleet) + ' flying';
+  if (a.known) return num(a.equipped || 0) + '/' + num(a.known) + ' flying';
+  return '';
+}
+/* Dated citation for the horizon shown in the projected chip, ported from the
+ * approved mockup's own footnote. One line, same cell as the chip it backs, so
+ * "300+ by end-2026" never sits unsourced. */
+var PROJECTION_SRC = {
+  american: 'Runway Girl Network, 26 May 2026', delta: 'Delta/Amazon release, 31 Mar 2026',
+  southwest: 'target restated 22 Jun 2026', jetblue: 'press release, 4 Sep 2025'
+};
+function rankRow(a, i) {
+  var ng = a.nextGenScore;
+  var mn = splitCell(a, 'mainline');
+  var rg = splitCell(a, 'regional');
+  var lab = nextGenLab(a);
+  return '      <tr data-name="' + esc(a.name) + '" data-score="' + a.score + '" data-nextgen="' +
+    ng + '" data-mainline="' + mn.v + '" data-regional="' + rg.v + '">' +
+    '<td class="rank">' + (i + 1) + '</td>' +
+    '<td><b>' + esc(a.name) + '</b><span class="code">' + esc(a.code || '') + '</span></td>' +
+    '<td class="num vcell ' + band(a.score) + '" data-col="score"><span class="sco">' + a.score +
+    '</span> ' + bandChip(a.score) + '</td>' +
+    '<td class="num vcell ' + band(ng) + '" data-col="nextgen">' +
+    (lab ? '<span class="lab">' + esc(lab) + '</span>' : '') +
+    '<span class="sco">' + ng + '</span> ' + bandChip(ng) + '</td>' +
+    '<td class="num' + (mn.col ? ' vcell ' + mn.col : '') + '" data-col="mainline">' + mn.html + '</td>' +
+    '<td class="num' + (rg.col ? ' vcell ' + rg.col : '') + '" data-col="regional">' + rg.html + '</td>' +
+    '<td>' + (a.projected ? projected(a) + (PROJECTION_SRC[a.key] ?
+      ' <span class="micro">' + esc(PROJECTION_SRC[a.key]) + '</span>' : '') :
+      '<span class="dash" title="no signed next-generation deal outstanding">·</span>') +
+    '</td></tr>';
+}
+/* [key, label, one-line caption]. Jeremy's refinement, verbatim: one or two
+ * lines under the board, tied to the selected column, linking to /methodology/
+ * rather than restating it. Tightened from D3's draft copy, not lengthened. */
+var RANK_COLS = [
+  ['score', 'ConnectScore', 'What you’d get today, across the whole fleet, weighted by system ' +
+    'quality and whether it’s free. <a href="/methodology/#formula">How it’s scored →</a>'],
+  ['nextgen', 'Next-gen odds', 'Your chance of drawing Starlink or Amazon Leo on a random aircraft. ' +
+    '<a href="/methodology/#formula">Why next-gen is the headline →</a>'],
+  ['mainline', 'Mainline', 'Next-gen odds on the big jets. ' +
+    '<a href="/methodology/">Mainline vs regional →</a>'],
+  ['regional', 'Regional', 'Next-gen odds on the regional fleet, where United is furthest ahead. ' +
+    '<a href="/methodology/">Mainline vs regional →</a>']
+];
+function rankBoard(id, list) {
+  var btns = RANK_COLS.map(function (c, i) {
+    return '<button type="button" data-sort="' + c[0] + '" aria-pressed="' + (i === 0) + '">' +
+      esc(c[1]) + '</button>';
+  }).join('');
+  var caps = RANK_COLS.map(function (c, i) {
+    return '<p data-for="' + c[0] + '"' + (i === 0 ? '' : ' hidden') + '>' + c[2] + '</p>';
+  }).join('');
+  var rows = list.map(function (a, i) { return rankRow(a, i); }).join('\n');
+  return '<div class="rankb" id="' + id + '">\n' +
+    '  <div class="segctrl"><span class="lbl">Rank by</span>' +
+    '<div class="filters needs-js" role="group" aria-label="Number to rank by">' + btns +
+    '</div></div>\n' +
+    '  <div class="sortcap">' + caps + '</div>\n' +
+    '  <div class="tbl-shell tablescroll"><table class="tbl" data-active="score"><thead><tr>' +
+    '<th data-rc="rank">#</th><th data-rc="name">Airline</th>' +
+    '<th class="num" data-rc="score" aria-sort="descending">ConnectScore</th>' +
+    '<th class="num" data-rc="nextgen">Next-gen odds</th>' +
+    '<th class="num" data-rc="mainline">Mainline next-gen</th>' +
+    '<th class="num" data-rc="regional">Regional next-gen</th>' +
+    '<th>Signed, not flying</th></tr></thead><tbody>\n' + rows + '\n  </tbody></table></div>\n' +
+    '  <p class="footnote">Mainline and regional are each segment’s own next-gen share, not a ' +
+    'ConnectScore. Three columns, three denominators. Ties share a rank. A row with no published ' +
+    'number ranks with a dash, never zero. Projected figures are grey, fenced, and never sort.</p>\n' +
+    '</div>\n';
+}
+/* The Big 4: United, American, Delta, Southwest, ranked on ConnectScore by
+ * default (the order the page ships with script off). */
+function bigFourBoard(m) {
+  var order = ['united', 'american', 'delta', 'southwest'];
+  var list = order.map(function (k) { return m.A.scoreAirline(k); }).filter(Boolean)
+    .sort(function (a, b) { return b.score - a.score || a.name.localeCompare(b.name); });
+  var ak = m.A.scoreAirline('alaska'), jb = m.A.scoreAirline('jetblue');
+  return '<section class="blk">\n' +
+    '  <span class="kicker">The Big 4</span>\n' +
+    '  <h2>United, American, Delta, Southwest</h2>\n' +
+    '  <p class="lede">The four biggest US airlines carry <b>76% of US seat capacity</b>: 562 ' +
+    'million seats, OAG, July 2026. Not the ~80% often assumed. Not Statista’s ~70% domestic ' +
+    '<em>market share</em> either, a different measure. American’s 890 of 989 next-gen figure is ' +
+    'mainline only. United’s 482 of 1,807 counts mainline and regional. This board says which is ' +
+    'which.</p>\n' +
+    rankBoard('big4-board', list) +
+    '  <p class="pointer">The Big 4 frame leaves out ' + esc(ak.name) + ' (next-gen ' +
+    ak.nextGenScore + ', ' + num(ak.equipped || 0) + ' aircraft flying today) and ' + esc(jb.name) +
+    ' (free fleetwide Viasat). Both are real picks for a wifi-first flyer. ' +
+    '<a href="#full-board">See all 18 →</a></p>\n' +
+    '</section>\n\n';
+}
+/* All 18, same columns, same control, its own default ConnectScore order. */
+function fullRankedBoard(m) {
+  return '<section class="blk" id="full-board">\n' +
+    '  <span class="kicker">Every airline</span>\n' +
+    '  <h2>All ' + m.airlineCount + ', ranked</h2>\n' +
+    rankBoard('full-board-rankb', m.ranked) +
+    '</section>\n\n';
+}
+
 /* ── §3.1b US airlines at a glance — the homepage's first data surface ────
  * What used to sit here: a 4-KPI strip in which TWO of the four cells were
  * United's rollout trivia (481 equipped, 27% of the fleet) — one airline's
@@ -1079,6 +1243,7 @@ module.exports = {
   scorehead: scorehead,
   freeText: freeText, sysClass: sysClass, tagsFor: tagsFor,
   leaderboard: leaderboard, routePills: routePills, kpi: kpi,
+  bigFourBoard: bigFourBoard, fullRankedBoard: fullRankedBoard, rankBoard: rankBoard,
   US_MAJORS: US_MAJORS, usRanked: usRanked, usStatus: usStatus, usGlance: usGlance,
   nextGenLine: nextGenLine, todayLine: todayLine, pctText: pctText,
   roadmapSteps: roadmapSteps, roadmapLists: roadmapLists, ROADMAP: ROADMAP,

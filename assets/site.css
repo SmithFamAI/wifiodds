@@ -583,6 +583,36 @@ html.js table.tbl th[data-k][aria-sort="descending"]:after{content:"\2193";opaci
   border-radius:var(--r-md);padding:.8rem 1rem}
 
 /* ── filter chips + search (JS-only affordances) ──────────────────────── */
+/* ── Option A leaderboard: colour follows the ranked column ───────────────
+   Ported from the reviewed Big 4 mockup (Version A, approved 26 Jul 2026). In a
+   board with four score-ish columns, only the column the table is currently
+   ranked on wears band colour and its band chip; everything else stays ink.
+   That is how four columns share a row without becoming a rainbow (rule 8).
+   The --band custom property already exists per .sc-good/.sc-mix/.sc-long/.sc-no
+   (below); this block only decides which cell gets to read it. */
+.rankb .segctrl{display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap;margin-bottom:.2rem}
+.rankb .segctrl .lbl{font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted-strong)}
+.rankb .sortcap p{margin:.15rem 0 .8rem;font-size:.92rem;color:var(--ink-soft);max-width:44rem}
+.rankb .sortcap p a{color:inherit}
+.rankb .pointer{font-size:.9rem;color:var(--ink-soft);margin:.6rem 0 0}
+.rankb table.tbl{min-width:52rem}
+.rankb .lab{display:block;font-size:.62rem;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:.12rem;font-weight:600}
+.rankb .sco.pct{font-size:1.02rem}
+.rankb th[data-rc][aria-sort="descending"]:after{content:"\2193";opacity:.55;margin-left:.3rem;
+  font-size:.7rem}
+.rankb td[data-col] .sco{color:var(--ink)}
+.rankb td[data-col] .band{display:none}
+.rankb table[data-active="score"]    td[data-col="score"] .sco,
+.rankb table[data-active="nextgen"]  td[data-col="nextgen"] .sco,
+.rankb table[data-active="mainline"] td[data-col="mainline"] .sco,
+.rankb table[data-active="regional"] td[data-col="regional"] .sco{color:var(--band,var(--ink))}
+.rankb table[data-active="score"]    td[data-col="score"] .band,
+.rankb table[data-active="nextgen"]  td[data-col="nextgen"] .band,
+.rankb table[data-active="mainline"] td[data-col="mainline"] .band,
+.rankb table[data-active="regional"] td[data-col="regional"] .band{display:inline-block}
+
 .filters{display:flex;flex-wrap:wrap;gap:.4rem;margin:.3rem 0 .9rem}
 .filters button{font:inherit;font-size:.82rem;color:var(--ink-soft);cursor:pointer;
   padding:.3rem .7rem;border:1px solid var(--line);border-radius:99px;background:transparent}

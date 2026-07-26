@@ -353,9 +353,6 @@ function recordPage(m) {
  * airline pages: every Q/A is VISIBLE on the page and the JSON-LD is built from
  * the same array. No hidden markup, and nothing typed twice. */
 function airlinesIndex(m) {
-  var chips = [['all', 'All (' + m.airlineCount + ')'], ['starlink', 'Starlink'],
-    ['leo', 'Amazon Leo (future)'], ['legacy', 'Viasat / legacy'], ['freeall', 'Free for everyone']];
-
   var top3 = m.ranked.slice(0, 3);
   var starlinks = m.ranked.filter(function (a) { return a.system === 'starlink'; });
   var frees = m.ranked.filter(function (a) { return (m.A.WIFI_AIRLINES[a.key].free || '') === 'free'; });
@@ -408,17 +405,12 @@ function airlinesIndex(m) {
     'twelve carriers in the middle of one, your own departure is the question and the airline is ' +
     'only the first half of it.</p>\n' +
     '</header>\n\n' +
+    P.bigFourBoard(m) +
+    P.fullRankedBoard(m) +
     '<section class="blk">\n' +
-    '  <div class="filters needs-js" data-target="#lbTable" data-cur="all" role="group" ' +
-    'aria-label="Filter airlines">' +
-    chips.map(function (c, i) {
-      return '<button type="button" data-f="' + c[0] + '" aria-pressed="' + (i === 0) + '">' +
-        esc(c[1]) + '</button>';
-    }).join('') + '</div>\n' +
-    P.leaderboard(m) +
-    '  <p class="footnote"><span data-count-for="#lbTable">' + m.airlineCount + '</span> airlines, ' +
-    'scores recomputed on every build, data eff ' + esc(H.chipDate(m.updated)) + '. ' +
-    P.BAND_LEGEND + ' ' + esc(m.A.SCORE_METHOD_LINE) + ' ' + esc(m.A.SCORE_CAVEAT) +
+    '  <p class="footnote">' + m.airlineCount + ' airlines, scores recomputed on every build, ' +
+    'data eff ' + esc(H.chipDate(m.updated)) + '. ' + P.BAND_LEGEND + ' ' +
+    esc(m.A.SCORE_METHOD_LINE) + ' ' + esc(m.A.SCORE_CAVEAT) +
     ' <a href="/methodology/">How much to trust each number, and the four confidence tiers →</a></p>\n' +
     '</section>\n\n' +
     '<section class="blk">\n  <div class="sec-h"><h2>Airline WiFi questions</h2>' +
