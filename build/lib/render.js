@@ -99,11 +99,16 @@ function home(m) {
     '<header class="hero heroq">\n' +
     '  <span class="kicker">The check</span>\n' +
     '  <h1>Will you be able to work <span class="tag">on that flight?</span></h1>\n' +
+    /* .sm-off hides at 640px and under. See the 390px block in assets/site.css:
+       both sentences inside it repeat work the page does again further down, and
+       at 390px they were pushing the input and the button under the fold. What a
+       phone keeps is what you get, then the no-account line. */
     '  <p class="lede">Type the flight number and you get three things: the odds it draws next-gen ' +
-    'WiFi, what is on board when it does not, and how far to lean on both. Every figure on this ' +
-    'site names its source and its date. No account, nothing stored. The page runs in two halves — ' +
+    'WiFi, what is on board when it does not, and how far to lean on both. ' +
+    '<span class="sm-off">Every figure on this site names its source and its date. </span>' +
+    'No account, nothing stored.<span class="sm-off"> The page runs in two halves — ' +
     'the record first, then <a href="#companion">the companion</a>, a Chrome extension that carries ' +
-    'the same odds onto the page where you book.</p>\n' +
+    'the same odds onto the page where you book.</span></p>\n' +
     P.flightCheck(m) +
     P.workedAnswer(m) +
     '</header>\n\n' +

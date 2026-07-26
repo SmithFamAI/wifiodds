@@ -140,18 +140,14 @@ function tape(v) {
  * the spec asks for a seam a reader can see rather than a heading they have to
  * infer.
  *
- * The geometry is inline rather than in assets/site.css because that file
- * belongs to another agent this build. Everything it reaches for is a token
- * already declared there, so the strip re-themes with the rest of the page. When
- * site.css next opens, this is four rules (.halfmark, .halfmark .n,
- * .halfmark strong, .halfmark.seam) and the markup below already carries those
- * class names. */
+ * The geometry moved to assets/site.css on 25 Jul 2026, which is what the note
+ * that used to sit here asked for. It had to move: an inline style beats a
+ * stylesheet rule, so the 390px media query that hides the FIRST halfmark could
+ * not reach it while the geometry lived on the element. The SECOND one stays
+ * visible at every width, because it is a real mid-page seam and the extension
+ * banner's jump link targets it. */
 function halfmark(n, name, desc, id) {
-  return '<div class="halfmark' + (n === 2 ? ' seam' : '') + '" id="' + esc(id) + '" ' +
-    'style="background:var(--panel);border:1px solid var(--line);' +
-    (n === 2 ? 'border-top:4px solid var(--sky-deep);' : '') +
-    'border-radius:var(--r-md);padding:.65rem .95rem;margin:2.4rem 0 0;display:flex;' +
-    'align-items:baseline;gap:.3rem .8rem;flex-wrap:wrap">' +
+  return '<div class="halfmark' + (n === 2 ? ' seam' : '') + '" id="' + esc(id) + '">' +
     '<span class="kicker n" style="margin:0">' + esc(n === 1 ? 'First half' : 'Second half') +
     '</span><strong style="font-family:var(--serif);font-size:1.05rem">' + esc(name) + '</strong>' +
     '<span class="note" style="color:var(--muted)">' + esc(desc) + '</span></div>\n\n';
