@@ -159,6 +159,7 @@ const WIFI_AIRLINES = {
   /* ── instrumented: the extension can show real per-flight odds for these ── */
   united: {
     name: "United", code: "UA", asOf: "2026-07",
+    nextGenSplit: { mainline: { n: 141, of: 1138 }, regional: { n: 341, of: 669 } },
     /* equipped/fleet MUST equal united/data.json fleet.equipped / fleet.total.
        They had drifted to 481/1807 while data.json said 481/1808, so the same
        homepage printed "481 of 1,807 (27%)" on the US card and "of 1,808
@@ -206,6 +207,7 @@ const WIFI_AIRLINES = {
   },
   alaska: {
     name: "Alaska", code: "AS", asOf: "2026-07",
+    nextGenSplit: "split-not-published",
     system: "starlink", equipped: 99, fleet: 350, free: "free",
     instrumented: true, tracker: "alaskastarlinktracker.com",
     resolution: "type",
@@ -237,6 +239,7 @@ const WIFI_AIRLINES = {
   /* ── Starlink, no per-flight instrumentation ── */
   jsx: {
     name: "JSX", code: "XE", asOf: "2026-04",
+    nextGenSplit: "no-mainline-fleet",
     system: "starlink", equipped: 56, fleet: 56, free: "free",
     resolution: "type",
     serviceTier: "next-gen", restTier: null,
@@ -264,6 +267,7 @@ const WIFI_AIRLINES = {
   },
   airbaltic: {
     name: "airBaltic", code: "BT", asOf: "2026-03",
+    nextGenSplit: "no-regional-fleet",
     system: "starlink", equipped: 28, fleet: 55, free: "free",
     resolution: "type",
     serviceTier: "next-gen", restTier: null,
@@ -295,6 +299,7 @@ const WIFI_AIRLINES = {
   },
   zipair: {
     name: "ZIPAIR", code: "ZG", asOf: "2026-07",
+    nextGenSplit: "no-regional-fleet",
     system: "starlink", equipped: 9, fleet: 9, free: "free",
     resolution: "type",
     serviceTier: "next-gen", restTier: null,
@@ -306,6 +311,7 @@ const WIFI_AIRLINES = {
   },
   westjet: {
     name: "WestJet", code: "WS", asOf: "2026-07",
+    nextGenSplit: "split-not-published",
     /* CORRECTED 2026-07-26. The 151-of-159 that was here has no publisher of
        record behind it. It traces to starlinkflights.com, which states a fleet
        of 159 while its own tail table on the same page reads 204, and which
@@ -341,6 +347,7 @@ const WIFI_AIRLINES = {
   },
   airfrance: {
     name: "Air France", code: "AF", asOf: "2026-07",
+    nextGenSplit: "split-not-published",
     system: "starlink", equipped: 172, fleet: 229, free: "free",
     resolution: "systems",
     serviceTier: "mixed", restTier: "basic",
@@ -358,6 +365,7 @@ const WIFI_AIRLINES = {
   },
   hawaiian: {
     name: "Hawaiian", code: "HA", asOf: "2026-07",
+    nextGenSplit: "no-regional-fleet",
     /* CORRECTED 2026-07-25. Hawaiian NEVER had Viasat — it went from no wifi at
        all straight to Starlink in 2024, and the site used to imply otherwise.
        fleet is 66, not the 61 that was here: 61 counted the A330s and A321neos
@@ -383,6 +391,7 @@ const WIFI_AIRLINES = {
   },
   qatar: {
     name: "Qatar Airways", code: "QR", asOf: "2026-07",
+    nextGenSplit: "no-regional-fleet",
     system: "starlink", equipped: 140, fleet: 241, free: "free",
     resolution: "systems",
     serviceTier: "mixed", restTier: "basic",
@@ -402,6 +411,7 @@ const WIFI_AIRLINES = {
   },
   sas: {
     name: "SAS", code: "SK", asOf: "2026-07",
+    nextGenSplit: "split-not-published",
     system: "starlink", equipped: 60, fleet: 123, free: "loyalty-free",
     resolution: "systems",
     serviceTier: "mixed", restTier: "unknown",
@@ -422,6 +432,7 @@ const WIFI_AIRLINES = {
   },
   emirates: {
     name: "Emirates", code: "EK", asOf: "2026-07",
+    nextGenSplit: "no-regional-fleet",
     system: "starlink", equipped: 36, fleet: 232, free: "free",
     resolution: "systems",
     serviceTier: "mixed", restTier: "unknown",
@@ -439,6 +450,7 @@ const WIFI_AIRLINES = {
   },
   virginatlantic: {
     name: "Virgin Atlantic", code: "VS", asOf: "2026-07",
+    nextGenSplit: "no-regional-fleet",
     system: "starlink", equipped: 12, fleet: 43, free: "loyalty-free",
     resolution: "systems",
     serviceTier: "mixed", restTier: "unknown",
@@ -455,6 +467,7 @@ const WIFI_AIRLINES = {
   },
   aircanada: {
     name: "Air Canada", code: "AC", asOf: "2026-07",
+    nextGenSplit: "split-not-published",
     system: "starlink", equipped: 12, fleet: 216, free: "loyalty-free",
     resolution: "systems",
     serviceTier: "mixed", restTier: "unknown",
@@ -474,6 +487,7 @@ const WIFI_AIRLINES = {
   },
   britishairways: {
     name: "British Airways", code: "BA", asOf: "2026-07",
+    nextGenSplit: "split-not-published",
     system: "starlink", equipped: 5, fleet: 261, free: "free",
     resolution: "systems",
     serviceTier: "mixed", restTier: "basic",
@@ -495,6 +509,7 @@ const WIFI_AIRLINES = {
   },
   southwest: {
     name: "Southwest", code: "WN", asOf: "2026-07",
+    nextGenSplit: "no-regional-fleet",
     /* fleet: 803 Boeing 737s as of Dec 31 2025, read verbatim from Southwest's
        FY2025 10-K (filed 2026-02-05). The 817 previously here was the Dec 31
        2023 figure and had gone stale. Third-party trackers still quote 817. */
@@ -536,6 +551,7 @@ const WIFI_AIRLINES = {
   /* ── legacy GEO today, LEO signed for later (future deals are NOT scored) ── */
   american: {
     name: "American", code: "AA", asOf: "2026-07",
+    nextGenSplit: "split-not-published",
     system: "viasat", equipped: 890, fleet: 989, free: "free",
     future: { system: "starlink", from: "2027-Q1", detail: "500+ Airbus aircraft signed" },
     /* SIGNED, NOT FLYING. 500+ Airbus narrowbodies out of 989, installs from
@@ -573,6 +589,7 @@ const WIFI_AIRLINES = {
   },
   delta: {
     name: "Delta", code: "DL", asOf: "2026-07",
+    nextGenSplit: "split-not-published",
     /* CORRECTED 2026-07-25. coverage was 1.0 ("streaming-class fleetwide"),
        which is not true today. Delta's own two public data points bound it:
          · 2025-12-08 — "1,000+ Sync-equipped aircraft, >75% of the entire
@@ -625,6 +642,7 @@ const WIFI_AIRLINES = {
   },
   jetblue: {
     name: "jetBlue", code: "B6", asOf: "2026-07",
+    nextGenSplit: "no-regional-fleet",
     /* coverage stays 1.0 — every one of the 291 aircraft (129 A320, 101 A321,
        61 A220 as of 2026-03-31, per JetBlue's Q1 8-K) carries Viasat Ka-band
        Fly-Fi. TWO HARDWARE GENERATIONS are flying and that much is sourced:
@@ -1054,6 +1072,33 @@ function nextGenScore(entry) {
   return Math.round(clamp01(nextGenShare(entry) * freeFactor(entry.free)) * 100);
 }
 
+/* ── the mainline/regional split of NEXT-GEN ODDS, not of ConnectScore ─────
+ * D2: the united/data.json roster is Starlink-only (tail/type/fleet/seen, no
+ * system field), so aircraft type ties to a segment but Viasat/Panasonic/Thales
+ * installs do NOT. Building that crosstab for anyone but United would be
+ * inventing data, which rule 1 forbids. So this splits next-gen odds only, and
+ * only United carries real numbers.
+ *
+ * `entry.nextGenSplit` is either:
+ *   a STRING state — "no-regional-fleet" | "split-not-published" |
+ *     "no-mainline-fleet" — for every airline this cannot be computed for, or
+ *   an OBJECT { mainline: {n, of}, regional: {n, of} } — United only, kept in
+ *     sync with united/data.json by reconcileUnited() in build/prerender.js.
+ *
+ * A STATE IS NOT A ZERO. mainline/regional are null whenever the state is not
+ * "value" — never 0, which would read as "no Starlink" instead of "no data". */
+function nextGenSplitFor(entry) {
+  const raw = entry && entry.nextGenSplit;
+  if (!raw) return { state: "split-not-published", mainline: null, regional: null };
+  if (typeof raw === "string") return { state: raw, mainline: null, regional: null };
+  const f = freeFactor(entry.free);
+  function seg(x) {
+    if (!x || !x.of) return null;
+    return { n: x.n, of: x.of, pct: Math.round(clamp01((Number(x.n) / Number(x.of)) * f) * 100) };
+  }
+  return { state: "value", mainline: seg(raw.mainline), regional: seg(raw.regional) };
+}
+
 /* ── the projected score ──────────────────────────────────────────────────
  * Five small functions. Four are pure arithmetic on one entry; the fifth,
  * projectionFor(), is the only one anything should render, and it is the fence
@@ -1306,6 +1351,8 @@ function scoreAirline(key) {
     nextGenShare: nextGenShare(entry),
     nextGenSystem: isNextGen(entry.system) ? entry.system : null,
     nextGenLabel: isNextGen(entry.system) ? (SYSTEM_LABEL[entry.system] || entry.system) : null,
+    /* ── D2: the mainline/regional split of next-gen odds, United-only today. ── */
+    nextGenSplit: nextGenSplitFor(entry),
     serviceTier: serviceTierOf(entry),
     serviceTierLabel: serviceTierLabel(entry),
     serviceTierBlurb: SERVICE_TIER_BLURB[serviceTierOf(entry)] || "",
@@ -1351,11 +1398,11 @@ export {
   scoreEntry, scoreAirline, rankAirlines, NEXT_GEN_SYSTEMS,
   NEXT_GEN_DONE, SERVICE_TIER_LABEL, REST_TIER_LABEL, SERVICE_TIER_BLURB,
   TIER_METHOD_LINE, isNextGen, nextGenShare, nextGenScore,
-  serviceTierOf, serviceTierExpected, serviceTierLabel, restTierLabel,
-  QUALITY_TIER, SYSTEM_TIER, QUALITY_TIER_LABEL, RESOLUTION_LABEL,
-  RESOLUTION_BLURB, STREAMING_MIN_Q, isSegmented, segmentSystems,
-  segmentQuality, segmentIsNextGen, knownAircraft, unresolvedAircraft,
-  resolutionOf, ledgerFor, fleetQuality, PROJECTION_CONFIDENCE,
-  PROJECTION_STORED, PROJECTION_METHOD_LINE, horizonEnd, projectedInstalled,
-  projectedShare, projectedScore, projectionFor
+  nextGenSplitFor, serviceTierOf, serviceTierExpected, serviceTierLabel,
+  restTierLabel, QUALITY_TIER, SYSTEM_TIER, QUALITY_TIER_LABEL,
+  RESOLUTION_LABEL, RESOLUTION_BLURB, STREAMING_MIN_Q, isSegmented,
+  segmentSystems, segmentQuality, segmentIsNextGen, knownAircraft,
+  unresolvedAircraft, resolutionOf, ledgerFor, fleetQuality,
+  PROJECTION_CONFIDENCE, PROJECTION_STORED, PROJECTION_METHOD_LINE, horizonEnd,
+  projectedInstalled, projectedShare, projectedScore, projectionFor
 };

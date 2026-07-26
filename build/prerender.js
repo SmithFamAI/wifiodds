@@ -373,7 +373,7 @@ var SCORE_EXPORTS = ['WIFI_AIRLINES', 'SYSTEM_QUALITY', 'FREE_FACTOR', 'SYSTEM_L
      names it needs have to survive the re-emit as well */
   'NEXT_GEN_SYSTEMS', 'NEXT_GEN_DONE', 'SERVICE_TIER_LABEL', 'REST_TIER_LABEL',
   'SERVICE_TIER_BLURB', 'TIER_METHOD_LINE',
-  'isNextGen', 'nextGenShare', 'nextGenScore',
+  'isNextGen', 'nextGenShare', 'nextGenScore', 'nextGenSplitFor',
   'serviceTierOf', 'serviceTierExpected', 'serviceTierLabel', 'restTierLabel',
   /* the v3 segmented model — the API returns floor, ceiling, resolution and the
      ledger rows, so every name behind them has to survive the re-emit too */
@@ -549,11 +549,19 @@ function reconcileUnited() {
   var RE_NOTE = /note:\s*"(\d[\d,]*)\s+of\s+(\d[\d,]*)\s+aircraft/;
   var RE_STARLINK = /\{ system: "starlink", n: (\d+), free: "loyalty-free", as: "([\d-]+)"/;
   var RE_UNRESOLVED = /unresolved:\s*\{\s*n:\s*(\d+)/;
+  /* D2's mainline/regional split of next-gen odds. This is the ONLY airline
+   * entry that carries an object here — see nextGenSplitFor() in
+   * assets/airlines.js — and it must track fleet.mainline / fleet.express in
+   * united/data.json exactly, the same population D.fleet.equipped/total come
+   * from, or the leaderboard's mainline+regional would stop summing to the
+   * airline's own total. */
+  var RE_NEXTGEN_SPLIT = /nextGenSplit:\s*\{\s*mainline:\s*\{\s*n:\s*(\d+),\s*of:\s*(\d+)\s*\},\s*regional:\s*\{\s*n:\s*(\d+),\s*of:\s*(\d+)\s*\}\s*\}/;
 
   var was = RE_COUNTS.exec(body); if (!was) die('the equipped / fleet pair');
   if (!RE_NOTE.test(body)) die('the note string that quotes both counts');
   var sl = RE_STARLINK.exec(body); if (!sl) die('the starlink segment');
   var un = RE_UNRESOLVED.exec(body); if (!un) die('the unresolved count');
+  var ngs = RE_NEXTGEN_SPLIT.exec(body); if (!ngs) die('the nextGenSplit mainline/regional block');
 
   body = body
     .replace(RE_COUNTS, 'equipped: ' + eq + ', fleet: ' + tot)
@@ -562,6 +570,22 @@ function reconcileUnited() {
       tot.toLocaleString('en-US') + ' aircraft')
     .replace(RE_STARLINK, '{ system: "starlink", n: ' + eq +
       ', free: "loyalty-free", as: "' + D.updated + '"');
+
+  var mlSeg = D.fleet.mainline, exSeg = D.fleet.express;
+  if (!mlSeg || !exSeg || typeof mlSeg.equipped !== 'number' || typeof exSeg.equipped !== 'number') {
+    console.error('Build FAILED — united/data.json is missing fleet.mainline / fleet.express, which');
+    console.error('  nextGenSplit needs. D2\'s mainline/regional next-gen odds have nothing to read.');
+    process.exit(1);
+  }
+  if (mlSeg.equipped + exSeg.equipped !== eq || mlSeg.total + exSeg.total !== tot) {
+    console.error('Build FAILED — united/data.json fleet.mainline + fleet.express does not sum to');
+    console.error('  fleet.equipped/fleet.total (' + mlSeg.equipped + '+' + exSeg.equipped + ' vs ' +
+      eq + ', ' + mlSeg.total + '+' + exSeg.total + ' vs ' + tot + '). The segments and the whole');
+    console.error('  no longer describe the same population — fix the data, not this check.');
+    process.exit(1);
+  }
+  body = body.replace(RE_NEXTGEN_SPLIT, 'nextGenSplit: { mainline: { n: ' + mlSeg.equipped +
+    ', of: ' + mlSeg.total + ' }, regional: { n: ' + exSeg.equipped + ', of: ' + exSeg.total + ' } }');
 
   /* `unresolved` is the RESIDUAL, recomputed from the segments rather than
      nudged by a delta. Two things move on their own overnight — installs, and

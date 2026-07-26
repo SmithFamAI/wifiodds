@@ -179,6 +179,16 @@ async function main() {
     ranked.map(function (a) { return a.key; }).join(','),
     '/api/airlines order matches rankAirlines()');
 
+  /* ── D2: only United may carry a computed value for the mainline/regional
+   * next-gen split. The roster in united/data.json is Starlink-only — tail,
+   * type, fleet segment, install date, no system field — so aircraft type ties
+   * to mainline/express but the OTHER systems (Viasat/Panasonic/Thales) do not.
+   * Building that crosstab for anyone else would be inventing data, which rule
+   * 1 forbids. If a future PR adds a real split for another airline, add its
+   * key here DELIBERATELY; that is the only way this assertion should ever
+   * need to change. */
+  var VALUE_SPLIT_ALLOWED = ['united'];
+
   all.airlines.forEach(function (a) {
     var r = A.scoreAirline(a.key);
     eq(a.connectScore, r.score, 'connectScore for ' + a.key);
@@ -208,6 +218,32 @@ async function main() {
     } else {
       eq(a.nextGen.system, a.system.key, a.key + ': nextGen.system names the flying LEO system');
     }
+
+    /* ── D2: the mainline/regional split of next-gen odds. A STATE IS NOT A
+     * ZERO — whenever the split is not published, mainline/regional must be
+     * null, never a number, so an empty state can never be misread as "no
+     * Starlink on that segment". */
+    var split = a.nextGen.split;
+    ok(split && typeof split.state === 'string', a.key + ': nextGen.split has a state');
+    ok(['value', 'no-regional-fleet', 'split-not-published', 'no-mainline-fleet']
+      .indexOf(split.state) >= 0,
+      a.key + ': nextGen.split.state is one of the four states', split.state);
+    if (split.state === 'value') {
+      /* THE TRIPWIRE. Only United may reach this branch — see the allow-list
+       * above. If it fires for anyone else, someone estimated a missing split
+       * instead of leaving the state as "split-not-published" / "no-regional-
+       * fleet", and this is the assertion that has to fail because of it. */
+      ok(VALUE_SPLIT_ALLOWED.indexOf(a.key) >= 0,
+        a.key + ': only United may publish a mainline/regional next-gen split');
+      ok(split.mainline && typeof split.mainline.aircraft === 'number',
+        a.key + ': value split carries a real mainline number');
+      ok(split.regional && typeof split.regional.aircraft === 'number',
+        a.key + ': value split carries a real regional number');
+    } else {
+      eq(split.mainline, null, a.key + ': ' + split.state + ' ⇒ mainline is null, not zero');
+      eq(split.regional, null, a.key + ': ' + split.state + ' ⇒ regional is null, not zero');
+    }
+
     /* no video-call promise leaks into any machine-readable string either */
     ok(!/video call/i.test(JSON.stringify(a)), a.key + ': API text promises no video calls');
 
@@ -257,6 +293,24 @@ async function main() {
       }
     }
   });
+
+  /* ── D2: United's mainline + regional next-gen odds sum to its own totals. ──
+   * This is the check that stops the split from quietly drifting away from the
+   * fleet it is supposed to describe. */
+  var ua = all.airlines.filter(function (a) { return a.key === 'united'; })[0];
+  ok(ua, 'united is present in /api/airlines');
+  var uaSplit = ua.nextGen.split;
+  eq(uaSplit.state, 'value', "united: nextGen.split.state is 'value'");
+  ok(uaSplit.mainline && uaSplit.regional, 'united: mainline and regional both present');
+  if (uaSplit.mainline && uaSplit.regional) {
+    eq(uaSplit.mainline.aircraft + uaSplit.regional.aircraft, ua.fleet.equipped,
+      'united: mainline + regional next-gen aircraft sum to the equipped total');
+    eq(uaSplit.mainline.of + uaSplit.regional.of, ua.fleet.total,
+      'united: mainline + regional fleet counts sum to the published total');
+    ok(uaSplit.regional.pct > uaSplit.mainline.pct,
+      'united: regional next-gen odds beat mainline — the reason this feature exists',
+      [uaSplit.mainline.pct, uaSplit.regional.pct]);
+  }
 
   /* ── the legacy single-system path, which has to keep working ─────────────
    * Not every airline will arrive with segment data, so scoreEntry() still takes

@@ -145,7 +145,27 @@ export function airlineJson(key) {
       system: a.nextGenSystem,
       label: a.nextGenLabel,
       share: round(a.nextGenShare, 4),
-      pct: Math.round(a.nextGenShare * 100)
+      pct: Math.round(a.nextGenShare * 100),
+      /* ── D2: next-gen odds split by mainline vs regional fleet. United-only
+       * today — see nextGenSplitFor() in assets/airlines.js for why a crosstab
+       * for anyone else would be invented data.
+       *   state      "value" | "no-regional-fleet" | "split-not-published" |
+       *              "no-mainline-fleet". A STATE IS NOT A ZERO: mainline/
+       *              regional are null whenever state is not "value".
+       *   mainline / regional   { aircraft, of, pct } or null. */
+      split: {
+        state: a.nextGenSplit.state,
+        mainline: a.nextGenSplit.mainline ? {
+          aircraft: a.nextGenSplit.mainline.n,
+          of: a.nextGenSplit.mainline.of,
+          pct: a.nextGenSplit.mainline.pct
+        } : null,
+        regional: a.nextGenSplit.regional ? {
+          aircraft: a.nextGenSplit.regional.n,
+          of: a.nextGenSplit.regional.of,
+          pct: a.nextGenSplit.regional.pct
+        } : null
+      }
     },
     serviceTier: a.serviceTier,
     service: {
