@@ -422,6 +422,28 @@ async function main() {
   assertEnvelope(res, miss, '404 airline');
 
   /* ── GET /api/score/{flightNumber} ── */
+  /* The expected prob and observation count are READ OUT OF THE CACHE, not
+     frozen here. Until 26 Jul 2026 they were the literals 47 and 20, and the
+     04:32 data refresh moved UA212 to 46 / 21 and pushed to main with these six
+     checks red — the suite failed on a number doing exactly what a daily
+     refresh is for. Freezing a value the refresh owns tests the refresh, not
+     the API. What the endpoint actually promises is that it returns the cached
+     route history for that flight, so that is what is asserted: the same row
+     the cache holds, looked up independently of the handler. If the join
+     breaks, the lookup below still finds the row and the assertion still
+     fires. */
+  var ua212row = (function () {
+    var rc = require(path.join(ROOT, 'united', 'data.json')).routeCache || {};
+    var keys = Object.keys(rc);
+    for (var i = 0; i < keys.length; i++) {
+      var hit = (rc[keys[i]].flights || []).filter(function (f) { return f.fn === 'UA212'; })[0];
+      if (hit) return { route: keys[i], f: hit };
+    }
+    return null;
+  })();
+  ok(ua212row && typeof ua212row.f.prob === 'number' && typeof ua212row.f.obs === 'number',
+    'UA212 is present in the route cache with a prob and an obs count', ua212row);
+
   res = await H.scoreFlight(ctx('https://wifiodds.com/api/score/UA212', { flight: 'UA212' }));
   var s = await body(res);
   eq(res.status, 200, '/api/score/UA212 status');
@@ -429,9 +451,9 @@ async function main() {
   eq(s.flight, 'UA212', 'UA212 flight echo');
   eq(s.airline.key, 'united', 'UA212 → united');
   eq(s.method, 'route-history', 'UA212 method');
-  eq(s.prob, 47, 'UA212 prob comes from the cached route history');
-  eq(s.evidence.route, 'LAX-ORD', 'UA212 evidence route');
-  eq(s.evidence.observations, 20, 'UA212 evidence observations');
+  eq(s.prob, ua212row.f.prob, 'UA212 prob comes from the cached route history');
+  eq(s.evidence.route, ua212row.route, 'UA212 evidence route');
+  eq(s.evidence.observations, ua212row.f.obs, 'UA212 evidence observations');
   eq(s.connectScore, A.scoreAirline('united').score, 'UA212 carries the coarse United score too');
 
   /* normalisation: all four spellings must land on the same answer */
@@ -439,7 +461,7 @@ async function main() {
     res = await H.scoreFlight(ctx('https://wifiodds.com/api/score/x', { flight: v }));
     var n = await body(res);
     eq(n.flight, 'UA212', 'normalised "' + v + '"');
-    eq(n.prob, 47, 'normalised "' + v + '" prob');
+    eq(n.prob, ua212row.f.prob, 'normalised "' + v + '" prob');
   }
 
   /* a United flight we have no history for — coarse, and prob must be null, not 0 */
