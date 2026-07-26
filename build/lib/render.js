@@ -13,6 +13,8 @@ var T = require('./tmpl.js');
 var MK = require('./market.js');
 /* published reader field reports, off the committed assets/reports.json */
 var RP = require('./reports.js');
+/* the static route tables /united/ shows when script is off */
+var NJ = require('./nojsroutes.js');
 var esc = H.esc, num = DL.num;
 var ORIGIN = H.ORIGIN;
 
@@ -2388,12 +2390,16 @@ function notFound(m) {
 function unitedOptimizer(m) {
   var crumbs = [['/', 'Home'], ['/airlines/united/', 'United'], ['/united/', 'Route optimizer']];
   /* The template is injected, never parsed: the ~1,400 lines of live-tested app
-     JS and CSS in it are byte-identical in the output. Only the three data-bake
-     markers in the no-JS stat line are touched. */
+     JS and CSS in it are byte-identical in the output. Only the data-bake
+     markers are touched — three in the no-JS stat line, and the route tables. */
   var t = T.bake(T.load('united-optimizer'), {
     'united.equipped': num(m.fleet.equipped),
     'united.total': num(m.fleet.total),
-    'site.updated': m.updated
+    'site.updated': m.updated,
+    /* The static route tables inside .no-js-only. This is the page's whole
+       answer for a reader with script off, and before it existed the route
+       renders zero tables and ten empty containers. See build/lib/nojsroutes.js. */
+    'united.nojsroutes': NJ.block(m)
   }, 'united-optimizer');
 
   return H.page({
@@ -2517,7 +2523,16 @@ function alaskaRollout(m) {
 
 /* ═══ /privacy.html ═════════════════════════════════════════════════════ */
 function privacyPage(m) {
-  var t = T.bake(T.load('privacy'), {}, 'privacy');
+  /* §4 describes what /united/ does with script off, and it does that in
+     figures. Baking them means the description cannot drift away from the page
+     it describes: the same model that builds the tables counts them here. */
+  var nj = NJ.model(m);
+  var t = T.bake(T.load('privacy'), {
+    'routes.cached': String(nj.full.length + nj.empty.length),
+    'routes.withFlights': String(nj.full.length),
+    'routes.empty': String(nj.empty.length),
+    'routes.rows': String(nj.rows)
+  }, 'privacy');
   return H.page({
     title: 'Privacy Policy — WiFi Odds for Flights',
     desc: 'Privacy policy for WiFi Odds (wifiodds.com) and the WiFi Odds for Flights browser extension. ' +
