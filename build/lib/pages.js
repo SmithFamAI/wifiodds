@@ -466,7 +466,7 @@ function fieldTable(m) {
   return '<div class="tbl-shell tablescroll rv"><table class="tbl board">\n' +
     '    <thead><tr><th>#</th><th>Airline</th><th class="num">ConnectScore</th>' +
     '<th class="barcell"><span class="visually-hidden">Score drawn as a bar</span></th>' +
-    '<th>Tier</th><th class="num">Next-gen odds</th><th>Rollout</th>' +
+    '<th>Tier</th><th class="num">Next-gen odds</th><th class="phz">Rollout</th>' +
     '<th class="num">Projected · grey, never sorts</th></tr></thead>\n' +
     '    <tbody>\n' + rows + '\n    </tbody>\n  </table></div>\n' +
     /* Visible only under 700px, where the wide columns are shed. */
