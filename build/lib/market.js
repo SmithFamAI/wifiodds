@@ -172,11 +172,13 @@ var ROLLOUT = {
   jetblue: {
     target: 'Amazon Leo from 2027',
     detail: 'Amazon Leo’s first airline, a year ahead of Delta. Free Fly-Fi (Viasat) on every ' +
-      'aircraft until then, in two generations: the A220s and A321neo/LRs carry ViaSat-2, ' +
-      'while most A320 and A321ceo airframes still run the original 2013-era ViaSat-1 kit, which is ' +
-      'exactly the sub-fleet Leo is slated to replace first. If Leo delivers on schedule this is the ' +
-      'first fleet where the two low-earth-orbit systems can be compared in service.',
-    source: 'CNBC, September 2025 · Viasat newsroom on the A220/A321neo fit'
+      'aircraft until then, in two hardware generations. JetBlue says Leo goes to the aircraft ' +
+      'still on the original Fly-Fi kit and has never published which airframes those are, so ' +
+      'the sub-fleet has a size (about a quarter) and no membership list. If Leo delivers on ' +
+      'schedule this is the first fleet where the two low-earth-orbit systems can be compared ' +
+      'in service.',
+    source: 'JetBlue press release, 4 Sep 2025 · Runway Girl Network, 9 Sep 2025 on the ' +
+      'two cohorts'
   }
 };
 
