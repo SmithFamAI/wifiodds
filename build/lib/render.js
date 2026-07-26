@@ -1745,8 +1745,10 @@ function methodologyPage(m) {
       'cabin load was recorded, both nearly full. The same terminal on a rooftop in Pisa did 188') +
     P.kpi('152 to 320', 'Per-airline median, Mbps', 'crowdsourced and self-selected. Q1 2025 all ' +
       'Starlink, then 2H 2025 United. People run a speed test when the wifi feels notable') +
-    P.kpi('21×', 'Inside one airline', 'United ran three networks at once through 2025: Starlink ' +
-      '319.99 Mbps, Intelsat 56.48, Inmarsat 15.34') +
+    P.kpi('21×', 'Inside one airline', 'Ookla measured United under three provider labels in 2H ' +
+      '2025: Starlink 319.99 Mbps, Intelsat 56.48, Inmarsat 15.34. Those are Ookla’s names for ' +
+      'the networks, not United’s names for its equipment, and the callout below works through ' +
+      'the difference') +
     '</div>\n' +
     P.srcLine('measured', 'Jang, Varvello, Raman and Zaki, ACM IMC ’25, 28 to 31 Oct 2025 · ' +
       'Ullah, Borgianni, Kokkinen, Anttonen and Giordano, arXiv:2508.09839, Aug 2025 · ' +
@@ -1779,6 +1781,39 @@ function methodologyPage(m) {
     'does, and almost no consumer-facing site records which one your aircraft has.</p>' +
     P.srcLine('measured', 'Ookla Speedtest Intelligence, 28 Apr 2026. Consistency is Ookla’s own ' +
       'metric: the share of samples clearing 25 Mbps down and 3 Mbps up together.') + '</div>\n' +
+
+    /* Added 2026-07-26. Ookla and Martin's tracker name United's non-Starlink
+     * fleet differently and the site had been printing Ookla's labels as if
+     * they were United's equipment list. Every claim below was read off the
+     * source page rather than taken from a summary. */
+    '  <div class="callout" style="margin-top:18px"><h3>Two vocabularies for the same aeroplane, ' +
+    'and we cannot join them</h3>' +
+    '<p>Ookla files United’s non-Starlink flying under Intelsat and Inmarsat. The per-tail tracker ' +
+    'we use files it under Viasat, Panasonic and Thales. Both are reading real data. They are ' +
+    'naming different layers of the same stack, and we could not build a mapping between them ' +
+    'that a source would license, so we have not built one.</p>' +
+    '<p>Ookla says in the article itself that its data cannot isolate a specific aeroplane and ' +
+    'that its provider names come out of Speedtest samples. Its taxonomy mixes satellite operators ' +
+    'with the integrators who resell them: it notes that Panasonic Avionics runs no satellites of ' +
+    'its own and buys capacity from Eutelsat OneWeb and Spacesail, and that Viasat and Inmarsat ' +
+    'still appear as two providers three years after Viasat bought Inmarsat. Intelsat has owned ' +
+    'the old Gogo commercial aviation business since December 2020 and has belonged to SES since ' +
+    'July 2025. A label there is a network, and a network can outlive the company on the invoice.</p>' +
+    '<p>The tracker reads the WiFi provider united.com prints against each upcoming flight, so it ' +
+    'speaks United’s vocabulary, tail by tail. That vocabulary splits one network across two names ' +
+    'of its own: the 35 Thales aircraft are Thales as prime integrator on Viasat’s Ka network, ' +
+    'which is how Viasat’s own chief executive described the arrangement to analysts in 2018.</p>' +
+    '<p>Here is the part neither story covers. United’s row in Ookla’s airline chart carries a ' +
+    'Starlink bar, an Intelsat bar and an Inmarsat bar, and no Viasat bar and no Panasonic bar at ' +
+    'all. Those two are the largest non-Starlink fleets United flies, 525 and 407 tails on the ' +
+    'tracker’s count. We have no source that reconciles that, and we found no evidence that United ' +
+    'operates any Inmarsat system. The ledger uses the tracker because it resolves to a tail and ' +
+    'because it is the airline’s own naming; Ookla appears on this site as speeds, never as fleet ' +
+    'composition.</p>' +
+    P.srcLine('measured', 'Ookla Speedtest Intelligence, 28 Apr 2026, chart series read directly · ' +
+      'unitedstarlinktracker.com/fleet, 26 Jul 2026 · Mark Dankberg on Viasat’s FQ3 2018 earnings ' +
+      'call, via Runway Girl Network, 9 Feb 2018 · Gogo’s sale of Commercial Aviation to Intelsat, ' +
+      '1 Dec 2020 · SES completes Intelsat acquisition, 17 Jul 2025.') + '</div>\n' +
     '</section>\n\n' +
 
     /* ── §5 MECHANICS. Why the same hardware gives 220 and 12. ─────────────── */
