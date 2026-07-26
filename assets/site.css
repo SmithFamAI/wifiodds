@@ -296,7 +296,13 @@ html.js .no-js-only{display:none}
    H.page({updated}). Nothing here is hard-coded; a stale date is worse than
    no date. */
 header.site{border-bottom:1px solid var(--line);background:var(--paper)}
-.masthead{display:flex;align-items:baseline;gap:.6rem 1.25rem;flex-wrap:wrap;padding:1rem 0}
+/* padding-top/bottom, never the shorthand. .masthead is also a .wrap, and
+   `padding:1rem 0` silently zeroed the horizontal padding .wrap provides, so
+   the wordmark, nav and datechip sat flush to the screen edge while the body
+   stayed inset. Below 431px a later .wrap rule happened to restore it, which
+   is exactly why it hid: every narrow width I tested looked correct. */
+.masthead{display:flex;align-items:baseline;gap:.6rem 1.25rem;flex-wrap:wrap;
+  padding-top:1rem;padding-bottom:1rem}
 .wordmark{font-family:var(--serif);font-size:1.35rem;font-weight:700;letter-spacing:-.01em;
   color:var(--ink);text-decoration:none;white-space:nowrap}
 .wordmark:hover{text-decoration:none}
@@ -931,7 +937,15 @@ ul.vstate .st{display:inline-block;min-width:10rem;font-size:.68rem;font-weight:
   .tablescroll table{min-width:34rem}
 }
 @media(max-width:600px){
-  .masthead{gap:.5rem .9rem;padding:.85rem 0}
+  /* Vertical only. The shorthand `padding:.85rem 0` used to sit here and it
+     zeroed the horizontal padding .masthead inherits as a .wrap, so between
+     431px and 600px the wordmark, the nav and the datechip ran flush to the
+     screen edge while the body content stayed inset. Below 431px a later rule
+     restored .wrap's padding and hid the fault, which is why every width I
+     tested — 390, 393, 398, 402, 430, then 480 — missed it. Jeremy found it on
+     a 440px iPhone and guessed the cause from the symptom: "it may just be the
+     menu." Never set the shorthand on an element that is also a .wrap. */
+  .masthead{gap:.5rem .9rem;padding-top:.85rem;padding-bottom:.85rem}
   .masthead nav{gap:.8rem;font-size:.88rem;margin-left:0;order:3;flex:1 0 100%}
   .themetoggle{margin-left:auto}
   .hero,.heroq{padding-top:2rem}
