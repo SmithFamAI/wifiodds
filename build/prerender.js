@@ -36,6 +36,7 @@ var DL = require('./lib/data.js');
 var H = require('./lib/html.js');
 var Render = require('./lib/render.js');
 var SlopGate = require('./slop-gate.js');
+var Surfaces = require('./surfaces.js');
 
 var ORIGIN = H.ORIGIN;
 var t0 = Date.now();
@@ -1003,6 +1004,12 @@ function main() {
   write('sitemap.xml', buildSitemap(m));
   write('robots.txt', buildRobots());
   write('llms.txt', buildLlms(m));
+  /* The route inventory, for people rather than crawlers. Written AFTER the
+     pages above because it reads each one's <title> off disk. Generated because
+     three docs cite it as authoritative, and a hand-authored list of 31 routes
+     drifts inside a week — which is the failure the `hand` route kind already
+     caused here once. */
+  write('SURFACES.md', Surfaces.build());
 
   /* 2b. the public API's copy of the formula — generated, never authored. See
    *     buildScoreModule() above for why this exists at all. */
