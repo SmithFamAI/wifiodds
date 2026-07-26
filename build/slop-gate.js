@@ -193,9 +193,11 @@ var METRICS = [
 function round(n, d) { var p = Math.pow(10, d); return Math.round(n * p) / p; }
 
 /* ── where the baseline lives ─────────────────────────────────────────────
- * wifiodds keeps it in build/, which .assetsignore already keeps off the public
- * deploy. A repo with no build/ (websites) keeps it at the root, which is not
- * served either — only public/ is. */
+ * wifiodds keeps it in build/. NOTE: build/ IS publicly served — the deploy has
+ * an empty output directory, so Pages publishes the repo root. That is fine for
+ * a baseline file and this comment used to claim .assetsignore prevented it,
+ * which was never true. A repo with no build/ (websites) keeps it at the root,
+ * which is not served, because only public/ is. */
 function baselinePath() {
   if (process.env.SLOP_BASELINE) return path.resolve(process.env.SLOP_BASELINE);
   try {

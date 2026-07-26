@@ -66,7 +66,9 @@ function exists(p) { try { return fs.statSync(abs(p)).isFile(); } catch (e) { re
  * list again, an entry here must be a genuine embed, not a page you did not want
  * to register. */
 var EMBEDS = [];
-/* skip dirs that Cloudflare Pages never serves (see .assetsignore / .gitignore) */
+/* Dirs the walker skips. These are NOT hidden from the public: the deploy has an
+   empty output directory, so Pages serves the repo root and build/ is fetchable.
+   This list only keeps the drift guard from scanning them. */
 var SKIP_DIRS = { '.git': 1, 'build': 1, 'node_modules': 1, '.claude': 1 };
 
 function walkHtml(dir, rel, out) {

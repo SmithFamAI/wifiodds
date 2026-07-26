@@ -32,7 +32,7 @@ footer were touched.
 | Output directory | **repo root** (`/`) |
 | Framework preset | None |
 | Node | Any current LTS. **Zero dependencies** — there is no `package.json` and nothing to install |
-| Excluded from the deploy | `.assetsignore` (`build/`, `*.md`, `.claude`) |
+| Excluded from the deploy | **Nothing.** The build output directory is empty, so Cloudflare Pages publishes the repository root and every tracked file is a public URL. Measured 26 Jul 2026: 78 of 90 tracked files are served, including all of `build/`. `functions/` is the exception — Pages compiles it and never serves the source. |
 
 `build/prerender.js` **generates every one of the 30 served pages** and writes `sitemap.xml`,
 `robots.txt`, `llms.txt` and `functions/_lib/score.mjs`. `<lastmod>` comes from `united/data.json`'s `updated` field, so the daily

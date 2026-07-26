@@ -29,6 +29,14 @@
       "pivotPer1000": 1.64,
       "pivotUnits": 0.5
     },
+    "README.md": {
+      "words": 1421,
+      "llmPoints": 2.5,
+      "clichePoints": 0,
+      "unsub": 0,
+      "pivotPer1000": 24.63,
+      "pivotUnits": 35
+    },
     "airlines/airbaltic/index.html": {
       "words": 909,
       "llmPoints": 0,
