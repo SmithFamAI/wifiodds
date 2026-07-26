@@ -79,7 +79,7 @@ low-earth orbit, times free-for-you.
 - jetBlue: 25 projected · begins 2027, complete 2028 · SOFT. 25% of 291 aircraft committed × 1.00 low-earth orbit × 1.00 free-for-you. Today: next-gen 0, ConnectScore 55. Source: JetBlue press release, 2025-09-04; sub-fleet detail from secondary reporting.
 - American: 51 projected · installs begin 2027-Q1 · FIRM. 500 of 989 aircraft committed × 1.00 low-earth orbit × 1.00 free-for-you. Today: next-gen 0, ConnectScore 51. Source: Runway Girl Network, 2026-05-26: American pivots to Starlink for 500+ Airbus narrowbodies.
 - Delta: 38 projected · begins 2028 · FIRM. 500 of 1,330 aircraft committed × 1.00 low-earth orbit × 1.00 free-for-you. Today: next-gen 0, ConnectScore 49. Source: Delta news release and Amazon news release, both 2026-03-31.
-- Southwest: 37 projected · 300+ by end-2026, installs running · FIRM. 300 of 803 aircraft committed × 1.00 low-earth orbit × 1.00 free-for-you. Today: next-gen 0, ConnectScore 16. Source: Southwest: the 300-by-year-end target, restated when N8543Z entered service.
+- Southwest: 37 projected · 300+ by end-2026, installs running · FIRM. 300 of 803 aircraft committed × 1.00 low-earth orbit × 1.00 free-for-you. Today: next-gen 0, ConnectScore 16. Source: Southwest Airlines, "Southwest Airlines Brings Starlink Ultra-Fast Wifi Onboard," southwestairlinesinvestorrelations.com, 11 Feb 2026.
 
 Rules for quoting these, and they are not optional:
 - Never give the projected number without the date beside it. "Delta 38" is wrong; "Delta

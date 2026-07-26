@@ -345,7 +345,14 @@ const WIFI_AIRLINES = {
         note: "Free for WestJet Rewards members. WestJet intended to finish the 737-800 and " +
           "737-8 MAX by the end of 2025 and has not said since whether it did." },
       { system: "none", n: 39, free: "none", as: "2026-07",
-        src: "WestJet Encore fleet list",
+        /* CITATION FIXED 2026-07-26 (D4). The count was already right; "WestJet
+           Encore fleet list" named no document. WestJet's own fleet page lists
+           39 Q400s. Confirmed via Wikipedia's citation trail (the page itself
+           renders client-side and would not return content to a plain fetch),
+           dated 24 Mar 2026: "As of March 24, 2026, WestJet Encore lists 39
+           aircraft," sourced to westjet.com/en-ca/aircraft. No number changed. */
+        src: "WestJet Airlines Ltd., \"Our aircraft,\" westjet.com/en-ca/aircraft, " +
+          "39 Q400s, checked via Wikipedia's citation trail dated 24 Mar 2026",
         note: "WestJet Encore Q400s. About a fifth of the passenger fleet, with no announced plan." },
     ],
     unresolved: { n: 54, why: "the 737-700s, the seven 787s and any 737 fitted since Oct 2025; " +
@@ -489,8 +496,14 @@ const WIFI_AIRLINES = {
     resolution: "systems",
     serviceTier: "mixed", restTier: "unknown",
     segments: [
-      { system: "starlink", n: 36, free: "free", as: "2026-07",
-        src: "Emirates Starlink retrofit announcements",
+      { system: "starlink", n: 36, free: "free", as: "2026-07-02",
+        /* CITATION FIXED 2026-07-26 (D4). The count was already right; "Emirates
+           Starlink retrofit announcements" named no document. Emirates' own
+           newsroom, "One million connections and counting," 2 Jul 2026, states
+           installations complete on "33 Boeing 777s and three Airbus A380s" —
+           exactly 36. No number changed. */
+        src: "Emirates, \"One million connections and counting: Emirates customers " +
+          "embrace Starlink Wi-Fi,\" emirates.com/media-centre, 2 Jul 2026",
         note: "Ookla measured Emirates at 308.65 Mbps in 2H 2025, second only to United's Starlink fleet." },
       { system: ["panasonic", "thales"], n: 196, free: "unknown", split: "unpublished", as: "2026-07",
         src: "Emirates connectivity page",
@@ -575,13 +588,19 @@ const WIFI_AIRLINES = {
        a fleet with one aircraft flying can never trip it. If Southwest reaches
        2027 with 40 aircraft done, `horizonPassed` goes true and the confidence
        does not. Read the note in build/prerender.js before "fixing" that. */
+    /* CITATION FIXED 2026-07-26 (D4). The 300 target was already right; "the
+       300-by-year-end target, restated when N8543Z entered service" named no
+       document. Southwest's own investor-relations newsroom, 11 Feb 2026:
+       "it will be available on more than 300 aircraft by the end of 2026." No
+       number changed. */
     projected: {
       system: "starlink", n: 300, free: "loyalty-free",
       starts: null, by: "2026",
       horizon: "300+ by end-2026, installs running",
       confidence: "FIRM",
-      src: "Southwest: the 300-by-year-end target, restated when N8543Z entered service",
-      as: "2026-06-22",
+      src: "Southwest Airlines, \"Southwest Airlines Brings Starlink Ultra-Fast " +
+        "Wifi Onboard,\" southwestairlinesinvestorrelations.com, 11 Feb 2026",
+      as: "2026-02-11",
       note: "300 is the floor of “300+”, and it counts the aircraft already in service. " +
         "Free for Rapid Rewards members, and joining is free.",
     },
