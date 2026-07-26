@@ -51,7 +51,7 @@
 .frm-ok{font-size:14px;color:var(--good);margin-top:14px}
 .frm-ok:empty{display:none}
 </style>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"How ConnectScore is calculated, and what it cannot see","url":"https://wifiodds.com/methodology/","dateModified":"2026-07-25","description":"The confidence tiers, the ConnectScore formula with a worked example, the projected-score fencing rules, promised against measured inflight speed, reader field reports, the known limits and the citation block for WiFi Odds.","author":{"@type":"Organization","name":"WiFi Odds","url":"https://wifiodds.com/"},"publisher":{"@id":"https://wifiodds.com/#org"},"isPartOf":{"@type":"WebSite","name":"WiFi Odds","url":"https://wifiodds.com/"},"about":"Inflight WiFi ConnectScore methodology and data provenance","citation":["https://unitedstarlinktracker.com","https://alaskastarlinktracker.com","https://danielja.ng/publications/geoToLeo_imc_2025.pdf","https://arxiv.org/abs/2508.09839"]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"How ConnectScore is calculated, and what it cannot see","url":"https://wifiodds.com/methodology/","dateModified":"2026-07-26","description":"The confidence tiers, the ConnectScore formula with a worked example, the projected-score fencing rules, promised against measured inflight speed, reader field reports, the known limits and the citation block for WiFi Odds.","author":{"@type":"Organization","name":"WiFi Odds","url":"https://wifiodds.com/"},"publisher":{"@id":"https://wifiodds.com/#org"},"isPartOf":{"@type":"WebSite","name":"WiFi Odds","url":"https://wifiodds.com/"},"about":"Inflight WiFi ConnectScore methodology and data provenance","citation":["https://unitedstarlinktracker.com","https://alaskastarlinktracker.com","https://danielja.ng/publications/geoToLeo_imc_2025.pdf","https://arxiv.org/abs/2508.09839"]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://wifiodds.com/"},{"@type":"ListItem","position":2,"name":"Methodology","item":"https://wifiodds.com/methodology/"}]}</script>
 </head>
 <body>
@@ -67,20 +67,20 @@
     </nav>
     <button class="themetoggle" id="themetoggle" type="button" hidden
       title="Dark by default. The switch lasts until you reload; nothing is stored."></button>
-    <div class="datechip">Inflight WiFi as a forecast · figures checked daily · this build <b>25 Jul 2026</b></div>
+    <div class="datechip">Inflight WiFi as a forecast · figures checked daily · this build <b>26 Jul 2026</b></div>
   </div>
 </header>
 <div class="wrap">
 <main id="main-content">
 <nav class="crumb" aria-label="Breadcrumb"><a href="/">Home</a><span class="sep">→</span><span aria-current="page">Methodology</span></nav>
 <header class="hero" style="padding-top:18px">
-  <span class="kicker"><span class="dot"></span>Methodology · data eff 25 JUL 2026</span>
+  <span class="kicker"><span class="dot"></span>Methodology · data eff 26 JUL 2026</span>
   <h1 class="ph">How WiFi Odds knows what it knows</h1>
   <p class="lede">Every number on this site is verified tail by tail by an independent community tracker, derived from an aircraft type, or modelled from what an airline said in public. The page says which. Below: the confidence tiers, the formula with a worked example, the fence around the projected number, the three measurements of Starlink speed that disagree with each other, what the score cannot see, and who the data belongs to.</p>
   <div class="microlinks"><a href="#measured">Promised against measured →</a><a href="#field">Field reports →</a><a href="#credit">Credit →</a><a href="/api/docs/">The API →</a></div>
 </header>
 
-<div class="chips"><div class="chip rv "><div class="n cu">25 JUL 2026</div><div class="l">Data effective</div><div class="d">refreshed daily, re-baked on every build</div></div><div class="chip rv "><div class="n cu">481</div><div class="l">Verified United tails</div><div class="d">each with its install date</div></div><div class="chip rv "><div class="n cu">176</div><div class="l">Install days on record</div><div class="d">since Mar 14, 2025</div></div><div class="chip rv "><div class="n cu">18</div><div class="l">Airlines scored</div><div class="d">1 verified · 1 type-derived · 16 coarse</div></div></div>
+<div class="chips"><div class="chip rv "><div class="n cu">26 JUL 2026</div><div class="l">Data effective</div><div class="d">refreshed daily, re-baked on every build</div></div><div class="chip rv "><div class="n cu">482</div><div class="l">Verified United tails</div><div class="d">each with its install date</div></div><div class="chip rv "><div class="n cu">176</div><div class="l">Install days on record</div><div class="d">since Mar 14, 2025</div></div><div class="chip rv "><div class="n cu">18</div><div class="l">Airlines scored</div><div class="d">1 verified · 1 type-derived · 16 coarse</div></div></div>
 
 <section class="blk" id="tiers">
   <div class="sec-h"><span class="sub">§1 · The instrumentation ladder</span><h2>How much we actually know, per airline</h2></div>
@@ -95,7 +95,7 @@
     </tbody>
   </table></div>
   <p class="tblcap">The build derives the split from the data on every run. An airline moves up the moment a verified per-tail feed exists for it, and these lists re-sort themselves. Hawaiian is next.</p>
-<p class="src"><span class="cls">Reported</span> Tier A and B source data: unitedstarlinktracker.com and alaskastarlinktracker.com, 25 JUL 2026. Tier C: public airline announcements, Jul 2026.</p></section>
+<p class="src"><span class="cls">Reported</span> Tier A and B source data: unitedstarlinktracker.com and alaskastarlinktracker.com, 26 JUL 2026. Tier C: public airline announcements, Jul 2026.</p></section>
 
 <section class="blk" id="formula">
   <div class="sec-h"><span class="sub">§2 · The scoring system</span><h2>The formula, worked through</h2></div>
@@ -107,14 +107,14 @@
     <div class="card"><h3>Free-for-you</h3><p>Free for everyone, or free with a free loyalty signup, scores 1.00. A paid status tier, a partial rollout or an unconfirmed claim scores 0.85. Paid scores 0.70. Working WiFi you have to buy at 35,000 feet is not the same product as working WiFi you just connect to.</p></div>
   </div>
   <h3 class="apih">Worked example: United, every aircraft it flies</h3>
-  <div class="wex">Starlink       481   30.5% × quality <b>1.00</b> × free <b>1.00</b> = <b>30.5</b>
+  <div class="wex">Starlink       482   30.5% × quality <b>1.00</b> × free <b>1.00</b> = <b>30.5</b>
 Viasat         525   33.2% × quality <b>0.55</b> × free <b>0.70</b> = <b>12.8</b>
 Panasonic      407   25.8% × quality <b>0.22</b> × free <b>0.70</b> = <b>4.0</b>
 Thales FlytL    35    2.2% × quality <b>0.55</b> × free <b>0.70</b> = <b>0.9</b>
 no wifi        131    8.3% × quality <b>0.00</b> × free <b>0.00</b> = <b>0.0</b>
-not published  229   left out of the denominator
+not published  227   left out of the denominator
 
-ConnectScore = <span class="r">48 (mixed)</span>, next-gen odds = <span class="r">30</span>, which is the Starlink row on its own</div>
+ConnectScore = <span class="r">48 (mixed)</span>, next-gen odds = <span class="r">31</span>, which is the Starlink row on its own</div>
   <p class="tblcap">Those are the live numbers, generated at build time by the same function the API and the extension call. The 131-aircraft zero row is the part a single fleet-share number hides: it does not shrink as installs proceed, it shrinks when those aircraft retire. <a href="/airlines/united/">The same ledger on United’s page →</a></p>
   <h3 class="apih">Worked example: one flight, from the Verified tier</h3>
   <div class="wex">flight   = <b>UA2123</b>  (9:10 PM departure)
@@ -188,7 +188,7 @@ equipped on <b>39%</b> of those 21 departures → <span class="r">per-flight odd
     <div class="hp" aria-hidden="true"><label for="f-website">Leave this empty</label><input id="f-website" name="website" type="text" value="" tabindex="-1" autocomplete="off"></div>
     <p class="ferr frm-top" id="e-_body" role="alert"></p>
     <div class="ffgrid">
-      <div class="ff"><label for="f-flownon">Date you flew</label><input id="f-flownon" name="flownOn" type="date" required max="2026-07-25" aria-describedby="e-flownOn"><p class="ferr" id="e-flownOn" role="alert"></p></div>
+      <div class="ff"><label for="f-flownon">Date you flew</label><input id="f-flownon" name="flownOn" type="date" required max="2026-07-26" aria-describedby="e-flownOn"><p class="ferr" id="e-flownOn" role="alert"></p></div>
       <div class="ff"><label for="f-airline">Airline</label><input id="f-airline" name="airline" type="text" required maxlength="60" placeholder="United" aria-describedby="e-airline"><p class="ferr" id="e-airline" role="alert"></p></div>
       <div class="ff"><label for="f-flight">Flight number</label><input id="f-flight" name="flightNumber" type="text" required spellcheck="false" autocapitalize="characters" placeholder="UA2402" aria-describedby="e-flightNumber"><p class="ferr" id="e-flightNumber" role="alert"></p></div>
       <div class="ff"><label for="f-system">System</label><select id="f-system" name="system" required aria-describedby="e-system"><option value="">Pick one</option><option value="starlink">Starlink</option><option value="leo">Amazon Leo</option><option value="viasat">Viasat</option><option value="panasonic">Panasonic</option><option value="intelsat">Intelsat or 2Ku</option><option value="hughes">Hughes</option><option value="none">There was no wifi to test</option><option value="unsure">The portal did not say</option></select><span class="fh">The captive portal usually names it.</span><p class="ferr" id="e-system" role="alert"></p></div>
@@ -229,13 +229,13 @@ equipped on <b>39%</b> of those 21 departures → <span class="r">per-flight odd
   <div class="tbl-shell"><table class="tbl">
     <thead><tr><th scope="col">Input</th><th scope="col">Source</th><th scope="col">Cadence</th><th scope="col">Last refresh</th></tr></thead>
     <tbody>
-      <tr><td>United fleet and per-tail roster</td><td>unitedstarlinktracker.com</td><td>pulled daily</td><td class="mono">2026-07-25</td></tr>
-      <tr><td>United per-flight route history</td><td>unitedstarlinktracker.com check-flight pages</td><td>daily, 57 cached routes</td><td class="mono">2026-07-25</td></tr>
+      <tr><td>United fleet and per-tail roster</td><td>unitedstarlinktracker.com</td><td>pulled daily</td><td class="mono">2026-07-26</td></tr>
+      <tr><td>United per-flight route history</td><td>unitedstarlinktracker.com check-flight pages</td><td>daily, 60 cached routes</td><td class="mono">2026-07-26</td></tr>
       <tr><td>Alaska fleet</td><td>alaskastarlinktracker.com</td><td>pulled daily</td><td class="mono">2026-07</td></tr>
       <tr><td>The other 16 airlines</td><td>public airline announcements</td><td>reviewed by hand</td><td class="mono">July 2026</td></tr>
       <tr><td>Reader field reports</td><td>the form in §7, published by a person</td><td>committed to assets/reports.json</td><td class="mono">2026-07-25</td></tr>
       <tr><td>Measured speed and latency figures</td><td>two peer-reviewed studies and Ookla</td><td>as published</td><td class="mono">2025 to 2026</td></tr>
-      <tr><td>Every page, score and chart on this site</td><td>this build</td><td>re-baked on every data commit</td><td class="mono">2026-07-25</td></tr>
+      <tr><td>Every page, score and chart on this site</td><td>this build</td><td>re-baked on every data commit</td><td class="mono">2026-07-26</td></tr>
     </tbody>
   </table></div>
   <p class="tblcap">Nothing on wifiodds.com is fetched live. The daily pull commits <a href="/united/data.json">united/data.json</a>, that commit rebuilds every page, and the ConnectScore API reads the same file out of the same deploy. The page, the API and the extension cannot disagree with each other. If the date above is stale, the data is stale everywhere at once and visibly, instead of in one surface quietly.</p>
@@ -248,7 +248,7 @@ equipped on <b>39%</b> of those 21 departures → <span class="r">per-flight odd
 <div class="credit"><span class="cb">DATA CREDIT</span><span class="cbody">Fleet verification for the instrumented airlines comes from the independent community trackers <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener"><b>unitedstarlinktracker.com</b></a> and <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener"><b>alaskastarlinktracker.com</b></a>, built by <b>@martinamps</b>. All credit for that data goes to them ↗. Every other airline is compiled from public airline announcements (July 2026). WiFi Odds is unofficial and not affiliated with any airline, SpaceX/Starlink, Amazon, Viasat, or the trackers.</span></div>
   <h3 class="apih">Citing this</h3>
   <p class="sec-lede">Quote the numbers freely, including in an article or an AI answer. The one condition is that the credit travels with them, because the fleet verification is not ours.</p>
-  <div class="wex">ConnectScore and per-flight odds: WiFi Odds (wifiodds.com), data as of 2026-07-25.
+  <div class="wex">ConnectScore and per-flight odds: WiFi Odds (wifiodds.com), data as of 2026-07-26.
 United tail verification: unitedstarlinktracker.com (@martinamps).
 Alaska tail verification: alaskastarlinktracker.com (@martinamps).
 All other airlines: public airline announcements, July 2026.</div>
@@ -258,7 +258,7 @@ All other airlines: public airline announcements, July 2026.</div>
 <footer class="site">
   <div class="flinks"><a href="/airlines/">Airlines</a><a href="/race/">The Race</a><a href="/systems/">Systems</a><a href="/united/">United</a><a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a><a href="/methodology/">Methodology</a><a href="/api/docs/">API</a><a href="/privacy">Privacy</a><a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Open source ↗</a></div>
   <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> · <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> (independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>
-  <div class="frow">Data updated <b>2026-07-25</b>. ConnectScores and per-flight odds are historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</div>
+  <div class="frow">Data updated <b>2026-07-26</b>. ConnectScores and per-flight odds are historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</div>
   <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension, and nothing is stored in your browser. What the server keeps is on the <a href="/privacy">privacy page</a>.</div>
   <div class="frow">The page follows your system’s light or dark setting. The switch in the header lasts until you reload, and nothing about your choice is stored.</div>
 </footer>

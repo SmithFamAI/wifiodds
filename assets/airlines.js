@@ -154,7 +154,7 @@ const WIFI_AIRLINES = {
        homepage printed "481 of 1,807 (27%)" on the US card and "of 1,808
        aircraft" in the United section. build/prerender.js reconciles them from
        data.json on every build, and fails if it cannot find them. */
-    system: "starlink", equipped: 481, fleet: 1808, free: "loyalty-free",
+    system: "starlink", equipped: 482, fleet: 1807, free: "loyalty-free",
     instrumented: true, tracker: "unitedstarlinktracker.com",
     resolution: "tail",
     serviceTier: "mixed", restTier: "unknown",
@@ -171,7 +171,7 @@ const WIFI_AIRLINES = {
        creep stale by a handful of aircraft between joins. Re-run the join, do
        not nudge the numbers. */
     segments: [
-      { system: "starlink", n: 481, free: "loyalty-free", as: "2026-07-25",
+      { system: "starlink", n: 482, free: "loyalty-free", as: "2026-07-26",
         src: "united/data.json, the daily pull from unitedstarlinktracker.com",
         note: "Free for MileagePlus members, and joining is free." },
       { system: "viasat", n: 525, free: "paid", as: "2026-07-25",
@@ -191,8 +191,8 @@ const WIFI_AIRLINES = {
           "of them are in the Starlink programme, so this row shrinks when the " +
           "aircraft retire rather than when installs proceed." },
     ],
-    unresolved: { n: 229, why: "the tracker publishes no system for these tails" },
-    note: "481 of 1,808 aircraft, free for MileagePlus members. Odds swing a lot by route and aircraft type.",
+    unresolved: { n: 227, why: "the tracker publishes no system for these tails" },
+    note: "482 of 1,807 aircraft, free for MileagePlus members. Odds swing a lot by route and aircraft type.",
   },
   alaska: {
     name: "Alaska", code: "AS", asOf: "2026-07",
