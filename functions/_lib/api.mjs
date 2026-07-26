@@ -142,10 +142,17 @@ export function airlineJson(key) {
     nextGenScore: a.nextGenScore,
     nextGen: {
       score: a.nextGenScore,
+      /* False unless nextGenScore's 0 IS a false zero — see nextGenPublished()
+       * in assets/airlines.js. score/system/label stay as computed (the floor
+       * concept holds regardless, same as connectScore), but a consumer must
+       * check this before reading share/pct as a real percentage: both are
+       * null, never 0, when the count behind them was never published. This
+       * is what SAS exposed 2026-07-26 — see the commit for the HTML side. */
+      published: a.nextGenPublished !== false,
       system: a.nextGenSystem,
       label: a.nextGenLabel,
-      share: round(a.nextGenShare, 4),
-      pct: Math.round(a.nextGenShare * 100),
+      share: a.nextGenPublished === false ? null : round(a.nextGenShare, 4),
+      pct: a.nextGenPublished === false ? null : Math.round(a.nextGenShare * 100),
       /* ── D2: next-gen odds split by mainline vs regional fleet. United-only
        * today — see nextGenSplitFor() in assets/airlines.js for why a crosstab
        * for anyone else would be invented data.
@@ -268,8 +275,14 @@ export function airlineJson(key) {
       equipped: a.equipped,
       total: a.fleet,
       known: a.known,
-      equippedShare: round(a.parts.pctEquipped, 4),
-      equippedPct: Math.round(a.parts.pctEquipped * 100),
+      /* Mirrors nextGen.published above: false is the SAS shape, and
+       * equippedShare/equippedPct are null rather than 0 in that case, same
+       * as `equipped` itself. Math.round(null * 100) is 0 in JS — the exact
+       * silent path that put "(0%)" on the rendered SAS page until this was
+       * caught. A consumer must check this field before trusting the pct. */
+      equippedPublished: a.equippedPublished !== false,
+      equippedShare: a.equippedPublished === false ? null : round(a.parts.pctEquipped, 4),
+      equippedPct: a.equippedPublished === false ? null : Math.round(a.parts.pctEquipped * 100),
       basis: a.fleet ? 'tail-counts' : 'fleetwide-coverage'
     },
     perFlightOdds: a.instrumented,

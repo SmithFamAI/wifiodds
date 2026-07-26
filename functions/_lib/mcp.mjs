@@ -239,10 +239,17 @@ function freeWord(a) {
 }
 
 function airlineLine(a) {
+  /* a.fleet.equippedPublished === false is the SAS shape: a real fleet total
+   * with no published count for the primary system. Falling through to the
+   * "N of total (Z%)" branch would print "null of 123 aircraft (%)" — the
+   * MCP-text version of the false "0 of 123 (0%)" that shipped on the
+   * rendered page until 2026-07-26. */
   return a.name + ' (' + (a.code || '—') + ') — ConnectScore ' + a.connectScore + '/100, ' + a.band +
     ' · ' + a.system.label + ' on ' +
-    (a.fleet.total ? a.fleet.equipped + ' of ' + a.fleet.total + ' aircraft (' + a.fleet.equippedPct + '%)'
-      : 'the fleet (no tail counts published)') +
+    (!a.fleet.total ? 'the fleet (no tail counts published)'
+      : a.fleet.equippedPublished === false
+        ? a.fleet.total + ' aircraft, count unpublished'
+        : a.fleet.equipped + ' of ' + a.fleet.total + ' aircraft (' + a.fleet.equippedPct + '%)') +
     ' · ' + freeWord(a) + ' · confidence: ' + tierOf(a);
 }
 
