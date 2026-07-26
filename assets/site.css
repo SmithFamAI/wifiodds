@@ -271,6 +271,14 @@ h1,h2,h3,h4{font-family:var(--serif);color:var(--ink);font-weight:700;letter-spa
 .prose{max-width:44rem}
 :focus-visible{outline:2px solid var(--sky);outline-offset:2px}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* The skip link. Hidden exactly like .vh until it takes focus, so it costs the
+   page nothing at rest; it gets its own class rather than reusing .vh because
+   .vh is also used for labels that must NEVER become visible. Colours are the
+   button pair, which measures 6.9:1 in both themes. */
+.skip{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip:focus{position:fixed;top:.5rem;left:.5rem;width:auto;height:auto;overflow:visible;
+  clip:auto;z-index:60;padding:.45rem .8rem;border-radius:var(--r-md);
+  background:var(--btn-bg);color:var(--btn-fg);text-decoration:none}
 .needs-js{display:none}
 html.js .needs-js{display:revert}
 html.js .no-js-only{display:none}
@@ -585,7 +593,11 @@ html.js table.tbl th[data-k][aria-sort="descending"]:after{content:"\2193";opaci
 .srch input{font:inherit;padding:.5rem .7rem;border-radius:var(--r-md);font-size:.9rem;
   background:var(--field);color:var(--ink);border:1px solid var(--line);min-width:11rem}
 .srch input::placeholder{color:var(--placeholder)}
-.srch input:focus{outline:none;border-color:var(--sky)}
+/* No outline:none here. This selector is more specific than the sitewide
+   :focus-visible rule, so suppressing the outline left the /airlines/ search
+   box with only a 1px border-colour change as its focus indicator, on a border
+   that measures 1.2-1.4:1 against its own background. */
+.srch input:focus{border-color:var(--sky)}
 
 /* ── Hangar Floor waffle ──────────────────────────────────────────────────
    Dim cells are the fleet, lit cells are what is flying. A lit cell is a count,

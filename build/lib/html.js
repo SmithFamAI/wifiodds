@@ -393,6 +393,11 @@ function page(o) {
     (o.extraHead || '') +
     (o.jsonld || []).map(ld).join('\n') + '\n' +
     '</head>\n<body>\n' +
+    /* First focusable thing on every page, and invisible until it has focus.
+       It has to come before extbar(), because a keyboard reader who lands on
+       the extension banner first has already walked past the thing the link
+       exists to skip. */
+    '<a class="skip" href="#main-content">Skip to content</a>\n' +
     /* The banner sits OUTSIDE .wrap and above the masthead, because it is a
        full-bleed strip of sky and the column starts under it. Homepage only. */
     (o.canonical === '/' ? extbar() : '') +
@@ -400,8 +405,16 @@ function page(o) {
     masthead(o.here, o.suffix, o.updated) +
     '<div class="wrap">\n' +
     subnav(o.section, o.canonical, o.suffix) +
+    /* <main> starts AFTER the subnav so the skip link actually skips the
+       navigation. It also stops every page's own <header class="hero"> from
+       computing to role=banner: a <header> inside <main> is not a banner, and
+       without this wrapper every one of the 31 routes exposed two unlabelled
+       banner landmarks. <main> has no default box styling, so this is a
+       null visual diff. */
+    '<main id="main-content">\n' +
     (o.crumb ? crumb(o.crumb) : '') +
     o.body +
+    '</main>\n' +
     footer(o.updated) +
     '</div>\n' +
     (o.afterWrap || '') +

@@ -510,9 +510,9 @@ function ledgerTable(m, a) {
     'add up to the published ConnectScore, and the top row on its own is the next-gen number. The ' +
     'build fails if they stop adding up.</p>\n' +
     '<div class="tbl-shell rv"><table class="tbl">\n' +
-    '    <thead><tr><th>Segment</th><th class="num">Aircraft</th><th class="num">Share</th>' +
-    '<th>Share of the fleet</th>' +
-    '<th class="num">Quality</th><th class="num">Free</th><th class="num">Points</th></tr></thead>\n' +
+    '    <thead><tr><th scope="col">Segment</th><th scope="col" class="num">Aircraft</th><th scope="col" class="num">Share</th>' +
+    '<th scope="col">Share of the fleet</th>' +
+    '<th scope="col" class="num">Quality</th><th scope="col" class="num">Free</th><th scope="col" class="num">Points</th></tr></thead>\n' +
     '    <tbody>\n' + body + '\n' + unres +
     '    </tbody>\n    <tfoot><tr><td><b>ConnectScore</b>' +
     (a.hasRange ? '<div class="note" style="margin-top:3px">We publish the floor. The ceiling is ' +
@@ -882,9 +882,9 @@ function fleetPage(m) {
     '<input id="tailq" type="search" data-target="#regTable" placeholder="N68811" ' +
     'autocomplete="off" spellcheck="false"></div>\n' +
     '  <div class="tbl-shell"><table class="tbl" id="regTable">\n' +
-    '    <thead><tr><th data-k="tail">Tail</th><th data-k="type">Type</th><th data-k="fleet">Fleet</th>' +
-    '<th data-k="seen" data-t="num" aria-sort="descending">Installed</th>' +
-    '<th data-k="days" data-t="num">Days live</th></tr></thead>\n    <tbody>\n' + reg +
+    '    <thead><tr><th scope="col" data-k="tail">Tail</th><th scope="col" data-k="type">Type</th><th scope="col" data-k="fleet">Fleet</th>' +
+    '<th scope="col" data-k="seen" data-t="num" aria-sort="descending">Installed</th>' +
+    '<th scope="col" data-k="days" data-t="num">Days live</th></tr></thead>\n    <tbody>\n' + reg +
     '\n    </tbody>\n  </table></div>\n' +
     '  <p class="tblcap"><span data-count-for="#regTable">' + num(m.registry.length) + '</span> equipped ' +
     'tails · updated ' + esc(m.updated) + ' · data: unitedstarlinktracker.com</p>\n' +
@@ -1094,11 +1094,11 @@ function racePage(m) {
         (c[0] === 'all') + '">' + esc(c[1]) + '</button>';
     }).join('') + '</div>\n' +
     '  <div class="tbl-shell rv"><table class="tbl" id="raceTable">\n' +
-    '    <thead><tr><th data-k="name">Airline</th>' +
-    '<th data-k="ng" data-t="num" aria-sort="descending">Next-gen today</th>' +
-    '<th data-k="tier">Today’s tier</th><th data-k="target">Finish line</th>' +
-    '<th>Projected · does not sort</th>' +
-    '<th class="hide-sm">What we know · source</th></tr></thead>\n    <tbody>\n' + rows +
+    '    <thead><tr><th scope="col" data-k="name">Airline</th>' +
+    '<th scope="col" data-k="ng" data-t="num" aria-sort="descending">Next-gen today</th>' +
+    '<th scope="col" data-k="tier">Today’s tier</th><th scope="col" data-k="target">Finish line</th>' +
+    '<th scope="col">Projected · does not sort</th>' +
+    '<th scope="col" class="hide-sm">What we know · source</th></tr></thead>\n    <tbody>\n' + rows +
     '\n    </tbody>\n  </table></div>\n' +
     '  <p class="tblcap"><span data-count-for="#raceTable">' + m.airlineCount + '</span> airlines · ' +
     'fleet counts as of ' + esc(m.updated) + ' · finish lines from public announcements, ' +
@@ -1335,9 +1335,9 @@ function systemsPage(m) {
     'single most important fact on this page, and it is why Delta’s next-gen score is 0 while its ' +
     'ConnectScore is one of the highest here.</p>\n' +
     '  <div class="tbl-shell rv"><table class="tbl">\n' +
-    '    <thead><tr><th></th>' +
-    '<th><span class="sysdot starlink"></span>Starlink <span class="note">SpaceX</span></th>' +
-    '<th><span class="sysdot leo"></span>Amazon Leo <span class="note">Amazon, ex-Kuiper</span></th>' +
+    '    <thead><tr><th scope="col"></th>' +
+    '<th scope="col"><span class="sysdot starlink"></span>Starlink <span class="note">SpaceX</span></th>' +
+    '<th scope="col"><span class="sysdot leo"></span>Amazon Leo <span class="note">Amazon, ex-Kuiper</span></th>' +
     '</tr></thead>\n    <tbody>\n' +
     vs.map(function (r) {
       return '      <tr><td><b>' + esc(r[0]) + '</b></td><td>' + r[1] + '</td><td>' + r[2] +
@@ -1373,9 +1373,9 @@ function systemsPage(m) {
     'It is read straight out of the scoring table rather than typed here, so the primer and the ' +
     'formula cannot drift apart.</p>\n' +
     '  <div class="tbl-shell rv"><table class="tbl">\n' +
-    '    <thead><tr><th>System</th><th>How it works</th><th>Real-world speed</th>' +
-    '<th>Reliability</th><th>Price onboard</th><th data-t="num">Quality</th>' +
-    '<th class="hide-sm">Airlines here</th></tr></thead>\n    <tbody>\n' + sysRows +
+    '    <thead><tr><th scope="col">System</th><th scope="col">How it works</th><th scope="col">Real-world speed</th>' +
+    '<th scope="col">Reliability</th><th scope="col">Price onboard</th><th scope="col" data-t="num">Quality</th>' +
+    '<th scope="col" class="hide-sm">Airlines here</th></tr></thead>\n    <tbody>\n' + sysRows +
     '\n    </tbody>\n  </table></div>\n' +
     '  <p class="tblcap">Quality weights from the ConnectScore table · carrier lists derived from the ' +
     'same airline data as every other page · fleet counts as of ' + esc(m.updated) + '.</p>\n' +
@@ -2024,7 +2024,7 @@ function methodologyPage(m) {
     '<span class="sub">§9 · Data freshness</span>' +
     '<h2>Where every input comes from, and how often</h2></div>\n' +
     '  <div class="tbl-shell"><table class="tbl">\n' +
-    '    <thead><tr><th>Input</th><th>Source</th><th>Cadence</th><th>Last refresh</th></tr></thead>\n' +
+    '    <thead><tr><th scope="col">Input</th><th scope="col">Source</th><th scope="col">Cadence</th><th scope="col">Last refresh</th></tr></thead>\n' +
     '    <tbody>\n' +
     '      <tr><td>United fleet and per-tail roster</td><td>unitedstarlinktracker.com</td>' +
     '<td>pulled daily</td><td class="mono">' + esc(m.updated) + '</td></tr>\n' +
@@ -2206,7 +2206,7 @@ function apiDocs(m) {
     '<section class="blk">\n  <div class="sec-h"><h2>Endpoints</h2>' +
     '<span class="sub">four, all GET</span></div>\n' +
     '  <div class="tbl-shell"><table class="tbl">\n' +
-    '    <thead><tr><th>Method</th><th>Path</th><th>Returns</th></tr></thead>\n' +
+    '    <thead><tr><th scope="col">Method</th><th scope="col">Path</th><th scope="col">Returns</th></tr></thead>\n' +
     '    <tbody>\n' + endpointRows + '\n    </tbody>\n  </table></div>\n' +
 
     '  <h3 class="apih">GET /api/airlines</h3>\n' +
@@ -2265,7 +2265,7 @@ function apiDocs(m) {
     '  <p class="sec-lede">The <b>method</b> field is the whole point of this endpoint. It tells you ' +
     'how much to trust the number, and it is never blurred:</p>\n' +
     '  <div class="tbl-shell"><table class="tbl">\n' +
-    '    <thead><tr><th>method</th><th>prob</th><th>What it means</th></tr></thead>\n' +
+    '    <thead><tr><th scope="col">method</th><th scope="col">prob</th><th scope="col">What it means</th></tr></thead>\n' +
     '    <tbody>\n' +
     '      <tr><td class="mono"><b>route-history</b></td><td class="mono">0–100</td>' +
     '<td>We found this exact flight number in our cached United route history. <b>prob</b> is the ' +
@@ -2300,7 +2300,7 @@ function apiDocs(m) {
     '  <p class="sec-lede">Every airline object carries <b>connectScore</b> and ' +
     '<b>nextGenScore</b>, and they answer different questions. ' + esc(m.A.TIER_METHOD_LINE) + '</p>\n' +
     '  <div class="tbl-shell"><table class="tbl">\n' +
-    '    <thead><tr><th>Field</th><th>What it is</th><th>Delta, as an example</th></tr></thead>\n' +
+    '    <thead><tr><th scope="col">Field</th><th scope="col">What it is</th><th scope="col">Delta, as an example</th></tr></thead>\n' +
     '    <tbody>\n' +
     '      <tr><td class="mono"><b>nextGenScore</b></td><td>Odds of a Starlink or Amazon Leo ' +
     'aircraft × free-for-you. A signed deal contributes nothing.</td>' +
@@ -2331,11 +2331,11 @@ function apiDocs(m) {
     '  <div class="grid3" style="margin-top:16px">\n' +
     '    <div class="card"><h3>system.quality</h3><div class="tbl-shell" style="margin-top:10px">' +
     '<table class="tbl" style="min-width:0">\n' +
-    '    <thead><tr><th>key</th><th>q</th><th>Label</th><th>Tier</th></tr></thead>\n    <tbody>\n' + sysRows +
+    '    <thead><tr><th scope="col">key</th><th scope="col">q</th><th scope="col">Label</th><th scope="col">Tier</th></tr></thead>\n    <tbody>\n' + sysRows +
     '\n    </tbody>\n  </table></div></div>\n' +
     '    <div class="card"><h3>free.status</h3><div class="tbl-shell" style="margin-top:10px">' +
     '<table class="tbl" style="min-width:0">\n' +
-    '    <thead><tr><th>status</th><th>factor</th><th>Means</th></tr></thead>\n    <tbody>\n' + freeRows +
+    '    <thead><tr><th scope="col">status</th><th scope="col">factor</th><th scope="col">Means</th></tr></thead>\n    <tbody>\n' + freeRows +
     '\n    </tbody>\n  </table></div></div>\n' +
     '    <div class="card"><h3>fleet.basis</h3><p><b>tail-counts</b>: the airline publishes equipped ' +
     'and total aircraft, so <span class="mono">equippedShare = equipped / total</span>.</p>' +
@@ -2349,7 +2349,7 @@ function apiDocs(m) {
     '<section class="blk">\n  <div class="sec-h"><h2>Errors</h2>' +
     '<span class="sub">always JSON, always with sources</span></div>\n' +
     '  <div class="tbl-shell"><table class="tbl">\n' +
-    '    <thead><tr><th>Status</th><th>code</th><th>When</th></tr></thead>\n' +
+    '    <thead><tr><th scope="col">Status</th><th scope="col">code</th><th scope="col">When</th></tr></thead>\n' +
     '    <tbody>\n' + errRows + '\n    </tbody>\n  </table></div>\n' +
     code('$ curl -s ' + ORIGIN + '/api/score/XX999\n' +
       '{\n' +
@@ -2371,7 +2371,7 @@ function apiDocs(m) {
     'streamable HTTP: JSON-RPC 2.0 over <span class="apip">POST /mcp</span>, no key, no account, ' +
     'CORS open, and no session required for a single call.</p>\n' +
     '  <div class="tbl-shell"><table class="tbl">\n' +
-    '    <thead><tr><th>Tool</th><th>Arguments</th><th>Returns</th></tr></thead>\n' +
+    '    <thead><tr><th scope="col">Tool</th><th scope="col">Arguments</th><th scope="col">Returns</th></tr></thead>\n' +
     '    <tbody>\n' +
     '      <tr><td class="mono"><b>get_airline_score</b></td><td class="mono">key</td>' +
     '<td>One airline: ConnectScore, system, fleet share, cost onboard, and the confidence tier the ' +

@@ -23,7 +23,7 @@
 <meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=fa82ae75">
 <link rel="preload" href="/assets/serif-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/serif-700.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=2745bebc">
+<link rel="stylesheet" href="/assets/site.css?v=580dd06b">
 <style>
   /* Page-scoped only. Colour, type and rule weight come from /assets/site.css.
      The day log is still client-rendered from data.json (a 176-day list of pills
@@ -85,6 +85,7 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://wifiodds.com/"},{"@type":"ListItem","position":2,"name":"United","item":"https://wifiodds.com/united/"},{"@type":"ListItem","position":3,"name":"History","item":"https://wifiodds.com/united/history/"}]}</script>
 </head>
 <body>
+<a class="skip" href="#main-content">Skip to content</a>
 <header class="site">
   <div class="wrap masthead">
     <a class="wordmark" href="/"><svg class="mk" viewBox="0 0 32 32" width="17" height="17" aria-hidden="true" focusable="false"><ellipse cx="16" cy="16" rx="11" ry="4.6" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(-22 16 16)"/><circle cx="16" cy="16" r="5.2" fill="currentColor"/><circle cx="26.2" cy="11.9" r="2.3" fill="currentColor"/></svg>WiFi&nbsp;Odds <em>· United</em></a>
@@ -101,6 +102,7 @@
 </header>
 <div class="wrap">
 <nav class="subnav" aria-label="United pages"><span class="sn-air">United</span><a class="sn-tab" href="/airlines/united/">Overview</a><a class="sn-tab" href="/united/">Route optimizer</a><a class="sn-tab" href="/united/fleet/">Fleet</a><a class="sn-tab" href="/united/history/" aria-current="page">History</a><a class="sn-back" href="/airlines/">All airlines →</a></nav>
+<main id="main-content">
 <nav class="crumb" aria-label="Breadcrumb"><a href="/">Home</a><span class="sep">→</span><a href="/airlines/united/">United</a><span class="sep">→</span><span aria-current="page">History</span></nav>
 <header class="hero">
   <span class="kicker">United · Install archive</span>
@@ -190,7 +192,7 @@ affiliated with United Airlines, SpaceX/Starlink, or the tracker.</span></div>
       <div class="ff"><label for="hist-air">Airline</label><input id="hist-air" name="airline" type="text" required maxlength="60"></div>
       <div class="ff"><label for="hist-fn">Flight number</label><input id="hist-fn" name="flightNumber" type="text" required spellcheck="false" autocapitalize="characters" placeholder="UA2402"></div>
       <div class="ff"><label for="hist-on">Date you flew</label><input id="hist-on" name="flownOn" type="date" required></div>
-      <div class="ff"><label for="hist-sys">System</label><select id="hist-sys" name="system" required><option value="">Pick one</option><option value="starlink">Starlink</option><option value="leo">Amazon Leo</option><option value="viasat">Viasat</option><option value="panasonic">Panasonic</option><option value="intelsat">Intelsat or 2Ku</option><option value="hughes">Hughes</option><option value="none">There was no wifi to test</option><option value="unsure">The portal did not say</option></select><span class="fh">The captive portal usually names it.</span></div>
+      <div class="ff"><label for="hist-sys">System</label><select id="hist-sys" name="system" required aria-describedby="hist-sys-h"><option value="">Pick one</option><option value="starlink">Starlink</option><option value="leo">Amazon Leo</option><option value="viasat">Viasat</option><option value="panasonic">Panasonic</option><option value="intelsat">Intelsat or 2Ku</option><option value="hughes">Hughes</option><option value="none">There was no wifi to test</option><option value="unsure">The portal did not say</option></select><span class="fh" id="hist-sys-h">The captive portal usually names it.</span></div>
       <div class="ff full"><label for="hist-note">What happened, or what we got wrong</label><textarea id="hist-note" name="note" maxlength="500" rows="3" placeholder="Whether the login worked, what a call survived, which badge was wrong"></textarea></div>
     </div>
     <div class="frm-ft"><p class="note">Every submission lands unpublished and a person reads it before it appears here. No account, no cookie, no email field. The full form, with speed and latency boxes, is on <a href="/methodology/#field">the methodology page</a>.</p>
@@ -198,6 +200,7 @@ affiliated with United Airlines, SpaceX/Starlink, or the tracker.</span></div>
   </form>
 </section>
 
+</main>
 <footer class="site">
   <div class="flinks"><a href="/airlines/">Airlines</a><a href="/race/">The Race</a><a href="/systems/">Systems</a><a href="/united/">United</a><a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a><a href="/methodology/">Methodology</a><a href="/api/docs/">API</a><a href="/privacy">Privacy</a><a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Open source ↗</a></div>
   <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> · <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> (independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>
@@ -225,9 +228,24 @@ function build(){
   const fams=[...new Set(roster.map(r=>r.type))];
   const order=["737-800","737-900","737 MAX","A321neo","A319","A320","757","767","777","787","E175","CRJ-550"];
   fams.sort((a,b)=>{const ia=order.indexOf(a),ib=order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
+  // These chips stay <span> rather than <button> for the reasons in the style
+  // block above, so they have to carry the button semantics by hand: a role, a
+  // tab stop, pressed state, and Enter/Space. Without the keydown handler they
+  // were mouse-only. Same pattern as the sortable <th> in assets/site.js.
   $("filters").innerHTML=[["all","All"],...fams.map(f=>[f,f])]
-    .map(([v,l])=>`<span class="f${v===curFilter?" on":""}" data-f="${esc(v)}">${esc(l)}</span>`).join("");
-  document.querySelectorAll(".f").forEach(el=>el.onclick=()=>{curFilter=el.dataset.f;render(allDates,addByDate,histByDate,latest,roster);});
+    .map(([v,l])=>`<span class="f${v===curFilter?" on":""}" data-f="${esc(v)}" role="button" tabindex="0" aria-pressed="${v===curFilter}">${esc(l)}</span>`).join("");
+  document.querySelectorAll(".f").forEach(el=>{
+    const pick=()=>{
+      curFilter=el.dataset.f;
+      document.querySelectorAll(".f").forEach(o=>{
+        const on=o.dataset.f===curFilter;
+        o.classList.toggle("on",on); o.setAttribute("aria-pressed",String(on));
+      });
+      render(allDates,addByDate,histByDate,latest,roster);
+    };
+    el.onclick=pick;
+    el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pick();}};
+  });
 
   render(allDates,addByDate,histByDate,latest,roster);
   $("stat").textContent=`${roster.length} equipped tails · ${allDates.length} update days · ${fmt(allDates[allDates.length-1])} to ${fmt(latest)}`;

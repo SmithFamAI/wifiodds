@@ -168,9 +168,9 @@ function routeTable(r) {
     ' departure' + (r.flights.length === 1 ? '' : 's') + ' · ' + r.obs +
     ' observations · cached ' + day + '</p>\n' +
     '    <div class="tbl-shell tablescroll"><table class="tbl">\n' +
-    '      <thead><tr><th>Flight</th><th class="num">Starlink draw rate</th>' +
-    '<th class="num">Departures observed</th><th>Tracker confidence</th>' +
-    '<th>Cached</th></tr></thead>\n' +
+    '      <thead><tr><th scope="col">Flight</th><th scope="col" class="num">Starlink draw rate</th>' +
+    '<th scope="col" class="num">Departures observed</th><th scope="col">Tracker confidence</th>' +
+    '<th scope="col">Cached</th></tr></thead>\n' +
     '      <tbody>\n' + rows + '\n      </tbody>\n    </table></div>\n';
 }
 

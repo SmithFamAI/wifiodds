@@ -23,11 +23,12 @@
 <meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=fa82ae75">
 <link rel="preload" href="/assets/serif-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/serif-700.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=2745bebc">
+<link rel="stylesheet" href="/assets/site.css?v=580dd06b">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does airBaltic have Starlink WiFi?","acceptedAnswer":{"@type":"Answer","text":"airBaltic has Starlink on 28 of its 55 aircraft (51%) as of 2026-03, so it is better than a coin flip. Its ConnectScore is 100 out of 100, in the good band."}},{"@type":"Question","name":"Is airBaltic’s WiFi free?","acceptedAnswer":{"@type":"Answer","text":"On airBaltic it is free onboard. ConnectScore multiplies the fleet share by a free-for-you factor, so a paid or unconfirmed free claim scores lower than the same fleet given away free."}},{"@type":"Question","name":"How many airBaltic planes have Starlink?","acceptedAnswer":{"@type":"Answer","text":"28 of 55, or 51% of the fleet. Compiled from public airline announcements, July 2026."}}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://wifiodds.com/"},{"@type":"ListItem","position":2,"name":"Airlines","item":"https://wifiodds.com/airlines/"},{"@type":"ListItem","position":3,"name":"airBaltic","item":"https://wifiodds.com/airlines/airbaltic/"}]}</script>
 </head>
 <body>
+<a class="skip" href="#main-content">Skip to content</a>
 <header class="site">
   <div class="wrap masthead">
     <a class="wordmark" href="/"><svg class="mk" viewBox="0 0 32 32" width="17" height="17" aria-hidden="true" focusable="false"><ellipse cx="16" cy="16" rx="11" ry="4.6" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(-22 16 16)"/><circle cx="16" cy="16" r="5.2" fill="currentColor"/><circle cx="26.2" cy="11.9" r="2.3" fill="currentColor"/></svg>WiFi&nbsp;Odds <em>· airBaltic</em></a>
@@ -44,6 +45,7 @@
 </header>
 <div class="wrap">
 <nav class="subnav lone" aria-label="Airline"><a class="sn-back" href="/airlines/">← All airlines</a><span class="sn-air">airBaltic</span></nav>
+<main id="main-content">
 <nav class="crumb" aria-label="Breadcrumb"><a href="/">Home</a><span class="sep">→</span><a href="/airlines/">Airlines</a><span class="sep">→</span><span aria-current="page">airBaltic</span></nav>
 <header class="hero" style="padding-top:14px">
   <span class="kicker">The forecast · tier C</span>
@@ -68,7 +70,7 @@
   <div class="sec-h"><span class="sub">The ledger · type-resolved</span><h2>How the 100 is built</h2></div>
   <p class="sec-lede">Every aircraft airBaltic flies, by system, priced. The rows add up to the published ConnectScore, and the top row on its own is the next-gen number. The build fails if they stop adding up.</p>
 <div class="tbl-shell rv"><table class="tbl">
-    <thead><tr><th>Segment</th><th class="num">Aircraft</th><th class="num">Share</th><th>Share of the fleet</th><th class="num">Quality</th><th class="num">Free</th><th class="num">Points</th></tr></thead>
+    <thead><tr><th scope="col">Segment</th><th scope="col" class="num">Aircraft</th><th scope="col" class="num">Share</th><th scope="col">Share of the fleet</th><th scope="col" class="num">Quality</th><th scope="col" class="num">Free</th><th scope="col" class="num">Points</th></tr></thead>
     <tbody>
       <tr class="instr"><td><span class="sysdot starlink"></span><b>Starlink</b> <span class="badge">next-gen row</span><div class="note" style="margin-top:3px">Single-type A220 fleet, so an equipped aircraft is the same aircraft every time. airBaltic's own booking-side answer, checked 26 Jul 2026, is still &quot;being gradually installed&quot; with the rollout continuing through 2026, and it tells passengers to ask the crew.</div><p class="src"><span class="cls">Reported</span> airBaltic 2025 annual results presentation, 11 Mar 2026, slide 12 · 2026-03-11</p></td><td class="num">28</td><td class="num">100.0%</td><td style="width:16%;min-width:90px"><div class="tape" style="margin:0"><i style="width:100%"></i><span class="tk" style="left:40%"></span><span class="tk" style="left:60%"></span></div></td><td class="num">1.00</td><td class="num">1.00</td><td class="num"><b>100.0</b></td></tr>
       <tr><td><b>Not published</b><div class="note" style="margin-top:3px">airBaltic's last published count is 28 aircraft in March 2026 against a fleet now at 55; it has not said how many of the rest were done since</div></td><td class="num">27</td><td class="num"><span class="micro">out</span></td><td></td><td class="num"><span class="micro">out</span></td><td class="num"><span class="micro">out</span></td><td class="num"><span class="micro">excluded</span></td></tr>
@@ -106,7 +108,7 @@
       <div class="ff"><label for="aairbaltic-air">Airline</label><input id="aairbaltic-air" name="airline" type="text" required maxlength="60"></div>
       <div class="ff"><label for="aairbaltic-fn">Flight number</label><input id="aairbaltic-fn" name="flightNumber" type="text" required spellcheck="false" autocapitalize="characters" placeholder="UA2402"></div>
       <div class="ff"><label for="aairbaltic-on">Date you flew</label><input id="aairbaltic-on" name="flownOn" type="date" required></div>
-      <div class="ff"><label for="aairbaltic-sys">System</label><select id="aairbaltic-sys" name="system" required><option value="">Pick one</option><option value="starlink">Starlink</option><option value="leo">Amazon Leo</option><option value="viasat">Viasat</option><option value="panasonic">Panasonic</option><option value="intelsat">Intelsat or 2Ku</option><option value="hughes">Hughes</option><option value="none">There was no wifi to test</option><option value="unsure">The portal did not say</option></select><span class="fh">The captive portal usually names it.</span></div>
+      <div class="ff"><label for="aairbaltic-sys">System</label><select id="aairbaltic-sys" name="system" required aria-describedby="aairbaltic-sys-h"><option value="">Pick one</option><option value="starlink">Starlink</option><option value="leo">Amazon Leo</option><option value="viasat">Viasat</option><option value="panasonic">Panasonic</option><option value="intelsat">Intelsat or 2Ku</option><option value="hughes">Hughes</option><option value="none">There was no wifi to test</option><option value="unsure">The portal did not say</option></select><span class="fh" id="aairbaltic-sys-h">The captive portal usually names it.</span></div>
       <div class="ff full"><label for="aairbaltic-note">What happened, or what we got wrong</label><textarea id="aairbaltic-note" name="note" maxlength="500" rows="3" placeholder="Whether the login worked, what a call survived, which badge was wrong"></textarea></div>
     </div>
     <div class="frm-ft"><p class="note">Every submission lands unpublished and a person reads it before it appears here. No account, no cookie, no email field. The full form, with speed and latency boxes, is on <a href="/methodology/#field">the methodology page</a>.</p>
@@ -114,7 +116,8 @@
   </form>
 </section>
 
-<p class="src"><span class="cls">Reported</span> Fleet state compiled from public airBaltic announcements, Jul 2026. Quality weights: Ookla Speedtest Intelligence, 28 Apr 2026. <a href="/methodology/#credit">Full credit and citation →</a></p><footer class="site">
+<p class="src"><span class="cls">Reported</span> Fleet state compiled from public airBaltic announcements, Jul 2026. Quality weights: Ookla Speedtest Intelligence, 28 Apr 2026. <a href="/methodology/#credit">Full credit and citation →</a></p></main>
+<footer class="site">
   <div class="flinks"><a href="/airlines/">Airlines</a><a href="/race/">The Race</a><a href="/systems/">Systems</a><a href="/united/">United</a><a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a><a href="/methodology/">Methodology</a><a href="/api/docs/">API</a><a href="/privacy">Privacy</a><a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Open source ↗</a></div>
   <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> · <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> (independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>
   <div class="frow">Data updated <b>2026-07-25</b>. ConnectScores and per-flight odds are historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</div>

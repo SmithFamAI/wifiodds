@@ -155,9 +155,24 @@ function build(){
   const fams=[...new Set(roster.map(r=>r.type))];
   const order=["737-800","737-900","737 MAX","A321neo","A319","A320","757","767","777","787","E175","CRJ-550"];
   fams.sort((a,b)=>{const ia=order.indexOf(a),ib=order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
+  // These chips stay <span> rather than <button> for the reasons in the style
+  // block above, so they have to carry the button semantics by hand: a role, a
+  // tab stop, pressed state, and Enter/Space. Without the keydown handler they
+  // were mouse-only. Same pattern as the sortable <th> in assets/site.js.
   $("filters").innerHTML=[["all","All"],...fams.map(f=>[f,f])]
-    .map(([v,l])=>`<span class="f${v===curFilter?" on":""}" data-f="${esc(v)}">${esc(l)}</span>`).join("");
-  document.querySelectorAll(".f").forEach(el=>el.onclick=()=>{curFilter=el.dataset.f;render(allDates,addByDate,histByDate,latest,roster);});
+    .map(([v,l])=>`<span class="f${v===curFilter?" on":""}" data-f="${esc(v)}" role="button" tabindex="0" aria-pressed="${v===curFilter}">${esc(l)}</span>`).join("");
+  document.querySelectorAll(".f").forEach(el=>{
+    const pick=()=>{
+      curFilter=el.dataset.f;
+      document.querySelectorAll(".f").forEach(o=>{
+        const on=o.dataset.f===curFilter;
+        o.classList.toggle("on",on); o.setAttribute("aria-pressed",String(on));
+      });
+      render(allDates,addByDate,histByDate,latest,roster);
+    };
+    el.onclick=pick;
+    el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pick();}};
+  });
 
   render(allDates,addByDate,histByDate,latest,roster);
   $("stat").textContent=`${roster.length} equipped tails · ${allDates.length} update days · ${fmt(allDates[allDates.length-1])} to ${fmt(latest)}`;

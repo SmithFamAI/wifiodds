@@ -323,8 +323,10 @@ function observeBlock(sentence, idp) {
     '      <div class="ff"><label for="' + p + '-on">Date you flew</label>' +
     '<input id="' + p + '-on" name="flownOn" type="date" required></div>\n' +
     '      <div class="ff"><label for="' + p + '-sys">System</label>' +
-    '<select id="' + p + '-sys" name="system" required><option value="">Pick one</option>' +
-    opts + '</select><span class="fh">The captive portal usually names it.</span></div>\n' +
+    '<select id="' + p + '-sys" name="system" required aria-describedby="' + p + '-sys-h">' +
+    '<option value="">Pick one</option>' +
+    opts + '</select><span class="fh" id="' + p + '-sys-h">' +
+    'The captive portal usually names it.</span></div>\n' +
     '      <div class="ff full"><label for="' + p + '-note">What happened, or what we got wrong' +
     '</label><textarea id="' + p + '-note" name="note" maxlength="500" rows="3" ' +
     'placeholder="Whether the login worked, what a call survived, which badge was wrong"></textarea>' +
@@ -464,10 +466,10 @@ function fieldTable(m) {
   }).join('\n');
 
   return '<div class="tbl-shell tablescroll rv"><table class="tbl board">\n' +
-    '    <thead><tr><th>#</th><th>Airline</th><th class="num">ConnectScore</th>' +
-    '<th class="barcell"><span class="visually-hidden">Score drawn as a bar</span></th>' +
-    '<th>Tier</th><th class="num">Next-gen odds</th><th class="phz">Rollout</th>' +
-    '<th class="num">Projected · grey, never sorts</th></tr></thead>\n' +
+    '    <thead><tr><th scope="col">#</th><th scope="col">Airline</th><th scope="col" class="num">ConnectScore</th>' +
+    '<th scope="col" class="barcell"><span class="visually-hidden">Score drawn as a bar</span></th>' +
+    '<th scope="col">Tier</th><th scope="col" class="num">Next-gen odds</th><th scope="col" class="phz">Rollout</th>' +
+    '<th scope="col" class="num">Projected · grey, never sorts</th></tr></thead>\n' +
     '    <tbody>\n' + rows + '\n    </tbody>\n  </table></div>\n' +
     /* Visible only under 700px, where the wide columns are shed. */
     '  <p class="board-note">On a phone this board drops the score bar, the rollout phase and ' +
@@ -505,13 +507,13 @@ function leaderboard(m, limit) {
   }).join('\n');
 
   return '<div class="tbl-shell rv"><table class="tbl" id="lbTable">\n' +
-    '    <thead><tr><th data-k="rank" data-t="num">#</th><th data-k="name">Airline</th>' +
+    '    <thead><tr><th scope="col" data-k="rank" data-t="num">#</th><th scope="col" data-k="name">Airline</th>' +
     /* aria-sort is baked because the table really IS sorted by score desc on
        arrival — which also makes the first click on that header flip to ascending
        instead of re-applying the order it already has. */
-    '<th data-k="score" data-t="num" aria-sort="descending">ConnectScore</th><th data-k="sys">System</th>' +
-    '<th data-k="fleet" data-t="num">Fleet equipped</th><th data-k="free">Free</th>' +
-    '<th class="hide-sm">Note</th></tr></thead>\n    <tbody>\n' + rows + '\n    </tbody>\n' +
+    '<th scope="col" data-k="score" data-t="num" aria-sort="descending">ConnectScore</th><th scope="col" data-k="sys">System</th>' +
+    '<th scope="col" data-k="fleet" data-t="num">Fleet equipped</th><th scope="col" data-k="free">Free</th>' +
+    '<th scope="col" class="hide-sm">Note</th></tr></thead>\n    <tbody>\n' + rows + '\n    </tbody>\n' +
     '  </table></div>\n';
 }
 
@@ -691,8 +693,8 @@ function tierTable(m) {
       '<td class="hide-sm">' + esc(t[4]) + '</td></tr>';
   }).join('\n');
   return '<div class="tbl-shell rv"><table class="tbl">\n' +
-    '    <thead><tr><th>Tier</th><th>What was checked</th><th>Airlines</th>' +
-    '<th class="hide-sm">What you can conclude</th></tr></thead>\n' +
+    '    <thead><tr><th scope="col">Tier</th><th scope="col">What was checked</th><th scope="col">Airlines</th>' +
+    '<th scope="col" class="hide-sm">What you can conclude</th></tr></thead>\n' +
     '    <tbody>\n' + rows + '\n    </tbody>\n  </table></div>\n';
 }
 
@@ -721,9 +723,9 @@ function reportTable(list, caption) {
   return '<div class="tbl-shell rv"><table class="tbl">\n' +
     (caption ? '    <caption class="micro" style="text-align:left;padding-bottom:10px">' +
       esc(caption) + '</caption>\n' : '') +
-    '    <thead><tr><th>Flown</th><th>Flight</th><th>Route</th><th>Aircraft</th><th>System</th>' +
-    '<th class="num">Down</th><th class="num">Up</th><th class="num">Latency</th>' +
-    '<th>Reported by</th></tr></thead>\n' +
+    '    <thead><tr><th scope="col">Flown</th><th scope="col">Flight</th><th scope="col">Route</th><th scope="col">Aircraft</th><th scope="col">System</th>' +
+    '<th scope="col" class="num">Down</th><th scope="col" class="num">Up</th><th scope="col" class="num">Latency</th>' +
+    '<th scope="col">Reported by</th></tr></thead>\n' +
     '    <tbody>\n' + rows + '\n    </tbody>\n  </table></div>\n';
 }
 

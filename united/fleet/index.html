@@ -23,11 +23,12 @@
 <meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=fa82ae75">
 <link rel="preload" href="/assets/serif-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/serif-700.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=2745bebc">
+<link rel="stylesheet" href="/assets/site.css?v=580dd06b">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","@id":"https://wifiodds.com/united/fleet/#dataset","name":"United Airlines Starlink rollout archive","description":"Every United Airlines aircraft confirmed to carry Starlink, with the date each tail was first seen equipped: 481 of 1808 aircraft across 176 distinct install days.","url":"https://wifiodds.com/united/fleet/","temporalCoverage":"2025-03-14/2026-07-25","dateModified":"2026-07-25","keywords":["Starlink","United Airlines","inflight WiFi","fleet rollout","aircraft registry"],"creator":{"@type":"Organization","name":"WiFi Odds","url":"https://wifiodds.com/"},"isBasedOn":{"@type":"WebSite","name":"unitedstarlinktracker.com","url":"https://unitedstarlinktracker.com"},"license":"Personal and research use; credit unitedstarlinktracker.com (@martinamps) when quoting fleet numbers.","distribution":[{"@type":"DataDownload","contentUrl":"https://wifiodds.com/united/data.json","encodingFormat":"application/json"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://wifiodds.com/"},{"@type":"ListItem","position":2,"name":"United","item":"https://wifiodds.com/united/"},{"@type":"ListItem","position":3,"name":"Fleet","item":"https://wifiodds.com/united/fleet/"}]}</script>
 </head>
 <body>
+<a class="skip" href="#main-content">Skip to content</a>
 <header class="site">
   <div class="wrap masthead">
     <a class="wordmark" href="/"><svg class="mk" viewBox="0 0 32 32" width="17" height="17" aria-hidden="true" focusable="false"><ellipse cx="16" cy="16" rx="11" ry="4.6" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(-22 16 16)"/><circle cx="16" cy="16" r="5.2" fill="currentColor"/><circle cx="26.2" cy="11.9" r="2.3" fill="currentColor"/></svg>WiFi&nbsp;Odds <em>· United</em></a>
@@ -44,6 +45,7 @@
 </header>
 <div class="wrap">
 <nav class="subnav" aria-label="United pages"><span class="sn-air">United</span><a class="sn-tab" href="/airlines/united/">Overview</a><a class="sn-tab" href="/united/">Route optimizer</a><a class="sn-tab" href="/united/fleet/" aria-current="page">Fleet</a><a class="sn-tab" href="/united/history/">History</a><a class="sn-back" href="/airlines/">All airlines →</a></nav>
+<main id="main-content">
 <nav class="crumb" aria-label="Breadcrumb"><a href="/">Home</a><span class="sep">→</span><a href="/united/">United</a><span class="sep">→</span><span aria-current="page">Fleet</span></nav>
 <header class="hero" style="padding-top:14px">
   <h1 class="ph">United’s Starlink rollout, tail by tail</h1>
@@ -98,7 +100,7 @@
   <div class="filters needs-js" data-target="#regTable" data-cur="all" role="group" aria-label="Filter tails"><button type="button" data-f="all" aria-pressed="true">All (481)</button><button type="button" data-f="mainline" aria-pressed="false">Mainline (139)</button><button type="button" data-f="express" aria-pressed="false">Express (342)</button><button type="button" data-f="E175" aria-pressed="false">E175 (248)</button><button type="button" data-f="CRJ-550" aria-pressed="false">CRJ-550 (94)</button><button type="button" data-f="737-800" aria-pressed="false">737-800 (62)</button><button type="button" data-f="737-900" aria-pressed="false">737-900 (44)</button><button type="button" data-f="A321neo" aria-pressed="false">A321neo (32)</button><button type="button" data-f="777" aria-pressed="false">777 (1)</button></div>
   <div class="srch needs-js"><label class="micro" for="tailq">Find a tail</label><input id="tailq" type="search" data-target="#regTable" placeholder="N68811" autocomplete="off" spellcheck="false"></div>
   <div class="tbl-shell"><table class="tbl" id="regTable">
-    <thead><tr><th data-k="tail">Tail</th><th data-k="type">Type</th><th data-k="fleet">Fleet</th><th data-k="seen" data-t="num" aria-sort="descending">Installed</th><th data-k="days" data-t="num">Days live</th></tr></thead>
+    <thead><tr><th scope="col" data-k="tail">Tail</th><th scope="col" data-k="type">Type</th><th scope="col" data-k="fleet">Fleet</th><th scope="col" data-k="seen" data-t="num" aria-sort="descending">Installed</th><th scope="col" data-k="days" data-t="num">Days live</th></tr></thead>
     <tbody>
       <tr data-f="mainline 737-900" data-q="N68811"><td class="mono"><b>N68811</b></td><td data-s="737-900">737-900</td><td data-s="mainline"><span class="badge mainline">mainline</span></td><td class="num" data-s="20657">Jul 23, 2026</td><td class="num" data-s="2">2</td></tr>
       <tr data-f="express CRJ-550" data-q="N583GJ"><td class="mono"><b>N583GJ</b></td><td data-s="CRJ-550">CRJ-550</td><td data-s="express"><span class="badge express">express</span></td><td class="num" data-s="20656">Jul 22, 2026</td><td class="num" data-s="3">3</td></tr>
@@ -602,7 +604,7 @@
       <div class="ff"><label for="fleet-air">Airline</label><input id="fleet-air" name="airline" type="text" required maxlength="60"></div>
       <div class="ff"><label for="fleet-fn">Flight number</label><input id="fleet-fn" name="flightNumber" type="text" required spellcheck="false" autocapitalize="characters" placeholder="UA2402"></div>
       <div class="ff"><label for="fleet-on">Date you flew</label><input id="fleet-on" name="flownOn" type="date" required></div>
-      <div class="ff"><label for="fleet-sys">System</label><select id="fleet-sys" name="system" required><option value="">Pick one</option><option value="starlink">Starlink</option><option value="leo">Amazon Leo</option><option value="viasat">Viasat</option><option value="panasonic">Panasonic</option><option value="intelsat">Intelsat or 2Ku</option><option value="hughes">Hughes</option><option value="none">There was no wifi to test</option><option value="unsure">The portal did not say</option></select><span class="fh">The captive portal usually names it.</span></div>
+      <div class="ff"><label for="fleet-sys">System</label><select id="fleet-sys" name="system" required aria-describedby="fleet-sys-h"><option value="">Pick one</option><option value="starlink">Starlink</option><option value="leo">Amazon Leo</option><option value="viasat">Viasat</option><option value="panasonic">Panasonic</option><option value="intelsat">Intelsat or 2Ku</option><option value="hughes">Hughes</option><option value="none">There was no wifi to test</option><option value="unsure">The portal did not say</option></select><span class="fh" id="fleet-sys-h">The captive portal usually names it.</span></div>
       <div class="ff full"><label for="fleet-note">What happened, or what we got wrong</label><textarea id="fleet-note" name="note" maxlength="500" rows="3" placeholder="Whether the login worked, what a call survived, which badge was wrong"></textarea></div>
     </div>
     <div class="frm-ft"><p class="note">Every submission lands unpublished and a person reads it before it appears here. No account, no cookie, no email field. The full form, with speed and latency boxes, is on <a href="/methodology/#field">the methodology page</a>.</p>
@@ -610,6 +612,7 @@
   </form>
 </section>
 
+</main>
 <footer class="site">
   <div class="flinks"><a href="/airlines/">Airlines</a><a href="/race/">The Race</a><a href="/systems/">Systems</a><a href="/united/">United</a><a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a><a href="/methodology/">Methodology</a><a href="/api/docs/">API</a><a href="/privacy">Privacy</a><a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">Open source ↗</a></div>
   <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> · <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> (independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>
