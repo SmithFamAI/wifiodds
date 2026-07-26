@@ -4,6 +4,21 @@
  "fleet": {
   "equipped": 482,
   "total": 1807,
+  "published": {
+   "equipped": 450,
+   "total": 1552,
+   "scope": "consolidated: United mainline + United Express",
+   "kind": "actual",
+   "asOf": "2026-06-30",
+   "publisher": "United Airlines Holdings, Inc.",
+   "publication": "Second-Quarter 2026 Results news release (Exhibit 99.1)",
+   "published": "2026-07-15",
+   "url": "https://ir.united.com/static-files/ce6406f9-25c7-422a-bd4f-606597d74c85",
+   "totalQuote": "Aircraft in fleet at end of period 1,552 (Select operating statistics, consolidated, three months ended June 30, 2026)",
+   "equippedQuote": "Starlink is now installed on 450 United mainline and United Express aircraft",
+   "crossCheck": "United's own Investor Update of 2026-01-20 (ir.united.com/static-files/4e68b31c-fddf-4a62-9573-bdf931dd26cc) planned 2Q26 at 1,129 mainline + 432 regional = 1,561; the actual 1,552 lands 9 aircraft under plan.",
+   "whyBothFields": "equipped and total here come from ONE publisher describing ONE population, so the ratio is coherent. The tracker's live equipped (fleet.equipped) counts a LARGER population than United's own fleet -- fleet.total is the tracker's population, not United's. Dividing the tracker's equipped by United's total would overstate United's share. Do not mix the two."
+  },
   "last30": 51,
   "mainline": {
    "equipped": 141,
@@ -246,7 +261,7 @@
     "EWR-YYZ": 6
    },
    "moved": [
-    "UA2123 33%→39%"
+    "UA2123 33%\u219239%"
    ],
    "newTails": []
   },
@@ -330,8 +345,8 @@
     "DEN-MKE": 6
    },
    "moved": [
-    "UA1007 39%→50%",
-    "UA1233 24%→37%"
+    "UA1007 39%\u219250%",
+    "UA1233 24%\u219237%"
    ],
    "newTails": []
   }
@@ -8258,10 +8273,10 @@
  },
  "routes": {
   "DEN-SFO": {
-   "label": "Denver → San Francisco",
+   "label": "Denver \u2192 San Francisco",
    "tz": "MT",
-   "sweetSpot": "~noon–6 PM departures",
-   "avoidNote": "5–6 AM bank is MAX-heavy (0% fleet); UA2633 is a 757-300 (0% fleet)",
+   "sweetSpot": "~noon\u20136 PM departures",
+   "avoidNote": "5\u20136 AM bank is MAX-heavy (0% fleet); UA2633 is a 757-300 (0% fleet)",
    "roundTripPartner": "SFO-DEN",
    "flights": [
     {
@@ -8395,19 +8410,19 @@
     "asOf": "2026-07-23",
     "note": "Confirmed Starlink tails on this route in the next 48h at last refresh",
     "list": [
-     "UA2123 · Jul 23 · N54570",
-     "UA1450 · Jul 24 · N54552 (A321neo)",
-     "UA1812 · Jul 24 · N14557 (A321neo)",
-     "UA1506 · Jul 25 · N94556",
-     "UA1812 · Jul 25 · N14517",
-     "UA1007 · Jul 25 · N14549"
+     "UA2123 \u00b7 Jul 23 \u00b7 N54570",
+     "UA1450 \u00b7 Jul 24 \u00b7 N54552 (A321neo)",
+     "UA1812 \u00b7 Jul 24 \u00b7 N14557 (A321neo)",
+     "UA1506 \u00b7 Jul 25 \u00b7 N94556",
+     "UA1812 \u00b7 Jul 25 \u00b7 N14517",
+     "UA1007 \u00b7 Jul 25 \u00b7 N14549"
     ]
    }
   },
   "SFO-DEN": {
-   "label": "San Francisco → Denver",
+   "label": "San Francisco \u2192 Denver",
    "tz": "PT",
-   "sweetSpot": "~4–7 PM departures",
+   "sweetSpot": "~4\u20137 PM departures",
    "avoidNote": "UA1671, UA1479 and UA301 draw non-Starlink tails; early bank is weak",
    "roundTripPartner": "DEN-SFO",
    "flights": [

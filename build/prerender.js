@@ -469,6 +469,56 @@ function buildRobots() {
  * body — the numbers would still be internally consistent with their own halves. */
 function reconcileUnited() {
   var D = JSON.parse(fs.readFileSync(abs('united/data.json'), 'utf8'));
+
+  /* ── WHERE UNITED'S DENOMINATOR COMES FROM, AND WHY IT IS STILL 1,807 ────
+   * Searched 26 Jul 2026 for a United publication of record giving the fleet
+   * count: ir.united.com static files, the Q2 2026 earnings release, the
+   * 20 Jan 2026 Investor Update fleet plan, and SEC 10-K/10-Q coverage.
+   *
+   * FOUND, and stored in united/data.json at fleet.published:
+   *   1,552 aircraft in fleet at end of period (consolidated: mainline +
+   *   United Express), United Airlines Holdings, Second-Quarter 2026 Results
+   *   news release, Exhibit 99.1, published 2026-07-15, as of 2026-06-30.
+   *   The SAME release says Starlink is installed on 450 mainline and Express
+   *   aircraft. Cross-checks against United's own 20 Jan 2026 Investor Update,
+   *   which planned 2Q26 at 1,129 mainline + 432 regional = 1,561.
+   *
+   * NOT APPLIED to the visible denominator, deliberately. `fleet.total` (1,807)
+   * is the TRACKER's population, and so are the four non-Starlink segment rows
+   * and every per-type count on the hangar floor. The tracker counts 669 express
+   * tails against United's own ~429 because it answers "will my UA-coded flight
+   * have Starlink", which includes regional tails flying for several carriers.
+   * `fleet.equipped` (482) is drawn from that same larger population. So
+   * publishing 482 of 1,552 would divide a superset numerator by United's own
+   * fleet and OVERSTATE United's equipped share — a new wrong number in place of
+   * a known-wrong one. Re-deriving the segment and type rows against United's
+   * fleet needs a per-tail operator split nobody publishes, and inventing one is
+   * exactly what rule 1 forbids.
+   *
+   * fleet.published therefore carries United's own self-consistent pair — 450 of
+   * 1,552, one publisher, one population, one date — for the page to cite beside
+   * the tracker's live count. Changing the headline denominator is a decision
+   * about which population the site is measuring, and it belongs to Jeremy. */
+  var pub = D.fleet.published;
+  if (pub && pub.total) {
+    console.log('  united: published denominator on file — ' + pub.equipped + ' of ' + pub.total +
+      ' (' + pub.publisher + ', ' + pub.publication + ', ' + pub.published + ', as of ' + pub.asOf + ')');
+    console.log('          tracker population in use for the ledger: ' + D.fleet.equipped + ' of ' +
+      D.fleet.total + '. The two describe different populations — do not cross-divide them.');
+  } else {
+    console.log('  united: WARNING — no fleet.published block in united/data.json. The denominator');
+    console.log('          on the page has no publisher of record behind it.');
+  }
+
+  /* The plausibility gate in ~/websites/scripts/update-unitedstarlink.js heals
+   * and logs rather than exiting, so its flags only reach a human if something
+   * downstream repeats them. This is that something. */
+  var plaus = D.fleet.plausibility;
+  if (plaus && plaus.flags && plaus.flags.length) {
+    console.log('  united: PLAUSIBILITY FLAGS raised by the ' + plaus.checkedOn + ' refresh:');
+    plaus.flags.forEach(function (f) { console.log('          - ' + f); });
+  }
+
   var eq = D.fleet.equipped, tot = D.fleet.total;
   if (typeof eq !== 'number' || typeof tot !== 'number' || tot <= 0) {
     console.error('Build FAILED — united/data.json has no usable fleet.equipped / fleet.total.');
