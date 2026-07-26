@@ -1124,8 +1124,28 @@ html.anim .track.in .fill{width:var(--pct)}
 .scobar .fill.sc-mix{background:var(--mixed)}
 .scobar .fill.sc-long{background:var(--long)}
 .scobar .fill.sc-no{background:var(--zero)}
+/* At phone width the full board is 1,028px of table in a 390px window: three
+   visible columns and a sideways scroll nobody discovers. Below 700px the board
+   SHEDS instead of scrolling — the bar, the rollout phase, the projected column
+   and the IATA code go, cell padding tightens, and what remains (rank, name,
+   score with its band word, tier, next-gen) fits the screen. A note under the
+   table says where the projections live. Verified at a real 390px viewport,
+   26 Jul 2026, after Jeremy caught the overflow on his phone. */
+.board-note{display:none;font-size:.78rem;color:var(--muted);margin:.5rem 0 0}
 @media(max-width:700px){
   .tbl.board .barcell,.tbl.board .phz{display:none}
+  .tbl.board td:last-child,.tbl.board th:last-child{display:none}
+  .tbl.board .code{display:none}
+  .tbl.board td,.tbl.board th{padding-left:.3rem;padding-right:.3rem}
+  .tbl.board th{white-space:normal;font-size:.6rem;letter-spacing:.05em}
+  .tbl.board .sco{font-size:1.05rem}
+  /* the band word drops UNDER its number: same signal, half the width */
+  .tbl.board td .band{display:block;margin:.15rem 0 0}
+  /* .tbl carries min-width:40rem (and 34rem inside .tablescroll) so that DENSE
+     tables scroll rather than crush. The board sheds columns instead, so the
+     floor comes off — this line is why the board fits a phone at all. */
+  table.tbl.board{min-width:0}
+  .board-note{display:block}
 }
 
 /* Chart lines own a third small palette, by Jeremy's call on 26 Jul 2026: the

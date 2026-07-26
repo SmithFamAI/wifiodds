@@ -468,7 +468,11 @@ function fieldTable(m) {
     '<th class="barcell"><span class="visually-hidden">Score drawn as a bar</span></th>' +
     '<th>Tier</th><th class="num">Next-gen odds</th><th>Rollout</th>' +
     '<th class="num">Projected · grey, never sorts</th></tr></thead>\n' +
-    '    <tbody>\n' + rows + '\n    </tbody>\n  </table></div>\n';
+    '    <tbody>\n' + rows + '\n    </tbody>\n  </table></div>\n' +
+    /* Visible only under 700px, where the wide columns are shed. */
+    '  <p class="board-note">On a phone this board drops the score bar, the rollout phase and ' +
+    'the projected column to fit. Each airline’s own page carries all of it, projections ' +
+    'included.</p>\n';
 }
 
 /* ── §3.2 ConnectScore leaderboard, baked <table> ───────────────────────── */
