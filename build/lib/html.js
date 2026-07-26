@@ -317,7 +317,7 @@ function footer(updated) {
        and a provenance page is something a reader goes looking for rather than
        something that needs to compete with "Airlines" on every screen. */
     '<a href="/methodology/">Methodology</a>' +
-    '<a href="/api/docs/">API</a><a href="/privacy.html">Privacy</a>' +
+    '<a href="/api/docs/">API</a><a href="/privacy">Privacy</a>' +
     '<a href="' + REPO + '" target="_blank" rel="noopener">Open source ↗</a></div>\n' +
     '  <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> ' +
     '· <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> ' +
@@ -326,7 +326,7 @@ function footer(updated) {
     'historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and ' +
     'unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</div>\n' +
     '  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension, and ' +
-    'nothing is stored in your browser. What the server keeps is on the <a href="/privacy.html">privacy page</a>.</div>\n' +
+    'nothing is stored in your browser. What the server keeps is on the <a href="/privacy">privacy page</a>.</div>\n' +
     '  <div class="frow">The page follows your system’s light or dark setting. The switch in the header ' +
     'lasts until you reload, and nothing about your choice is stored.</div>\n' +
     '</footer>\n';

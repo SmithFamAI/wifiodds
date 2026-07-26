@@ -98,7 +98,7 @@ function home(m) {
     P.halfmark(1, 'The record', 'the odds, with the source and the date on every figure', 'record') +
     '<header class="hero heroq">\n' +
     '  <span class="kicker">The check</span>\n' +
-    '  <h1>Will you be able to work<span class="tag">on that flight?</span></h1>\n' +
+    '  <h1>Will you be able to work <span class="tag">on that flight?</span></h1>\n' +
     '  <p class="lede">Type the flight number and you get three things: the odds it draws next-gen ' +
     'WiFi, what is on board when it does not, and how far to lean on both. Every figure on this ' +
     'site names its source and its date. No account, nothing stored. The page runs in two halves — ' +
@@ -129,8 +129,7 @@ function home(m) {
     '  <p class="footnote">Ranked on what is flying today, ' + esc(H.chipDate(m.updated)) + '. ' +
     P.BAND_LEGEND + ' The tier column is how the row was derived: <b>A</b> resolves your aircraft to ' +
     'a registration, <b>B</b> stops at the aircraft type, <b>C</b> is the airline’s own published ' +
-    'fleet count and <b>D</b> is a signed deal with nothing in the air. A ConnectScore is an ' +
-    'expected value over a fleet and never a promise about one flight. ' +
+    'fleet count and <b>D</b> is a signed deal with nothing in the air. ' +
     esc(m.A.SCORE_CAVEAT) + '</p>\n' +
     P.srcLine('reported', 'Tail verification for United, Alaska and Hawaiian: ' +
       '<a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">' +
@@ -268,7 +267,7 @@ function home(m) {
           '@type': 'WebSite', name: 'unitedstarlinktracker.com',
           url: 'https://unitedstarlinktracker.com'
         },
-        privacyPolicy: ORIGIN + '/privacy.html'
+        privacyPolicy: ORIGIN + '/privacy'
       }
     ]
   });
@@ -2340,7 +2339,7 @@ function apiDocs(m) {
       description: 'Free, key-less JSON API for airline inflight WiFi ConnectScores and per-flight ' +
         'United Starlink odds.',
       provider: { '@type': 'Organization', name: 'WiFi Odds', url: ORIGIN + '/' },
-      termsOfService: ORIGIN + '/privacy.html'
+      termsOfService: ORIGIN + '/privacy'
     }, crumbLd(crumbs)]
   });
 }
@@ -2518,9 +2517,13 @@ function privacyPage(m) {
     title: 'Privacy Policy — WiFi Odds for Flights',
     desc: 'Privacy policy for WiFi Odds (wifiodds.com) and the WiFi Odds for Flights browser extension. ' +
       'No accounts, no analytics, no tracking, and no personal data collected.',
-    canonical: '/privacy.html', here: '/', updated: m.updated,
+    /* The file on disk is privacy.html and routes.js keeps it that way, but
+       Cloudflare serves it at /privacy and 308s the .html form to it. The
+       canonical and the crumb name the URL a reader actually lands on, because
+       a canonical pointing at a redirect is a canonical the crawler discards. */
+    canonical: '/privacy', here: '/', updated: m.updated,
     extraHead: t.head, body: t.body,
-    jsonld: [crumbLd([['/', 'Home'], ['/privacy.html', 'Privacy']])]
+    jsonld: [crumbLd([['/', 'Home'], ['/privacy', 'Privacy']])]
   });
 }
 

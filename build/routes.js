@@ -43,7 +43,10 @@ var ROUTES = [
   { url: '/methodology/', file: 'methodology/index.html', kind: 'gen', changefreq: 'daily', priority: '0.7' },
   { url: '/roadmap/', file: 'roadmap/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.5' },
   { url: '/api/docs/', file: 'api/docs/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.5' },
-  { url: '/privacy.html', file: 'privacy.html', kind: 'gen', tmpl: 'privacy', changefreq: 'yearly', priority: '0.3' }
+  /* url is the path Cloudflare serves; file is what lands on disk. They differ
+     only here: /privacy.html 308s to /privacy, so the sitemap must advertise
+     /privacy or it is pointing crawlers at a redirect. */
+  { url: '/privacy', file: 'privacy.html', kind: 'gen', tmpl: 'privacy', changefreq: 'yearly', priority: '0.3' }
 ];
 
 AIRLINE_KEYS.forEach(function (k) {

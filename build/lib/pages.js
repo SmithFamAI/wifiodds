@@ -279,7 +279,7 @@ function loopSection() {
     return '    <dt>' + esc(c[0]) + '</dt><dd>' + esc(c[1]) + '</dd>';
   }).join('\n') + '\n  </dl>\n' +
     '  <p class="prov"><b>The intake</b> · POST /api/report · no channel attaches an account · ' +
-    'what the server keeps is on the <a href="/privacy.html">privacy page</a></p>\n';
+    'what the server keeps is on the <a href="/privacy">privacy page</a></p>\n';
 }
 
 /* ── THE REPORT BLOCK, a shared component ─────────────────────────────────
