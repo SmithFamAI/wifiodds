@@ -37,6 +37,7 @@ var H = require('./lib/html.js');
 var Render = require('./lib/render.js');
 var SlopGate = require('./slop-gate.js');
 var Surfaces = require('./surfaces.js');
+var Provenance = require('./assert-provenance.js');
 
 var ORIGIN = H.ORIGIN;
 var t0 = Date.now();
@@ -1045,6 +1046,26 @@ function main() {
    * counts, and only prose moves points. build/slop-gate.js carries the
    * measurements behind that claim and the argument in full. */
   var slop = SlopGate.gateBuild({ quiet: true });
+
+  /* ── PROVENANCE, REPORT ONLY. DELIBERATELY NOT A FAILURE. ────────────────
+   * ARCHETYPES says a figure without a provenance line within one screen is a
+   * bug and that this build should fail on it. Written on 26 Jul 2026, run, and
+   * left OFF, because switching it on would have failed the 04:32 refresh that
+   * night: 68 of 208 figures do not satisfy it.
+   *
+   * The other reason it is off is that it cannot heal. reconcileUnited() may
+   * exit 1 loudly because a human is the only one who can fix a broken anchor;
+   * this one has no repair at all that is not fabrication. A provenance line is
+   * a source and a date. Neither may ever be generated to make a check pass.
+   *
+   * Run `node build/assert-provenance.js` for the breakdown, or add `--strict`
+   * to make it exit 1. Nine figures fail both the strict and the loose reading;
+   * six of those are /api/docs/ request-and-response tables, which are schema
+   * documentation rather than figures and argue the `.tbl` heuristic is too
+   * broad. The three real ones are named in the report.
+   *
+   * Turn it on when that list is empty and not before. */
+  var prov = Provenance.run(false, true);
 
   /* every route must actually be generated now — no `kind: 'hand'` left */
   var hand = R.ROUTES.concat(R.UNLISTED).filter(function (r) { return r.kind !== 'gen'; });
