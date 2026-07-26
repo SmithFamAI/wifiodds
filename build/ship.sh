@@ -1,0 +1,94 @@
+#!/bin/bash
+# ship.sh — the only sanctioned way to publish this site.
+#
+# WHY THIS EXISTS. On 26 Jul 2026 the 04:32 refresh committed 13b5860 and pushed
+# it to main while `node build/apitest.js` was failing six checks. Production
+# carried a red suite for 38 minutes and nothing said so.
+#
+# The gate was not missing. The scheduled task's own prompt already said, in
+# plain words, "if it exits non-zero: do NOT commit, do NOT push". It was simply
+# not followed. That is the third time this project has been bitten by the same
+# shape: .assetsignore was believed to block a deploy and did nothing, a model
+# doctrine was enforced in one paused shell script, and a verification rule sat
+# in a prompt nobody executed. A rule that lives somewhere the runtime does not
+# read is not a rule, it is a wish.
+#
+# So the gate is code now. Any agent, any human, any scheduled task that ships
+# by calling this script gets the check whether or not it read the instructions.
+#
+# WHAT IT DOES NOT DO: it never hard-exits in a way that leaves the tree
+# mangled, and it never pushes a failed build. On failure it leaves the working
+# tree exactly as the build left it and returns non-zero with a legible reason.
+# That is heal-and-log: the deploy is protected, the work is preserved, and the
+# morning session can see the whole state with `git status`. A process that
+# takes the deploy down at 04:32 with nobody awake is worse than the fault it
+# was guarding against — see reconcileUnited() in build/prerender.js.
+#
+# Usage:
+#   bash build/ship.sh "commit message"      # build, verify, commit, push main
+#   bash build/ship.sh --check-only          # build + verify, touch nothing
+#
+set -uo pipefail
+cd "$(dirname "$0")/.." || exit 90
+
+CHECK_ONLY=""
+MSG=""
+for a in "$@"; do
+  case "$a" in
+    --check-only) CHECK_ONLY=1 ;;
+    *) MSG="$a" ;;
+  esac
+done
+
+fail() { echo ""; echo "SHIP ABORTED: $1"; echo "Nothing was committed and nothing was pushed."; echo "The working tree is exactly as the build left it; run 'git status' to see it."; exit "${2:-1}"; }
+
+echo "── 1/4 prerender ─────────────────────────────────────────"
+if ! node build/prerender.js; then
+  fail "node build/prerender.js exited non-zero (see its output above)." 91
+fi
+
+echo ""
+echo "── 2/4 api suite ─────────────────────────────────────────"
+if ! node build/apitest.js; then
+  fail "node build/apitest.js exited non-zero. THIS IS THE 26 JUL FAULT: a cached
+figure moved and an assertion still held the old value, or the page and the API
+genuinely disagree. Read the failing checks above before doing anything else." 92
+fi
+
+if [ -n "$CHECK_ONLY" ]; then
+  echo ""
+  echo "── check-only: build and suite are green. Nothing staged. ──"
+  exit 0
+fi
+
+[ -n "$MSG" ] || fail "no commit message given. Usage: bash build/ship.sh \"message\"" 93
+
+echo ""
+echo "── 3/4 stage ─────────────────────────────────────────────"
+# Explicit paths only. NEVER `git add .` — this tree holds other people's
+# drafts and that rule has already caught one real staging mistake.
+CHANGED=$(git status --porcelain | awk '{print $2}')
+if [ -z "$CHANGED" ]; then echo "nothing changed; not committing."; exit 0; fi
+if git status --porcelain | grep -q '^??'; then
+  echo "Untracked files present:"; git status --porcelain | grep '^??'
+  fail "untracked files in the tree. Stage them deliberately, then re-run. This
+script will not guess which new files belong in a public deploy." 94
+fi
+git add -u
+echo "$CHANGED" | sed 's/^/  /'
+
+echo ""
+echo "── 4/4 commit and push ───────────────────────────────────"
+git commit -m "$MSG" || fail "git commit failed (the pre-commit prose ratchet may have blocked it)." 95
+git push origin HEAD || fail "git push failed. The commit exists locally." 96
+
+BR=$(git rev-parse --abbrev-ref HEAD)
+if [ "$BR" != "main" ]; then
+  git checkout -q main && git merge -q --ff-only "$BR" && git push -q origin main \
+    && git checkout -q "$BR" \
+    || fail "fast-forward of main from $BR failed; branch is pushed, main is not." 97
+fi
+echo ""
+echo "shipped: $(git rev-parse --short main) on main"
+echo "Verify by BODY, never by status code:"
+echo "  curl -sS --compressed \"https://wifiodds.com/?cb=\$RANDOM\" | grep -o '<title>[^<]*'"
