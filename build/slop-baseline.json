@@ -38,7 +38,7 @@
       "pivotUnits": 35
     },
     "airlines/airbaltic/index.html": {
-      "words": 909,
+      "words": 1066,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -110,7 +110,7 @@
       "pivotUnits": 1
     },
     "airlines/index.html": {
-      "words": 1447,
+      "words": 1466,
       "llmPoints": 0.5,
       "clichePoints": 0,
       "unsub": 0,
@@ -174,7 +174,7 @@
       "pivotUnits": 1
     },
     "airlines/westjet/index.html": {
-      "words": 1054,
+      "words": 1091,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -206,7 +206,7 @@
       "pivotUnits": 2
     },
     "index.html": {
-      "words": 1694,
+      "words": 1722,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -214,20 +214,20 @@
       "pivotUnits": 2.25
     },
     "llms.txt": {
-      "words": 2376,
-      "llmPoints": 3.3,
+      "words": 2386,
+      "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
-      "pivotPer1000": 39.98,
-      "pivotUnits": 95
+      "pivotPer1000": 4.3,
+      "pivotUnits": 10.25
     },
     "methodology/index.html": {
-      "words": 4624,
+      "words": 5026,
       "llmPoints": 0.5,
       "clichePoints": 0,
       "unsub": 0,
       "pivotPer1000": 1.25,
-      "pivotUnits": 5.75
+      "pivotUnits": 6.5
     },
     "privacy.html": {
       "words": 1866,
