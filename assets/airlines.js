@@ -465,7 +465,25 @@ const WIFI_AIRLINES = {
        changes is the remainder: 123 − 45 − 18 = 60 aircraft whose Starlink
        status nobody has published moves to unresolved, excluded from the
        denominator rather than assumed equipped on the strength of a January
-       guess. */
+       guess.
+
+       CORRECTED AGAIN 2026-07-26, same night. The first pass left
+       `equipped: 0` on this entry, which every generic "N of fleet" template
+       on the site read literally: the page shipped "0 of 123 SAS aircraft
+       carry Starlink (0%)" beside a note saying Starlink launched on SAS
+       24 Mar 2026. That is the same rule-1 violation the 60 was, in the
+       opposite direction and worse, because 0 is a more definite claim than
+       an unpublished count and it ranked SAS last of 18 on next-gen odds
+       purely for lacking a number. `equippedPublished(entry)` now derives
+       "is this primary-system count real or a placeholder" from the shape
+       of the data (unresolved aircraft present, primary system absent from
+       every segment) rather than from a hand-set flag, so scoreAirline()
+       and every template built on it treat SAS's Starlink count as
+       unpublished, not zero, and nextGenPublished(entry) keeps a false zero
+       from outranking a real measured near-zero like British Airways'
+       sourced 5 of 261. The raw `equipped: 0` below is never read directly
+       by a render path any more; it survives only as the legacy shape the
+       ledger no longer needs it for. */
     system: "starlink", equipped: 0, fleet: 123, free: "loyalty-free",
     resolution: "systems",
     /* serviceTier moved from "mixed" to "basic": with the starlink segment
@@ -977,11 +995,31 @@ function freeFactor(free) {
   const f = FREE_FACTOR[String(free || "").toLowerCase()];
   return typeof f === "number" ? f : 0.85;
 }
+/* True unless the primary system's `equipped` count is a placeholder for
+ * "nobody has published this." A segmented entry with unresolved aircraft
+ * whose primary system never names a segment has NO known count for that
+ * system — not a zero. `equipped: 0` must never again stand in for
+ * "unpublished" the way it did for SAS until this was caught 2026-07-26: 0
+ * asserts a confirmed absence, and nothing SAS has published confirms that in
+ * either direction. airBaltic/Qatar/WestJet are the contrast case — each
+ * names its primary system in a real segment (28, 120, 100 respectively), so
+ * a genuine floor exists even with aircraft left unresolved, and this
+ * returns true for them. Depends on isSegmented/segmentSystems/
+ * unresolvedAircraft below; safe because function declarations hoist. */
+function equippedPublished(entry) {
+  if (!entry) return true;
+  if (!isSegmented(entry)) return true;
+  if (unresolvedAircraft(entry) <= 0) return true;
+  var sys = String(entry.system || "").toLowerCase();
+  return entry.segments.some(function (s) { return segmentSystems(s).indexOf(sys) >= 0; });
+}
 // Share of the fleet carrying the primary system. equipped/fleet when both are
 // known, otherwise an explicit `coverage` fraction (Delta/jetBlue publish no
-// tail counts, only "fleetwide").
+// tail counts, only "fleetwide"). Returns null, never 0, when the count
+// itself is unpublished — see equippedPublished() above.
 function pctEquipped(entry) {
   if (!entry) return 0;
+  if (!equippedPublished(entry)) return null;
   if (typeof entry.fleet === "number" && entry.fleet > 0)
     return clamp01((entry.equipped || 0) / entry.fleet);
   return clamp01(entry.coverage);
@@ -1141,6 +1179,22 @@ function nextGenScore(entry) {
   const L = ledgerFor(entry);
   if (L) return Math.round(clamp01(L.rawNextGen) * 100);
   return Math.round(clamp01(nextGenShare(entry) * freeFactor(entry.free)) * 100);
+}
+
+/* True unless nextGenScore's 0 is a false zero: a segmented entry with
+ * unresolved aircraft and ZERO confirmed next-gen aircraft in its known
+ * segments. That shape means the next-gen question was never actually
+ * answered — it means "unpublished," not "measured at zero" — and it must
+ * not rank the same as a real, fully- or mostly-accounted near-zero like
+ * British Airways (5 of 261, unresolved 0). Any entry with at least one
+ * confirmed next-gen aircraft (airBaltic, Qatar, WestJet) keeps a real floor
+ * and returns true even though more aircraft remain unresolved. */
+function nextGenPublished(entry) {
+  if (!entry) return true;
+  const L = ledgerFor(entry);
+  if (!L) return true;
+  if (L.unresolved <= 0) return true;
+  return L.nextGenShare > 0;
 }
 
 /* ── the mainline/regional split of NEXT-GEN ODDS, not of ConnectScore ─────
@@ -1411,8 +1465,12 @@ function scoreAirline(key) {
     cls: scoreClass(s.score),
     parts: s.parts,
     note: entry.note || "",
-    equipped: typeof entry.fleet === "number" ? entry.equipped : null,
+    equipped: typeof entry.fleet === "number" && equippedPublished(entry) ? entry.equipped : null,
     fleet: typeof entry.fleet === "number" ? entry.fleet : null,
+    /* Never invented, never defaulted true: false is the SAS shape (0 known,
+       aircraft still unresolved). Every surface that prints "N of M" or ranks
+       on nextGenScore must check this before it uses a number as a number. */
+    equippedPublished: equippedPublished(entry),
     instrumented: !!entry.instrumented,
     tracker: entry.tracker || null,
     future: entry.future || null,
@@ -1420,6 +1478,7 @@ function scoreAirline(key) {
     /* ── the second axis. Every field above is unchanged; these are new. ── */
     nextGenScore: nextGenScore(entry),
     nextGenShare: nextGenShare(entry),
+    nextGenPublished: nextGenPublished(entry),
     nextGenSystem: isNextGen(entry.system) ? entry.system : null,
     nextGenLabel: isNextGen(entry.system) ? (SYSTEM_LABEL[entry.system] || entry.system) : null,
     /* ── D2: the mainline/regional split of next-gen odds, United-only today. ── */

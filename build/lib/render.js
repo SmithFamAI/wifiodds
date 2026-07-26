@@ -369,7 +369,7 @@ function airlinesIndex(m) {
     ['Which airlines have Starlink WiFi?',
       starlinks.length + ' of the ' + m.airlineCount + ' airlines here fly Starlink on at least part of ' +
       'the fleet: ' + starlinks.map(function (a) {
-        return a.name + ' (' + (a.fleet ? num(a.equipped) + ' of ' + num(a.fleet) : 'fleetwide') + ')';
+        return a.name + ' (' + P.eqPhrase(a) + ')';
       }).join(', ') + '. Fleet share is what matters. Being on the list is not the same as being ' +
       'likely on your flight.'],
     ['Which airlines give inflight WiFi away free?',
@@ -539,28 +539,41 @@ function ledgerTable(m, a) {
 function airlinePage(m, key) {
   var e = m.A.WIFI_AIRLINES[key];
   var a = m.A.scoreAirline(key);
-  var pct = Math.round(a.parts.pctEquipped * 100);
+  /* a.equippedPublished === false is the SAS shape: a segmented entry with
+     unresolved aircraft and no segment naming the primary system, so there is
+     no real equipped count to turn into a percentage — see
+     equippedPublished() in assets/airlines.js. pct stays null rather than 0
+     so nothing downstream on this page can round null*100 into a false "0%". */
+  var pct = a.equippedPublished === false ? null : Math.round(a.parts.pctEquipped * 100);
   var crumbs = [['/', 'Home'], ['/airlines/', 'Airlines'], ['/airlines/' + key + '/', a.name]];
-  var fleetLine = a.fleet ? num(a.equipped) + ' of ' + num(a.fleet) + ' aircraft' : 'fleetwide coverage';
+  var fleetLine = !a.fleet ? 'fleetwide coverage'
+    : a.equippedPublished === false ? num(a.fleet) + ' aircraft, count unpublished'
+      : num(a.equipped) + ' of ' + num(a.fleet) + ' aircraft';
   var toolHref = key === 'united' ? '/united/' : key === 'alaska' ? '/alaska/' : null;
   var reports = RP.forKey(m.reports, key);
 
   /* FAQ — visible on the page AND in FAQPage JSON-LD. No hidden-markup games. */
   var faqs = [
     ['Does ' + a.name + ' have ' + a.systemLabel + ' WiFi?',
-      (a.fleet
-        ? a.name + ' has ' + a.systemLabel + ' on ' + num(a.equipped) + ' of its ' + num(a.fleet) +
-          ' aircraft (' + pct + '%) as of ' + esc(a.asOf || m.updated) + ', so it is ' +
-          (pct >= 85 ? 'close to a sure thing' : pct >= 50 ? 'better than a coin flip'
-            : pct >= 20 ? 'a real possibility but not the default' : 'still unlikely on a random flight') + '.'
-        : a.name + ' offers ' + a.systemLabel + ' fleetwide as of ' + esc(a.asOf || m.updated) + '.') +
+      (!a.fleet
+        ? a.name + ' offers ' + a.systemLabel + ' fleetwide as of ' + esc(a.asOf || m.updated) + '.'
+        : a.equippedPublished === false
+          ? a.name + ' has launched ' + a.systemLabel + ', but has not published how many of its ' +
+            num(a.fleet) + ' aircraft carry it as of ' + esc(a.asOf || m.updated) + '.'
+          : a.name + ' has ' + a.systemLabel + ' on ' + num(a.equipped) + ' of its ' + num(a.fleet) +
+            ' aircraft (' + pct + '%) as of ' + esc(a.asOf || m.updated) + ', so it is ' +
+            (pct >= 85 ? 'close to a sure thing' : pct >= 50 ? 'better than a coin flip'
+              : pct >= 20 ? 'a real possibility but not the default' : 'still unlikely on a random flight') + '.') +
       ' Its ConnectScore is ' + a.score + ' out of 100, in the ' + P.bandWord(a.score) + ' band.'],
     ['Is ' + a.name + '’s WiFi free?', 'On ' + a.name + ' it is ' + P.freeText(e.free) +
       '. ConnectScore multiplies the fleet share by a free-for-you factor, so a paid or unconfirmed ' +
       'free claim scores lower than the same fleet given away free.'],
     ['How many ' + a.name + ' planes have ' + a.systemLabel + '?',
-      (a.fleet ? num(a.equipped) + ' of ' + num(a.fleet) + ', or ' + pct + '% of the fleet.'
-        : 'The whole fleet, per the airline.') +
+      (!a.fleet ? 'The whole fleet, per the airline.'
+        : a.equippedPublished === false
+          ? a.name + ' has not published a count. ' + num(a.fleet) + ' aircraft total' +
+            (a.unresolved ? ', ' + num(a.unresolved) + ' of them unresolved' : '') + '.'
+          : num(a.equipped) + ' of ' + num(a.fleet) + ', or ' + pct + '% of the fleet.') +
       (a.tracker ? ' Verified tail by tail by ' + esc(a.tracker) + ' (@martinamps).'
         : ' Compiled from public airline announcements, July 2026.')]
   ];
@@ -622,10 +635,16 @@ function airlinePage(m, key) {
     '  <div class="sec-h"><h2>Where the rollout stands</h2>' +
     '<span class="sub">as of ' + esc(a.asOf || m.updated) + '</span></div>\n' +
     '  <div class="stats">\n' +
-    '    <div class="stat rv"><div class="n">' + (a.fleet ? num(a.equipped) + '<small> / ' + num(a.fleet) + '</small>' : 'Fleetwide') +
+    '    <div class="stat rv"><div class="n">' + (!a.fleet ? 'Fleetwide'
+      : a.equippedPublished === false ? 'Unpublished'
+        : num(a.equipped) + '<small> / ' + num(a.fleet) + '</small>') +
     '</div><div class="l">Aircraft equipped</div>' +
-    '<span class="track"><i class="fill" style="--pct:' + pct + '%"></i></span>' +
-    '<div class="d">' + pct + '% of the fleet carries ' + esc(a.systemLabel) + '.</div></div>\n' +
+    (a.equippedPublished === false ? ''
+      : '<span class="track"><i class="fill" style="--pct:' + pct + '%"></i></span>') +
+    '<div class="d">' + (a.equippedPublished === false
+      ? esc(a.name) + ' has not said how many of its ' + num(a.fleet) + ' aircraft carry ' +
+        esc(a.systemLabel) + '.'
+      : pct + '% of the fleet carries ' + esc(a.systemLabel) + '.') + '</div></div>\n' +
     '    <div class="stat rv"><div class="n" style="font-size:21px"><span class="sysdot ' +
     P.sysClass(a.system) + '"></span>' + esc(a.systemLabel) + '</div><div class="l">System</div>' +
     '<div class="d">' + (a.parts.systemQuality >= 1
@@ -738,8 +757,12 @@ function airlinePage(m, key) {
        score and the API agree. Change the separator and the parity check stops
        finding a number at all. */
     title: a.name + ' WiFi — ConnectScore ' + a.score + ': ' + P.bandWord(a.score),
-    desc: (a.fleet ? num(a.equipped) + ' of ' + num(a.fleet) + ' ' + a.name + ' aircraft carry ' +
-      a.systemLabel + ' (' + pct + '%). ' : a.name + ' offers ' + a.systemLabel + ' fleetwide. ') +
+    desc: (!a.fleet ? a.name + ' offers ' + a.systemLabel + ' fleetwide. '
+      : a.equippedPublished === false
+        ? a.name + ' has launched ' + a.systemLabel + ' but has not published an aircraft count (' +
+          num(a.fleet) + ' aircraft fleet). '
+        : num(a.equipped) + ' of ' + num(a.fleet) + ' ' + a.name + ' aircraft carry ' +
+          a.systemLabel + ' (' + pct + '%). ') +
       'ConnectScore ' + a.score + '/100, in the ' + P.bandWord(a.score) + ' band. ' + P.freeText(e.free) + '.',
     canonical: '/airlines/' + key + '/', here: '/airlines/', suffix: a.name,
     /* the two instrumented airlines have a multi-page section and get tabs;

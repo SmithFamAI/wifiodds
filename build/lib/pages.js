@@ -458,8 +458,16 @@ function fieldTable(m) {
       '" style="width:' + a.score + '%"></i></span></td>' +
       /* the tier letter is a CATEGORY — provenance, not score — so it stays ink */
       '<td class="micro">' + tierLetter(a) + '</td>' +
-      '<td class="num ' + band(ng) + '"><span class="sco" style="font-size:1rem">' + ng +
-      '</span></td>' +
+      /* a.nextGenPublished === false is the SAS shape: 0 known next-gen
+         aircraft with some still unresolved. That 0 is not a measurement, so
+         it does not get the score treatment — a dash, same as the "no signed
+         deal" cell two columns over. */
+      (a.nextGenPublished === false
+        ? '<td class="num"><span class="dash" title="' +
+          esc(a.name + ' has launched ' + a.systemLabel + ' but has not published an aircraft ' +
+            'count') + '">—</span></td>'
+        : '<td class="num ' + band(ng) + '"><span class="sco" style="font-size:1rem">' + ng +
+          '</span></td>') +
       '<td class="micro phz">' + esc(MK.PHASE_LABEL[ph]) + '</td>' +
       '<td class="num">' + (a.projected ? projected(a) : '<span class="dash">&middot;</span>') +
       '</td></tr>';
@@ -579,9 +587,19 @@ function splitCell(a, part) {
  * per-airline commentary invented here, just whichever denominator the model
  * already carries (a.fleet, else a.known for a segments-only entry). */
 function nextGenLab(a) {
+  if (a.equippedPublished === false) return '';
   if (a.fleet) return num(a.equipped || 0) + '/' + num(a.fleet) + ' flying';
   if (a.known) return num(a.equipped || 0) + '/' + num(a.known) + ' flying';
   return '';
+}
+
+/* THE "X of Y" PHRASE — one function, so "0 of 123" standing in for "not
+ * published" cannot happen twice. Any surface printing an equipped/fleet
+ * count for an airline routes through this. */
+function eqPhrase(a) {
+  if (!a.fleet) return 'fleetwide';
+  if (a.equippedPublished === false) return num(a.fleet) + ' aircraft, count unpublished';
+  return num(a.equipped) + ' of ' + num(a.fleet);
 }
 /* Dated citation for the horizon shown in the projected chip, ported from the
  * approved mockup's own footnote. One line, same cell as the chip it backs, so
@@ -592,18 +610,31 @@ var PROJECTION_SRC = {
 };
 function rankRow(a, i) {
   var ng = a.nextGenScore;
+  /* SAS shape: 0 known next-gen aircraft, some still unresolved. That 0 is
+     not a measurement — see nextGenPublished() in assets/airlines.js — so it
+     may not sort or print as a real score. data-nextgen="" is the same
+     "unranked, never zero" idiom splitCell() already uses for mainline and
+     regional: site.js's rank-by handler treats an empty value as null and
+     ranks the row "—", alphabetically among its unranked peers, never below
+     a row with a real (even lower) number. */
+  var ngPublished = a.nextGenPublished !== false;
   var mn = splitCell(a, 'mainline');
   var rg = splitCell(a, 'regional');
   var lab = nextGenLab(a);
+  var ngCell = ngPublished
+    ? '<td class="num vcell ' + band(ng) + '" data-col="nextgen">' +
+      (lab ? '<span class="lab">' + esc(lab) + '</span>' : '') +
+      '<span class="sco">' + ng + '</span> ' + bandChip(ng) + '</td>'
+    : '<td class="num" data-col="nextgen"><span class="empty-state cell" title="' +
+      esc(a.name + ' has launched ' + a.systemLabel + ' but has not published an aircraft count') +
+      '">count unpublished</span></td>';
   return '      <tr data-name="' + esc(a.name) + '" data-score="' + a.score + '" data-nextgen="' +
-    ng + '" data-mainline="' + mn.v + '" data-regional="' + rg.v + '">' +
+    (ngPublished ? ng : '') + '" data-mainline="' + mn.v + '" data-regional="' + rg.v + '">' +
     '<td class="rank">' + (i + 1) + '</td>' +
     '<td><b>' + esc(a.name) + '</b><span class="code">' + esc(a.code || '') + '</span></td>' +
     '<td class="num vcell ' + band(a.score) + '" data-col="score"><span class="sco">' + a.score +
     '</span> ' + bandChip(a.score) + fitBadge(a) + '</td>' +
-    '<td class="num vcell ' + band(ng) + '" data-col="nextgen">' +
-    (lab ? '<span class="lab">' + esc(lab) + '</span>' : '') +
-    '<span class="sco">' + ng + '</span> ' + bandChip(ng) + '</td>' +
+    ngCell +
     '<td class="num' + (mn.col ? ' vcell ' + mn.col : '') + '" data-col="mainline">' + mn.html + '</td>' +
     '<td class="num' + (rg.col ? ' vcell ' + rg.col : '') + '" data-col="regional">' + rg.html + '</td>' +
     '<td>' + (a.projected ? projected(a) + (PROJECTION_SRC[a.key] ?
@@ -762,6 +793,15 @@ function fitBadge(a) {
  * or the card would show 30 next to an arithmetic that gives 27. It says which
  * denominator it is using rather than leaving the reader to reconcile it. */
 function nextGenLine(m, a) {
+  /* Guard against the SAS shape reaching this function some day (it does not
+     today — SAS is not in US_MAJORS). nextGenScore 0 with nextGenSystem set
+     (isNextGen(entry.system) is true) would otherwise fall into the branch
+     below and print "on the whole fleet (0%)", inventing exactly the false
+     zero this file exists to prevent. */
+  if (a.nextGenPublished === false) {
+    return 'Next-gen: count unpublished · ' + a.systemLabel + ' launched, no aircraft ' +
+      'count released';
+  }
   if (a.nextGenScore > 0 || a.nextGenSystem) {
     var count = a.known && a.known !== a.fleet
       ? num(a.equipped) + ' of ' + num(a.known) + ' with a published system'
@@ -1278,7 +1318,7 @@ module.exports = {
   leaderboard: leaderboard, routePills: routePills, kpi: kpi,
   bigFourBoard: bigFourBoard, fullRankedBoard: fullRankedBoard, rankBoard: rankBoard,
   US_MAJORS: US_MAJORS, usRanked: usRanked, usStatus: usStatus, usGlance: usGlance,
-  nextGenLine: nextGenLine, todayLine: todayLine, pctText: pctText,
+  nextGenLine: nextGenLine, todayLine: todayLine, pctText: pctText, eqPhrase: eqPhrase,
   roadmapSteps: roadmapSteps, roadmapLists: roadmapLists, ROADMAP: ROADMAP,
   SHIPPED: SHIPPED, AHEAD: AHEAD,
   flightCheck: flightCheck, extensionSection: extensionSection,

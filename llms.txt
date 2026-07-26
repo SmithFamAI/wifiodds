@@ -179,7 +179,7 @@ rules; read them and follow them.
 15. Air Canada (AC) · ConnectScore 18/100, rare (range 18–36; systems named, counts unpublished) · next-gen 6 · today: mixed (rest streaming-class or basic) · Starlink, 12/216 equipped · https://wifiodds.com/airlines/aircanada/
 16. Southwest (WN) · ConnectScore 16/100, rare (range 16–39; systems named, counts unpublished) · next-gen 0 · today: mixed (rest streaming-class or basic) · Starlink, 1/803 equipped · https://wifiodds.com/airlines/southwest/
 17. British Airways (BA) · ConnectScore 15/100, rare · next-gen 2 · today: mixed (rest basic) · Starlink, 5/261 equipped · https://wifiodds.com/airlines/britishairways/
-18. SAS (SK) · ConnectScore 5/100, rare (range 5–13; systems named, counts unpublished) · next-gen 0 · today: basic · Starlink, 0/123 equipped · https://wifiodds.com/airlines/sas/
+18. SAS (SK) · ConnectScore 5/100, rare (range 5–13; systems named, counts unpublished) · next-gen 0 · today: basic · Starlink, null/123 equipped · https://wifiodds.com/airlines/sas/
 
 ## Do not
 
