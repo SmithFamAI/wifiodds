@@ -450,7 +450,7 @@ function fieldTable(m) {
       '<td><a class="aname" href="/airlines/' + a.key + '/">' + esc(a.name) +
       '<span class="code">' + esc(a.code || '') + '</span></a></td>' +
       '<td class="num ' + band(a.score) + '"><span class="sco">' + a.score + '</span> ' +
-      bandChip(a.score) + '</td>' +
+      bandChip(a.score) + fitBadge(a) + '</td>' +
       /* the bar is a drawing of the number; the chip word beside the number is
          the non-colour signal, so a reader who cannot tell green from clay
          still gets the band. */
@@ -600,7 +600,7 @@ function rankRow(a, i) {
     '<td class="rank">' + (i + 1) + '</td>' +
     '<td><b>' + esc(a.name) + '</b><span class="code">' + esc(a.code || '') + '</span></td>' +
     '<td class="num vcell ' + band(a.score) + '" data-col="score"><span class="sco">' + a.score +
-    '</span> ' + bandChip(a.score) + '</td>' +
+    '</span> ' + bandChip(a.score) + fitBadge(a) + '</td>' +
     '<td class="num vcell ' + band(ng) + '" data-col="nextgen">' +
     (lab ? '<span class="lab">' + esc(lab) + '</span>' : '') +
     '<span class="sco">' + ng + '</span> ' + bandChip(ng) + '</td>' +
@@ -736,6 +736,25 @@ function pctText(share) {
   return raw > 0 && raw < 1 ? '<1%' : Math.round(raw) + '%';
 }
 
+/* THE FIT BADGE — the share of the fleet a score actually describes, shown
+ * beside the score itself. A ConnectScore or next-gen number is computed over
+ * `known` aircraft; when a chunk of the fleet is `unresolved` (airBaltic: 28
+ * of 55, 27 unresolved) the score can read as fleetwide when it is really the
+ * known slice at 100%. Same 0.99 cutoff as todayLine()'s existing fleetwide
+ * test, so a reader meets one threshold everywhere, not a different one per
+ * surface. Returns '' when the fleet is effectively fully resolved — this
+ * never fires for a genuinely fleetwide airline like JSX or ZIPAIR. */
+function fitShare(a) {
+  if (!a.fleet || typeof (a.parts && a.parts.pctEquipped) !== 'number') return null;
+  var share = a.parts.pctEquipped;
+  return share >= 0.99 ? null : share;
+}
+function fitBadge(a) {
+  var share = fitShare(a);
+  return share === null ? '' : ' <span class="micro fitpct" title="Share of the fleet with a ' +
+    'confirmed fit — the rest is unresolved, not assumed either way">' + pctText(share) + ' fitted</span>';
+}
+
 /* THE DENOMINATOR ON THIS LINE IS `known`, NOT `fleet`, wherever the two differ.
  * United is 481 of 1,808 aircraft and 481 of 1,579 aircraft whose system the
  * tracker publishes, which is 27% and 30%. The share the next-gen number is
@@ -764,7 +783,17 @@ function todayLine(m, a, e) {
     bits.push(a.nextGenLabel + ' ' + pctText(a.nextGenShare) + ', rest ' +
       (a.restTierLabel || 'older satellite service'));
   } else if (a.serviceTier === 'next-gen') {
-    bits.push(a.nextGenLabel + ' fleetwide');
+    /* CORRECTED 2026-07-26 (Job 3 / airBaltic). This branch used to say
+       "fleetwide" unconditionally, because `serviceTier` is "next-gen" once
+       100% of the KNOWN fleet is next-gen — which airBaltic clears at 28 of
+       28 known aircraft, even though 27 more are unresolved and the real
+       fleet share is 51%. Apply the same fleetwide test the mixed/basic
+       branches below already use: only claim fleetwide at >=99% of the whole
+       fleet, unresolved aircraft included; otherwise say the share. */
+    var fitShareNG = fitShare(a);
+    bits.push(fitShareNG === null
+      ? a.nextGenLabel + ' fleetwide'
+      : a.nextGenLabel + ' on ' + pctText(fitShareNG) + ' of the fleet, the rest unresolved');
   } else {
     /* "fleetwide" is a CLAIM about coverage, so it has to be checked against the
      * coverage number rather than assumed from the tier. Delta was the case that
