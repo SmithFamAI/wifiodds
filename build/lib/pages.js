@@ -662,33 +662,67 @@ function usGlance(m) {
  * THE SPLIT IS DERIVED. `instrumented` in assets/airlines.js is the flag and
  * United is the only fleet with a per-flight route history in data.json, so the
  * three rows fall out of the data. A hand-maintained list would rot the day
- * Hawaiian lands. */
+ * Hawaiian lands.
+ *
+ * ═══ WHY D OVERLAPS A/B/C ON PURPOSE ═════════════════════════════════════
+ * Until 26 Jul 2026 the D row was `a.projected`, and C was `!a.instrumented`,
+ * so American, Delta, Southwest and jetBlue were printed in TWO tiers at once
+ * with no explanation. The table that exists to say how much we know was
+ * filing four airlines under both "we counted their published fleet" and
+ * "nothing is in the air". Both were true of different questions and the
+ * table never said which.
+ *
+ * A, B and C now answer TODAY's question and stay mutually exclusive. D
+ * answers the FORWARD question and its membership is airlines carrying a
+ * projection with a next-gen score of zero, which is the same four. The
+ * overlap is now stated in the row itself instead of being a silent bug.
+ *
+ * The blocker at t[5] is the reason each tier cannot climb, named per airline
+ * rather than in general, because "no data available" is not a reason. */
 function tierRows(m) {
   var verified = m.ranked.filter(function (a) { return a.key === 'united'; });
   var derived = m.ranked.filter(function (a) { return a.instrumented && a.key !== 'united'; });
   var coarse = m.ranked.filter(function (a) { return !a.instrumented; });
+  /* D is the forward number, so an airline sits in D and in A/B/C at the same
+     time by design. The membership below is every airline whose next-gen figure
+     rests on an announcement: it has a projection and nothing next-gen flying. */
+  var announced = m.ranked.filter(function (a) { return a.projected && !a.nextGenScore; });
   function names(list) { return list.map(function (a) { return a.name; }).join(', ') || 'none'; }
   return [
     ['A', 'Tail-verified', 'The aircraft on your flight is resolved to a registration, and that ' +
       'registration to an install record.', names(verified),
-      'A number for one flight, with the sample size attached.'],
+      'A number for one flight, with the sample size attached.',
+      'Nothing, for United. For everyone else the blocker is that united.com prints the WiFi ' +
+      'provider next to each upcoming flight and no other airline site prints that field. That ' +
+      'one page is what joins a flight number to a tail to a system, and no amount of work on ' +
+      'our side substitutes for it.'],
     ['B', 'Type-derived', 'The tails are verified the same way and nobody publishes which aircraft ' +
       'is scheduled onto which flight, so there is no history to count.', names(derived),
-      'A number for an aircraft type. Not for a departure.'],
+      'A number for an aircraft type. Not for a departure.',
+      'alaskaair.com does not publish a per-flight WiFi provider, so the tracker reads the ' +
+      'equipment type instead and takes WiFi status from the fleet programme state for that type. ' +
+      'Two aircraft of the same type can differ and this tier cannot tell you which one you drew.'],
     ['C', 'Fleet-share', 'No per-tail verification exists, so the input is what the airline itself ' +
       'said publicly about how many aircraft are equipped.', names(coarse),
-      'A number for an airline. Nothing narrower.'],
-    ['D', 'Announced only', 'A signed deal with nothing in the air. Today’s odds are zero and the ' +
-      'projected figure carries the forward view, fenced, in grey.',
-      m.ranked.filter(function (a) { return a.projected; })
-        .map(function (a) { return a.name; }).join(', ') || 'none',
-      'A promise with a year on it. Never a measurement.']
+      'A number for an airline. Nothing narrower.',
+      'A different wall per airline. Southwest publishes no registration alongside a flight, so ' +
+      'there is no join to build. Delta runs four systems at once mid-retrofit and the retrofit ' +
+      'crosses aircraft-type boundaries, so a type proxy there would put aircraft in the wrong ' +
+      'generation, which is worse than saying nothing. jetBlue has one vendor and two hardware ' +
+      'generations, and neither jetBlue nor Viasat has published which airframes carry which.'],
+    ['D', 'Announced only', 'The forward number, and only the forward number. These airlines also ' +
+      'appear in a row above, because what they fly today is known at that tier.', names(announced),
+      'A promise with a year on it. Never a measurement.',
+      'The calendar. American signed for 500-plus Airbus narrowbodies and installs start Q1 2027, ' +
+      'so there is no installed base to measure yet. Its flight-to-tail half is already public, ' +
+      'so it becomes a tier A candidate the week the first aircraft flies.']
   ];
 }
 function tierTable(m) {
   var rows = tierRows(m).map(function (t) {
     return '      <tr><td class="mono"><b>' + t[0] + '</b></td>' +
       '<td><b>' + esc(t[1]) + '</b><div class="note" style="margin-top:3px">' + esc(t[2]) +
+      '</div><div class="note" style="margin-top:6px"><b>Blocked by:</b> ' + esc(t[5]) +
       '</div></td><td class="micro">' + esc(t[3]) + '</td>' +
       '<td class="hide-sm">' + esc(t[4]) + '</td></tr>';
   }).join('\n');

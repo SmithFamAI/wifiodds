@@ -1627,10 +1627,13 @@ function methodologyPage(m) {
     P.tierTable(m) +
     '  <p class="tblcap">The build derives the split from the data on every run. An ' +
     'airline moves up the moment a verified per-tail feed exists for it, and these lists re-sort ' +
-    'themselves. Hawaiian is next.</p>\n' +
+    'themselves. Hawaiian is next. Rows A, B and C answer what is flying today and an airline ' +
+    'appears in exactly one of them; row D answers what an airline has promised, so the four ' +
+    'names in it are also somewhere above.</p>\n' +
     P.srcLine('reported', 'Tier A and B source data: unitedstarlinktracker.com and ' +
       'alaskastarlinktracker.com, ' + esc(H.plateDate(m.updated)) + '. Tier C: public airline ' +
-      'announcements, Jul 2026.') +
+      'announcements, Jul 2026. Blockers: the two trackers’ own methodology pages for A and B; ' +
+      'American’s Starlink release, news.aa.com, 26 May 2026, for D.') +
     '</section>\n\n' +
 
     /* ── §2 the formula ─────────────────────────────────────────────────── */
