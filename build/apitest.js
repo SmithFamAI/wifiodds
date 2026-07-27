@@ -561,6 +561,43 @@ async function main() {
     var r = await MCP.mcpRequest(mcpCtx(payload, method));
     return { res: r, j: r.status === 202 ? null : await body(r) };
   }
+  /* ── MCP TEXT MAY NOT NUMBER AN UNPUBLISHED COUNT ────────────────────────
+   * A model usually relays the text block and drops structuredContent, so a
+   * numeric zero in the text is a numeric zero a traveller hears, even when
+   * the structured record beside it honestly says published:false. An auditor
+   * appended `next-gen 0` to this serializer from its own structured field and
+   * the whole release exited 0, because the unpublished guard walked built
+   * files and MCP is a Worker function that produces none.
+   * It is exercised here, where the module is already imported. */
+  /* local require: A_LIB is assigned several hundred lines below, and `var`
+     hoisting would give us undefined here rather than an error at the top */
+  var A_MCP = require(path.join(ROOT, 'assets', 'airlines.js'));
+  var UNPUB = Object.keys(A_MCP.WIFI_AIRLINES).filter(function (k) {
+    var L = A_MCP.ledgerFor(A_MCP.WIFI_AIRLINES[k]);
+    return L && L.unresolved > 0 && L.nextGenShare === 0;
+  });
+  var mcpBad = [], mcpChecked = 0;
+  for (var ui = 0; ui < UNPUB.length; ui++) {
+    var uk = UNPUB[ui];
+    var mr = await rpc({ jsonrpc: '2.0', id: 9, method: 'tools/call',
+      params: { name: 'get_airline_score', arguments: { key: uk } } });
+    var blocks = (mr.j && mr.j.result && mr.j.result.content) || [];
+    var text = blocks.map(function (b2) { return b2.text || ''; }).join(' ').replace(/\s+/g, ' ');
+    if (!text) { mcpBad.push(uk + ': no MCP text block to inspect'); continue; }
+    mcpChecked++;
+    var hit = /next[- ]gen[^.·|]{0,30}?(\d+(?:\.\d+)?)\s*%?/i.exec(text);
+    if (hit) mcpBad.push(uk + ' MCP text: "…' + hit[0].slice(-52) + '"');
+    var sc = mr.j && mr.j.result && mr.j.result.structuredContent;
+    var pub = sc && sc.airline && sc.airline.nextGen && sc.airline.nextGen.published;
+    if (pub !== false) mcpBad.push(uk + ' MCP structuredContent lost published:false');
+  }
+  ok(mcpChecked === UNPUB.length,
+    'MCP text was inspected for every unpublished-count airline',
+    mcpChecked + ' of ' + UNPUB.length);
+  eq(mcpBad.length, 0,
+    'MCP text never numbers a next-gen count the model says is unpublished',
+    mcpBad.join(' · '));
+
   /* every tool result must carry the credit in the TEXT block, because a model
      will often relay only the text and drop structuredContent entirely */
   function assertToolResult(r, label) {
@@ -868,9 +905,102 @@ async function main() {
       }
     });
   });
-  ok(unpubSurfaces >= unpubKeys.length * 3,
-    'the unpublished check reached every surface it claims to cover ' +
-    '(detail ledger, llms.txt, homepage and board renderings)',
+  /* 4. EVERY BUILT TEXT SURFACE, derived rather than enumerated.
+   *
+   * The list above (detail ledger, llms.txt, homepage) is a list I remembered,
+   * and an auditor showed why that is not a guard: it mutated the MCP text
+   * serializer to append `next-gen 0` from its own structured field, and the
+   * release exited 0 with 1,216 checks green, because MCP was not on my list.
+   * The same objection retires the list itself. A new serializer added next
+   * month would be missed the same way.
+   *
+   * So this walks EVERY generated route and every text-bearing built file, and
+   * asserts that no rendered text places a number next to this airline's
+   * next-gen wording. Adding a page brings its own coverage; forgetting to add
+   * it to a list is no longer possible because there is no list. */
+  var TEXTY = ['.html', '.txt', '.json', '.xml'];
+  var builtFiles = [];
+  (function walk(dir) {
+    fs.readdirSync(dir, { withFileTypes: true }).forEach(function (e) {
+      if (/^(node_modules|\.git|build|functions)$/.test(e.name)) return;
+      var full = path.join(dir, e.name);
+      if (e.isDirectory()) return walk(full);
+      if (TEXTY.indexOf(path.extname(e.name)) >= 0) builtFiles.push(full);
+    });
+  })(ROOT);
+  ok(builtFiles.length >= 30,
+    'the unpublished sweep found the built surfaces to walk',
+    builtFiles.length + ' text-bearing files');
+  /* RECORD-AWARE, because a flat text scan is not.
+     The first version stripped tags and matched name-to-number across up to 120
+     characters. That crossed row boundaries: "Air France" reached into Air
+     Canada's row and reported its 6%, and the bare name "SAS" matched inside
+     the URL fragment "sas/" in a JSON-LD block, pulling in Delta's figure. Four
+     findings, all false. A check that over-reports buries the real ones, which
+     is the failure this file has already had once at 2,406 findings.
+     So: close every block-level element to a separator BEFORE stripping tags,
+     split on those separators, and require the name and the number inside one
+     record with the name on word boundaries. */
+  unpubKeys.forEach(function (k) {
+    var nm = A_LIB.WIFI_AIRLINES[k].name;
+    var nameRe = new RegExp('(^|[^A-Za-z])' +
+      nm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^A-Za-z]|$)', 'i');
+    builtFiles.forEach(function (f) {
+      var raw = fs.readFileSync(f, 'utf8');
+      var seg;
+      if (/\.html$/.test(f)) {
+        /* Scripts and styles are not rendered text, and leaving them in made
+           the whole JSON-LD blob one record: it contains every airline, so
+           "Air France" sat in the same record as United's "next-gen number,
+           31" and reported four findings that were all this bug. JSON-LD is
+           checked structurally below instead, per ListItem. */
+        seg = raw.replace(/<(script|style)[\s\S]*?<\/\1>/g, ' ')
+                 .replace(/<\/(td|tr|li|p|div|section|h\d|option|dd|dt)>/g, '\u2028')
+                 .replace(/<[^>]+>/g, ' ').split('\u2028');
+      } else {
+        seg = raw.split(/\n|·|\|/);
+      }
+      seg.forEach(function (rec) {
+        var t = rec.replace(/\s+/g, ' ').trim();
+        if (!t || !nameRe.test(t)) return;
+        var m = /next[- ]gen[^.]{0,24}?(\d+(?:\.\d+)?)\s*%?/i.exec(t);
+        if (m) {
+          unpubBad.push(k + ' in ' + path.relative(ROOT, f) + ': "…' +
+            t.slice(Math.max(0, m.index - 24), m.index + 40) + '"');
+        }
+      });
+    });
+  });
+  /* JSON-LD, per ListItem rather than as one blob. This is a machine surface
+     and an assistant reads it, so an unsourced number here is the same defect
+     as one in llms.txt. */
+  var ldChecked = 0;
+  builtFiles.filter(function (f) { return /\.html$/.test(f); }).forEach(function (f) {
+    var raw = fs.readFileSync(f, 'utf8');
+    (raw.match(/<script[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/g) || [])
+      .forEach(function (blk) {
+        var json = blk.replace(/^<script[^>]*>/, '').replace(/<\/script>$/, '');
+        var data;
+        try { data = JSON.parse(json); } catch (e) { return; }
+        ldChecked++;
+        JSON.stringify(data, function (key, val) {
+          if (typeof val === 'string') {
+            unpubKeys.forEach(function (k) {
+              var nm = A_LIB.WIFI_AIRLINES[k].name;
+              if (val.indexOf(nm) !== 0) return;      /* the entry is ABOUT this airline */
+              var m = /next[- ]gen[^.]{0,24}?(\d+(?:\.\d+)?)\s*%?/i.exec(val);
+              if (m) unpubBad.push(k + ' JSON-LD in ' + path.relative(ROOT, f) + ': "' + val.slice(0, 70) + '"');
+            });
+          }
+          return val;
+        });
+      });
+  });
+  ok(ldChecked > 0, 'JSON-LD blocks were parsed and inspected', ldChecked + ' blocks');
+  unpubSurfaces += builtFiles.length * unpubKeys.length;
+  ok(unpubSurfaces >= unpubKeys.length * 30,
+    'the unpublished check reached every built text surface, derived from disk ' +
+    'rather than from a list somebody remembered to update',
     unpubSurfaces + ' surface reads for ' + unpubKeys.length + ' airlines');
   eq(unpubBad.length, 0,
     'no surface prints a numeric next-gen value for an airline whose count is unpublished',
@@ -910,7 +1040,16 @@ async function main() {
     if (!keyM) return;
     var ngField = /<p class="crd-ng">([\s\S]*?)<\/p>/.exec(c);
     var ngTxt = ngField ? ngField[1].replace(/<[^>]+>/g, ' ') : '';
-    cardVals[keyM[1]] = {
+    /* AN ARRAY PER KEY, NOT ONE CARD PER KEY.
+       The homepage renders each Big 4 airline TWICE as a card: once on the Big 4
+       board and once on the full 18-board. This used a plain assignment, so the
+       later full-board card silently overwrote the Big 4 one and the Big 4
+       rendering was never compared at all. An auditor changed both links in
+       every Big 4 card to /airlines/sas/, left the full-board cards alone, and
+       the release exited 0 — then navigated a real touch at 390px and landed on
+       SAS from the American card.
+       Every visible rendering is a rendering a reader can act on. */
+    (cardVals[keyM[1]] = cardVals[keyM[1]] || []).push({
       score: (/<span class="sco">(\d+)<\/span>/.exec(c) || [])[1] || null,
       band: (/<span class="band[^"]*">([^<]+)<\/span>/.exec(c) || [])[1] || null,
       rank: (/<span class="crd-rank">(\d+)<\/span>/.exec(c) || [])[1] || null,
@@ -918,7 +1057,7 @@ async function main() {
       ng: /unpublished/.test(ngTxt) ? '' : ((/(\d+)\s*%/.exec(ngTxt) || [])[1] || null),
       nameHref: (/<a class="aname" href="([^"]+)"/.exec(c) || [])[1] || null,
       goHref: (/<a class="crd-go" href="([^"]+)"/.exec(c) || [])[1] || null
-    };
+    });
   });
   /* Two row shapes on this page, and anchoring on the wrong one is how the
      first version covered 4 of 18. The Big 4 board emits
@@ -980,45 +1119,56 @@ async function main() {
      because none of those were compared. */
   var FIELDS = ['score', 'ng', 'band', 'rank', 'nameHref'];
   var compared = 0;
+  /* CARDINALITY IS PART OF THE CONTRACT. The Big 4 keys render twice (Big 4
+     board plus full board); every other key renders once. Asserting the shape
+     means a rendering cannot disappear from the comparison by being dropped,
+     merged or duplicated, which is how the previous version lost the Big 4
+     cards entirely. */
+  var BIG4 = ['american', 'delta', 'united', 'southwest'];
+  var cardinalityBad = [];
+  Object.keys(cardVals).forEach(function (k) {
+    var want = BIG4.indexOf(k) >= 0 ? 2 : 1;
+    if (cardVals[k].length !== want) {
+      cardinalityBad.push(k + ': ' + cardVals[k].length + ' card renderings, expected ' + want);
+    }
+    if (tableVals[k] && tableVals[k].length !== want) {
+      cardinalityBad.push(k + ': ' + tableVals[k].length + ' table rows, expected ' + want);
+    }
+  });
+  eq(cardinalityBad.length, 0,
+    'every airline renders the expected number of cards and rows, so no rendering ' +
+    'can drop out of the comparison unnoticed', cardinalityBad.join(' · '));
+
   shared.forEach(function (n) {
-    tableVals[n].forEach(function (row, i) {
+    /* pair rendering i with rendering i: the Big 4 card against the Big 4 row,
+       the full-board card against the full-board row. Comparing one card to
+       both rows would let a mutation in either hide behind the other. */
+    cardVals[n].forEach(function (card, ci) {
+      var row = tableVals[n][ci];
+      if (!row) { parityBad.push(n + ' card rendering ' + ci + ' has no matching row'); return; }
       FIELDS.forEach(function (f) {
-        /* Both absent is the only legitimate skip. A value on one side and null
-           on the other is a disagreement, not a reason to skip: skipping on
-           null is exactly how the earlier version passed a mutation written to
-           break it.
-           Two exceptions, and each is a real difference in the markup rather
-           than a way of dodging a comparison:
-           - rank differs legitimately between the Big 4 board and the 18, so it
-             is only compared when one rendering pair exists;
-           - the Big 4 rows print the airline in <b> with no link at all, so
-             there is no href to compare against the card's. Where the row does
-             carry one it is compared, and the card's own two links are checked
-             against each other below, which is what catches an action pointing
-             somewhere its name does not. */
-        if (f === 'rank' && tableVals[n].length > 1) return;
         if (f === 'nameHref' && row[f] == null) return;
-        if (cardVals[n][f] == null && row[f] == null) return;
+        if (card[f] == null && row[f] == null) return;
         compared++;
-        var cv = cardVals[n][f], rv = row[f];
-        /* ranks are zero-padded on cards and bare in rows; compare the value */
+        var cv = card[f], rv = row[f];
         if (f === 'rank') { cv = Number(cv); rv = Number(rv); }
         if (String(cv) !== String(rv)) {
-          parityBad.push(n + ' ' + f + ': card ' + cardVals[n][f] + ' vs table[' + i + '] ' + row[f]);
+          parityBad.push(n + '[' + ci + '] ' + f + ': card ' + card[f] + ' vs row ' + row[f]);
         }
       });
-      /* the card's own two links must agree with each other, or "View X" sends
-         a reader somewhere the name above it did not promise */
-      if (cardVals[n].goHref && cardVals[n].nameHref &&
-          cardVals[n].goHref !== cardVals[n].nameHref) {
-        parityBad.push(n + ' card action points at ' + cardVals[n].goHref +
-          ' while its name links ' + cardVals[n].nameHref);
-      }
+      /* both of this card's own links must point at this airline's page */
+      var want = '/airlines/' + n + '/';
+      [['nameHref', card.nameHref], ['goHref', card.goHref]].forEach(function (pair) {
+        if (pair[1] && pair[1] !== want) {
+          parityBad.push(n + '[' + ci + '] ' + pair[0] + ' points at ' + pair[1] + ', not ' + want);
+        }
+      });
     });
   });
-  ok(compared >= 18 * 3,
-    'the parity check actually compared the labelled fields rather than skipping ' +
-    'them as null on one side', compared + ' field comparisons across ' + shared.length + ' airlines');
+  ok(compared >= 22 * 3,
+    'the parity check compared the labelled fields on every card rendering, all 22 ' +
+    'of them, rather than skipping any as null on one side',
+    compared + ' field comparisons across ' + shared.length + ' airlines');
   eq(parityBad.length, 0,
     'the mobile card and the desktop table print the same numbers for the same airline',
     parityBad.join(' · '));
@@ -1565,7 +1715,14 @@ async function main() {
     all.airlines[all.airlines.length - 1].connectScore);
   console.log('  /api/score/{flightNumber}: retired 2026-07-26, 410 on every shape tried');
   console.log('  tiers: Delta nextGenScore ' + dl.nextGenScore + ' / serviceTier ' + dl.serviceTier +
-    ' / connectScore ' + dl.connectScore + ' — and the homepage agrees (18 skyline bars + 4 Big 4 rows checked)');
+    ' / connectScore ' + dl.connectScore + ' — and the homepage agrees (' +
+    /* Counted, not asserted. This line read "18 skyline bars + 4 Big 4 rows"
+       for a build with no skyline in it: the component was removed in 5f0e56c
+       and the summary went on claiming coverage of it for every release
+       afterwards. The assertions had moved to the cards and were passing;
+       only the sentence describing them was false, which is the same class
+       of defect as a footer that misdescribes the theme. */
+    seenCards + ' cards + ' + seenRows + ' Big 4 rows checked)');
   console.log('  projected: ' + projected.map(function (a) {
     return a.name + ' ' + a.projected.score + ' ' + a.projected.confidence;
   }).join(' · ') + ' — none sorts anything, all four carry their date');

@@ -2177,6 +2177,78 @@ const probColor=p=>p>=50?"var(--good)":p>=35?"var(--s-good)":p>=20?"var(--s-long
 const VTAG={best:["Best bet","v-best"],good:["Good","v-good"],ok:["Fair","v-ok"],risky:["Risky","v-risky"],avoid:["Avoid","v-avoid"]};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
+/* ── ONE GATE FOR EVERYTHING THE TRACKER SAYS ──────────────────────────────
+   An external audit on 27 Jul 2026 pointed a local fixture at this page and got
+   three separate failures, none of which needed an executable payload:
+
+     · a 500 whose body was `{}` produced fulfilled promises, `itineraries`
+       became `[]`, and `[]` is truthy, so the empty result was written to
+       localStorage as `source:"live"` and served for the full six-hour TTL. A
+       route with no daily snapshot behind it would have shown nothing at all,
+       for six hours, because of one transient upstream error.
+     · out-of-range values rendered as `999%`, `-300%`, `250%` and
+       `-8.7 flight hrs`. Nothing checked that a probability was a probability.
+     · tracker strings went into `innerHTML` unneutralised, so an inert
+       `AUDIT_MARKER<angle>` fixture put six real `<angle>` elements in the DOM.
+
+   These are the values a traveller uses to pick a departure, so the bar is not
+   "does it parse" but "is it a number we would be willing to print". Anything
+   that fails is dropped rather than clamped: a clamped 250% would still be a
+   figure nobody measured.
+
+   `parsePredict` and `parseSearch` were already safe by accident, because their
+   regexes pin the shape (`UA\d+`, `[A-Z]{3}`, `N[A-Z0-9]+`). The JSON route
+   planner had no such constraint, which is where all three faults lived. */
+function tNum(v,min,max){
+  const n=typeof v==="number"?v:parseFloat(v);
+  return Number.isFinite(n)&&n>=min&&n<=max?n:null;
+}
+function tStr(v,max,re){
+  if(typeof v!=="string")return null;
+  const s=v.trim().slice(0,max);
+  return s&&(!re||re.test(s))?s:null;
+}
+/* Everything from the tracker that reaches innerHTML goes through this. The
+   render sites also use it, so a value is neutralised at the point of use even
+   if a future field skips validation on the way in. */
+function tEsc(v){
+  return String(v==null?"":v).replace(/[&<>"']/g,c=>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+const IATA=/^[A-Z]{3}$/,FLIGHT=/^UA\d{1,5}$/;
+/* A response the server did not say was OK is not data. Checked BEFORE parsing,
+   because a 500 with a JSON body parses perfectly well. */
+async function okJson(r){
+  if(!r||!r.ok)throw new Error("tracker HTTP "+(r?r.status:"none"));
+  return r.json();
+}
+/* Returns a validated itinerary or null. One bad leg drops the itinerary
+   rather than the leg, because a chain missing a leg misstates the joint
+   probability it is there to report. */
+function validItinerary(it){
+  if(!it||typeof it!=="object")return null;
+  const via=Array.isArray(it.via)?it.via.map(v=>tStr(v,3,IATA)):[];
+  if(via.some(v=>v===null))return null;
+  const joint=tNum(it.joint_probability*100,0,100);
+  const any=tNum(it.at_least_one_probability*100,0,100);
+  if(joint===null||any===null||any<joint-0.05)return null;   /* P(≥1) < P(all) is impossible */
+  const hours=tNum(it.total_flight_hours,0,48);
+  const coverage=tStr(it.coverage,12,/^[a-z]+$/);
+  const legsIn=Array.isArray(it.legs)?it.legs:[];
+  const legs=[];
+  for(const l of legsIn){
+    const fn=tStr(l&&l.flight_number,8,FLIGHT);
+    const route=tStr(l&&l.route,9,/^[A-Z]{3}\s*[-–→]\s*[A-Z]{3}$/);
+    const p=tNum((l&&l.probability)*100,0,100);
+    const obs=tNum(l&&l.n_observations,0,1e6);
+    if(fn===null||route===null||p===null||obs===null||!Number.isInteger(obs))return null;
+    legs.push({fn,route,p:Math.round(p),obs,conf:tStr(l.confidence,12,/^[a-z]+$/)||"unknown"});
+  }
+  if(!legs.length)return null;
+  return {via,joint:+joint.toFixed(1),any:+any.toFixed(1),coverage,
+          hours:hours===null?null:+hours.toFixed(1),legs};
+}
+
 /* ── live tracker calls ── */
 async function tfetch(url,opts){
   const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),9000);
@@ -2208,20 +2280,29 @@ async function fetchLive(o,d){
   const hit=lsGet(key);
   if(hit)return {...hit,source:"cache"};
   const [plan,predict,search]=await Promise.allSettled([
-    tfetch(`${TRACKER}/api/plan-route?origin=${o}&destination=${d}`).then(r=>r.json()),
+    tfetch(`${TRACKER}/api/plan-route?origin=${o}&destination=${d}`).then(okJson),
     mcpText("predict_route_starlink",{origin:o,destination:d,limit:30}),
     mcpText("search_starlink_flights",{origin:o,destination:d,limit:12}),
   ]);
+  /* Each dataset is validated on its own. A tracker that answers one call and
+     fails another gives a partial answer, not a broken one, so the good half is
+     kept and the bad half is null rather than an empty array pretending to be a
+     measured result. */
+  const itineraries=plan.status==="fulfilled"&&Array.isArray(plan.value?.itineraries)
+    ? plan.value.itineraries.slice(0,8).map(validItinerary).filter(Boolean)
+    : null;
+  const flights=predict.status==="fulfilled"?parsePredict(predict.value):null;
+  const deps=search.status==="fulfilled"?parseSearch(search.value):null;
   const out={ts:Date.now(),
-    itineraries:plan.status==="fulfilled"?(plan.value.itineraries||[]).slice(0,8).map(it=>({
-      via:it.via||[],joint:+(it.joint_probability*100).toFixed(1),
-      any:+(it.at_least_one_probability*100).toFixed(1),coverage:it.coverage,
-      hours:+(+it.total_flight_hours).toFixed(1),
-      legs:(it.legs||[]).map(l=>({fn:l.flight_number,route:l.route,p:Math.round(l.probability*100),obs:l.n_observations,conf:l.confidence}))})):null,
-    flights:predict.status==="fulfilled"?parsePredict(predict.value):null,
-    deps:search.status==="fulfilled"?parseSearch(search.value):null,
+    itineraries:itineraries&&itineraries.length?itineraries:null,
+    flights:flights&&flights.length?flights:null,
+    deps:deps&&deps.length?deps:null,
     source:"live"};
-  if(out.itineraries||out.flights?.length)lsSet(key,out);
+  /* CACHE ONLY A RESULT THAT CONTAINS SOMETHING. The previous condition was
+     `out.itineraries || out.flights?.length`, and `[]` is truthy, so a 500 with
+     an empty body wrote an empty "live" record and served it for six hours. An
+     empty answer is a failure to answer; it must not outlive the request. */
+  if(out.itineraries||out.flights||out.deps)lsSet(key,out);
   return out;
 }
 
@@ -2244,6 +2325,21 @@ function buildModel(o,d,live){
       if(!flights.some(f=>f.fn===c.fn))
         flights.push({...c,tz:curated.tz});
   }
+  /* PROVENANCE MUST DESCRIBE WHAT IS ON SCREEN, not one dataset of three.
+     `source` above is set from the FLIGHT rows only. An audit found the page
+     labelled "daily snapshot · 2026-07-27" while showing live itineraries,
+     because the itinerary call had succeeded and the predict call had not.
+     A reader deciding whether to trust a routing was told the wrong thing
+     about where it came from.
+     If any displayed dataset is live, the page is showing live data and must
+     say so; the badge can still name what is older underneath. */
+  const liveParts=[];
+  if(live&&live.source!=="cache"){
+    if(live.flights&&live.flights.length)liveParts.push("flights");
+    if(live.itineraries&&live.itineraries.length)liveParts.push("routings");
+    if(live.deps&&live.deps.length)liveParts.push("tail assignments");
+  }
+  if(liveParts.length&&source!=="live")source="live-partial";
   const deps=live?.deps||[];
   for(const f of flights)f.confirmedDep=deps.find(x=>x.fn===f.fn)||null;
   flights.sort((a,b)=>b.prob-a.prob);
@@ -2277,6 +2373,8 @@ function ring(p){
 function renderBadge(m){
   const b=$("rt-badge");b.classList.remove("hidden");
   if(m.source==="live"){b.className="badge live";b.textContent="live tracker data";}
+  else if(m.source==="live-partial"){b.className="badge live";
+    b.textContent="live tracker data for the routings; older data elsewhere";}
   else if(m.source==="cache"){b.className="badge cachetag";b.textContent="cached "+Math.round((Date.now()-m.ts)/36e5*10)/10+"h ago";}
   else if(m.source==="snapshot"){b.className="badge cachetag";b.textContent="daily snapshot · "+DATA.updated;}
   else{b.className="badge offline";b.textContent="no data yet";}
@@ -2327,7 +2425,9 @@ function renderItins(m){
   }
   el.innerHTML=m.itins.slice(0,6).map((it,i)=>{
     const direct=!it.via.length;
-    const chain=[orig,...it.via,dest].join(" → ");
+    /* tEsc at the point of use as well as on the way in: a future field that
+       skips validation still cannot put markup on the page from here */
+    const chain=[orig,...it.via,dest].map(tEsc).join(" → ");
     return `<div class="icard ${i===0?"top":""}">
       <div class="ihead">
         <span class="rank">#${i+1}</span>
@@ -2336,7 +2436,7 @@ function renderItins(m){
         <span class="jp">${Math.round(it.joint)}%</span>
       </div>
       <div class="legs">${it.legs.map(l=>
-        `<div class="leg"><b>${l.fn}</b> ${l.route} <span class="lp">${l.p}% · ${l.obs} obs</span></div>`).join("")}</div>
+        `<div class="leg"><b>${tEsc(l.fn)}</b> ${tEsc(l.route)} <span class="lp">${l.p}% · ${l.obs} obs</span></div>`).join("")}</div>
       <div class="isub">${it.hours?it.hours+" flight hrs · ":""}P(all legs Starlink) ${Math.round(it.joint)}% · P(≥1 leg) ${Math.round(it.any)}%</div>
     </div>`;}).join("");
 }
@@ -2348,7 +2448,7 @@ function renderDeps(m){
     return;
   }
   el.innerHTML=m.deps.map(d=>
-    `<div class="dep"><b>${d.fn}</b> ${orig}→${dest} · ${d.date.slice(5)} ${d.time}Z<span class="tail">tail ${d.tail}</span></div>`).join("");
+    `<div class="dep"><b>${tEsc(d.fn)}</b> ${orig}→${dest} · ${tEsc(d.date.slice(5))} ${tEsc(d.time)}Z<span class="tail">tail ${tEsc(d.tail)}</span></div>`).join("");
 }
 function renderPlaybook(m){
   if(m.flights.length){
