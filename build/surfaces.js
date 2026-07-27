@@ -45,13 +45,14 @@ function titleOf(file) {
   }
 }
 
-/* Chrome Web Store links per built page. The ship policy fixes the extension's
- * pitch inventory at four surfaces — the sitewide masthead link, the homepage
- * banner, the homepage companion half, and United's #plugin block — so a page
- * that starts carrying more links than it did is the thing worth seeing.
+/* Chrome Web Store links per built page. Since round seven the ship policy
+ * fixes the extension's pitch inventory at three surfaces — Google's badge in
+ * the homepage hero, the same badge in the companion section, and United's
+ * #plugin block — so a page that starts carrying more links than it did is
+ * the thing worth seeing.
  *
- * This counts LINKS, not pitches. The masthead puts one on every page, so the
- * useful signal is the pages carrying more than one. */
+ * This counts LINKS, not pitches, and JSON-LD urls count too, so the useful
+ * signal is the pages whose count MOVES, not the raw number. */
 function storeLinks() {
   var out = [];
   R.ROUTES.concat(R.UNLISTED).forEach(function (r) {
@@ -166,8 +167,8 @@ function build() {
   p('');
   p('The build fails if one of these is missing. Each is here because losing it would');
   p('still return HTTP 200. A missing font falls back silently to three different faces');
-  p('across three platforms. A missing `flightcheck.js` leaves the hero form sitting');
-  p('there doing nothing. `build/routes.js` carries the reasoning per file.');
+  p('across three platforms. A missing store badge is a broken image where the page\'s');
+  p('one pitch should be. `build/routes.js` carries the reasoning per file.');
   p('');
   R.REQUIRED.forEach(function (f) { p('- `' + f + '`'); });
   p('');
@@ -175,16 +176,16 @@ function build() {
   var links = storeLinks();
   p('## Chrome Web Store links');
   p('');
-  p('The masthead puts one link on every page, so only the pages carrying more are');
-  p('listed. The ship policy fixes the pitch inventory at four surfaces: the masthead');
-  p('sitewide, the homepage banner, the homepage companion half, and United\'s');
-  p('`#plugin` block. Alaska\'s was removed on 25 Jul 2026.');
+  p('Since round seven (27 Jul 2026) the ship policy fixes the pitch inventory at');
+  p('three surfaces: Google\'s badge in the homepage hero, the same badge in the');
+  p('homepage companion section, and United\'s `#plugin` block. The masthead link is a');
+  p('place on the page, not a store link. Alaska\'s was removed on 25 Jul 2026.');
   p('');
-  p('These are link counts. They run higher than four for that reason. Read a change');
-  p('in one as a prompt to go look. Read the total as nothing at all.');
+  p('These are link counts, JSON-LD urls included, so they run higher than three.');
+  p('Read a change in one as a prompt to go look. Read the total as nothing at all.');
   p('');
   if (!links.length) {
-    p('No page carries more than the masthead link.');
+    p('No page carries more than one link.');
   } else {
     p(fenced([['url', 'links']].concat(
       links.map(function (r) { return [r.url, String(r.n)]; }))));

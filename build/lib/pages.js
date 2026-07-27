@@ -133,25 +133,9 @@ function tape(v) {
     '%"></i><span class="tk" style="left:40%"></span><span class="tk" style="left:60%"></span></div>';
 }
 
-/* ── THE HALF MARK, AND THE SEAM ──────────────────────────────────────────
- * The homepage runs in two named halves and the reader is told where the join
- * is. First half · The record. Second half · The companion. The second one gets
- * a 4px sky rule along its top edge — the same rule the page opens on — because
- * the spec asks for a seam a reader can see rather than a heading they have to
- * infer.
- *
- * The geometry moved to assets/site.css on 25 Jul 2026, which is what the note
- * that used to sit here asked for. It had to move: an inline style beats a
- * stylesheet rule, so the 390px media query that hides the FIRST halfmark could
- * not reach it while the geometry lived on the element. The SECOND one stays
- * visible at every width, because it is a real mid-page seam and the extension
- * banner's jump link targets it. */
-function halfmark(n, name, desc, id) {
-  return '<div class="halfmark' + (n === 2 ? ' seam' : '') + '" id="' + esc(id) + '">' +
-    '<span class="kicker n" style="margin:0">' + esc(n === 1 ? 'First half' : 'Second half') +
-    '</span><strong style="font-family:var(--serif);font-size:1.05rem">' + esc(name) + '</strong>' +
-    '<span class="note" style="color:var(--muted)">' + esc(desc) + '</span></div>\n\n';
-}
+/* ── THE HALF MARK IS GONE — round seven, 27 Jul 2026. The homepage no longer
+ * runs in two named halves; the companion section's own kicker names the one
+ * pitch, and the seam strips left with the layout that needed them. */
 
 /* ── THE WORKED ANSWER ────────────────────────────────────────────────────
  * The card the whole register rests on: odds, a sentence a person would say out
@@ -442,15 +426,19 @@ function fieldTable(m) {
    * is provenance), the projection chip keeps every fence attribute, and the
    * score is still printed as a number beside its bar — the bar is a drawing OF
    * the number, never a replacement for it. */
+  /* Sort order for the rollout column: the phase words are a sequence, not an
+     alphabet, so the cell carries the sequence number as its sort key. */
+  var PHASE_SORT = { done: 1, installing: 2, signed: 3, none: 4 };
   var rows = m.ranked.map(function (a, i) {
     var ph = MK.phaseOf(m.A, a);
     var ng = a.nextGenScore;
     return '      <tr data-f="' + ph + '">' +
       '<td class="rank">' + (i + 1 < 10 ? '0' : '') + (i + 1) + '</td>' +
-      '<td><a class="aname" href="/airlines/' + a.key + '/">' + esc(a.name) +
+      '<td data-s="' + esc(a.name.toLowerCase()) + '"><a class="aname" href="/airlines/' + a.key +
+      '/">' + esc(a.name) +
       '<span class="code">' + esc(a.code || '') + '</span></a></td>' +
-      '<td class="num ' + band(a.score) + '"><span class="sco">' + a.score + '</span> ' +
-      bandChip(a.score) + fitBadge(a) + '</td>' +
+      '<td class="num ' + band(a.score) + '" data-s="' + a.score + '"><span class="sco">' +
+      a.score + '</span> ' + bandChip(a.score) + fitBadge(a) + '</td>' +
       /* the bar is a drawing of the number; the chip word beside the number is
          the non-colour signal, so a reader who cannot tell green from clay
          still gets the band. */
@@ -460,29 +448,66 @@ function fieldTable(m) {
       '<td class="micro">' + tierLetter(a) + '</td>' +
       /* a.nextGenPublished === false is the SAS shape: 0 known next-gen
          aircraft with some still unresolved. That 0 is not a measurement, so
-         it does not get the score treatment — a dash, same as the "no signed
-         deal" cell two columns over. */
+         it does not get the score treatment. It says so in words, ranks with
+         data-s="-1" below every real number, and never prints a zero. */
       (a.nextGenPublished === false
-        ? '<td class="num"><span class="dash" title="' +
+        ? '<td class="num" data-s="-1"><span class="ngunpub" title="' +
           esc(a.name + ' has launched ' + a.systemLabel + ' but has not published an aircraft ' +
-            'count') + '">—</span></td>'
-        : '<td class="num ' + band(ng) + '"><span class="sco" style="font-size:1rem">' + ng +
-          '</span></td>') +
-      '<td class="micro phz">' + esc(MK.PHASE_LABEL[ph]) + '</td>' +
+            'count') + '">counts unpublished</span></td>'
+        : '<td class="num ' + band(ng) + '" data-s="' + ng + '"><span class="sco" ' +
+          'style="font-size:1rem">' + ng + '</span></td>') +
+      '<td class="micro phz" data-s="' + PHASE_SORT[ph] + '">' + esc(MK.PHASE_LABEL[ph]) + '</td>' +
       '<td class="num">' + (a.projected ? projected(a) : '<span class="dash">&middot;</span>') +
       '</td></tr>';
   }).join('\n');
 
-  return '<div class="tbl-shell tablescroll rv"><table class="tbl board">\n' +
-    '    <thead><tr><th scope="col">#</th><th scope="col">Airline</th><th scope="col" class="num">ConnectScore</th>' +
+  /* The Rank-by row drives the sortable headers below it through site.js §7;
+     the headers themselves stay clickable, which is what the buttons press.
+     The projected column has no data-k, so nothing can ever sort on it. */
+  var ctl =
+    '  <div class="segctrl needs-js" id="board-rank"><span class="lbl">Rank by</span>' +
+    '<div class="filters" role="group" aria-label="Number to rank the board by">' +
+    '<button type="button" data-bs="score" aria-pressed="true">ConnectScore</button>' +
+    '<button type="button" data-bs="nextgen" aria-pressed="false">Next-gen odds</button>' +
+    '<button type="button" data-bs="tier" aria-pressed="false">Tier</button>' +
+    '<button type="button" data-bs="phase" aria-pressed="false">Rollout</button>' +
+    '<button type="button" data-bs="name" aria-pressed="false">A–Z</button>' +
+    '</div></div>\n';
+
+  return ctl +
+    '<div class="tbl-shell tablescroll rv"><table class="tbl board">\n' +
+    '    <thead><tr><th scope="col">#</th><th scope="col" data-k="name">Airline</th>' +
+    '<th scope="col" class="num" data-k="score" data-t="num" aria-sort="descending">ConnectScore</th>' +
     '<th scope="col" class="barcell"><span class="visually-hidden">Score drawn as a bar</span></th>' +
-    '<th scope="col">Tier</th><th scope="col" class="num">Next-gen odds</th><th scope="col" class="phz">Rollout</th>' +
+    '<th scope="col" data-k="tier">Tier</th>' +
+    '<th scope="col" class="num" data-k="nextgen" data-t="num">Next-gen odds</th>' +
+    '<th scope="col" class="phz" data-k="phase">Rollout</th>' +
     '<th scope="col" class="num">Projected · grey, never sorts</th></tr></thead>\n' +
     '    <tbody>\n' + rows + '\n    </tbody>\n  </table></div>\n' +
-    /* Visible only under 700px, where the wide columns are shed. */
-    '  <p class="board-note">On a phone this board drops the score bar, the rollout phase and ' +
-    'the projected column to fit. Each airline’s own page carries all of it, projections ' +
-    'included.</p>\n';
+    /* Everything below the board is one box (round seven, notes 7/8/11). */
+    '  <div class="bfoot">\n' +
+    '    <div class="bf-grid-row"><div class="bf-grid">\n' +
+    '      <div><span class="bf-l">Bands</span><p>Good 60 to 100 · mixed 40 to 59 · long shot ' +
+    '1 to 39 · not yet 0.</p></div>\n' +
+    '      <div><span class="bf-l">Tiers</span><p>A to D, from a fleet tracked tail by tail down ' +
+    'to a signed deal with nothing in the air.</p></div>\n' +
+    '      <div><span class="bf-l">Dashes and grey figures</span><p>No published count ranks as ' +
+    'a dash or as “counts unpublished”, never zero. Projected figures are grey, dated and never ' +
+    'sort.</p></div>\n' +
+    '    </div></div>\n' +
+    '    <div class="board-note"><span class="bf-l">On a phone</span><p>This board drops the ' +
+    'score bar, the rollout phase and the projected column to fit. Each airline’s own page ' +
+    'carries all of it, projections included.</p></div>\n' +
+    '    <div><span class="bf-l">Go deeper</span><div class="btnrow">' +
+    '<a class="btn ghost mini" href="/methodology/">How it’s scored →</a>' +
+    '<a class="btn ghost mini" href="/record/">The written record →</a></div></div>\n' +
+    '    <div><p class="src">' + cls('reported') + ' Tail verification for United, Alaska and ' +
+    'Hawaiian: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">' +
+    'unitedstarlinktracker.com</a> and <a href="https://alaskastarlinktracker.com" ' +
+    'target="_blank" rel="noopener">alaskastarlinktracker.com</a>, both by @martinamps, ' +
+    esc(H.plateDate(m.updated)) + ' · every other airline from public announcements, Jul 2026 · ' +
+    '<a href="/methodology/#credit">the full credit</a>.</p></div>\n' +
+    '  </div>\n';
 }
 
 /* ── §3.2 ConnectScore leaderboard, baked <table> ───────────────────────── */
@@ -579,7 +604,11 @@ function splitCell(a, part) {
   }
   return {
     v: seg.pct, col: band(seg.pct),
-    html: '<span class="lab">' + num(seg.n) + '/' + num(seg.of) + '</span>' +
+    /* "of all": these two columns count their WHOLE segments, unlike the
+       next-gen column beside them, whose denominator is the published-system
+       subset. The label says so instead of leaving the reader to reconcile
+       12% and 51% against a 31 they do not average to. */
+    html: '<span class="lab">' + num(seg.n) + ' of all ' + num(seg.of) + '</span>' +
       '<span class="sco pct">' + seg.pct + '%</span> ' + bandChip(seg.pct)
   };
 }
@@ -613,7 +642,11 @@ function nextGenLab(a) {
   var L = a.ledger;
   if (!L || !L.rows || !L.known) return '';
   var n = L.rows.reduce(function (s, r) { return s + (r.nextGen ? r.n : 0); }, 0);
-  return num(n) + '/' + num(L.known) + ' flying';
+  /* "published" when the denominator is the published-system subset rather
+     than the whole fleet (United: 1,580 of 1,807), because "flying" over a
+     denominator that excludes 227 flying aircraft reads as a fleet count.
+     build/apitest.js matches both words when it round-trips the pair. */
+  return num(n) + '/' + num(L.known) + (a.fleet && L.known !== a.fleet ? ' published' : ' flying');
 }
 
 /* THE "X of Y" PHRASE — one function, so "0 of 123" standing in for "not
@@ -669,30 +702,32 @@ function rankRow(a, i) {
  * lines under the board, tied to the selected column, linking to /methodology/
  * rather than restating it. Tightened from D3's draft copy, not lengthened. */
 var RANK_COLS = [
-  ['score', 'ConnectScore', 'What you’d get today, across the whole fleet, weighted by system ' +
-    'quality and whether it’s free. Ties break on fitted coverage, most-resolved fleet first. ' +
-    '<a href="/methodology/#formula">How it’s scored →</a>'],
-  ['nextgen', 'Next-gen odds', 'Your chance of drawing Starlink or Amazon Leo on a random aircraft. ' +
-    '<a href="/methodology/#formula">Why next-gen is the headline →</a>'],
-  ['mainline', 'Mainline', 'Next-gen odds on the big jets. ' +
-    '<a href="/methodology/">Mainline vs regional →</a>'],
-  ['regional', 'Regional', 'Next-gen odds on the regional fleet, where United is furthest ahead. ' +
-    '<a href="/methodology/">Mainline vs regional →</a>'],
-  ['name', 'A–Z', 'Alphabetical, not a ranking. The same airlines, ordered by name instead of ' +
-    'a score.']
+  /* The default column carries no caption: the board opens on it, its meaning
+     is in the column-guide disclosure above, and a paragraph under the control
+     before anyone touches it read as a warning label (round seven, note 5). */
+  ['score', 'ConnectScore', ''],
+  ['nextgen', 'Next-gen odds', 'Your chance of drawing Starlink or Amazon Leo on a random aircraft.'],
+  ['mainline', 'Mainline', 'Next-gen odds on the big jets alone.'],
+  ['regional', 'Regional', 'Next-gen odds on the regional fleet, where United is furthest ahead.'],
+  ['name', 'A–Z', 'Alphabetical, not a ranking.']
 ];
-function rankBoard(id, list) {
+function rankBoard(id, list, opts) {
+  opts = opts || {};
   var btns = RANK_COLS.map(function (c, i) {
     return '<button type="button" data-sort="' + c[0] + '" aria-pressed="' + (i === 0) + '">' +
       esc(c[1]) + '</button>';
   }).join('');
-  var caps = RANK_COLS.map(function (c, i) {
-    return '<p data-for="' + c[0] + '"' + (i === 0 ? '' : ' hidden') + '>' + c[2] + '</p>';
+  var caps = RANK_COLS.filter(function (c) { return c[2]; }).map(function (c) {
+    return '<p data-for="' + c[0] + '" hidden>' + c[2] + '</p>';
   }).join('');
   var rows = list.map(function (a, i) { return rankRow(a, i); }).join('\n');
   return '<div class="rankb" id="' + id + '">\n' +
-    '  <div class="segctrl"><span class="lbl">Rank by</span>' +
-    '<div class="filters needs-js" role="group" aria-label="Number to rank by">' + btns +
+    /* needs-js on the WHOLE control row, label included, so script off never
+       shows an orphan "RANK BY". .segctrl has a single-class display:flex rule
+       in site.css, which build/apitest.js counts on: it is one of the elements
+       proving the no-`html.js .needs-js` guard is load-bearing. */
+    '  <div class="segctrl needs-js"><span class="lbl">Rank by</span>' +
+    '<div class="filters" role="group" aria-label="Number to rank by">' + btns +
     '</div></div>\n' +
     '  <div class="sortcap">' + caps + '</div>\n' +
     '  <div class="tbl-shell tablescroll"><table class="tbl" data-active="score"><thead><tr>' +
@@ -702,12 +737,17 @@ function rankBoard(id, list) {
     '<th class="num" data-rc="mainline">Mainline next-gen</th>' +
     '<th class="num" data-rc="regional">Regional next-gen</th>' +
     '<th>Signed, not flying</th></tr></thead><tbody>\n' + rows + '\n  </tbody></table></div>\n' +
-    '  <p class="footnote">Mainline and regional are each segment’s own next-gen share, not a ' +
-    'ConnectScore. Three columns, three denominators. On next-gen, mainline and regional, ties ' +
-    'share a rank and a row with no published number ranks with a dash, never zero. ConnectScore ' +
-    'keeps the site’s usual 1-2-3 order. Ties break on fitted coverage: the more of the fleet a ' +
-    'score is measured on, the higher it ranks at an equal score. A–Z is alphabetical order, not ' +
-    'a ranking, and carries no rank number. Projected figures are grey, fenced, and never sort.</p>\n' +
+    /* Everything below the board is ONE box: hairline-ruled rows inside a
+       single border, each row under a small-caps label (round seven, notes
+       7/8/11). The old six-sentence footnote is these rows now. */
+    '  <div class="bfoot">\n' +
+    (opts.lead || '') +
+    '    <div><span class="bf-l">Dashes and grey figures</span><p>A row with no published number ' +
+    'ranks with a dash, never zero. Projected figures are grey, dated and never sort.</p></div>\n' +
+    '    <div class="board-note"><span class="bf-l">On a phone</span><p>This board keeps the rank, ' +
+    'the airline, the ConnectScore and the next-gen odds; the segment split and the projected ' +
+    'column live on each airline’s own page.</p></div>\n' +
+    '  </div>\n' +
     '</div>\n';
 }
 /* The Big 4: United, American, Delta, Southwest, ranked on ConnectScore by
@@ -728,19 +768,50 @@ function bigFourBoard(m, opts) {
       return a.name.localeCompare(b.name);
     });
   var ak = m.A.scoreAirline('alaska'), jb = m.A.scoreAirline('jetblue');
+  /* The worked example under the board reads United's row back to the reader,
+     with every figure pulled from the same objects the row itself prints —
+     the ledger's next-gen pair and the segment split — so the explanation can
+     never drift from the cells it explains. */
+  var u = m.A.scoreAirline('united');
+  var lead = '';
+  if (u && u.ledger && u.ledger.known && u.nextGenSplit && u.nextGenSplit.state === 'value') {
+    var uN = u.ledger.rows.reduce(function (s, r) { return s + (r.nextGen ? r.n : 0); }, 0);
+    var sMn = u.nextGenSplit.mainline, sRg = u.nextGenSplit.regional;
+    lead = '    <div><span class="bf-l">Reading United’s row</span><p>Next-gen odds count ' +
+      'aircraft with a published system: ' + num(uN) + ' of ' + num(u.ledger.known) + ' is the ' +
+      u.nextGenScore + '. Mainline and regional count their whole segments, ' + num(sMn.of) +
+      ' + ' + num(sRg.of) + ' = ' + num(sMn.of + sRg.of) + ' aircraft, so ' + sMn.pct + '% and ' +
+      sRg.pct + '% sit on a bigger base and do not average to ' + u.nextGenScore + '.</p></div>\n';
+  }
+  /* The column guide reads as a control: a bordered disclosure, open by
+     default, details/summary so it works with script off (round seven, note 4). */
+  var colguide =
+    '  <details class="colguide" id="colguide" open>\n' +
+    '    <summary>What the columns mean</summary>\n' +
+    '    <div class="cg-grid">\n' +
+    '      <div class="cg"><b>ConnectScore <span class="ar">↓</span></b>0 to 100: what the fleet ' +
+    'delivers today, weighted by system quality and whether it is free.</div>\n' +
+    '      <div class="cg"><b>Next-gen odds <span class="ar">↓</span></b>Your chance of Starlink ' +
+    'or Amazon Leo on a random aircraft with a published system.</div>\n' +
+    '      <div class="cg"><b>Mainline / regional <span class="ar">↓</span></b>The same odds ' +
+    'split by segment, each against its whole fleet.</div>\n' +
+    '      <div class="cg"><b>Signed, not flying <span class="ar">↓</span></b>A deal on paper ' +
+    'scores zero until the aircraft fly; the grey figure is the projection, with its date.</div>\n' +
+    '    </div>\n' +
+    '  </details>\n';
   return '<section class="blk">\n' +
     '  <span class="kicker">The Big 4</span>\n' +
     '  <h2>United, American, Delta, Southwest</h2>\n' +
-    '  <p class="lede">The four biggest US airlines carry <b>76% of US seat capacity</b>: 562 ' +
-    'million seats, OAG, July 2026. Not the ~80% often assumed. Not Statista’s ~70% domestic ' +
-    '<em>market share</em> either, a different measure. American’s 890 of 989 next-gen figure is ' +
-    'mainline only. United’s 482 of 1,807 counts mainline and regional. This board says which is ' +
-    'which.</p>\n' +
-    rankBoard(opts.boardId || 'big4-board', list) +
+    '  <p class="lede">The four biggest US airlines carry <b>76% of US seat capacity</b>, so we ' +
+    'feature them here; the full table of the ' + m.airlineCount + ' airlines tracked is below. ' +
+    '<a class="btn ghost mini" href="' + (opts.moreHref || '#full-board') + '">See all ' +
+    m.airlineCount + ' ↓</a></p>\n' +
+    '  <p class="micro">562 million seats · OAG · Jul 2026</p>\n' +
+    colguide +
+    rankBoard(opts.boardId || 'big4-board', list, { lead: lead }) +
     '  <p class="pointer">The Big 4 frame leaves out ' + esc(ak.name) + ' (next-gen ' +
     ak.nextGenScore + ', ' + num(ak.equipped || 0) + ' aircraft flying today) and ' + esc(jb.name) +
-    ' (free fleetwide Viasat). Both are real picks for a wifi-first flyer. ' +
-    '<a href="' + (opts.moreHref || '#full-board') + '">See all 18 →</a></p>\n' +
+    ' (free fleetwide Viasat). Both are real picks for a wifi-first flyer.</p>\n' +
     '</section>\n\n';
 }
 /* All 18, same columns, same control, its own default ConnectScore order. */
@@ -1222,62 +1293,9 @@ function roadmapSteps(limit) {
   }).join('') + '</div>';
 }
 
-/* ── §A the flight check — the above-the-fold ANSWER ──────────────────────
- * The first screenful used to describe our ability to answer the stranger's
- * question ("will MY flight have WiFi that works?") and then hand them a
- * leaderboard whose top three are airBaltic, JSX and ZIPAIR. This box answers
- * with one input, one card, from /api/airlines/{key} — the fleet-wide
- * ConnectScore. A flight number resolves to its airline, not a per-flight
- * claim: /api/score/{flightNumber} was retired 2026-07-26 (spec D7), because a
- * flight number with no date only ever answered "what usually happens on this
- * route." See assets/flightcheck.js.
- *
- * PROGRESSIVE ENHANCEMENT, and read this before you touch the classes:
- *   - the whole box is `.needs-js`, so with JS off it is NEVER SHOWN. There is no
- *     dead input on the page.
- *   - `.no-js-only` under it is the real no-JS answer surface: a link to every
- *     airline page, each carrying the same score, method and tier.
- *   - the wrapper carries `.needs-js`, not the <form>. `html.js .needs-js{display:
- *     revert}` outranks a plain `.fchk-form{display:flex}`, so putting the marker
- *     on the flex element would silently un-flex it. Marker on a plain <div>,
- *     layout on the children.
- *   - those fallback links ARE the data source for assets/flightcheck.js — it
- *     reads key/name/code off them (hence data-name / data-code) rather than
- *     carrying a generated copy of the airline table. One list, baked once.
- *   - the form still has a real action/method, so a browser with JS on but our
- *     script blocked lands on /airlines/ instead of doing nothing. */
-function flightCheck(m) {
-  var links = m.ranked.map(function (a) {
-    return '<a class="pill" href="/airlines/' + a.key + '/" data-name="' + esc(a.name) +
-      '" data-code="' + esc(a.code || '') + '">' + esc(a.name) + ' <b>' + a.score + '</b></a>';
-  }).join('');
-  var opts = m.ranked.map(function (a) {
-    return '<option value="' + esc(a.name) + '"></option>';
-  }).join('');
-  return '  <div class="fchk needs-js">\n' +
-    '    <form class="fchk-form" id="fchk" action="/airlines/" method="get" role="search">\n' +
-    '      <label class="fchk-lb" for="fchk-q">Flight number, or airline</label>\n' +
-    '      <div class="fchk-row">\n' +
-    '        <input class="fchk-in" id="fchk-q" name="q" type="search" list="fchk-air" ' +
-    'autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="search" ' +
-    'placeholder="UA212 · AS15 · Qatar" aria-describedby="fchk-hint">\n' +
-    '        <button class="btn fchk-go" type="submit">Check the odds →</button>\n' +
-    '      </div>\n' +
-    '      <datalist id="fchk-air">' + opts + '</datalist>\n' +
-    '      <p class="fchk-hint" id="fchk-hint">Any flight number works: <b>UA212</b>, <b>AS15</b>, ' +
-    '<b>AA1234</b>. An airline name works too. The answer comes from our own daily-verified data ' +
-    'and the card names the method it used. No account, nothing stored.</p>\n' +
-    '    </form>\n' +
-    '    <div class="fchk-out" id="fchk-out" role="status" aria-live="polite"></div>\n' +
-    '  </div>\n' +
-    '  <div class="fchk-nojs no-js-only">\n' +
-    '    <p class="fchk-hint">The live check needs JavaScript. Pick your airline instead. Every ' +
-    'page below carries the same ConnectScore, the method behind it, and how much to trust it.</p>\n' +
-    '    <div class="fchk-links">' + links + '</div>\n' +
-    '    <p class="fchk-hint"><a href="/airlines/">All ' + m.airlineCount +
-    ' airlines, ranked →</a> · <a href="/methodology/">How we know →</a></p>\n' +
-    '  </div>\n';
-}
+/* ── the flight check is GONE — round seven, 27 Jul 2026 ──────────────────
+ * The hero answers with the skyline and the boards now. The check's client
+ * script is deleted from assets/ with it; nothing may load that path. */
 
 /* ── the full extension section ───────────────────────────────────────────
  * The demo is built by build/lib/reel.js: ONE sequence over the TWO REAL
@@ -1316,48 +1334,67 @@ function flightCheck(m) {
  * second is the same failure as a 200 with an empty body: technically sourced,
  * factually false. When 2.0 clears review, move the pills up and re-run the curl
  * above to prove it — do not move them because the manifest says 2.0.0. */
+/* ── GOOGLE'S BADGE, THE ONLY INSTALL CONTROL ─────────────────────────────
+ * assets/cws/ holds Google's own "Available in the Chrome Web Store" art,
+ * byte-identical to the originals. The branding rules this markup honours:
+ * resized only (the 496:150 ratio is held by width:auto in site.css), never
+ * redrawn, always a link to the listing, never the biggest thing on the
+ * screen. Bordered art on the dark ground, plain on the light one, switched
+ * exactly the way the themes switch, so it is right with script off too.
+ * DO NOT edit the PNGs and do not draw a Chrome mark of your own. */
+function cwsBadge() {
+  return '<div class="cwswrap">' +
+    '<a class="cwsbadge" href="' + H.EXT + '" target="_blank" rel="noopener">' +
+    '<img class="cws-l" src="/assets/cws/badge-plain-large.png" width="496" height="150" ' +
+    'alt="Available in the Chrome Web Store">' +
+    '<img class="cws-d" src="/assets/cws/badge-border-large.png" width="496" height="150" ' +
+    'alt="Available in the Chrome Web Store">' +
+    '</a>' +
+    /* The version may not sit inside the badge (Google's rule), so it sits on
+       its own quiet line beneath. */
+    '<span class="cws-ver">v' + esc(H.EXT_VERSION) + ' · free · no account</span></div>';
+}
 function extensionSection(m) {
-  return '<section class="blk extblk" id="extension">\n' +
-    '  <span class="kicker">The one pitch on this site</span>\n' +
+  return '<section class="blk extblk" id="companion">\n' +
+    '  <span class="kicker">The companion · the one pitch on this site</span>\n' +
     '  <h2>A badge on every flight in the results</h2>\n' +
-    '  <p class="sec-lede">WiFi Odds for Flights is a Chrome extension, free in the Chrome Web ' +
-    'Store under that name. On a united.com or app.navan.com results page every flight picks up an ' +
+    '  <p class="sec-lede">On a united.com or app.navan.com results page every flight picks up an ' +
     'odds badge, one click re-sorts the page by odds while prices and times stay put, and a panel ' +
-    'ranks the route’s departures the way the answer card above does. No account and no tracking, ' +
-    'there or here. The pictures are captures of the shipped build.</p>\n' +
+    'ranks the route’s departures the same way.</p>\n' +
     '  <div class="extdemo">\n' + C.section() + '\n  </div>\n' +
     '  <p class="prov"><b>Reported</b> · departure histories from unitedstarlinktracker.com, ' +
-    esc(H.plateDate(m.updated)) + ' · badges use the board’s bands and the same numbers this site ' +
-    'publishes, so when the record is wrong the badge is wrong the same way</p>\n' +
-    /* State grammar, three states, no promises. The horizons live on /roadmap/,
-       dated and fenced, because that is the page that owns what has not shipped. */
+    esc(H.plateDate(m.updated)) + '</p>\n' +
+    /* State grammar, three states, no promises — a labelled grid now, not
+       three paragraphs behind an inline-block label (round seven, note 16).
+       The horizons live on /roadmap/, dated and fenced, because that is the
+       page that owns what has not shipped. */
     '  <ul class="vstate">\n' +
-    '    <li><span class="st">In the store</span> v' + esc(H.EXT_VERSION) + ' covers united.com ' +
-    'and app.navan.com. A badge carries a tick once the assigned tail is confirmed equipped, and ' +
-    'the percentage until then. Checked ' + esc(H.chipDate(m.updated)) + '.</li>\n' +
-    '    <li><span class="st">Submitted, in review</span> v2.0.0 adds alaskaair.com and Google ' +
-    'Flights, each behind a permission you grant in the popup and off until you do, plus an ' +
-    m.airlineCount + '-airline odds popup. Not live until the store says so, so installing today ' +
-    'gets you none of it.</li>\n' +
-    '    <li><span class="st">Built, unreleased</span> Tail-swap Guardian watches a booked flight ' +
-    'for an equipment swap between booking and boarding. In no store build yet; its horizon is on ' +
-    '<a href="/roadmap/">the roadmap</a>, dated and fenced like everything else here.</li>\n' +
+    '    <li><span class="st live">In the store</span><p><b>v' + esc(H.EXT_VERSION) + '</b> ' +
+    'covers united.com and app.navan.com. A badge carries a tick once the assigned tail is ' +
+    'confirmed equipped, and the percentage until then. Checked ' + esc(H.chipDate(m.updated)) +
+    '.</p></li>\n' +
+    '    <li><span class="st">Submitted, in review</span><p><b>v2.0.0</b> adds alaskaair.com and ' +
+    'Google Flights, each behind a permission you grant in the popup and off until you do, plus ' +
+    'an ' + m.airlineCount + '-airline odds popup. Installing today gets you none of it until ' +
+    'the store approves.</p></li>\n' +
+    '    <li><span class="st blt">Built, unreleased</span><p><b>Tail-swap Guardian</b> watches a ' +
+    'booked flight for an equipment swap between booking and boarding. In no store build yet. ' +
+    '<a class="btn ghost mini" href="/roadmap/">Its date on the roadmap →</a></p></li>\n' +
     '  </ul>\n' +
-    '  <div class="cta-row"><a class="btn" href="' + H.EXT + '" target="_blank" rel="noopener">' +
-    'Install v' + esc(H.EXT_VERSION) + ' from the Chrome Web Store ↗</a></div>\n' +
+    '  <div class="cta-row">' + cwsBadge() + '</div>\n' +
     '  <p class="note extfine"><b>No accounts, no analytics, no tracking.</b> It keeps your ' +
     'settings on your own machine and phones nothing home. Unofficial, and not affiliated with any ' +
     'airline, Navan, SpaceX/Starlink or the trackers.</p>\n' +
-    '  <p class="src">' + cls('reported') + ' Store version and coverage read off the ' +
-    '<a href="' + H.EXT + '" target="_blank" rel="noopener">Chrome Web Store listing body</a>, ' +
-    '24 Jul 2026, rather than off the repository manifest, which is already at 2.0.0.</p>\n' +
+    '  <p class="src">' + cls('reported') + ' Store version and coverage read off the Chrome Web ' +
+    'Store listing body, 24 Jul 2026, rather than off the repository manifest, which is already ' +
+    'at 2.0.0.</p>\n' +
     '</section>\n\n';
 }
 
 module.exports = {
   band: band, bandWord: bandWord, bandChip: bandChip, BAND_LEGEND: BAND_LEGEND,
   tierLetter: tierLetter,
-  halfmark: halfmark, workedAnswer: workedAnswer, ladderCards: ladderCards, playbook: playbook,
+  workedAnswer: workedAnswer, ladderCards: ladderCards, playbook: playbook,
   fenceBlock: fenceBlock, loopSection: loopSection, observeBlock: observeBlock,
   scorehead: scorehead,
   freeText: freeText, sysClass: sysClass, tagsFor: tagsFor,
@@ -1367,7 +1404,7 @@ module.exports = {
   nextGenLine: nextGenLine, todayLine: todayLine, pctText: pctText, eqPhrase: eqPhrase,
   roadmapSteps: roadmapSteps, roadmapLists: roadmapLists, ROADMAP: ROADMAP,
   SHIPPED: SHIPPED, AHEAD: AHEAD,
-  flightCheck: flightCheck, extensionSection: extensionSection,
+  extensionSection: extensionSection, cwsBadge: cwsBadge,
   cls: cls, srcLine: srcLine, projected: projected, projCell: projCell, tape: tape,
   fieldTable: fieldTable, tierRows: tierRows, tierTable: tierTable,
   reportTable: reportTable, reportForm: reportForm, REPORT_SYSTEMS: REPORT_SYSTEMS,

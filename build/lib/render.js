@@ -96,80 +96,122 @@ function home(m) {
    * There is no roadmap band, and there was not one before either. /roadmap/ is
    * in the footer, which is where a page about what does not exist yet belongs.
    *
-   * ONE EXTENSION PITCH IN THE BODY. The banner above the masthead comes from
-   * html.js, is homepage-only, and is wayfinding rather than a pitch. The
-   * companion half is the pitch. If a third place on this page starts to feel
-   * like it needs an install ask, it needs a better ending instead — that is
-   * the failure that killed version one of this site, and no linter catches it.
+   * ONE EXTENSION PITCH IN THE BODY. The companion section is the pitch; the
+   * hero call above the skyline is wayfinding to it plus Google's badge. If a
+   * third place on this page starts to feel like it needs an install ask, it
+   * needs a better ending instead — that is the failure that killed version
+   * one of this site, and no linter catches it.
    *
-   * The check is first because the reader arrives with one question and the
-   * first thing on the page answers it (P.flightCheck → /api/airlines/{key},
-   * client-side, same origin — a flight number resolves to its airline, never
-   * a per-flight claim; /api/score/{flightNumber} retired 2026-07-26, spec D7).
-   * The worked card under it is that answer already filled in, so a reader who
-   * types nothing still sees what an answer looks like. */
+   * ROUND SEVEN (27 Jul 2026) reshaped the top: the flight-check box and the
+   * worked answer card left, along with the client script that armed them, and
+   * the hero now answers with the skyline — every airline, drawn and linked —
+   * plus the hero-level extension call wearing Google's badge. The named
+   * halves and their seam strips left with them; the companion section's own
+   * kicker says it is the one pitch. */
+  /* ── THE SKYLINE: all 18 airlines drawn as one row of bars, each a link.
+   * The bar's height is the score and its colour is the band, which is the
+   * same two-owner rule every chart on the site obeys. The name-and-number
+   * label is pure CSS on hover/focus, so it works with script off; the caption
+   * under it carries the same reading in words. */
+  function listAnd(names) {
+    if (names.length < 2) return names.join('');
+    return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+  }
+  var sky = m.ranked.map(function (a) {
+    return '    <a href="/airlines/' + a.key + '/" aria-label="' + esc(a.name) +
+      ', ConnectScore ' + a.score + '" data-l="' + esc(a.name) + ' · ' + a.score +
+      '"><i class="fill ' + P.band(a.score) + '" style="height:' + a.score + '%"></i></a>';
+  }).join('\n');
+  var last = m.ranked[m.ranked.length - 1];
+  var doneAt100 = phases.done.length && phases.done.every(function (a) { return a.score === 100; });
+  var skycap = esc(listAnd(phases.done.map(function (a) { return a.name; }))) +
+    (doneAt100 ? ' are finished at 100' : ' are finished') +
+    '; the pack mid-retrofit sits in the 40s and 50s; ' + esc(last.name) + ' trails at ' +
+    last.score + '. Counted ' + esc(H.chipDate(m.updated)) + '. Each bar is an airline: hover ' +
+    'or tab for the name and number, tap for the page.';
+
+  /* ── THE SYSTEMS CHART, hardware-identity palette (round seven, notes
+   * 12-14). A fourth colour owner: the bars name HARDWARE, never a score, so
+   * the palette is drawn from the sky family. The weights are read out of the
+   * scoring table, never typed; the measured ranges are Ookla's 2H 2025
+   * figures, the same ones /systems/ prints, and the bar geometry draws them
+   * on a shared 0-220 Mbps axis with a dashed line at Starlink's slowest
+   * tenth (63.71/220 = 29%). */
+  var Q = m.A.QUALITY_TIER;
+  function sysRow(cls2, name2, vendors, left, width, wt, ms) {
+    return '    <div class="sysrow ' + cls2 + '"><div class="nm"><i class="hwdot"></i>' + name2 +
+      '<small>' + vendors + '</small></div><span class="scobar rngb"><i class="fill" ' +
+      'style="left:' + left + ';width:' + width + '"></i><i class="p10"></i></span>' +
+      '<span class="wt">' + wt + '</span><p class="ms">' + ms + '</p></div>\n';
+  }
+  var systemsBlock =
+    '<section class="blk" id="systems">\n' +
+    '  <span class="kicker">The systems</span>\n' +
+    '  <div class="sec-h"><h2>The slowest Starlink flights are still faster than everyone ' +
+    'else’s typical flight</h2></div>\n' +
+    '  <p class="sec-lede">Four kinds of hardware fly. Starlink’s slowest tenth measures ' +
+    '<b>63.71 Mbps</b>; the typical flight on every other system measures less, most of them ' +
+    'far less.</p>\n' +
+    '  <div class="sysrows">\n' +
+    '    <div class="sysaxis"><span class="ax"><span>0 Mbps</span><span>220</span></span>' +
+    '<span class="wl">weight</span></div>\n' +
+    sysRow('hw-leo', 'Low-earth orbit', 'Starlink · Amazon Leo', '29%', '67.7%',
+      Q.leo.toFixed(2), 'slowest tenth 63.71 Mbps · typical 212.68 · 43 ms lag') +
+    sysRow('hw-mgeo', 'Modern geostationary', 'Viasat · Intelsat 2Ku · Hughes · Thales',
+      '19.1%', '7.3%', Q.modernGeo.toFixed(2), 'typical 42 to 58 Mbps · around 740 ms lag') +
+    sysRow('hw-lgeo', 'Legacy geostationary', 'Panasonic · Inmarsat · SITA · Anuvu',
+      '.5%', '6.8%', Q.legacyGeo.toFixed(2), 'slowest tenth 1.06 Mbps · typical 9 to 16') +
+    sysRow('hw-atg', 'Air-to-ground', 'Gogo ATG-4 · EAN', '.05%', '.35%',
+      Q.atg.toFixed(2), '0.1 to 0.8 Mbps per device · 260 to 310 ms · messages send, video ' +
+      'will not') +
+    '  </div>\n' +
+    '  <p class="footnote">The dashed line is Starlink’s slowest tenth. No other bar reaches it. ' +
+    'The weight is how much each hardware counts toward ConnectScore, ' + Q.leo.toFixed(2) +
+    ' down to ' + Q.atg.toFixed(2) + '; the colours name hardware, never a score.</p>\n' +
+    '  <div class="btnrow"><a class="btn ghost mini" href="/systems/">Every system, measured ' +
+    '→</a></div>\n' +
+    P.srcLine('measured', 'Ookla speedtest provider medians and tenth percentiles, 2H 2025.') +
+    '</section>\n\n';
+
   var body =
-    P.halfmark(1, 'The record', 'the odds, with the source and the date on every figure', 'record') +
-    '<header class="hero heroq">\n' +
-    '  <span class="kicker">The check</span>\n' +
-    '  <h1>Will you be able to work <span class="tag">on that flight?</span></h1>\n' +
-    /* .sm-off hides at 640px and under. See the 390px block in assets/site.css:
-       both sentences inside it repeat work the page does again further down, and
-       at 390px they were pushing the input and the button under the fold. What a
-       phone keeps is what you get, then the no-account line. */
-    '  <p class="lede">Type the flight number and you get three things: the odds it draws next-gen ' +
-    'WiFi, what is on board when it does not, and how far to lean on both. ' +
-    '<span class="sm-off">Every figure on this site names its source and its date. </span>' +
-    'No account, nothing stored.<span class="sm-off"> The page runs in two halves — ' +
-    'the record first, then <a href="#companion">the companion</a>, a Chrome extension that carries ' +
-    'the same odds onto the page where you book.</span></p>\n' +
-    P.flightCheck(m) +
-    P.workedAnswer(m) +
+    '<header class="hero">\n' +
+    '  <span class="kicker">The record</span>\n' +
+    '  <h1>Inflight WiFi, scored: <span class="tag">' + m.airlineCount + ' airlines, ranked on ' +
+    'what flies today.</span></h1>\n' +
+    '  <p class="lede">Who has a fast cabin now, who is mid-install, and who has only signed.</p>\n' +
+    /* Extension surface 1 of the sitewide 3. The install control is Google's
+       badge; the h1 above it stays the biggest thing on the screen. */
+    '  <aside class="herocall" aria-label="The Chrome extension">\n' +
+    '    <div class="hc-t">\n' +
+    '      <p class="hc-h"><b>WiFi Odds for Flights</b> · the Chrome extension</p>\n' +
+    '      <p class="hc-s">The same odds, on every flight in a united.com or Navan results page ' +
+    'while you book. <a class="btn ghost mini" href="#companion">Screenshots ↓</a></p>\n' +
+    '    </div>\n' +
+    '    ' + P.cwsBadge() + '\n' +
+    '  </aside>\n' +
+    '  <div class="skyline">\n' + sky + '\n  </div>\n' +
+    '  <p class="skycap">' + skycap + '</p>\n' +
     '</header>\n\n' +
-    /* ── THE BIG 4, ported from /airlines/ (Option A, approved by Jeremy 26 Jul
-     * 2026 — see build/lib/pages.js's bigFourBoard/rankBoard/rankRow, the same
-     * generator functions, unforked). An ADDITION below the answer card, not a
-     * replacement for it: a first-time visitor still meets "will you be able to
-     * work" and its worked answer before any table. `moreHref` points at
-     * /airlines/#full-board because this page has no fullRankedBoard of its own
-     * to anchor into (unlike /airlines/, where the default '#full-board' lands
-     * on the same page) — the one parameter bigFourBoard needed to work as a
-     * homepage variant without forking its markup. */
-    P.bigFourBoard(m, { boardId: 'home-big4-board', moreHref: '/airlines/#full-board' }) +
-    /* ── THE BOARD. All eighteen, one view, and it is the record's spine. ──
-     * The seven-card US strip leads it because it is the set a US reader
-     * actually boards, and because build/apitest.js reads its bytes to prove the
-     * cards and the API agree about every next-gen number on them. The ranked
-     * board under it is the field: the same numbers at a different density,
-     * under one heading, with one way out. */
+    /* ── THE BIG 4, ported from /airlines/ (Option A, approved by Jeremy 26
+     * Jul 2026), with round seven's column guide and consolidated board
+     * footer. `moreHref` points at this page's own 18-board, which is one
+     * scroll below. */
+    P.bigFourBoard(m, { boardId: 'home-big4-board', moreHref: '#board' }) +
+    /* ── THE BOARD. All eighteen, one view, and it is the record's spine.
+     * Rank-by control plus clickable headers (site.js §7); everything under
+     * the table is one bfoot box emitted by P.fieldTable(). */
     '<section class="blk" id="board">\n' +
     '  <span class="kicker">The board</span>\n' +
     '  <div class="sec-h"><h2>Where all ' + m.airlineCount + ' airlines stand</h2>' +
-    '<a class="more" href="/airlines/">the sortable leaderboard →</a></div>\n' +
+    '<a class="btn ghost mini more" href="/airlines/">The full leaderboard →</a></div>\n' +
     '  <p class="sec-lede">' + phases.done.length + ' fleets are finished, ' +
     phases.installing.length + ' are mid-retrofit and ' + phases.signed.length + ' have signed for ' +
-    'hardware that has not flown, counted ' + esc(H.chipDate(m.updated)) + '. The middle of a ' +
-    'rollout is where odds are worth having: before it everyone is on old hardware, and after it ' +
-    'the question dies of success.</p>\n' +
-    '  <p class="micro" style="margin-bottom:6px">The seven a US traveller is most likely to board, ' +
-    'best next-gen odds first</p>\n' +
-    P.usGlance(m) +
+    'hardware that has not flown, counted ' + esc(H.chipDate(m.updated)) + '.</p>\n' +
     P.fieldTable(m) +
-    '  <p class="footnote">Ranked on what is flying today, ' + esc(H.chipDate(m.updated)) + '. ' +
-    P.BAND_LEGEND + ' The tier column is how the row was derived: <b>A</b> resolves your aircraft to ' +
-    'a registration, <b>B</b> stops at the aircraft type, <b>C</b> is the airline’s own published ' +
-    'fleet count and <b>D</b> is a signed deal with nothing in the air. ' +
-    esc(m.A.SCORE_CAVEAT) + '</p>\n' +
-    P.srcLine('reported', 'Tail verification for United, Alaska and Hawaiian: ' +
-      '<a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">' +
-      'unitedstarlinktracker.com</a> and <a href="https://alaskastarlinktracker.com" ' +
-      'target="_blank" rel="noopener">alaskastarlinktracker.com</a>, both by @martinamps, ' +
-      esc(H.plateDate(m.updated)) + '. Every other airline from public airline announcements, ' +
-      'Jul 2026. <a href="/methodology/#credit">The full credit</a>.') +
-    '  <p class="micro" style="margin-top:10px">How sure we are, and the fourth number: ' +
-    '<a href="/record/">the written record</a> carries the confidence ladder, the projection ' +
-    'fence and the observation channels in full.</p>\n' +
     '</section>\n\n' +
+
+    /* ── THE SYSTEMS, the round-seven chart. ── */
+    systemsBlock +
 
     /* ── THE RACE, drawn. United is the one carrier with a public daily install
      * history, so its curve is the only line; drawing an Alaska or Hawaiian
@@ -180,7 +222,7 @@ function home(m) {
     '<section class="blk" id="race">\n' +
     '  <span class="kicker">The race</span>\n' +
     '  <div class="sec-h"><h2>Installed Starlink tails</h2>' +
-    '<a class="more" href="/race/">month by month →</a></div>\n' +
+    '<a class="btn ghost mini more" href="/race/">Month by month →</a></div>\n' +
     '  <div class="racestrip">\n' +
     '    <div class="rs-chart">' + V.spark(m) + '</div>\n' +
     '    <ul class="rs-counts">\n' +
@@ -194,14 +236,9 @@ function home(m) {
       'published day-by-day archive, so it is the one drawn as a line.') +
     '</section>\n\n' +
 
-    /* ═══ THE SEAM ═══════════════════════════════════════════════════════════
-     * Everything above is the record. Everything below is the one thing this
-     * site asks for. The strip says so in words, and takes a 4px sky rule along
-     * its top edge so the join is visible before it is read. */
-    P.halfmark(2, 'The companion', 'the same odds, in the browser where you book', 'companion') +
-
-    /* THE ONE PITCH ON THIS SITE. There is no second one, on this page or on any
-     * other route. See the header of P.extensionSection(). */
+    /* THE ONE PITCH ON THIS SITE. There is no second one, on this page or on
+     * any other route. See the header of P.extensionSection(); its section
+     * carries id="companion", which the masthead nav and the hero call target. */
     P.extensionSection(m) +
 
     /* ── THE LOOP, slimmed to one bar by the 26 Jul pivot. The five channels
@@ -212,7 +249,7 @@ function home(m) {
     '    <span class="kicker" style="margin:0">Add an observation</span>\n' +
     '    <p>Installs stop at the cabin door. If you flew this month, thirty seconds is a data ' +
     'point nobody else has.</p>\n' +
-    '    <a href="/record/#loop">the ways in →</a>\n' +
+    '    <a class="btn ghost mini" href="/record/#loop">The ways in →</a>\n' +
     '  </div>\n' +
     '</section>\n\n';
 
@@ -224,11 +261,6 @@ function home(m) {
       'unofficial, no tracking.',
     canonical: '/', here: '/', updated: m.updated,
     body: body,
-    /* The flight check's only script, and the only page that loads it. It runs
-       BEFORE site.js (afterWrap is emitted first) and depends on nothing in it —
-       both are `defer`, so both land after the document is parsed and neither
-       blocks the answer that is already in the HTML. */
-    afterWrap: '<script src="/assets/flightcheck.js" defer></script>\n',
     jsonld: [
       {
         '@context': 'https://schema.org', '@type': 'WebSite', '@id': ORIGIN + '/#website',
@@ -242,28 +274,10 @@ function home(m) {
         name: 'WiFi Odds', url: ORIGIN + '/', logo: ORIGIN + '/assets/og.png',
         sameAs: [H.EXT, H.REPO]
       },
-      /* Declares EXACTLY the seven cards this page renders, in the order it
-       * renders them — built from the same P.usRanked(m) call, so the markup and
-       * the structured data cannot drift. The 18-airline ItemList belongs to
-       * /airlines/, which is the page that actually shows 18 rows; a homepage
-       * that declared eighteen while displaying seven would be the same class of
-       * lie as a 200 with an empty body. */
-      {
-        '@context': 'https://schema.org', '@type': 'ItemList',
-        name: 'US airlines at a glance — next-gen inflight WiFi odds and today’s service tier',
-        numberOfItems: P.usRanked(m).length,
-        itemListElement: P.usRanked(m).map(function (a, i) {
-          return {
-            '@type': 'ListItem', position: i + 1,
-            /* both numbers, in the order the cards show them. A structured-data
-               block that declared only the ConnectScore while the card led with
-               the next-gen figure would be the two-sources-of-truth bug again. */
-            name: a.name + ' — next-gen ' + a.nextGenScore + ', today ' + a.serviceTierLabel +
-              ', ConnectScore ' + a.score,
-            url: ORIGIN + '/airlines/' + a.key + '/'
-          };
-        })
-      },
+      /* NO ItemList here since round seven: the seven-card strip it declared
+       * left the page, and the 18-airline list belongs to /airlines/, which is
+       * the page whose job is the ranking. Declaring a list this page does not
+       * render would be the two-sources-of-truth bug in structured data. */
       /* The extension is the thing a person can actually install, and it was
        * invisible to answer engines: the homepage described it in prose and
        * declared nothing. SoftwareApplication is the type they look for, and
@@ -2471,27 +2485,22 @@ function apiDocs(m) {
 
 /* ═══ /404.html ═════════════════════════════════════════════════════════ */
 /* A 404 earns ONE small joke and no second one, and it earns no pitch at all.
- * What it owes the reader is the same check the homepage leads with, plus the
- * three routes worth landing on. The version this replaced opened with "No
- * aircraft at this gate" and then explained itself for three more sentences,
- * which is a joke followed by an apology for the joke. */
+ * What it owes the reader is a door: the board, then the two pages people
+ * actually come looking for. The flight check that used to sit here left the
+ * site in round seven, so this page offers places rather than a control. */
 function notFound(m) {
   var body =
-    '<header class="hero heroq">\n  <span class="kicker">404</span>\n' +
+    '<header class="hero">\n  <span class="kicker">404</span>\n' +
     '  <h1 class="ph" style="margin-top:.6rem">No page at this address</h1>\n' +
-    '  <p class="lede">Unlike the WiFi, that one is a certainty. The check still works from here.</p>\n' +
-    P.flightCheck(m) +
-    '  <p class="footnote" style="margin-top:1.4rem"><a href="/airlines/">The board, all ' +
-    m.airlineCount + ' airlines</a> · <a href="/airlines/united/">United, the deepest page here</a> ' +
-    '· <a href="/methodology/">How every number was derived</a></p>\n' +
+    '  <p class="lede">Unlike the WiFi, that one is a certainty.</p>\n' +
+    '  <div class="btnrow" style="margin-top:1.2rem"><a class="btn ghost mini" ' +
+    'href="/airlines/">The board, all ' + m.airlineCount + ' airlines →</a>' +
+    '<a class="btn ghost mini" href="/airlines/united/">United, the deepest page here →</a>' +
+    '<a class="btn ghost mini" href="/methodology/">How every number was derived →</a></div>\n' +
     '</header>\n\n';
   return H.page({
     title: 'Page not found — WiFi Odds', desc: 'That page does not exist on wifiodds.com.',
     canonical: '/404.html', here: '/', updated: m.updated, body: body,
-    /* the check is a real control here, so the script that arms it comes too.
-       A `.needs-js` form on a page whose script never loads is the dead control
-       this project keeps banning. */
-    afterWrap: '<script src="/assets/flightcheck.js" defer></script>\n',
     jsonld: []
   });
 }

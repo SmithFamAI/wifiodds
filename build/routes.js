@@ -68,11 +68,14 @@ var REQUIRED = [
   'assets/airlines.js',
   'assets/site.css',
   'assets/site.js',
-  /* the homepage flight check. Its absence would not break a build or a 200 — the
-     hero form would just sit there doing nothing, which is exactly the class of
-     silent failure this list exists to catch. */
-  'assets/flightcheck.js',
   'assets/og.png',
+  /* Google's own Chrome Web Store badge art, byte-identical to the originals.
+     The homepage's two install controls are these images; a missing file
+     renders as a broken image where the page's one pitch should be, behind a
+     200. The medium size is kept alongside for smaller future surfaces. */
+  'assets/cws/badge-plain-large.png',
+  'assets/cws/badge-border-large.png',
+  'assets/cws/badge-border-medium.png',
   'assets/selectors.json',
   /* the two REAL captures the homepage extension demo is built from. Their
      absence would render as broken images inside a section whose whole argument

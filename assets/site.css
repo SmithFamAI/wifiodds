@@ -270,14 +270,24 @@ h1,h2,h3,h4{font-family:var(--serif);color:var(--ink);font-weight:700;letter-spa
   font-family:var(--serif);font-variant-numeric:tabular-nums;
   font-feature-settings:"tnum" 1}
 /* THE REPORTING NUMERALS. Sans, tabular. Table cells, ranks, counts, captions. */
-.num,.ct,.dn,.rank,.tblcap,.fa-as,.fchk-in,td.num,th.num,input{
+.num,.ct,.dn,.rank,.tblcap,.fa-as,td.num,th.num,input{
   font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
 /* Literal code: API paths, formula blocks. The only monospace on the site. */
 .mono,.code{font-family:var(--mono)}
 /* The column is a column, not a ruled margin. The Plate drew hairlines and
    ticks down both edges of .wrap; that was the plate idiom and it left with it. */
-.wrap{max-width:66rem;margin:0 auto;position:relative;
+/* ONE right edge (round seven, note 2). The wrap narrows to 58rem and prose,
+   small graphics and both boards all fill it: at 1280 that is one 888px line
+   box for everything in main. The boards still fit — their scroll floor is
+   52rem — and single-sentence ledes carry the width; anything longer than two
+   lines is structured (board footers, release states) rather than set as a
+   raw paragraph. The max-width:none group below is the other half of the same
+   note. */
+.wrap{max-width:58rem;margin:0 auto;position:relative;
   padding:0 max(1.25rem,env(safe-area-inset-right)) 0 max(1.25rem,env(safe-area-inset-left))}
+main .lede,main .sec-lede,main .footnote,main .skycap,main .src,
+main .prov,main ul.vstate,main .board-note,main .pointer,main .extfine,
+.rankb .sortcap p,.sysrows,.herocall,.skyline{max-width:none}
 .prose{max-width:44rem}
 :focus-visible{outline:2px solid var(--sky);outline-offset:2px}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -305,27 +315,33 @@ h1,h2,h3,h4{font-family:var(--serif);color:var(--ink);font-weight:700;letter-spa
 html:not(.js) .needs-js{display:none}
 html.js .no-js-only{display:none}
 
-/* ── the extension banner ─────────────────────────────────────────────────
-   HOMEPAGE ONLY, one instance, above the masthead. Two jobs: the store link for
-   the visitor who came only to install, and a jump to the companion half for
-   everyone else. It is chrome, not a pitch — the one pitch on this site is the
-   companion half of the homepage and there is no second one. It never grows a
-   second sentence, and its version number tracks what the store serves today. */
-.extbar{background:var(--sky-deep);color:var(--sky-fg);font-size:.85rem;line-height:1.45}
-.extbar .wrap{display:flex;align-items:baseline;gap:.25rem 1rem;flex-wrap:wrap;
-  padding-top:.55rem;padding-bottom:.55rem}
-.extbar .q{font-weight:600}
-.extbar a{color:inherit;text-decoration:underline;text-underline-offset:2px;
-  text-decoration-thickness:1px}
-.extbar a:hover{text-decoration-thickness:2px}
-.extbar .jump{opacity:.85}
-
 /* ── the masthead ─────────────────────────────────────────────────────────
    Orbit mark, serif wordmark, nav, the theme switch and the datechip. Every page
    carries it, and the date in it comes from united/data.json by way of
    H.page({updated}). Nothing here is hard-coded; a stale date is worse than
    no date. */
 header.site{border-bottom:1px solid var(--line);background:var(--paper)}
+/* ── the header stays with you (round seven, note 18) ─────────────────────
+   position:sticky is pure CSS, so the sticky part works with script off. The
+   shrink is a JS enhancement: site.js adds html.hdr-c past 170px of scroll and
+   removes it under 40px — a hysteresis gap ~3x the height the header gives up,
+   so the change can never re-cross its own trigger and flicker. */
+header.site{position:sticky;top:0;z-index:40}
+.masthead{transition:padding .22s ease}
+.wordmark{transition:font-size .22s ease}
+.datechip{max-height:2.6rem;overflow:hidden;transition:max-height .22s ease,opacity .18s ease}
+html.hdr-c .masthead{padding-top:.5rem;padding-bottom:.5rem}
+html.hdr-c .wordmark{font-size:1.08rem}
+html.hdr-c .datechip{max-height:0;opacity:0}
+@media(prefers-reduced-motion:reduce){.masthead,.wordmark,.datechip{transition:none}}
+/* anchors land clear of the sticky header */
+html{scroll-padding-top:5.5rem}
+/* ── the phone menu is a checkbox and a label, so it opens script-free.
+   Its media rules live in the 600px block of the RESPONSIVE section, AFTER the
+   base `.masthead nav` rule they override — order is what wins at equal
+   specificity, and an earlier `display:none` would lose to the later flex. */
+.nav-cb{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.nav-btn{display:none}
 /* padding-top/bottom, never the shorthand. .masthead is also a .wrap, and
    `padding:1rem 0` silently zeroed the horizontal padding .wrap provides, so
    the wordmark, nav and datechip sat flush to the screen edge while the body
@@ -352,8 +368,6 @@ header.site{border-bottom:1px solid var(--line);background:var(--paper)}
   border-radius:8px}
 .masthead nav a:hover{color:var(--ink);background:var(--bg-inset);text-decoration:none}
 .masthead nav a[aria-current="page"]{color:var(--ink)}
-.masthead nav a.cta{color:var(--btn-fg);background:var(--btn-bg);margin-left:.35rem}
-.masthead nav a.cta:hover{color:var(--btn-fg);background:var(--btn-bg);filter:brightness(1.08)}
 .datechip{font-size:.78rem;color:var(--muted);letter-spacing:.02em;width:100%;
   padding-bottom:.15rem}
 .datechip b{color:var(--muted-strong);font-weight:600}
@@ -391,7 +405,7 @@ header.site{border-bottom:1px solid var(--line);background:var(--paper)}
 @media(max-width:560px){.subnav .sn-back{margin-left:0}.subnav.lone .sn-air{margin-left:0}}
 
 /* ── type ─────────────────────────────────────────────────────────────── */
-.hero{padding:2.6rem 0 .4rem}
+.hero{padding:2.4rem 0 .4rem}
 .hero h1{font-size:clamp(1.9rem,5.2vw,3rem);line-height:1.12;letter-spacing:-.015em;
   max-width:21ch}
 h1.ph{font-size:clamp(1.7rem,4vw,2.4rem);line-height:1.14;margin:.5rem 0 0}
@@ -409,15 +423,20 @@ h1.ph{font-size:clamp(1.7rem,4vw,2.4rem);line-height:1.14;margin:.5rem 0 0}
 
 /* Sections divide with a hairline and a sky kicker. There are no cards around
    sections and no headings floating in space. */
+/* Breathing room, sitewide (round seven): sections sit further apart and
+   ledes clear their headings. */
 section.blk{position:relative;border-top:1px solid var(--line-soft);
-  margin:2.6rem 0 0;padding-top:2rem}
+  margin:3.2rem 0 0;padding-top:2.3rem}
 .sec-h{display:flex;align-items:baseline;gap:.5rem 1rem;margin-bottom:.6rem;flex-wrap:wrap}
 .sec-h h2{font-size:clamp(1.35rem,3.4vw,1.8rem);line-height:1.2}
 .sec-h .sub{font-size:.75rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
   color:var(--sky)}
 section.blk>.sec-h>.sub{display:block;width:100%;margin-bottom:.1rem}
 .sec-h .more{margin-left:auto;font-size:.85rem}
-.sec-lede{margin-bottom:1.1rem}
+.sec-lede{margin-bottom:1.2rem}
+main .micro{margin-top:.35rem}
+/* the pointer paragraph after a board — outside .rankb since round seven */
+.pointer{font-size:.9rem;color:var(--ink-soft);margin-top:1.1rem}
 /* .micro is the reporting label: quiet ink, never sky, because it sits inside
    the data's screen space. */
 .micro{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
@@ -490,8 +509,15 @@ a.card:hover .go{text-decoration:underline;text-decoration-thickness:2px}
   background:var(--btn-bg);color:var(--btn-fg);text-decoration:none;
   border:1px solid var(--btn-bg);cursor:pointer}
 .btn:hover{text-decoration:none;filter:saturate(1.1)}
-.btn.ghost{background:transparent;color:var(--link);border-color:var(--line)}
+/* Buttons carry a border at rest (round seven, note 3). --field-border is the
+   token reserved for control boundaries (3.6-4.2:1 on every ground); hover
+   still moves it to the sky, so the hover state stays a change rather than
+   the only signal. */
+.btn.ghost{background:transparent;color:var(--link);border-color:var(--field-border)}
 .btn.ghost:hover{border-color:var(--sky);filter:none}
+/* inline links promoted to buttons, round six */
+.btn.mini{padding:.34rem .7rem;font-size:.8rem;border-radius:8px;gap:.35rem}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:.75rem 0 .35rem}
 .cta-row{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;margin-top:1.3rem}
 .microlinks{display:flex;gap:1.1rem;flex-wrap:wrap;margin-top:.9rem;font-size:.85rem}
 
@@ -578,7 +604,13 @@ table.tbl thead th{font-size:.72rem;font-weight:600;letter-spacing:.1em;
   vertical-align:bottom}
 table.tbl tbody tr:last-child td{border-bottom:1px solid var(--line)}
 table.tbl tbody tr:hover{background:var(--panel)}
-table.tbl td.num,table.tbl td.mono{white-space:nowrap}
+/* Data cells may WRAP since round seven (note 2): nowrap on every .num cell
+   put the Big 4 table's min-content at 1422px, 400px of it hidden behind an
+   invisible horizontal scroll at every width. Figures still hold together
+   because spaces, not digits, are the only break points; the pieces that must
+   never break mid-figure (.fitpct, the projected chip's date phrase) carry
+   their own nowrap below. Headers stay nowrap. */
+table.tbl td.mono{white-space:nowrap}
 th.num,td.num{text-align:right}
 table.tbl td b{color:var(--ink);font-weight:700}
 table.tbl .rank{color:var(--muted);font-size:.8rem;width:2.6rem}
@@ -636,9 +668,10 @@ html.js table.tbl th[data-k][aria-sort="descending"]:after{content:"\2193";opaci
 .rankb table[data-active="regional"] td[data-col="regional"] .band{display:inline-block}
 
 .filters{display:flex;flex-wrap:wrap;gap:.4rem;margin:.3rem 0 .9rem}
+/* resting borders on the chips too (round seven, note 3) */
 .filters button{font:inherit;font-size:.82rem;color:var(--ink-soft);cursor:pointer;
-  padding:.3rem .7rem;border:1px solid var(--line);border-radius:99px;background:transparent}
-.filters button:hover{border-color:var(--muted)}
+  padding:.3rem .7rem;border:1px solid var(--field-border);border-radius:99px;background:transparent}
+.filters button:hover{border-color:var(--sky)}
 .filters button[aria-pressed="true"]{color:var(--btn-fg);background:var(--btn-bg);
   border-color:var(--btn-bg)}
 .srch{display:inline-flex;align-items:center;gap:.5rem;margin:0 0 .9rem}
@@ -829,47 +862,11 @@ footer.site b{color:var(--muted-strong)}
   border-radius:var(--r-sm);padding:.25rem .5rem;box-shadow:0 2px 8px rgb(0 0 0 / .12);
   white-space:nowrap}
 
-/* ═══ HOMEPAGE FLIGHT CHECK — the above-the-fold answer ════════════════════
-   The hero IS the tool.
-
-   READ THE MARKUP NOTE IN build/lib/pages.js flightCheck() BEFORE EDITING.
-   `.needs-js` sits on the plain wrapper `.fchk`, never on `.fchk-form`. That
-   used to be load-bearing: `html.js .needs-js{display:revert}` at (0,2,1) beat
-   `.fchk-form{display:flex}` at (0,1,0) and turned the row back into a block.
-   The revert rule was deleted on 27 Jul 2026, so the constraint is gone and a
-   `.needs-js` on a flex element is now safe. Keeping the split anyway: layout
-   on the children reads better and costs nothing.
-   ═════════════════════════════════════════════════════════════════════════ */
+/* ═══ THE FLIGHT CHECK IS GONE — round seven, 27 Jul 2026. Its styles left
+   with assets/flightcheck.js and the .fchk markup; the hero answers with the
+   skyline now. .heroq survives only as a name some old links may remember —
+   nothing emits it. ═══════════════════════════════════════════════════════ */
 .heroq{padding:2.6rem 0 0}
-.heroq h1{font-size:clamp(1.9rem,5.2vw,3rem);line-height:1.12;letter-spacing:-.015em;
-  max-width:22ch}
-.heroq .lede{margin-top:.85rem}
-
-.fchk{margin-top:1.4rem}
-.fchk-lb{display:block;font-size:.72rem;font-weight:600;letter-spacing:.12em;
-  text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
-.fchk-row,.fchk-form{display:flex;gap:.6rem;flex-wrap:wrap;align-items:stretch;
-  max-width:34rem}
-.fchk-in{flex:1 1 14rem;min-width:0;font:inherit;padding:.72rem .9rem;
-  border-radius:var(--r-md);background:var(--field);color:var(--ink);
-  border:1px solid var(--field-border);-webkit-appearance:none;appearance:none}
-.fchk-in::placeholder{color:var(--placeholder)}
-.fchk-in:focus{outline:none;border-color:var(--sky);box-shadow:0 0 0 2px rgb(45 90 125 / .18)}
-.fchk-in::-webkit-search-cancel-button{-webkit-appearance:none}
-.fchk-go{flex:0 0 auto;padding:.72rem 1.15rem}
-/* The smallprint pattern: say what needs script, and say where the same answer
-   lives without it. Every JS-only affordance on this site owes the reader that. */
-.fchk-hint{font-size:.82rem;color:var(--muted);margin-top:.6rem;max-width:34rem}
-.fchk-hint b{color:var(--muted-strong)}
-.fchk-links{margin-top:.4rem}
-.fchk-links b{color:var(--ink)}
-.fchk-nojs{margin-top:1.2rem}
-.fchk-out{margin-top:1.1rem}
-.fchk-out:empty{display:none}
-.fchk-busy,.fchk-err{font-size:.9rem;color:var(--ink-soft);padding:.8rem 1rem;
-  border:1px dashed var(--line);border-radius:var(--r-md)}
-.fchk-busy b{color:var(--ink)}
-.fchk-err{color:var(--long);border-color:currentColor}
 
 /* the answer card. The one surface on the site that breathes, and the tier tag
    is not decoration: no number appears on this card without the method that
@@ -1012,11 +1009,23 @@ ul.vstate .st{display:inline-block;min-width:10rem;font-size:.68rem;font-weight:
      a 440px iPhone and guessed the cause from the symptom: "it may just be the
      menu." Never set the shorthand on an element that is also a .wrap. */
   .masthead{gap:.5rem .9rem;padding-top:.85rem;padding-bottom:.85rem}
-  .masthead nav{gap:.8rem;font-size:.88rem;margin-left:0;order:3;flex:1 0 100%}
-  .themetoggle{margin-left:auto}
+  /* the hamburger (round seven, note 18): the nav hides behind the checkbox
+     label and opens as a stacked column, script-free. This block sits AFTER
+     the base `.masthead nav{display:flex}` rule on purpose — order decides at
+     equal specificity. */
+  .nav-btn{display:inline-flex;align-items:center;justify-content:center;margin-left:auto;
+    width:2.5rem;height:2.25rem;border:1px solid var(--field-border);border-radius:8px;
+    color:var(--ink);cursor:pointer;font-size:1.05rem;line-height:1;background:var(--card)}
+  .nav-cb:focus-visible+.nav-btn{outline:2px solid var(--sky);outline-offset:2px}
+  .nav-btn .x{display:none}
+  .nav-cb:checked+.nav-btn .x{display:inline}
+  .nav-cb:checked+.nav-btn .h{display:none}
+  .masthead nav{display:none}
+  .nav-cb:checked~nav{display:flex;flex-direction:column;align-items:stretch;gap:.1rem;
+    margin-left:0;order:3;flex:1 0 100%;
+    border-top:1px solid var(--line-soft);padding-top:.4rem;margin-top:.2rem}
+  .themetoggle{margin-left:0}
   .hero,.heroq{padding-top:2rem}
-  .fchk-go{width:100%;justify-content:center}
-  .fchk-in{flex:1 0 100%}
 }
 @media(max-width:430px){
   .wrap{padding-left:max(.9rem,env(safe-area-inset-left));
@@ -1153,42 +1162,9 @@ html.anim .track.in .fill{width:var(--pct)}
 .frm-ft{margin:16px 0 0;display:flex;flex-wrap:wrap;gap:12px;align-items:baseline}
 .frm-ft .note{margin:0;flex:1 1 16rem;min-width:0}
 
-/* ── the split-homepage seam ──────────────────────────────────────────────
- * The reader has to know which half they are in. A full-bleed band, the sky
- * for the label because a half-name is chrome, never a number. */
-.seam{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
-  background:var(--bg-inset);margin:44px 0 0;padding:11px 0}
-/* The geometry used to sit inline in pages.js halfmark(), which left the rule
-   here unable to override it. It is here now, as that function's own comment
-   asked for, and the markup already carried these class names. */
-.halfmark{display:flex;flex-wrap:wrap;gap:.3rem .8rem;align-items:baseline;
-  background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);
-  padding:.65rem .95rem;margin:2.4rem 0 0}
-.halfmark.seam{border-top:4px solid var(--sky-deep)}
-.halfmark b{font:600 12px/1.4 var(--sans);letter-spacing:.1em;
-  text-transform:uppercase;color:var(--sky)}
-.halfmark strong{font:600 17px/1.3 var(--serif);color:var(--ink)}
-.halfmark span{font:400 14px/1.4 var(--sans);color:var(--ink-3)}
-
-/* ── the 390px answer budget ──────────────────────────────────────────────
- * ARCHETYPES asks for the page's answer on the first screen at 390px. Measured
- * 25 Jul 2026 in a 390px viewport, the homepage put the input at 757px and the
- * button at 817px, both under a fold that lands near 750px on a phone.
- *
- * Two things were spending the screen. The first halfmark labels a two-column
- * split that does not exist at this width, where the halves are already stacked
- * in reading order. And two sentences of the lede repeat work the page does
- * again further down: the source-and-date promise is demonstrated under every
- * figure, and the two-halves sentence describes the desktop layout.
- *
- * Hiding both moves the button to 585px and the first odds figure to 776px.
- * The SECOND halfmark stays: it is a real mid-page seam and the extension
- * banner's jump link targets it. Jeremy picked this over the label-only
- * version on 25 Jul 2026, after seeing both at smithfamai.com/wifiodds-390/. */
-@media (max-width:640px){
-  .halfmark#record{display:none}
-  .lede .sm-off{display:none}
-}
+/* ── the split-homepage seam is GONE — round seven, 27 Jul 2026. The halfmark
+ * strips and the .sm-off lede spans left with the two-named-halves layout;
+ * nothing emits those classes any more. */
 
 /* ── the 26 Jul pivot: the board drawn, the race strip, the loop bar ──────
  * Every number drawn before it is written. The bar's colour is the band and
@@ -1274,3 +1250,213 @@ html.dark{--chart-1:#8fc0e0;--chart-2:#b79fe0;--chart-3:#7ecfdd}
   background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);
   padding:1rem 1.3rem}
 .loopbar p{margin:0;font-family:var(--serif);font-size:1.02rem;flex:1 1 26ch}
+
+
+/* ═══ ROUND SEVEN (27 Jul 2026) — the approved homepage, generated ═════════
+   Ported from websites/public/wifiodds-b4/ after Jeremy's three review rounds.
+   Everything below is shared chrome: the boards, the badge, the skyline and
+   the systems chart appear wherever the generators emit them. ═══════════════ */
+
+/* ── figures that must never break mid-figure ── */
+.fitpct{white-space:nowrap}
+
+/* ── the hero call: extension surface 1 of the sitewide 3 ── */
+.herocall{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem 1.6rem;margin:1.7rem 0 .3rem;
+  padding:.95rem 1.15rem;background:var(--card);border:1px solid var(--line);border-radius:12px}
+.herocall .hc-t{flex:1 1 17rem;min-width:0}
+.herocall .hc-h{margin:0;font-size:.98rem}
+.herocall .hc-h b{font-family:var(--serif);font-size:1.04rem}
+.herocall .hc-s{margin:.15rem 0 0;font-size:.85rem;line-height:1.5;color:var(--ink-soft)}
+@media(max-width:480px){
+  .herocall{padding:.6rem .8rem;gap:.5rem .8rem;margin:1.15rem 0 .1rem}
+  .herocall .hc-s{display:none}
+  .herocall .hc-h{font-size:.9rem}
+  .herocall .hc-h b{font-size:.95rem}
+}
+
+/* ── Google's store badge, self-hosted, resized only (496:150 held by
+   width:auto), always a link to the listing. Bordered art on the dark ground,
+   plain on light, switched exactly the way the themes switch, so it is
+   correct with script off too. The version sits on its own line beneath,
+   because Google's rules forbid putting it inside the badge. ── */
+.cwswrap{display:flex;flex-direction:column;align-items:flex-start;gap:.3rem;flex:0 0 auto}
+.cwsbadge{display:inline-block;line-height:0}
+.cwsbadge img{height:52px;width:auto;display:block}
+.cws-ver{font-size:.7rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted)}
+.cws-d{display:none}
+@media(prefers-color-scheme:dark){
+  html:not(.light) .cws-d{display:block}
+  html:not(.light) .cws-l{display:none}
+}
+html.dark .cws-d{display:block}
+html.dark .cws-l{display:none}
+html.light .cws-d{display:none}
+html.light .cws-l{display:block}
+.extblk .cwsbadge img{height:58px}
+@media(max-width:480px){.cwsbadge img,.extblk .cwsbadge img{height:44px}}
+
+/* ── the skyline: 18 airlines as one row of linked bars ──
+   The bar's height is the score, its colour is the band. The name-and-number
+   label on hover or keyboard focus is pure CSS, so it works with script off;
+   chrome colours only, because a label is not a score. */
+.skyline{display:flex;gap:5px;align-items:flex-end;height:96px;margin:1.8rem 0 .5rem}
+.skyline a{flex:1 1 0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;
+  min-width:0;position:relative}
+.skyline .fill{display:block;border-radius:3px 3px 0 0;min-height:2px}
+.skyline .fill.sc-good{background:var(--good)}
+.skyline .fill.sc-mix{background:var(--mixed)}
+.skyline .fill.sc-long{background:var(--long)}
+.skyline .fill.sc-no{background:var(--zero)}
+.skyline a:hover::after,.skyline a:focus-visible::after{content:attr(data-l);position:absolute;
+  bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);white-space:nowrap;
+  font:700 .72rem/1.5 var(--mono);background:var(--card);color:var(--ink);
+  border:1px solid var(--line);padding:1px 7px;border-radius:6px;pointer-events:none;z-index:3}
+.skyline a:first-child:hover::after,.skyline a:first-child:focus-visible::after{left:0;transform:none}
+.skyline a:last-child:hover::after,.skyline a:last-child:focus-visible::after{left:auto;right:0;transform:none}
+.skycap{font-size:.82rem;color:var(--muted);margin-top:.45rem}
+
+/* ── the column guide reads as a control: a bordered, hoverable disclosure
+   with a chevron that flips. details/summary, so it opens with script off. ── */
+.colguide{margin:1.5rem 0 0}
+.colguide summary{display:inline-flex;align-items:center;gap:.55rem;padding:.5rem .95rem;
+  border:1px solid var(--field-border);border-radius:8px;background:var(--card);
+  color:var(--ink);font-size:.84rem;font-weight:600;cursor:pointer;list-style:none;
+  width:auto;user-select:none}
+.colguide summary::-webkit-details-marker{display:none}
+.colguide summary:after{content:"\25BE";font-size:.8em;color:var(--muted);transition:transform .15s}
+.colguide[open] summary:after{transform:rotate(180deg)}
+.colguide summary:hover{border-color:var(--sky);color:var(--sky)}
+.cg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(12rem,1fr));gap:10px;
+  margin:.8rem 0 0}
+.cg{background:var(--card);border:1px solid var(--line);border-radius:10px;
+  padding:.6rem .8rem .65rem;font-size:.79rem;line-height:1.45;color:var(--ink-soft)}
+.cg b{display:block;font-size:.78rem;color:var(--ink)}
+.cg .ar{font-family:var(--mono);color:var(--muted);font-size:.72rem}
+
+/* ── the Rank-by control row. The single-class .segctrl selector is
+   load-bearing: build/apitest.js reads it to prove .needs-js still sits on an
+   element with its own non-block display. ── */
+.segctrl{display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap;margin:1.4rem 0 .5rem}
+.segctrl .lbl{font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted-strong)}
+.segctrl .filters{margin:0}
+
+/* ── clickable sortable headers on the rank boards ── */
+html.js .rankb th[data-rc]:not([data-rc="rank"]){cursor:pointer;user-select:none}
+html.js .rankb th[data-rc]:not([data-rc="rank"]):not([aria-sort]):after{content:"\2195";
+  opacity:.45;margin-left:.3rem;font-size:.7rem}
+.rankb th[data-rc][aria-sort="ascending"]:after{content:"\2191";opacity:.75;margin-left:.3rem;
+  font-size:.7rem}
+
+/* ── everything below a board is ONE box: hairline-ruled rows inside a single
+   border, each row under a small-caps label, spanning the table width. ── */
+.bfoot{margin-top:1.4rem;border:1px solid var(--line);border-radius:var(--r-lg);
+  background:var(--card);box-shadow:var(--sheen)}
+.bfoot>div{padding:.85rem 1.1rem;border-top:1px solid var(--line-soft)}
+.bfoot>div:first-child{border-top:0}
+.bfoot .bf-l{display:block;font-size:.66rem;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:.35rem}
+.bfoot p{margin:0;font-size:.86rem;color:var(--ink-soft);line-height:1.55}
+.bf-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem 1.6rem}
+.bfoot .btnrow{margin:.1rem 0 0}
+.bfoot .src,.bfoot .board-note{margin:0;max-width:none}
+.ngunpub{font-size:.68rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--muted)}
+
+/* ── the Big 4 rows, tightened (the one fix on top of the mockup) ──
+   b4 let every cell wrap freely and auto layout squeezed the last column
+   until the projected chip broke onto three lines and its citation onto three
+   more. The chip and its date phrase stay one unit; the citation drops to its
+   own line; the column is wide enough that only genuinely long phrases wrap. */
+.rankb th:last-child{width:30%;white-space:normal}
+/* the two-word column names may break — "Mainline next-gen" on one nowrap
+   line cost 162px of column that the projected chip needed. A header on two
+   short lines is cheaper than a data row on six. */
+.rankb th[data-rc="nextgen"],.rankb th[data-rc="mainline"],
+.rankb th[data-rc="regional"]{white-space:normal}
+.rankb .proj{white-space:normal;flex-wrap:wrap;row-gap:.1rem}
+.rankb td .proj+.micro{display:block;margin-top:.3rem}
+/* the 18-board's projected cells get the same treatment: the chip may wrap at
+   its own gaps, the header may wrap, and neither may widen the table past the
+   shared right edge. width is a PREFERENCE under auto table layout, never a
+   min-content floor — a min-width here put the Big 4 table at 942px inside an
+   888px wrap, which is exactly the hidden scroll this block exists to kill. */
+.tbl.board .proj{white-space:normal;flex-wrap:wrap;row-gap:.1rem}
+.tbl.board th:last-child{white-space:normal}
+
+/* ── the rank boards on a phone: shed, never scroll ──
+   Under 700px the split and projected columns go (each airline's page carries
+   them), the min-width floor comes off and fixed layout lets words wrap, the
+   same treatment .tbl.board already gets. Without this the Big 4 board sat in
+   an 832px scroll frame inside a 390px screen. */
+@media(max-width:700px){
+  .rankb table.tbl{min-width:0;width:100%;table-layout:fixed}
+  .rankb table.tbl td,.rankb table.tbl th{overflow-wrap:anywhere;
+    padding-left:.3rem;padding-right:.3rem}
+  .rankb table.tbl th{white-space:normal;font-size:.6rem;letter-spacing:.05em}
+  .rankb table.tbl th:nth-child(5),.rankb table.tbl td:nth-child(5),
+  .rankb table.tbl th:nth-child(6),.rankb table.tbl td:nth-child(6),
+  .rankb table.tbl th:last-child,.rankb table.tbl td:last-child{display:none}
+  .rankb table.tbl .sco{font-size:1.05rem}
+  .rankb table.tbl td .band{display:block;margin:.15rem 0 0;white-space:normal}
+  .rankb table.tbl .rank{width:2rem}
+  .rankb .filters button[data-sort="mainline"],
+  .rankb .filters button[data-sort="regional"]{display:none}
+  .rankb table.tbl .lab{white-space:normal}
+}
+
+/* ── the systems chart, hardware-identity palette (round seven, notes 12-14).
+   A FOURTH colour owner: hardware identity, beside the bands (numbers), the
+   sky (chrome) and --chart-1/2/3 (time series). Drawn from the sky family —
+   blues, teals, violets — so a quality weight can never be misread as a
+   score band. ── */
+:root{--hw-leo:#2d5a7d;--hw-mgeo:#1f7a86;--hw-lgeo:#6c55a3;--hw-atg:#5d6f80}
+:root.dark{--hw-leo:#8fc0e0;--hw-mgeo:#6fd0d8;--hw-lgeo:#b49fe0;--hw-atg:#93a5b3}
+@media(prefers-color-scheme:dark){
+  :root:not(.light){--hw-leo:#8fc0e0;--hw-mgeo:#6fd0d8;--hw-lgeo:#b49fe0;--hw-atg:#93a5b3}
+}
+.hw-leo{--hw:var(--hw-leo)}.hw-mgeo{--hw:var(--hw-mgeo)}
+.hw-lgeo{--hw:var(--hw-lgeo)}.hw-atg{--hw:var(--hw-atg)}
+.sysrows{margin:1.7rem 0 .6rem}
+.sysrow{display:grid;grid-template-columns:minmax(11rem,16rem) 1fr 3.4rem;gap:.3rem 1.1rem;
+  align-items:center;margin:1.2rem 0}
+.sysrow .nm{font-weight:700;font-size:.95rem;line-height:1.25}
+.sysrow .nm small{display:block;font-weight:400;color:var(--muted);font-size:.76rem;
+  margin-left:1rem}
+.hwdot{display:inline-block;width:.55rem;height:.55rem;border-radius:2px;background:var(--hw);
+  margin-right:.45rem}
+.sysrow .scobar{height:14px;border:1px solid var(--line-soft)}
+.rngb{position:relative;overflow:visible}
+.rngb .fill{position:absolute;top:0;bottom:0;background:var(--hw,var(--ink));min-width:4px;
+  border-radius:99px}
+.rngb .p10{position:absolute;top:-6px;bottom:-6px;left:28.9%;width:0;
+  border-left:2px dashed var(--muted)}
+.sysrow .wt{font-family:var(--mono);font-weight:700;font-size:.95rem;text-align:right;
+  color:var(--ink)}
+.sysrow .ms{grid-column:2/4;margin:0;font-size:.8rem;color:var(--muted)}
+.sysaxis{display:grid;grid-template-columns:minmax(11rem,16rem) 1fr 3.4rem;gap:0 1.1rem;
+  margin:.2rem 0 0}
+.sysaxis .ax{grid-column:2;display:flex;justify-content:space-between;
+  font:700 .7rem/1.4 var(--mono);color:var(--muted)}
+.sysaxis .wl{grid-column:3;font:700 .7rem/1.4 var(--mono);color:var(--muted);text-align:right}
+@media(max-width:560px){
+  .sysrow,.sysaxis{grid-template-columns:1fr 3.4rem}
+  .sysrow .nm{grid-column:1/3}
+  .sysrow .ms{grid-column:1/3}
+  .sysaxis .ax{grid-column:1}
+  .sysaxis .wl{grid-column:2}
+}
+
+/* ── the release states as a labelled grid, not three paragraphs behind an
+   inline-block label (round seven, note 16). Overrides the base ul.vstate
+   rules above; later at equal-or-higher specificity, so these win. ── */
+main ul.vstate{margin:1.4rem 0 0}
+ul.vstate li{display:grid;grid-template-columns:10.5rem 1fr;gap:.35rem 1.2rem;
+  align-items:start;padding:.85rem 0}
+ul.vstate .st{min-width:0;justify-self:start;margin-top:.1rem;border:1px solid var(--line);
+  border-radius:99px;padding:.16rem .6rem}
+ul.vstate .st.live{color:var(--good);border-color:currentColor}
+ul.vstate .st.blt{border-style:dashed}
+ul.vstate p{margin:0}
+@media(max-width:560px){ul.vstate li{grid-template-columns:1fr;gap:.3rem}}

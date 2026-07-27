@@ -166,11 +166,9 @@ function chipDate(iso) {
  * row (subnav) scoped to that airline instead. If you are tempted to add an
  * airline link here, add a SUBNAV section instead.
  *
- * The Extension entry is a plain nav link, not a button. It used to be a `.cta`
- * block, which put an install ask in the masthead of thirty routes; the spec
- * allows exactly one pitch on this site and it is the companion half of the
- * homepage. The link keeps its `.cta` class name so nothing that targets it
- * breaks, and the class no longer means "call to action" in the CSS. */
+ * The Extension entry is a plain nav link to the homepage's companion section,
+ * not a store link: the store surfaces are Google's badge, twice on the
+ * homepage, plus United's #plugin block, and the masthead is not one of them. */
 var NAV = [
   ['/airlines/', 'Airlines'],
   /* /race/ earns a global slot because it is the one page that is about the whole
@@ -222,24 +220,11 @@ function subnav(section, here, label) {
     '<a class="sn-back" href="/airlines/">All airlines →</a></nav>\n';
 }
 
-/* ── THE EXTENSION BANNER ──────────────────────────────────────────────────
- * HOMEPAGE ONLY. One strip, above the masthead, in the same sky as the rule at
- * the page's top edge, so the rule reads as the banner's top border there.
- *
- * It is wayfinding, not a pitch: it exists for the visitor who arrived only to
- * install, and it hands everyone else a jump to the companion half instead of
- * arguing with them. It carries the store link with the version the store serves
- * today, and one jump. It never grows a second sentence, and it appears on no
- * other route — page() emits it for canonical '/' and nothing else. */
-function extbar() {
-  return '<div class="extbar" role="navigation" aria-label="Extension shortcuts">\n' +
-    '  <div class="wrap">\n' +
-    '    <span class="q">Here for the Chrome extension?</span>\n' +
-    '    <a class="store" href="' + EXT + '" target="_blank" rel="noopener">Grab v' +
-    esc(EXT_VERSION) + ' from the Chrome Web Store</a>\n' +
-    '    <a class="jump" href="#extension">or jump to what it does</a>\n' +
-    '  </div>\n</div>\n';
-}
+/* THE EXTENSION BANNER IS GONE — round seven, 27 Jul 2026. The homepage's
+ * store surface is Google's badge in the hero and again in the companion half,
+ * which is the whole sitewide budget of Chrome Web Store links besides United's
+ * #plugin block. A third strip above the masthead put the count over budget and
+ * pitched before the page had said anything. Do not bring it back. */
 
 /* THE MASTHEAD, and it is on every page.
  *
@@ -260,11 +245,20 @@ function masthead(here, suffix, updated) {
     '  <div class="wrap masthead">\n' +
     '    <a class="wordmark" href="/">' + MARK_SVG + 'WiFi&nbsp;Odds' +
     (suffix ? ' <em>· ' + esc(suffix) + '</em>' : '') + '</a>\n' +
+    /* The phone menu is a checkbox and a label, so it opens with script off.
+       The checkbox sits before the nav because the CSS reaches the menu with
+       .nav-cb:checked~nav — keep the sibling order or the hamburger dies. */
+    '    <input type="checkbox" id="nav-open" class="nav-cb" aria-label="Menu">\n' +
+    '    <label class="nav-btn" for="nav-open"><span class="h" aria-hidden="true">&#9776;</span>' +
+    '<span class="x" aria-hidden="true">&#10005;</span><span class="vh">Menu</span></label>\n' +
     '    <nav aria-label="Main">\n' +
     NAV.map(function (n) {
       return '      <a href="' + n[0] + '"' + (n[0] === here ? ' aria-current="page"' : '') + '>' + n[1] + '</a>\n';
     }).join('') +
-    '      <a class="cta" href="' + EXT + '" target="_blank" rel="noopener">Extension</a>\n' +
+    /* A place on the page, not a store pitch: the store links are Google's own
+       badges, twice on the homepage, and United's #plugin block. That is the
+       whole budget, so the nav points at the section that shows the thing. */
+    '      <a href="/#companion">Extension</a>\n' +
     '    </nav>\n' +
     '    <button class="themetoggle" id="themetoggle" type="button" hidden\n' +
     '      title="Dark by default. The switch lasts until you reload; nothing is stored."></button>\n' +
@@ -393,14 +387,8 @@ function page(o) {
     (o.extraHead || '') +
     (o.jsonld || []).map(ld).join('\n') + '\n' +
     '</head>\n<body>\n' +
-    /* First focusable thing on every page, and invisible until it has focus.
-       It has to come before extbar(), because a keyboard reader who lands on
-       the extension banner first has already walked past the thing the link
-       exists to skip. */
+    /* First focusable thing on every page, and invisible until it has focus. */
     '<a class="skip" href="#main-content">Skip to content</a>\n' +
-    /* The banner sits OUTSIDE .wrap and above the masthead, because it is a
-       full-bleed strip of sky and the column starts under it. Homepage only. */
-    (o.canonical === '/' ? extbar() : '') +
     (o.preWrap || '') +
     masthead(o.here, o.suffix, o.updated) +
     '<div class="wrap">\n' +
@@ -425,7 +413,7 @@ function page(o) {
 module.exports = {
   ORIGIN: ORIGIN, EXT: EXT, EXT_VERSION: EXT_VERSION, REPO: REPO,
   NAV: NAV, SUBNAV: SUBNAV,
-  esc: esc, ld: ld, page: page, masthead: masthead, extbar: extbar,
+  esc: esc, ld: ld, page: page, masthead: masthead,
   /* topbar is the old name for masthead. Kept as an alias so a caller outside
      this file cannot break on the rename; nothing in the build uses it today. */
   topbar: masthead,

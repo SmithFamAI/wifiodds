@@ -22,12 +22,12 @@
   "recorded": "2026-07-27",
   "pages": {
     "404.html": {
-      "words": 288,
+      "words": 170,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
-      "pivotPer1000": 1.64,
-      "pivotUnits": 0.5
+      "pivotPer1000": 1.47,
+      "pivotUnits": 0.25
     },
     "CLAUDE.md": {
       "words": 997,
@@ -54,7 +54,7 @@
       "pivotUnits": 0.25
     },
     "airlines/airbaltic/index.html": {
-      "words": 1069,
+      "words": 1070,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -62,7 +62,7 @@
       "pivotUnits": 1
     },
     "airlines/aircanada/index.html": {
-      "words": 1145,
+      "words": 1146,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -70,7 +70,7 @@
       "pivotUnits": 1
     },
     "airlines/airfrance/index.html": {
-      "words": 1106,
+      "words": 1107,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -78,7 +78,7 @@
       "pivotUnits": 1.5
     },
     "airlines/alaska/index.html": {
-      "words": 1091,
+      "words": 1092,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -86,7 +86,7 @@
       "pivotUnits": 1
     },
     "airlines/american/index.html": {
-      "words": 1109,
+      "words": 1110,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -94,7 +94,7 @@
       "pivotUnits": 1.25
     },
     "airlines/britishairways/index.html": {
-      "words": 1128,
+      "words": 1129,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -102,7 +102,7 @@
       "pivotUnits": 1
     },
     "airlines/delta/index.html": {
-      "words": 1308,
+      "words": 1309,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -110,7 +110,7 @@
       "pivotUnits": 1.5
     },
     "airlines/emirates/index.html": {
-      "words": 1112,
+      "words": 1113,
       "llmPoints": 0.5,
       "clichePoints": 0,
       "unsub": 0,
@@ -118,7 +118,7 @@
       "pivotUnits": 1
     },
     "airlines/hawaiian/index.html": {
-      "words": 1041,
+      "words": 1042,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -126,15 +126,15 @@
       "pivotUnits": 1
     },
     "airlines/index.html": {
-      "words": 1835,
+      "words": 1774,
       "llmPoints": 0.5,
       "clichePoints": 0,
       "unsub": 0,
       "pivotPer1000": 1.1,
-      "pivotUnits": 3
+      "pivotUnits": 2
     },
     "airlines/jetblue/index.html": {
-      "words": 1138,
+      "words": 1139,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -142,7 +142,7 @@
       "pivotUnits": 2.25
     },
     "airlines/jsx/index.html": {
-      "words": 930,
+      "words": 931,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -150,7 +150,7 @@
       "pivotUnits": 1
     },
     "airlines/qatar/index.html": {
-      "words": 1192,
+      "words": 1193,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -158,7 +158,7 @@
       "pivotUnits": 2
     },
     "airlines/sas/index.html": {
-      "words": 1126,
+      "words": 1127,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -166,7 +166,7 @@
       "pivotUnits": 1
     },
     "airlines/southwest/index.html": {
-      "words": 1205,
+      "words": 1206,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -174,7 +174,7 @@
       "pivotUnits": 1.25
     },
     "airlines/united/index.html": {
-      "words": 1276,
+      "words": 1277,
       "llmPoints": 0.5,
       "clichePoints": 0,
       "unsub": 0,
@@ -182,7 +182,7 @@
       "pivotUnits": 2
     },
     "airlines/virginatlantic/index.html": {
-      "words": 1111,
+      "words": 1112,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -190,7 +190,7 @@
       "pivotUnits": 1
     },
     "airlines/westjet/index.html": {
-      "words": 1110,
+      "words": 1111,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -198,7 +198,7 @@
       "pivotUnits": 1
     },
     "airlines/zipair/index.html": {
-      "words": 938,
+      "words": 939,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -206,7 +206,7 @@
       "pivotUnits": 1.25
     },
     "alaska/index.html": {
-      "words": 920,
+      "words": 921,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -214,7 +214,7 @@
       "pivotUnits": 1.25
     },
     "api/docs/index.html": {
-      "words": 1938,
+      "words": 1939,
       "llmPoints": 0.5,
       "clichePoints": 0,
       "unsub": 0,
@@ -222,12 +222,12 @@
       "pivotUnits": 1.75
     },
     "index.html": {
-      "words": 1749,
+      "words": 1733,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
-      "pivotPer1000": 2.43,
-      "pivotUnits": 4.25
+      "pivotPer1000": 0.72,
+      "pivotUnits": 1.25
     },
     "llms.txt": {
       "words": 2422,
@@ -238,7 +238,7 @@
       "pivotUnits": 11.5
     },
     "methodology/index.html": {
-      "words": 5311,
+      "words": 5312,
       "llmPoints": 0.5,
       "clichePoints": 0,
       "unsub": 0,
@@ -246,7 +246,7 @@
       "pivotUnits": 6.5
     },
     "privacy.html": {
-      "words": 1869,
+      "words": 1870,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -254,7 +254,7 @@
       "pivotUnits": 4
     },
     "race/index.html": {
-      "words": 2822,
+      "words": 2823,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -262,7 +262,7 @@
       "pivotUnits": 3
     },
     "record/index.html": {
-      "words": 805,
+      "words": 806,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -270,7 +270,7 @@
       "pivotUnits": 2.75
     },
     "roadmap/index.html": {
-      "words": 684,
+      "words": 685,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -278,7 +278,7 @@
       "pivotUnits": 2.5
     },
     "systems/index.html": {
-      "words": 2026,
+      "words": 2027,
       "llmPoints": 2,
       "clichePoints": 0,
       "unsub": 0,
@@ -286,7 +286,7 @@
       "pivotUnits": 2.75
     },
     "united/fleet/index.html": {
-      "words": 4413,
+      "words": 4414,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -294,7 +294,7 @@
       "pivotUnits": 7.75
     },
     "united/history/index.html": {
-      "words": 738,
+      "words": 739,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -302,7 +302,7 @@
       "pivotUnits": 0.75
     },
     "united/index.html": {
-      "words": 4762,
+      "words": 4763,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,

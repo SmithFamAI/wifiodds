@@ -707,38 +707,47 @@ async function main() {
   /* next-gen odds move with the same correction: 120/221, not 140/241. */
   eq(qr.airline.nextGenScore, 54, 'qatar next-gen odds are 54 — the Starlink row alone, corrected denominator');
 
-  /* ── PARITY, second axis: the homepage card and the API must agree about the
-   * NEXT-GEN number too. Same rule, same reason — read the bytes of the page a
-   * visitor gets. Delta is the case that matters: the card leads with 0 and the
-   * API must return 0, on a fleet whose connectScore is 60. */
+  /* ── PARITY, second axis: the homepage and the API must agree about every
+   * number the page draws. Round seven replaced the seven US cards with the
+   * skyline — all 18 airlines as linked bars — and the Big 4 board, so the
+   * parity check reads those bytes instead. Delta is still the case that
+   * matters: its Big 4 row ranks next-gen at 0 on a fleet with a mixed-band
+   * connectScore, and the API must agree about both numbers. */
   var home = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-  var dlCard = /Delta<\/h3><span class="sco">(\d+)<\/span>/.exec(home);
-  ok(dlCard !== null, 'homepage: could not find the Delta card headline number');
-  if (dlCard) {
-    eq(Number(dlCard[1]), dl.nextGenScore,
-      'PARITY: the Delta card headline equals the API nextGenScore');
-    eq(Number(dlCard[1]), 0, 'PARITY: the Delta card headline is 0');
-  }
-  ok(home.indexOf('Next-gen: 0 (Amazon Leo signed, 2028)') !== -1,
-    'homepage names the Leo deal on the Delta card while scoring it zero');
-  /* Was `indexOf('streaming-class fleetwide')`, which was a weak assertion: it
-     passed on jetBlue's card even while Delta's said something false. Assert the
-     Delta line by its own text, including the coverage number. */
-  ok(home.indexOf('Today: streaming-class on 86% of the fleet') !== -1,
-    'homepage states Delta coverage as a share, not as "fleetwide"');
-  ok(home.indexOf('streaming-class fleetwide') !== -1,
-    'jetBlue, which genuinely is fleetwide, still says so');
-  /* every US card's headline must equal that airline's API nextGenScore */
-  var cardRe = /<h3>([^<]+)<\/h3><span class="sco">(\d+)<\/span>/g;
-  var seenCards = 0, mCard;
-  while ((mCard = cardRe.exec(home)) !== null) {
-    var byName = all.airlines.filter(function (a) { return a.name === mCard[1]; })[0];
+  /* every skyline bar's accessible label must equal that airline's API score */
+  var skyBlock = /<div class="skyline">[\s\S]*?<\/div>/.exec(home);
+  ok(skyBlock !== null, 'homepage: the skyline is present');
+  var skyRe = /aria-label="([^"]+), ConnectScore (\d+)"/g;
+  var seenBars = 0, mBar;
+  while (skyBlock && (mBar = skyRe.exec(skyBlock[0])) !== null) {
+    var byName = all.airlines.filter(function (a) { return a.name === mBar[1]; })[0];
+    ok(!!byName, 'skyline bar names an airline the API knows', mBar[1]);
     if (!byName) continue;
-    seenCards++;
-    eq(Number(mCard[2]), byName.nextGenScore,
-      'PARITY: ' + mCard[1] + ' card headline == API nextGenScore');
+    seenBars++;
+    eq(Number(mBar[2]), byName.connectScore,
+      'PARITY: ' + mBar[1] + ' skyline bar == API connectScore');
   }
-  eq(seenCards, 7, 'PARITY: all seven US cards were checked against the API');
+  eq(seenBars, all.airlines.length,
+    'PARITY: every scored airline has a skyline bar checked against the API');
+  /* the Big 4 rows carry their numbers as the data attributes the Rank-by
+     control sorts on; those must agree with the API, Delta's zero included */
+  var big4 = /<div class="rankb" id="home-big4-board">[\s\S]*?<\/table>/.exec(home);
+  ok(big4 !== null, 'homepage: the Big 4 board is present');
+  var rowRe = /<tr data-name="([^"]+)" data-score="(\d+)" data-nextgen="(\d*)"/g;
+  var seenRows = 0, mRow;
+  while (big4 && (mRow = rowRe.exec(big4[0])) !== null) {
+    var a4 = all.airlines.filter(function (a) { return a.name === mRow[1]; })[0];
+    if (!a4) continue;
+    seenRows++;
+    eq(Number(mRow[2]), a4.connectScore,
+      'PARITY: ' + mRow[1] + ' Big 4 data-score == API connectScore');
+    eq(mRow[3] === '' ? null : Number(mRow[3]), a4.nextGenScore,
+      'PARITY: ' + mRow[1] + ' Big 4 data-nextgen == API nextGenScore');
+  }
+  eq(seenRows, 4, 'PARITY: all four Big 4 rows were checked against the API');
+  eq(dl.nextGenScore, 0, 'PARITY: the API next-gen score for Delta is 0');
+  ok(/data-name="Delta" data-score="\d+" data-nextgen="0"/.test(home),
+    'the Delta Big 4 row ranks next-gen at a real 0, not blank and not projected');
 
   /* /race/ must print the same next-gen share the API reports for each airline */
   var racePage = fs.readFileSync(path.join(ROOT, 'race', 'index.html'), 'utf8');
@@ -788,12 +797,16 @@ async function main() {
    *
    * So this asserts the description against the behaviour: parse the printed
    * pair back out of the built HTML and demand it produces the printed score. */
+  /* The label's last word is "flying" when the denominator is the whole
+     fleet, "published" when it is the published-system subset (United). The
+     round-trip check accepts both; a cell with any OTHER wording would fall
+     out of ngChecked and trip the count floor below. */
   var boardHtml = fs.readFileSync(path.join(ROOT, 'airlines', 'index.html'), 'utf8');
   var ngCells = boardHtml.match(
-    /<td class="num vcell[^"]*" data-col="nextgen">\s*<span class="lab">([\d,]+)\/([\d,]+) flying<\/span>\s*<span class="sco">(\d+)<\/span>/g) || [];
+    /<td class="num vcell[^"]*" data-col="nextgen">\s*<span class="lab">([\d,]+)\/([\d,]+) (?:flying|published)<\/span>\s*<span class="sco">(\d+)<\/span>/g) || [];
   var ngChecked = 0, ngBad = [];
   ngCells.forEach(function (cell) {
-    var m = /<span class="lab">([\d,]+)\/([\d,]+) flying<\/span>\s*<span class="sco">(\d+)<\/span>/.exec(cell);
+    var m = /<span class="lab">([\d,]+)\/([\d,]+) (?:flying|published)<\/span>\s*<span class="sco">(\d+)<\/span>/.exec(cell);
     if (!m) return;
     var n = Number(m[1].replace(/,/g, ''));
     var of = Number(m[2].replace(/,/g, ''));
@@ -1169,7 +1182,7 @@ async function main() {
     all.airlines[all.airlines.length - 1].connectScore);
   console.log('  /api/score/{flightNumber}: retired 2026-07-26, 410 on every shape tried');
   console.log('  tiers: Delta nextGenScore ' + dl.nextGenScore + ' / serviceTier ' + dl.serviceTier +
-    ' / connectScore ' + dl.connectScore + ' — and the homepage card agrees (7 cards checked)');
+    ' / connectScore ' + dl.connectScore + ' — and the homepage agrees (18 skyline bars + 4 Big 4 rows checked)');
   console.log('  projected: ' + projected.map(function (a) {
     return a.name + ' ' + a.projected.score + ' ' + a.projected.confidence;
   }).join(' · ') + ' — none sorts anything, all four carry their date');

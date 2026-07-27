@@ -82,15 +82,17 @@ endpoint             source
 
 The build fails if one of these is missing. Each is here because losing it would
 still return HTTP 200. A missing font falls back silently to three different faces
-across three platforms. A missing `flightcheck.js` leaves the hero form sitting
-there doing nothing. `build/routes.js` carries the reasoning per file.
+across three platforms. A missing store badge is a broken image where the page's
+one pitch should be. `build/routes.js` carries the reasoning per file.
 
 - `united/data.json`
 - `assets/airlines.js`
 - `assets/site.css`
 - `assets/site.js`
-- `assets/flightcheck.js`
 - `assets/og.png`
+- `assets/cws/badge-plain-large.png`
+- `assets/cws/badge-border-large.png`
+- `assets/cws/badge-border-medium.png`
 - `assets/selectors.json`
 - `assets/shot-united-1280x800.png`
 - `assets/shot-navan-1280x800.png`
@@ -100,17 +102,17 @@ there doing nothing. `build/routes.js` carries the reasoning per file.
 
 ## Chrome Web Store links
 
-The masthead puts one link on every page, so only the pages carrying more are
-listed. The ship policy fixes the pitch inventory at four surfaces: the masthead
-sitewide, the homepage banner, the homepage companion half, and United's
-`#plugin` block. Alaska's was removed on 25 Jul 2026.
+Since round seven (27 Jul 2026) the ship policy fixes the pitch inventory at
+three surfaces: Google's badge in the homepage hero, the same badge in the
+homepage companion section, and United's `#plugin` block. The masthead link is a
+place on the page, not a store link. Alaska's was removed on 25 Jul 2026.
 
-These are link counts. They run higher than four for that reason. Read a change
-in one as a prompt to go look. Read the total as nothing at all.
+These are link counts, JSON-LD urls included, so they run higher than three.
+Read a change in one as a prompt to go look. Read the total as nothing at all.
 
 ```
 url         links
-/           8
-/united/    3
-/api/docs/  3
+/           6
+/united/    2
+/api/docs/  2
 ```

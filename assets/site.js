@@ -331,3 +331,105 @@
     });
   } catch (e) {}
 })();
+
+
+/* ── round seven (27 Jul 2026) — three additions, all progressive. ─────────
+ * 6. header shrink with hysteresis (note 18). The sticky part is CSS and
+ *    needs nothing from here. The shrink toggles html.hdr-c compact past
+ *    170px of scroll and full again under 40px; the 130px gap is ~3x the
+ *    height the header gives up, so the change can never re-cross its own
+ *    trigger and oscillate. rAF-throttled, passive.
+ * 7. rank-by buttons for the 18-board (note 5). Each button drives the
+ *    matching sortable header, so aria-sort, arrows and order stay one
+ *    mechanism; a direct header click un-presses the buttons it no longer
+ *    matches.
+ * 8. clickable headers for the rank boards (note 5). A header click presses
+ *    the matching Rank-by button, so ranks, captions, colour column and
+ *    aria-sort all move together through the one handler in section 5. */
+(function () {
+  'use strict';
+  var doc = document, root = doc.documentElement;
+
+  /* 6 ── header shrink, hysteresis 170/40 */
+  try {
+    var compact = false, ticking = false;
+    function judge() {
+      ticking = false;
+      var y = window.pageYOffset || 0;
+      if (!compact && y > 170) { compact = true; root.classList.add('hdr-c'); }
+      else if (compact && y < 40) { compact = false; root.classList.remove('hdr-c'); }
+    }
+    window.addEventListener('scroll', function () {
+      if (!ticking) { ticking = true; requestAnimationFrame(judge); }
+    }, { passive: true });
+    judge();
+  } catch (e) {}
+
+  /* 7 ── the 18-board's Rank-by row drives its sortable headers */
+  try {
+    var ctrl = doc.getElementById('board-rank');
+    var board = doc.querySelector('#board table.tbl.board');
+    if (ctrl && board) {
+      var bbtns = [].slice.call(ctrl.querySelectorAll('button[data-bs]'));
+      var dirFor = function (k) { return (k === 'score' || k === 'nextgen') ? 'descending' : 'ascending'; };
+      var thFor = function (k) { return board.querySelector('thead th[data-k="' + k + '"]'); };
+      function sync() {
+        bbtns.forEach(function (b) {
+          var th = thFor(b.getAttribute('data-bs'));
+          var on = !!th && th.getAttribute('aria-sort') === dirFor(b.getAttribute('data-bs'));
+          b.setAttribute('aria-pressed', String(on));
+        });
+      }
+      var baked = [].slice.call(board.tBodies[0].rows);
+      bbtns.forEach(function (b) {
+        b.addEventListener('click', function () {
+          var k = b.getAttribute('data-bs'), th = thFor(k);
+          if (!th) return;
+          if (k === 'score') {
+            /* restore the baked order rather than re-sorting: three fleets
+               tie at 100, and a re-sort would leave the tie in whatever
+               order the last rank left it, disagreeing with the baked
+               rank numbers 01-03. */
+            var frag = document.createDocumentFragment();
+            baked.forEach(function (r) { frag.appendChild(r); });
+            board.tBodies[0].appendChild(frag);
+            [].slice.call(board.querySelectorAll('thead th[data-k]')).forEach(function (h) { h.removeAttribute('aria-sort'); });
+            th.setAttribute('aria-sort', 'descending');
+            sync();
+            return;
+          }
+          var want = dirFor(k);
+          /* the header handler toggles, so at most two clicks reach any
+             direction from any state */
+          for (var i = 0; i < 2 && th.getAttribute('aria-sort') !== want; i++) th.click();
+          sync();
+        });
+      });
+      [].slice.call(board.querySelectorAll('thead th[data-k]')).forEach(function (th) {
+        th.addEventListener('click', function () { setTimeout(sync, 0); });
+        th.addEventListener('keydown', function () { setTimeout(sync, 0); });
+      });
+    }
+  } catch (e) {}
+
+  /* 8 ── every rank board's headers press its own Rank-by buttons. All .rankb
+     roots, not one id: the homepage's Big 4, /airlines/'s Big 4 and the full
+     18 all carry the same control. */
+  try {
+    [].slice.call(doc.querySelectorAll('.rankb')).forEach(function (rb) {
+      [].slice.call(rb.querySelectorAll('thead th[data-rc]')).forEach(function (th) {
+        var k = th.getAttribute('data-rc');
+        if (k === 'rank') return;
+        var btn = rb.querySelector('.filters button[data-sort="' + k + '"]');
+        if (!btn) return;
+        th.setAttribute('role', 'button');
+        th.setAttribute('tabindex', '0');
+        function go() { btn.click(); }
+        th.addEventListener('click', go);
+        th.addEventListener('keydown', function (ev) {
+          if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); go(); }
+        });
+      });
+    });
+  } catch (e) {}
+})();
