@@ -782,8 +782,15 @@ function fitShare(a) {
 }
 function fitBadge(a) {
   var share = fitShare(a);
+  /* No em dash in this string. It is boilerplate that fires once per partially-fitted
+     airline, so a single pivot here is multiplied by however many airlines carry an
+     unresolved bucket — and that count only grows as more figures are corrected honestly.
+     On 26 Jul it went from 1.33 to 2.43 pivots per 1,000 on index.html purely because Air
+     France gained an unresolved bucket, and the baseline was blessed rather than the string
+     fixed. Same shape as llms.txt, where one separator between two fields cost 18 pivots at
+     once. Keep it a full stop. */
   return share === null ? '' : ' <span class="micro fitpct" title="Share of the fleet with a ' +
-    'confirmed fit — the rest is unresolved, not assumed either way">' + pctText(share) + ' fitted</span>';
+    'confirmed fit. The rest is unresolved, not assumed either way">' + pctText(share) + ' fitted</span>';
 }
 
 /* THE DENOMINATOR ON THIS LINE IS `known`, NOT `fleet`, wherever the two differ.
