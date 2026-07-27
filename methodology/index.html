@@ -23,7 +23,7 @@
 <meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=fa82ae75">
 <link rel="preload" href="/assets/serif-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/serif-700.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=f0205fbe">
+<link rel="stylesheet" href="/assets/site.css?v=5e0ea76e">
 <style>
 .wex{background:var(--bg-inset);border:1px solid var(--rule);padding:14px 16px;font-family:var(--mono);font-size:13.5px;line-height:1.7;color:var(--ink-2);overflow-x:auto;margin-top:12px;white-space:pre-wrap}
 .wex b{color:var(--ink);font-weight:700}
@@ -190,18 +190,18 @@ equipped on <b>45%</b> of those 22 departures → <span class="r">per-flight odd
     <div class="hp" aria-hidden="true"><label for="f-website">Leave this empty</label><input id="f-website" name="website" type="text" value="" tabindex="-1" autocomplete="off"></div>
     <p class="ferr frm-top" id="e-_body" role="alert"></p>
     <div class="ffgrid">
-      <div class="ff"><label for="f-flownon">Date you flew</label><input id="f-flownon" name="flownOn" type="date" required max="2026-07-27" aria-describedby="e-flownOn"><p class="ferr" id="e-flownOn" role="alert"></p></div>
-      <div class="ff"><label for="f-airline">Airline</label><input id="f-airline" name="airline" type="text" required maxlength="60" placeholder="United" aria-describedby="e-airline"><p class="ferr" id="e-airline" role="alert"></p></div>
-      <div class="ff"><label for="f-flight">Flight number</label><input id="f-flight" name="flightNumber" type="text" required spellcheck="false" autocapitalize="characters" placeholder="UA2402" aria-describedby="e-flightNumber"><p class="ferr" id="e-flightNumber" role="alert"></p></div>
-      <div class="ff"><label for="f-system">System</label><select id="f-system" name="system" required aria-describedby="e-system"><option value="">Pick one</option><option value="starlink">Starlink</option><option value="leo">Amazon Leo</option><option value="viasat">Viasat</option><option value="panasonic">Panasonic</option><option value="intelsat">Intelsat or 2Ku</option><option value="hughes">Hughes</option><option value="none">There was no wifi to test</option><option value="unsure">The portal did not say</option></select><span class="fh">The captive portal usually names it.</span><p class="ferr" id="e-system" role="alert"></p></div>
-      <div class="ff"><label for="f-route">Route</label><input id="f-route" name="route" type="text" spellcheck="false" placeholder="IAH-SFO" aria-describedby="e-route"><p class="ferr" id="e-route" role="alert"></p></div>
-      <div class="ff"><label for="f-aircraft">Aircraft type or tail</label><input id="f-aircraft" name="aircraft" type="text" spellcheck="false" placeholder="737-9 MAX or N27273" aria-describedby="e-aircraft"><p class="ferr" id="e-aircraft" role="alert"></p></div>
-      <div class="ff"><label for="f-down">Download, Mbps</label><input id="f-down" name="downMbps" type="text" inputmode="decimal" placeholder="143" aria-describedby="e-downMbps"><p class="ferr" id="e-downMbps" role="alert"></p></div>
-      <div class="ff"><label for="f-up">Upload, Mbps</label><input id="f-up" name="upMbps" type="text" inputmode="decimal" placeholder="18" aria-describedby="e-upMbps"><p class="ferr" id="e-upMbps" role="alert"></p></div>
-      <div class="ff"><label for="f-lat">Latency, ms</label><input id="f-lat" name="latencyMs" type="text" inputmode="numeric" placeholder="52" aria-describedby="e-latencyMs"><p class="ferr" id="e-latencyMs" role="alert"></p></div>
-      <div class="ff"><label for="f-free">Cost onboard</label><select id="f-free" name="wasFree" aria-describedby="e-wasFree"><option value="">Not saying</option><option value="true">It was free</option><option value="false">I paid for it</option></select><p class="ferr" id="e-wasFree" role="alert"></p></div>
-      <div class="ff"><label for="f-credit">Name or handle to credit</label><input id="f-credit" name="credit" type="text" maxlength="60" placeholder="How the row should read" aria-describedby="e-credit"><p class="ferr" id="e-credit" role="alert"></p></div>
-      <div class="ff full"><label for="f-note">Anything else worth knowing</label><textarea id="f-note" name="note" maxlength="500" rows="3" aria-describedby="e-note" placeholder="How full the cabin was, what the portal charged, what broke"></textarea><p class="ferr" id="e-note" role="alert"></p></div>
+      <div class="ff"><label for="f-flownon"><span class="lt">Date you flew</span> <input id="f-flownon" name="flownOn" type="date" required max="2026-07-27" aria-describedby="e-flownOn"></label><p class="ferr" id="e-flownOn" role="alert"></p></div>
+      <div class="ff"><label for="f-airline"><span class="lt">Airline</span> <input id="f-airline" name="airline" type="text" required maxlength="60" placeholder="United" aria-describedby="e-airline"></label><p class="ferr" id="e-airline" role="alert"></p></div>
+      <div class="ff"><label for="f-flight"><span class="lt">Flight number</span> <input id="f-flight" name="flightNumber" type="text" required spellcheck="false" autocapitalize="characters" placeholder="UA2402" aria-describedby="e-flightNumber"></label><p class="ferr" id="e-flightNumber" role="alert"></p></div>
+      <div class="ff"><label for="f-system"><span class="lt">System</span> <select id="f-system" name="system" required aria-describedby="e-system"><option value="">Pick one</option><option value="starlink">Starlink</option><option value="leo">Amazon Leo</option><option value="viasat">Viasat</option><option value="panasonic">Panasonic</option><option value="intelsat">Intelsat or 2Ku</option><option value="hughes">Hughes</option><option value="none">There was no wifi to test</option><option value="unsure">The portal did not say</option></select></label><span class="fh">The captive portal usually names it.</span><p class="ferr" id="e-system" role="alert"></p></div>
+      <div class="ff"><label for="f-route"><span class="lt">Route</span> <input id="f-route" name="route" type="text" spellcheck="false" placeholder="IAH-SFO" aria-describedby="e-route"></label><p class="ferr" id="e-route" role="alert"></p></div>
+      <div class="ff"><label for="f-aircraft"><span class="lt">Aircraft type or tail</span> <input id="f-aircraft" name="aircraft" type="text" spellcheck="false" placeholder="737-9 MAX or N27273" aria-describedby="e-aircraft"></label><p class="ferr" id="e-aircraft" role="alert"></p></div>
+      <div class="ff"><label for="f-down"><span class="lt">Download, Mbps</span> <input id="f-down" name="downMbps" type="text" inputmode="decimal" placeholder="143" aria-describedby="e-downMbps"></label><p class="ferr" id="e-downMbps" role="alert"></p></div>
+      <div class="ff"><label for="f-up"><span class="lt">Upload, Mbps</span> <input id="f-up" name="upMbps" type="text" inputmode="decimal" placeholder="18" aria-describedby="e-upMbps"></label><p class="ferr" id="e-upMbps" role="alert"></p></div>
+      <div class="ff"><label for="f-lat"><span class="lt">Latency, ms</span> <input id="f-lat" name="latencyMs" type="text" inputmode="numeric" placeholder="52" aria-describedby="e-latencyMs"></label><p class="ferr" id="e-latencyMs" role="alert"></p></div>
+      <div class="ff"><label for="f-free"><span class="lt">Cost onboard</span> <select id="f-free" name="wasFree" aria-describedby="e-wasFree"><option value="">Not saying</option><option value="true">It was free</option><option value="false">I paid for it</option></select></label><p class="ferr" id="e-wasFree" role="alert"></p></div>
+      <div class="ff"><label for="f-credit"><span class="lt">Name or handle to credit</span> <input id="f-credit" name="credit" type="text" maxlength="60" placeholder="How the row should read" aria-describedby="e-credit"></label><p class="ferr" id="e-credit" role="alert"></p></div>
+      <div class="ff full"><label for="f-note"><span class="lt">Anything else worth knowing</span> <textarea id="f-note" name="note" maxlength="500" rows="3" aria-describedby="e-note" placeholder="How full the cabin was, what the portal charged, what broke"></textarea></label><p class="ferr" id="e-note" role="alert"></p></div>
     </div>
     <div class="frm-ft">
       <p class="note">One measurement is enough: download, upload or latency. Pick &ldquo;there was no wifi to test&rdquo; if there was nothing to measure. Every submission lands unpublished and a person reads it before it appears here. No account, no cookie, no analytics, and the only thing kept about you is the name you type in the credit box.</p>
@@ -291,6 +291,6 @@ else{show("_body",(j&&j.error&&j.error.message)||"That did not go through. Try a
 });})();
 </script>
 <script>(function(){var r=document.documentElement,b=document.getElementById("themetoggle");if(!b)return;function p(){var d=r.classList.contains("dark");b.innerHTML=d?"\u2600\uFE0E <u>Switch to light</u>":"\u263D <u>Switch to dark</u>";}b.hidden=false;p();b.addEventListener("click",function(){var d=r.classList.contains("dark");r.classList.toggle("dark",!d);r.classList.toggle("light",d);p();});})();</script>
-<script src="/assets/site.js?v=ea4d7473" defer></script>
+<script src="/assets/site.js?v=00131fbb" defer></script>
 </body>
 </html>

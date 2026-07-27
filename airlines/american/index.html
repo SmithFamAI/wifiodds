@@ -23,7 +23,7 @@
 <meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=fa82ae75">
 <link rel="preload" href="/assets/serif-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/serif-700.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=f0205fbe">
+<link rel="stylesheet" href="/assets/site.css?v=5e0ea76e">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does American have Viasat WiFi?","acceptedAnswer":{"@type":"Answer","text":"American has Viasat on 890 of its 989 aircraft (90%) as of 2026-07, so it is close to a sure thing. Its ConnectScore is 51 out of 100, in the mixed band."}},{"@type":"Question","name":"Is American’s WiFi free?","acceptedAnswer":{"@type":"Answer","text":"On American it is free onboard. ConnectScore multiplies the fleet share by a free-for-you factor, so a paid or unconfirmed free claim scores lower than the same fleet given away free."}},{"@type":"Question","name":"How many American planes have Viasat?","acceptedAnswer":{"@type":"Answer","text":"890 of 989, or 90% of the fleet. Compiled from public airline announcements, July 2026."}}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://wifiodds.com/"},{"@type":"ListItem","position":2,"name":"Airlines","item":"https://wifiodds.com/airlines/"},{"@type":"ListItem","position":3,"name":"American","item":"https://wifiodds.com/airlines/american/"}]}</script>
 </head>
@@ -109,11 +109,11 @@
   <form class="frm" method="post" action="/api/report" enctype="application/x-www-form-urlencoded">
     <div class="hp" aria-hidden="true"><label for="aamerican-website">Leave this empty</label><input id="aamerican-website" name="website" type="text" value="" tabindex="-1" autocomplete="off"></div>
     <div class="ffgrid">
-      <div class="ff"><label for="aamerican-air">Airline</label><input id="aamerican-air" name="airline" type="text" required maxlength="60"></div>
-      <div class="ff"><label for="aamerican-fn">Flight number</label><input id="aamerican-fn" name="flightNumber" type="text" required spellcheck="false" autocapitalize="characters" placeholder="UA2402"></div>
-      <div class="ff"><label for="aamerican-on">Date you flew</label><input id="aamerican-on" name="flownOn" type="date" required></div>
-      <div class="ff"><label for="aamerican-sys">System</label><select id="aamerican-sys" name="system" required aria-describedby="aamerican-sys-h"><option value="">Pick one</option><option value="starlink">Starlink</option><option value="leo">Amazon Leo</option><option value="viasat">Viasat</option><option value="panasonic">Panasonic</option><option value="intelsat">Intelsat or 2Ku</option><option value="hughes">Hughes</option><option value="none">There was no wifi to test</option><option value="unsure">The portal did not say</option></select><span class="fh" id="aamerican-sys-h">The captive portal usually names it.</span></div>
-      <div class="ff full"><label for="aamerican-note">What happened, or what we got wrong</label><textarea id="aamerican-note" name="note" maxlength="500" rows="3" placeholder="Whether the login worked, what a call survived, which badge was wrong"></textarea></div>
+      <div class="ff"><label for="aamerican-air"><span class="lt">Airline</span> <input id="aamerican-air" name="airline" type="text" required maxlength="60"></label></div>
+      <div class="ff"><label for="aamerican-fn"><span class="lt">Flight number</span> <input id="aamerican-fn" name="flightNumber" type="text" required spellcheck="false" autocapitalize="characters" placeholder="UA2402"></label></div>
+      <div class="ff"><label for="aamerican-on"><span class="lt">Date you flew</span> <input id="aamerican-on" name="flownOn" type="date" required></label></div>
+      <div class="ff"><label for="aamerican-sys"><span class="lt">System</span> <select id="aamerican-sys" name="system" required aria-describedby="aamerican-sys-h"><option value="">Pick one</option><option value="starlink">Starlink</option><option value="leo">Amazon Leo</option><option value="viasat">Viasat</option><option value="panasonic">Panasonic</option><option value="intelsat">Intelsat or 2Ku</option><option value="hughes">Hughes</option><option value="none">There was no wifi to test</option><option value="unsure">The portal did not say</option></select></label><span class="fh" id="aamerican-sys-h">The captive portal usually names it.</span></div>
+      <div class="ff full"><label for="aamerican-note"><span class="lt">What happened, or what we got wrong</span> <textarea id="aamerican-note" name="note" maxlength="500" rows="3" placeholder="Whether the login worked, what a call survived, which badge was wrong"></textarea></label></div>
     </div>
     <div class="frm-ft"><p class="note">Every submission lands unpublished and a person reads it before it appears here. No account, no cookie, no email field. The full form, with speed and latency boxes, is on <a href="/methodology/#field">the methodology page</a>.</p>
       <button class="btn" type="submit">Send it</button></div>
@@ -130,6 +130,6 @@
 </footer>
 </div>
 <script>(function(){var r=document.documentElement,b=document.getElementById("themetoggle");if(!b)return;function p(){var d=r.classList.contains("dark");b.innerHTML=d?"\u2600\uFE0E <u>Switch to light</u>":"\u263D <u>Switch to dark</u>";}b.hidden=false;p();b.addEventListener("click",function(){var d=r.classList.contains("dark");r.classList.toggle("dark",!d);r.classList.toggle("light",d);p();});})();</script>
-<script src="/assets/site.js?v=ea4d7473" defer></script>
+<script src="/assets/site.js?v=00131fbb" defer></script>
 </body>
 </html>

@@ -307,23 +307,25 @@ function observeBlock(sentence, idp) {
     '    <div class="hp" aria-hidden="true"><label for="' + p + '-website">Leave this empty</label>' +
     '<input id="' + p + '-website" name="website" type="text" value="" tabindex="-1" ' +
     'autocomplete="off"></div>\n' +
+    /* labels wrap their fields — see field() above for the target-size case */
     '    <div class="ffgrid">\n' +
-    '      <div class="ff"><label for="' + p + '-air">Airline</label>' +
-    '<input id="' + p + '-air" name="airline" type="text" required maxlength="60"></div>\n' +
-    '      <div class="ff"><label for="' + p + '-fn">Flight number</label>' +
+    '      <div class="ff"><label for="' + p + '-air"><span class="lt">Airline</span> ' +
+    '<input id="' + p + '-air" name="airline" type="text" required maxlength="60"></label></div>\n' +
+    '      <div class="ff"><label for="' + p + '-fn"><span class="lt">Flight number</span> ' +
     '<input id="' + p + '-fn" name="flightNumber" type="text" required spellcheck="false" ' +
-    'autocapitalize="characters" placeholder="UA2402"></div>\n' +
-    '      <div class="ff"><label for="' + p + '-on">Date you flew</label>' +
-    '<input id="' + p + '-on" name="flownOn" type="date" required></div>\n' +
-    '      <div class="ff"><label for="' + p + '-sys">System</label>' +
+    'autocapitalize="characters" placeholder="UA2402"></label></div>\n' +
+    '      <div class="ff"><label for="' + p + '-on"><span class="lt">Date you flew</span> ' +
+    '<input id="' + p + '-on" name="flownOn" type="date" required></label></div>\n' +
+    '      <div class="ff"><label for="' + p + '-sys"><span class="lt">System</span> ' +
     '<select id="' + p + '-sys" name="system" required aria-describedby="' + p + '-sys-h">' +
     '<option value="">Pick one</option>' +
-    opts + '</select><span class="fh" id="' + p + '-sys-h">' +
+    opts + '</select></label><span class="fh" id="' + p + '-sys-h">' +
     'The captive portal usually names it.</span></div>\n' +
-    '      <div class="ff full"><label for="' + p + '-note">What happened, or what we got wrong' +
-    '</label><textarea id="' + p + '-note" name="note" maxlength="500" rows="3" ' +
-    'placeholder="Whether the login worked, what a call survived, which badge was wrong"></textarea>' +
-    '</div>\n' +
+    '      <div class="ff full"><label for="' + p + '-note"><span class="lt">What happened, or ' +
+    'what we got wrong</span> ' +
+    '<textarea id="' + p + '-note" name="note" maxlength="500" rows="3" ' +
+    'placeholder="Whether the login worked, what a call survived, which badge was wrong">' +
+    '</textarea></label></div>\n' +
     '    </div>\n' +
     '    <div class="frm-ft"><p class="note">Every submission lands unpublished and a person reads ' +
     'it before it appears here. No account, no cookie, no email field. The full form, with speed ' +
@@ -433,6 +435,81 @@ function tierLetter(a) {
   if (a.instrumented) return 'B';
   return a.projected ? 'D' : 'C';
 }
+
+/* ═══ THE MOBILE RECORD (Phase 1b) ════════════════════════════════════════
+ * Below 880px both boards stop being tables: the row was carrying rank,
+ * airline, code, score, band, tier, fitted share, next-gen odds, publication
+ * state and sort state at once, and no column tuning makes that work at
+ * 390-440px — the audit's verdict, and the reason `overflow-wrap:anywhere`
+ * was shattering airline names. One record per airline instead, generated
+ * from the SAME scored objects as the table beside it, so there is no second
+ * source of truth:
+ *
+ *   03  United  UA                       48  mixed
+ *       Chance of next-gen WiFi              31%
+ *       27% of the fleet has Starlink · tail-verified data
+ *       View United →
+ *
+ * The band WORD rides with the score — it is the non-colour signal (WCAG
+ * 1.4.1) and it does not get dropped for space. The next-gen line is
+ * labelled in words and carries its per cent sign; the SAS/Air France shape
+ * prints "count unpublished", never a zero. The support line states its own
+ * denominator — the WHOLE fleet — because the next-gen figure beside it is
+ * computed over the published-system subset, and conflating the two is the
+ * confusion the audit called the site's worst moment. The tier word answers
+ * TODAY's question, so an announced-only carrier reads "fleet-share", not
+ * "announced" (tierRows(): A/B/C are today, D is the forward number).
+ * Sorting stays with the same Rank-by control: site.js re-orders these
+ * records off the table rows by data-key, so the two renderings cannot
+ * disagree about order. Column headers do not exist here, so no sort
+ * affordance points at one. */
+function todayTierWord(a) {
+  if (a.key === 'united') return 'tail-verified';
+  if (a.instrumented) return 'type-derived';
+  return 'fleet-share';
+}
+function cardSupport(a) {
+  /* the same fleetwide test todayLine() uses: only claim fleetwide at >=99%
+     of the whole fleet, unresolved aircraft included — and the unpublished
+     branch comes first, because pctEquipped() is null there and a null share
+     must never fall through to a percentage or a fleetwide claim */
+  var eq;
+  var share = a.parts && typeof a.parts.pctEquipped === 'number' ? a.parts.pctEquipped : 1;
+  if (a.equippedPublished === false) {
+    eq = a.systemLabel + ' count unpublished' +
+      (a.fleet ? ' for the ' + num(a.fleet) + '-aircraft fleet' : '');
+  } else if (share >= 0.99) {
+    eq = a.systemLabel + ' fleetwide';
+  } else {
+    eq = pctText(share) + ' of the fleet has ' + a.systemLabel;
+  }
+  return eq + ' · ' + todayTierWord(a) + ' data';
+}
+function boardCard(a, i) {
+  var ngPublished = a.nextGenPublished !== false;
+  var rank = (i + 1 < 10 ? '0' : '') + (i + 1);
+  /* the spaces between inline elements are load-bearing: without them the
+     rendered textContent welds "United" into "UnitedUA" and "48" into
+     "48mixed" — build/apitest.js scans every boundary */
+  return '    <li class="crd ' + band(a.score) + '" data-key="' + esc(a.key) + '">' +
+    '<p class="crd-top"><span class="crd-rank">' + rank + '</span> ' +
+    '<a class="aname" href="/airlines/' + a.key + '/">' + esc(a.name) + '</a> ' +
+    '<span class="code">' + esc(a.code || '') + '</span> ' +
+    '<span class="crd-sco"><span class="sco">' + a.score + '</span> ' + bandChip(a.score) +
+    '</span></p>' +
+    '<p class="crd-ng"><span>Chance of next-gen WiFi</span> ' +
+    (ngPublished ? '<b>' + a.nextGenScore + '%</b>'
+      : '<b class="ngunpub" title="' + esc(a.name + ' has launched ' + a.systemLabel +
+        ' but has not published an aircraft count') + '">count unpublished</b>') + '</p>' +
+    '<p class="crd-sub">' + esc(cardSupport(a)) + '</p>' +
+    '<a class="crd-go" href="/airlines/' + a.key + '/">View ' + esc(a.name) + ' →</a></li>';
+}
+function boardCards(list, opts) {
+  opts = opts || {};
+  return '  <ol class="cardsb' + (opts.dense ? ' dense' : '') + '" aria-label="The same ' +
+    'ranking, one record per airline">\n' +
+    list.map(function (a, i) { return boardCard(a, i); }).join('\n') + '\n  </ol>\n';
+}
 function fieldTable(m) {
   /* THE BOARD IS DRAWN NOW, Jeremy's pivot of 26 Jul 2026: every row carries a
    * fill bar whose length is the score and whose colour is the band, so the
@@ -446,7 +523,9 @@ function fieldTable(m) {
   var rows = m.ranked.map(function (a, i) {
     var ph = MK.phaseOf(m.A, a);
     var ng = a.nextGenScore;
-    return '      <tr data-f="' + ph + '">' +
+    /* data-key pairs this row with its .crd record so the card list can be
+       re-ordered off the sorted rows — see syncBoardCards() in site.js */
+    return '      <tr data-f="' + ph + '" data-key="' + esc(a.key) + '">' +
       '<td class="rank">' + (i + 1 < 10 ? '0' : '') + (i + 1) + '</td>' +
       '<td data-s="' + esc(a.name.toLowerCase()) + '"><a class="aname" href="/airlines/' + a.key +
       '/">' + esc(a.name) + ' ' +
@@ -470,7 +549,11 @@ function fieldTable(m) {
             'count') + '">counts unpublished</span></td>'
         : '<td class="num ' + band(ng) + '" data-s="' + ng + '"><span class="sco" ' +
           'style="font-size:1rem">' + ng + '</span></td>') +
-      '<td class="micro phz" data-s="' + PHASE_SORT[ph] + '">' + esc(MK.PHASE_LABEL[ph]) + '</td>' +
+      /* the span is the measurable line box: the assert reads element height
+         against line-height, and a bare one-word td stretched by a taller
+         neighbour in the same row measures like a broken word */
+      '<td class="micro phz" data-s="' + PHASE_SORT[ph] + '"><span>' +
+      esc(MK.PHASE_LABEL[ph]) + '</span></td>' +
       '<td class="num">' + (a.projected ? projected(a) : '<span class="dash">&middot;</span>') +
       '</td></tr>';
   }).join('\n');
@@ -489,15 +572,23 @@ function fieldTable(m) {
     '</div></div>\n';
 
   return ctl +
-    '<div class="tbl-shell tablescroll rv"><table class="tbl board">\n' +
-    '    <thead><tr><th scope="col">#</th><th scope="col" data-k="name">Airline</th>' +
-    '<th scope="col" class="num" data-k="score" data-t="num" aria-sort="descending">ConnectScore</th>' +
+    /* .board-shell so the 880px card cut can hide exactly this table; the
+       cards below it are the same m.ranked objects, other rendering */
+    '<div class="tbl-shell tablescroll board-shell rv"><table class="tbl board">\n' +
+    /* header text sits in spans: a table cell's box is its ROW's height, so a
+       one-line heading beside a two-line one measured like a broken word to
+       the layout assert. The span is the true line box. */
+    '    <thead><tr><th scope="col"><span>#</span></th>' +
+    '<th scope="col" data-k="name"><span>Airline</span></th>' +
+    '<th scope="col" class="num" data-k="score" data-t="num" aria-sort="descending">' +
+    '<span>ConnectScore</span></th>' +
     '<th scope="col" class="barcell"><span class="visually-hidden">Score drawn as a bar</span></th>' +
-    '<th scope="col" data-k="tier">Tier</th>' +
-    '<th scope="col" class="num" data-k="nextgen" data-t="num">Next-gen odds</th>' +
-    '<th scope="col" class="phz" data-k="phase">Rollout</th>' +
-    '<th scope="col" class="num">Projected · grey, never sorts</th></tr></thead>\n' +
+    '<th scope="col" data-k="tier"><span>Tier</span></th>' +
+    '<th scope="col" class="num" data-k="nextgen" data-t="num"><span>Next-gen odds</span></th>' +
+    '<th scope="col" class="phz" data-k="phase"><span>Rollout</span></th>' +
+    '<th scope="col" class="num"><span>Projected · grey, never sorts</span></th></tr></thead>\n' +
     '    <tbody>\n' + rows + '\n    </tbody>\n  </table></div>\n' +
+    boardCards(m.ranked, { dense: true }) +
     /* Everything below the board is one box (round seven, notes 7/8/11). */
     '  <div class="bfoot">\n' +
     '    <div class="bf-grid-row"><div class="bf-grid">\n' +
@@ -509,9 +600,10 @@ function fieldTable(m) {
     'a dash or as “counts unpublished”, never zero. Projected figures are grey, dated and never ' +
     'sort.</p></div>\n' +
     '    </div></div>\n' +
-    '    <div class="board-note"><span class="bf-l">On a phone</span><p>This board drops the ' +
-    'score bar, the rollout phase and the projected column to fit. Each airline’s own page ' +
-    'carries all of it, projections included.</p></div>\n' +
+    '    <div class="board-note"><span class="bf-l">On a phone</span><p>Each airline renders as ' +
+    'one card: rank, score with its band word, and the chance of next-gen WiFi. The score bar, ' +
+    'tier, rollout phase and projections stay on the wide board and on each airline’s own ' +
+    'page.</p></div>\n' +
     '    <div><span class="bf-l">Go deeper</span><div class="btnrow">' +
     '<a class="btn ghost mini" href="/methodology/">How it’s scored →</a>' +
     '<a class="btn ghost mini" href="/record/">The written record →</a></div></div>\n' +
@@ -707,8 +799,12 @@ function rankRow(a, i) {
     : '<td class="num" data-col="nextgen"><span class="empty-state cell" title="' +
       esc(a.name + ' has launched ' + a.systemLabel + ' but has not published an aircraft count') +
       '">count unpublished</span></td>';
+  /* data-key sits LAST: build/apitest.js round-trips these rows against the
+     API with a regex that reads data-name, data-score and data-nextgen as
+     adjacent attributes, and the card-sync key must not break that read */
   return '      <tr data-name="' + esc(a.name) + '" data-score="' + a.score + '" data-nextgen="' +
-    (ngPublished ? ng : '') + '" data-mainline="' + mn.v + '" data-regional="' + rg.v + '">' +
+    (ngPublished ? ng : '') + '" data-mainline="' + mn.v + '" data-regional="' + rg.v +
+    '" data-key="' + esc(a.key) + '">' +
     '<td class="rank">' + (i + 1) + '</td>' +
     '<td><b>' + esc(a.name) + '</b> <span class="code">' + esc(a.code || '') + '</span></td>' +
     '<td class="num vcell ' + band(a.score) + '" data-col="score"><span class="sco">' + a.score +
@@ -753,13 +849,18 @@ function rankBoard(id, list, opts) {
     '<div class="filters" role="group" aria-label="Number to rank by">' + btns +
     '</div></div>\n' +
     '  <div class="sortcap">' + caps + '</div>\n' +
+    /* header text in spans — a th's box is its row's height, and a one-line
+       heading beside the two-line "Mainline next-gen" measured like a broken
+       word to the layout assert; the span is the true line box */
     '  <div class="tbl-shell tablescroll"><table class="tbl" data-active="score"><thead><tr>' +
-    '<th data-rc="rank">#</th><th data-rc="name">Airline</th>' +
-    '<th class="num" data-rc="score" aria-sort="descending">ConnectScore</th>' +
-    '<th class="num" data-rc="nextgen">Next-gen odds</th>' +
-    '<th class="num" data-rc="mainline">Mainline next-gen</th>' +
-    '<th class="num" data-rc="regional">Regional next-gen</th>' +
-    '<th>Signed, not flying</th></tr></thead><tbody>\n' + rows + '\n  </tbody></table></div>\n' +
+    '<th data-rc="rank"><span>#</span></th><th data-rc="name"><span>Airline</span></th>' +
+    '<th class="num" data-rc="score" aria-sort="descending"><span>ConnectScore</span></th>' +
+    '<th class="num" data-rc="nextgen"><span>Next-gen odds</span></th>' +
+    '<th class="num" data-rc="mainline"><span>Mainline next-gen</span></th>' +
+    '<th class="num" data-rc="regional"><span>Regional next-gen</span></th>' +
+    '<th><span>Signed, not flying</span></th></tr></thead><tbody>\n' + rows +
+    '\n  </tbody></table></div>\n' +
+    boardCards(list, { dense: !!opts.dense }) +
     /* Everything below the board is ONE box: hairline-ruled rows inside a
        single border, each row under a small-caps label (round seven, notes
        7/8/11). The old six-sentence footnote is these rows now. */
@@ -767,9 +868,10 @@ function rankBoard(id, list, opts) {
     (opts.lead || '') +
     '    <div><span class="bf-l">Dashes and grey figures</span><p>A row with no published number ' +
     'ranks with a dash, never zero. Projected figures are grey, dated and never sort.</p></div>\n' +
-    '    <div class="board-note"><span class="bf-l">On a phone</span><p>This board keeps the rank, ' +
-    'the airline, the ConnectScore and the next-gen odds; the segment split and the projected ' +
-    'column live on each airline’s own page.</p></div>\n' +
+    '    <div class="board-note"><span class="bf-l">On a phone</span><p>Each airline renders as ' +
+    'one card: rank, score with its band word, and the chance of next-gen WiFi. The segment ' +
+    'split and the projected column live on the wide board and on each airline’s own ' +
+    'page.</p></div>\n' +
     '  </div>\n' +
     '</div>\n';
 }
@@ -842,7 +944,7 @@ function fullRankedBoard(m) {
   return '<section class="blk" id="full-board">\n' +
     '  <span class="kicker">Every airline</span>\n' +
     '  <h2>All ' + m.airlineCount + ', ranked</h2>\n' +
-    rankBoard('full-board-rankb', m.ranked) +
+    rankBoard('full-board-rankb', m.ranked, { dense: true }) +
     '</section>\n\n';
 }
 
@@ -1156,10 +1258,17 @@ var REPORT_SYSTEMS = [
   ['panasonic', 'Panasonic'], ['intelsat', 'Intelsat or 2Ku'], ['hughes', 'Hughes'],
   ['none', 'There was no wifi to test'], ['unsure', 'The portal did not say']
 ];
+/* THE LABEL WRAPS ITS INPUT (Phase 1c). A label above a field is itself a
+ * click target that focuses the input, and as a 17px-tall strip it failed the
+ * 24/44px target floors on every form. Wrapping the control puts the whole
+ * field inside the label's own box; `for` stays for explicitness, and the
+ * visible caption lives in the .lt span so the input does not inherit the
+ * label's uppercase microtype. */
 function field(id, name, label, attrs, hint) {
-  return '      <div class="ff"><label for="' + id + '">' + esc(label) + '</label>' +
+  return '      <div class="ff"><label for="' + id + '"><span class="lt">' + esc(label) +
+    '</span> ' +
     '<input id="' + id + '" name="' + name + '" ' + attrs +
-    ' aria-describedby="e-' + name + '">' +
+    ' aria-describedby="e-' + name + '"></label>' +
     (hint ? '<span class="fh">' + esc(hint) + '</span>' : '') +
     '<p class="ferr" id="e-' + name + '" role="alert"></p></div>\n';
 }
@@ -1179,9 +1288,9 @@ function reportForm(m) {
     field('f-airline', 'airline', 'Airline', 'type="text" required maxlength="60" placeholder="United"') +
     field('f-flight', 'flightNumber', 'Flight number',
       'type="text" required spellcheck="false" autocapitalize="characters" placeholder="UA2402"') +
-    '      <div class="ff"><label for="f-system">System</label>' +
+    '      <div class="ff"><label for="f-system"><span class="lt">System</span> ' +
     '<select id="f-system" name="system" required aria-describedby="e-system">' +
-    '<option value="">Pick one</option>' + opts + '</select>' +
+    '<option value="">Pick one</option>' + opts + '</select></label>' +
     '<span class="fh">The captive portal usually names it.</span>' +
     '<p class="ferr" id="e-system" role="alert"></p></div>\n' +
     field('f-route', 'route', 'Route', 'type="text" spellcheck="false" placeholder="IAH-SFO"') +
@@ -1190,16 +1299,17 @@ function reportForm(m) {
     field('f-down', 'downMbps', 'Download, Mbps', 'type="text" inputmode="decimal" placeholder="143"') +
     field('f-up', 'upMbps', 'Upload, Mbps', 'type="text" inputmode="decimal" placeholder="18"') +
     field('f-lat', 'latencyMs', 'Latency, ms', 'type="text" inputmode="numeric" placeholder="52"') +
-    '      <div class="ff"><label for="f-free">Cost onboard</label>' +
+    '      <div class="ff"><label for="f-free"><span class="lt">Cost onboard</span> ' +
     '<select id="f-free" name="wasFree" aria-describedby="e-wasFree">' +
     '<option value="">Not saying</option><option value="true">It was free</option>' +
-    '<option value="false">I paid for it</option></select>' +
+    '<option value="false">I paid for it</option></select></label>' +
     '<p class="ferr" id="e-wasFree" role="alert"></p></div>\n' +
     field('f-credit', 'credit', 'Name or handle to credit',
       'type="text" maxlength="60" placeholder="How the row should read"') +
-    '      <div class="ff full"><label for="f-note">Anything else worth knowing</label>' +
+    '      <div class="ff full"><label for="f-note"><span class="lt">Anything else worth ' +
+    'knowing</span> ' +
     '<textarea id="f-note" name="note" maxlength="500" rows="3" aria-describedby="e-note" ' +
-    'placeholder="How full the cabin was, what the portal charged, what broke"></textarea>' +
+    'placeholder="How full the cabin was, what the portal charged, what broke"></textarea></label>' +
     '<p class="ferr" id="e-note" role="alert"></p></div>\n' +
     '    </div>\n' +
     '    <div class="frm-ft">\n' +

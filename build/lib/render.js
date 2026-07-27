@@ -1317,7 +1317,10 @@ function systemsPage(m) {
       '<td>' + esc(s.how) + '</td>' +
       '<td>' + esc(s.speed) + '</td>' +
       '<td>' + esc(s.reliability) + '</td>' +
-      '<td>' + esc(s.price) + '</td>' +
+      /* the span is the measurable line box: a cell's own box is its row's
+         height, so a one-word "Paid." beside three lines of prose measured
+         as a 264px-tall word to the layout assert */
+      '<td><span>' + esc(s.price) + '</span></td>' +
       '<td class="num" data-s="' + q + '"><b>' + q.toFixed(2) + '</b></td>' +
       '<td class="hide-sm">' +
       (carriers.length ? carriers.map(function (a) { return esc(a.name); }).join(', ')

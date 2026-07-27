@@ -264,6 +264,30 @@
    * "—", never a 0) and the caption paragraph under the control. Nothing here
    * reorders on load — the table already ships in ConnectScore order, so
    * script-off and the default state agree. */
+  /* THE CARD RECORDS FOLLOW THE TABLE (Phase 1b). Below 880px each board
+   * renders as .crd records instead of the table; the table still exists in
+   * the DOM and remains the single sorting mechanism. After any re-order the
+   * cards are re-appended in the table's row order (matched on data-key) and
+   * take the row's freshly-ranked number, so the two renderings can never
+   * disagree about order or rank. */
+  function syncBoardCards(scope, tbody) {
+    var list = scope.querySelector('.cardsb');
+    if (!list || !tbody) return;
+    var frag = doc.createDocumentFragment();
+    Array.prototype.forEach.call(tbody.rows, function (r) {
+      var k = r.getAttribute('data-key');
+      var c = k && list.querySelector('[data-key="' + k + '"]');
+      if (!c) return;
+      var rk = r.querySelector('.rank'), ck = c.querySelector('.crd-rank');
+      /* cards bake two-digit ranks ("03"); keep that after a re-sort */
+      if (rk && ck) {
+        var t = rk.textContent.trim();
+        ck.textContent = /^\d$/.test(t) ? '0' + t : t;
+      }
+      frag.appendChild(c);
+    });
+    list.appendChild(frag);
+  }
   try {
     Array.prototype.forEach.call(doc.querySelectorAll('.rankb'), function (root) {
       var table = root.querySelector('table');
@@ -326,9 +350,33 @@
           var frag = doc.createDocumentFragment();
           list.forEach(function (r) { frag.appendChild(r); });
           tbody.appendChild(frag);
+          syncBoardCards(root, tbody);
         });
       });
     });
+  } catch (e) {}
+
+  /* 5b ── the homepage 18-board's cards follow ITS table too. That board is
+   * sorted by the generic header sorter (§2) driven by the Rank-by row (§7 in
+   * the second closure), so the sync hangs off the sort events themselves:
+   * any header click or keypress re-syncs after the sort has run. */
+  try {
+    var hb = doc.querySelector('#board .board-shell table.tbl.board');
+    var hcards = doc.querySelector('#board .cardsb');
+    if (hb && hcards) {
+      var resync = function () {
+        setTimeout(function () { syncBoardCards(doc.getElementById('board'), hb.tBodies[0]); }, 0);
+      };
+      Array.prototype.forEach.call(hb.querySelectorAll('thead th[data-k]'), function (th) {
+        th.addEventListener('click', resync);
+        th.addEventListener('keydown', resync);
+      });
+      /* the Rank-by buttons' own handler (§7, second closure) restores the
+         baked order for "ConnectScore" without touching a header, so the
+         buttons re-sync too; setTimeout runs this after that handler */
+      Array.prototype.forEach.call(doc.querySelectorAll('#board-rank button[data-bs]'),
+        function (b) { b.addEventListener('click', resync); });
+    }
   } catch (e) {}
 })();
 

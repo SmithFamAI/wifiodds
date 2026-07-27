@@ -133,13 +133,17 @@ function css() {
     '.rlc{--rlc-ink:#f2e9db;--rlc-dim:#a4988a;--rlc-edge:rgba(242,233,219,.16);' +
     '--rlc-hi:#9dc2dc;color:var(--rlc-ink);font-size:14px}\n' +
     '.rlc-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}\n' +
-    '.rlc-badge{font-family:var(--mono);font-size:10.5px;font-weight:800;letter-spacing:.7px;' +
+    /* 12px label floor and sentence-adjacent tracking (Phase 1c): the badge
+       sat at 10.5px letterspaced caps, the where-line at 11.5px */
+    '.rlc-badge{font-family:var(--mono);font-size:12px;font-weight:800;letter-spacing:.4px;' +
     'text-transform:uppercase;color:var(--rlc-dim);border:1px solid var(--rlc-edge);' +
     'border-radius:999px;padding:3px 9px}\n' +
-    '.rlc-where{font-family:var(--mono);font-size:11.5px;color:var(--rlc-dim);margin-right:auto}\n' +
+    '.rlc-where{font-family:var(--mono);font-size:12px;color:var(--rlc-dim);margin-right:auto}\n' +
     '.rlc-nav{display:flex;gap:6px}\n' +
+    /* 24px minimum target; 44px preferred on touch widths (Phase 1c) */
     '.rlc-nav button{background:rgba(242,233,219,.06);color:var(--rlc-ink);border:1px solid var(--rlc-edge);' +
-    'border-radius:8px;width:30px;height:28px;font-size:15px;line-height:1;cursor:pointer}\n' +
+    'border-radius:8px;width:32px;height:28px;min-height:24px;font-size:15px;line-height:1;cursor:pointer}\n' +
+    '@media(max-width:700px){.rlc-nav button{width:44px;height:44px}}\n' +
     '.rlc-nav button:hover{border-color:var(--rlc-hi);color:var(--rlc-hi)}\n' +
     /* the stage: fixed 1280×800 aspect, the shot scaled inside it */
     '.rlc-stage{position:relative;aspect-ratio:1280/800;overflow:hidden;border-radius:12px;' +
@@ -161,12 +165,14 @@ function css() {
     '.rlc-ch{display:flex;align-items:center;gap:7px;font-weight:800;font-size:13.5px;' +
     'color:var(--rlc-dim)}\n' +
     '.rlc-c.is-active .rlc-ch{color:var(--rlc-ink)}\n' +
-    '.rlc-n{font-family:var(--mono);font-size:10.5px;font-weight:800;color:#1b1713;' +
+    '.rlc-n{font-family:var(--mono);font-size:12px;font-weight:800;color:#1b1713;' +
     'background:var(--rlc-dim);border-radius:5px;padding:1px 5px}\n' +
     '.rlc-c.is-active .rlc-n{background:var(--rlc-hi)}\n' +
-    '.rlc-c p{margin:6px 0 0;font-size:12.5px;line-height:1.55;color:var(--rlc-dim)}\n' +
+    /* explanatory copy floor is 14px (Phase 1c): the captions and the credit
+       line under the stage are sentences, not labels */
+    '.rlc-c p{margin:6px 0 0;font-size:14px;line-height:1.5;color:var(--rlc-dim)}\n' +
     '.rlc-c.is-active p{color:var(--rlc-ink)}\n' +
-    '.rlc-foot{margin:12px 0 0;font-size:12px;color:var(--rlc-dim)}\n' +
+    '.rlc-foot{margin:12px 0 0;font-size:14px;color:var(--rlc-dim)}\n' +
     /* motion, and only here. Everything above is the finished state. */
     '@media(prefers-reduced-motion:no-preference){\n' +
     '  .rlc-shot{transition:opacity .45s ease}\n' +

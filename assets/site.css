@@ -327,6 +327,20 @@ header.site{border-bottom:1px solid var(--line);background:var(--paper)}
    removes it under 40px — a hysteresis gap ~3x the height the header gives up,
    so the change can never re-cross its own trigger and flicker. */
 header.site{position:sticky;top:0;z-index:40}
+/* ── ONE header-height token (Phase 1c) ──────────────────────────────────
+   The masthead consumes it as a min-height and every sticky table heading
+   consumes it as its offset, so the two read the same number and cannot
+   drift; anchor targets clear both through the scroll-margin-top on [id]
+   above. Values are the measured tallest masthead per width band on the
+   built pages (wordmark row + datechip row + border), with the compact
+   html.hdr-c state — the state a scrolled reader is actually in — getting
+   its own smaller value so a stuck heading does not float mid-air. */
+:root{--sticky-header-height:6.6rem}
+@media(max-width:880px){:root{--sticky-header-height:7rem}}
+@media(max-width:600px){:root{--sticky-header-height:7.75rem}}
+html.hdr-c{--sticky-header-height:4.4rem}
+@media(max-width:880px){html.hdr-c{--sticky-header-height:4.7rem}}
+.masthead{min-height:calc(var(--sticky-header-height) - 1px)}
 .masthead{transition:padding .22s ease}
 .wordmark{transition:font-size .22s ease}
 .datechip{max-height:2.6rem;overflow:hidden;transition:max-height .22s ease,opacity .18s ease}
@@ -335,7 +349,8 @@ html.hdr-c .wordmark{font-size:1.08rem}
 html.hdr-c .datechip{max-height:0;opacity:0}
 @media(prefers-reduced-motion:reduce){.masthead,.wordmark,.datechip{transition:none}}
 /* anchors land clear of the sticky header */
-html{scroll-padding-top:5.5rem}
+html{scroll-padding-top:calc(var(--sticky-header-height) + .5rem)}
+[id]{scroll-margin-top:calc(var(--sticky-header-height) + .5rem)}
 /* ── the phone menu is a checkbox and a label, so it opens script-free.
    Its media rules live in the 600px block of the RESPONSIVE section, AFTER the
    base `.masthead nav` rule they override — order is what wins at equal
@@ -363,9 +378,13 @@ html{scroll-padding-top:5.5rem}
    than a place — still one pitch sitewide, just dressed as what it is. */
 .masthead nav{margin-left:auto;display:flex;gap:.2rem;font-size:.92rem;flex-wrap:wrap;
   align-items:center}
-.masthead nav a{color:var(--muted-strong);text-decoration:none;font-size:.72rem;
-  font-weight:650;letter-spacing:.11em;text-transform:uppercase;padding:.5rem .65rem;
-  border-radius:8px}
+/* 12px floor (Phase 1c), and the box stays a single line box: the layout
+   assert reads bounding-box height against line-height to catch words split
+   across lines, so a one-line label carries its padding inside an explicit
+   tall line-height rather than around a short one. */
+.masthead nav a{color:var(--muted-strong);text-decoration:none;font-size:.75rem;
+  font-weight:650;letter-spacing:.11em;text-transform:uppercase;padding:.35rem .65rem;
+  line-height:2;white-space:nowrap;border-radius:8px}
 .masthead nav a:hover{color:var(--ink);background:var(--bg-inset);text-decoration:none}
 .masthead nav a[aria-current="page"]{color:var(--ink)}
 .datechip{font-size:.78rem;color:var(--muted);letter-spacing:.02em;width:100%;
@@ -439,10 +458,10 @@ main .micro{margin-top:.35rem}
 .pointer{font-size:.9rem;color:var(--ink-soft);margin-top:1.1rem}
 /* .micro is the reporting label: quiet ink, never sky, because it sits inside
    the data's screen space. */
-.micro{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+.micro{font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
   color:var(--muted)}
-.note{font-size:.86rem;color:var(--ink-soft)}
-.footnote{font-size:.84rem;color:var(--muted);max-width:44rem}
+.note{font-size:.875rem;color:var(--ink-soft)}
+.footnote{font-size:.875rem;color:var(--muted);max-width:44rem}
 
 /* ── boxes ────────────────────────────────────────────────────────────── */
 .card,.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
@@ -467,7 +486,7 @@ a.card:hover .go{text-decoration:underline;text-decoration-thickness:2px}
 .chip .n{font-size:1.7rem;font-weight:700;line-height:1.05;color:var(--ink);
   letter-spacing:-.02em}
 .chip .n small{font-size:.9rem;color:var(--muted);font-weight:400}
-.chip .l{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+.chip .l{font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
   color:var(--muted);margin-top:.5rem}
 .chip .d{font-size:.8rem;color:var(--ink-soft);margin-top:.3rem}
 .chip .d .up{color:var(--good);font-weight:700}
@@ -523,9 +542,15 @@ a.card:hover .go{text-decoration:underline;text-decoration-thickness:2px}
 
 /* Badges. A badge that carries a NUMBER wears its band; a badge that carries a
    CATEGORY stays ink and tells itself apart by border style. */
-.badge{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.09em;
-  text-transform:uppercase;padding:.14rem .5rem;border-radius:99px;
+/* Pills are sentence case at 12px since Phase 1c: the 11.5px letterspaced
+   caps were under the audit's 12px floor, and wide tracking below 13px is
+   reserved for section eyebrows. ::first-letter capitalises the baked
+   lowercase band words without changing the textContent the weld and
+   round-trip checks read. */
+.badge{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.02em;
+  padding:.14rem .5rem;border-radius:99px;
   border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.badge::first-letter,.band::first-letter{text-transform:uppercase}
 .badge.good{color:var(--good);border-color:currentColor}
 .badge.mixed{color:var(--mixed);border-color:currentColor}
 .badge.long,.badge.low{color:var(--long);border-color:currentColor}
@@ -545,9 +570,11 @@ a.card:hover .go{text-decoration:underline;text-decoration-thickness:2px}
 .pill.live{color:var(--good);border-color:currentColor;font-size:.75rem;margin:0}
 a.pill{text-decoration:none}
 a.pill:hover{border-color:var(--muted)}
-/* The score band chip. This one IS allowed the colour: it is the score. */
-.band{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.09em;
-  text-transform:uppercase;padding:.14rem .5rem;border-radius:99px;white-space:nowrap;
+/* The score band chip. This one IS allowed the colour: it is the score. The
+   word is the non-colour signal for the band, so it survives everywhere the
+   score goes — sentence case now, 12px floor, see the .badge note above. */
+.band{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.02em;
+  padding:.14rem .5rem;border-radius:99px;white-space:nowrap;
   color:var(--band);border:1px solid currentColor}
 .band.good{color:var(--good)} .band.mixed{color:var(--mixed)}
 .band.long{color:var(--long)} .band.zero{color:var(--zero)}
@@ -592,16 +619,43 @@ a.pill:hover{border-color:var(--muted)}
 .track.mini{height:.4rem;width:5.75rem;margin:0}
 
 /* ── tables. Real tables, ruled rows, no shell. ─────────────────────────── */
-.tbl-shell,.tscroll{background:transparent;border:0;overflow-x:auto;
-  -webkit-overflow-scrolling:touch}
+/* THE SHELL IS NOT A SCROLLER ABOVE 700px ANY MORE (Phase 1c). An ancestor
+   with overflow-x:auto becomes the containing scrollport for position:sticky,
+   and that wrapper never scrolls vertically, so every "sticky" table heading
+   simply scrolled away — measured at top -299/-357/-838 with the table body
+   still on screen. Above 700px every table fits its column (the boards render
+   as cards below 880px and never scroll at all), so the wrapper gives up the
+   scroll and the viewport becomes the scrollport: the headings finally stick,
+   just under the masthead, at --sticky-header-height. Below 700px the dense
+   tables still need the sideways scroll frame, sticky physically cannot work
+   inside it, and a sticky declaration that does nothing is the defect the
+   layout assert exists to catch — so the headings are static there. */
+.tbl-shell,.tscroll{background:transparent;border:0}
+@media(max-width:700px){
+  .tbl-shell,.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
 table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
 table.tbl{min-width:40rem}
-table.tbl th,table.tbl td{text-align:left;padding:.5rem .6rem .5rem 0;font-size:.92rem;
-  border-bottom:1px solid var(--line-soft);vertical-align:middle}
-table.tbl thead th{font-size:.72rem;font-weight:600;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--muted);white-space:nowrap;position:sticky;top:0;
-  background:var(--paper);border-bottom:1px solid var(--ink);padding-bottom:.45rem;
+/* Cell boxes hold a single line box inside their line-height (line-height 1.7
+   with .4rem vertical padding) rather than around a 1.55 one with .5rem: the
+   layout assert reads box height against line-height to catch mid-word wraps,
+   and a padded one-line cell must not measure like a two-line one. */
+table.tbl th,table.tbl td{text-align:left;padding:.4rem .6rem .4rem 0;font-size:.92rem;
+  line-height:1.7;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+/* Column headings are sentence case at 12px now, not 9.6px letterspaced caps:
+   the audit floor is 12px rendered, and wide tracking below 13px is reserved
+   for section eyebrows — the all-caps microcopy was exactly the text that
+   wrapped worst. */
+table.tbl thead th{font-size:.75rem;font-weight:650;letter-spacing:.02em;
+  color:var(--muted);white-space:nowrap;position:sticky;
+  top:var(--sticky-header-height);z-index:2;line-height:2;padding-top:.3rem;
+  background:var(--paper);border-bottom:1px solid var(--ink);padding-bottom:.4rem;
   vertical-align:bottom}
+/* AFTER the base rule, because order decides at equal specificity: below
+   700px the shell scrolls sideways again, sticky physically cannot work
+   inside that scrollport, and a sticky declaration that does nothing is the
+   defect the layout assert catches. Static there, honestly. */
+@media(max-width:700px){table.tbl thead th{position:static}}
 table.tbl tbody tr:last-child td{border-bottom:1px solid var(--line)}
 table.tbl tbody tr:hover{background:var(--panel)}
 /* Data cells may WRAP since round seven (note 2): nowrap on every .num cell
@@ -615,7 +669,7 @@ th.num,td.num{text-align:right}
 table.tbl td b{color:var(--ink);font-weight:700}
 table.tbl .rank{color:var(--muted);font-size:.8rem;width:2.6rem}
 table.tbl .aname{font-weight:700}
-table.tbl .code{font-size:.72rem;font-weight:600;color:var(--muted);margin-left:.45rem;
+table.tbl .code{font-size:.75rem;font-weight:600;color:var(--muted);margin-left:.45rem;
   letter-spacing:.1em}
 table.tbl .sco{font-size:1.4rem;font-weight:700;color:var(--band);line-height:1;
   letter-spacing:-.02em}
@@ -625,15 +679,16 @@ table.tbl .sco{font-size:1.4rem;font-weight:700;color:var(--band);line-height:1;
 table.tbl tr.instr{box-shadow:inset 2px 0 0 var(--muted-strong)}
 table.tbl tr.instr td:first-child{padding-left:.6rem}
 html.js table.tbl th[data-k]{cursor:pointer;user-select:none}
-html.js table.tbl th[data-k]:after{content:"\2195";opacity:.45;margin-left:.3rem;font-size:.72rem}
+html.js table.tbl th[data-k]:after{content:"\2195";opacity:.45;margin-left:.3rem;font-size:.75rem}
 html.js table.tbl th[data-k][aria-sort="ascending"]:after{content:"\2191";opacity:1}
 html.js table.tbl th[data-k][aria-sort="descending"]:after{content:"\2193";opacity:1}
 @media(max-width:720px){.hide-sm{display:none}}
-.tblcap{font-size:.75rem;letter-spacing:.05em;color:var(--muted);margin-top:.7rem}
-.caveat{margin-top:.9rem;font-size:.86rem;color:var(--ink-soft);
+.tblcap{font-size:.875rem;letter-spacing:.02em;color:var(--muted);margin-top:.7rem}
+.caveat{margin-top:.9rem;font-size:.875rem;color:var(--ink-soft);
   border:1px solid var(--line);border-left:3px solid var(--line);
   background:var(--panel);border-radius:var(--r-md);padding:.8rem 1rem}
-.empty-state{font-size:.86rem;color:var(--muted);border:1px dashed var(--line);
+/* .875rem: empty states are sentences of copy, under the 14px floor */
+.empty-state{font-size:.875rem;color:var(--muted);border:1px dashed var(--line);
   border-radius:var(--r-md);padding:.8rem 1rem}
 
 /* ── filter chips + search (JS-only affordances) ──────────────────────── */
@@ -645,17 +700,17 @@ html.js table.tbl th[data-k][aria-sort="descending"]:after{content:"\2193";opaci
    The --band custom property already exists per .sc-good/.sc-mix/.sc-long/.sc-no
    (below); this block only decides which cell gets to read it. */
 .rankb .segctrl{display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap;margin-bottom:.2rem}
-.rankb .segctrl .lbl{font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+.rankb .segctrl .lbl{font-size:.75rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
   color:var(--muted-strong)}
 .rankb .sortcap p{margin:.15rem 0 .8rem;font-size:.92rem;color:var(--ink-soft);max-width:44rem}
 .rankb .sortcap p a{color:inherit}
 .rankb .pointer{font-size:.9rem;color:var(--ink-soft);margin:.6rem 0 0}
 .rankb table.tbl{min-width:52rem}
-.rankb .lab{display:block;font-size:.62rem;letter-spacing:.07em;text-transform:uppercase;
+.rankb .lab{display:block;font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;
   color:var(--muted);margin-bottom:.12rem;font-weight:600}
 .rankb .sco.pct{font-size:1.02rem}
 .rankb th[data-rc][aria-sort="descending"]:after{content:"\2193";opacity:.55;margin-left:.3rem;
-  font-size:.7rem}
+  font-size:.75rem}
 .rankb td[data-col] .sco{color:var(--ink)}
 .rankb td[data-col] .band{display:none}
 .rankb table[data-active="score"]    td[data-col="score"] .sco,
@@ -751,7 +806,7 @@ html.js table.tbl th[data-k][aria-sort="descending"]:after{content:"\2193";opaci
 /* SHIPPED / BUILDING / PLANNED is a state, not a score. Shipped earns the green
    because it is a fact about the world; planned stays grey and dashed, which is
    the same fence the projected score wears. */
-.rm .step .st{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+.rm .step .st{font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
   border:1px solid;border-radius:99px;padding:.1rem .45rem}
 .rm .step.shipped .st{color:var(--good);border-color:currentColor}
 .rm .step.building .st{color:var(--muted-strong);border-color:var(--line)}
@@ -770,7 +825,7 @@ html.js table.tbl th[data-k][aria-sort="descending"]:after{content:"\2193";opaci
   padding:.8rem 1rem;text-decoration:none;background:var(--panel);
   border:1px solid var(--line);border-left:3px solid var(--line);border-radius:var(--r-md);
   color:var(--ink-soft);font-size:.86rem}
-.credit .cb{flex:none;font-size:.68rem;font-weight:700;letter-spacing:.12em;
+.credit .cb{flex:none;font-size:.75rem;font-weight:700;letter-spacing:.12em;
   text-transform:uppercase;color:var(--muted);border:1px solid var(--line);
   border-radius:99px;padding:.14rem .5rem;background:transparent;margin-top:.1rem}
 .credit .cbody{flex:1;min-width:14rem}
@@ -778,7 +833,7 @@ html.js table.tbl th[data-k][aria-sort="descending"]:after{content:"\2193";opaci
 
 /* ── footer ───────────────────────────────────────────────────────────── */
 footer.site{margin-top:2.8rem;border-top:1px solid var(--line);padding:1.6rem 0 2.2rem;
-  color:var(--muted);font-size:.84rem}
+  color:var(--muted);font-size:.875rem}
 footer.site .frow{margin-top:.6rem;max-width:52rem}
 footer.site .flinks{display:flex;gap:.5rem 1.1rem;flex-wrap:wrap;margin-bottom:.9rem;
   font-size:.9rem}
@@ -807,7 +862,7 @@ footer.site b{color:var(--muted-strong)}
    matching and the band takes over. */
 .scorebox:not([class*="sc-"]){--band:var(--ink)}
 .scorebox .sbmid{flex:1;min-width:15rem}
-.scorebox .sbmid .t{font-size:.72rem;font-weight:600;letter-spacing:.12em;
+.scorebox .sbmid .t{font-size:.75rem;font-weight:600;letter-spacing:.12em;
   text-transform:uppercase;color:var(--muted)}
 .scorebox .sbmid .m{font-size:.86rem;color:var(--ink-soft);margin-top:.35rem}
 .scorebox .sbscore{font-family:var(--serif);font-weight:700;font-size:3.4rem;line-height:1;
@@ -817,7 +872,7 @@ footer.site b{color:var(--muted-strong)}
 .scorenum .n{font-size:4.2rem;font-weight:700;line-height:1;color:var(--band)}
 .scorenum .b{font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
   color:var(--band)}
-.scorenum .scale{font-size:.72rem;color:var(--muted);margin-top:.2rem}
+.scorenum .scale{font-size:.75rem;color:var(--muted);margin-top:.2rem}
 
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
 @media(max-width:860px){.stats{grid-template-columns:repeat(2,1fr)}}
@@ -826,7 +881,7 @@ footer.site b{color:var(--muted-strong)}
   box-shadow:var(--sheen);padding:.9rem 1rem}
 .stat .n{font-size:1.7rem;font-weight:700;color:var(--ink);line-height:1.1;letter-spacing:-.02em}
 .stat .n small{font-size:.9rem;color:var(--muted);font-weight:400}
-.stat .l{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+.stat .l{font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
   color:var(--muted);margin-top:.5rem}
 .stat .d,.stat .k{font-size:.8rem;color:var(--ink-soft);margin-top:.3rem}
 .stat.done{box-shadow:var(--sheen),inset 3px 0 0 var(--good)}
@@ -849,7 +904,7 @@ footer.site b{color:var(--muted-strong)}
 /* the four playbook moves, numbered by their own tag rather than a counter */
 .moves{list-style:none;margin:1.2rem 0 0;padding:0;max-width:46rem}
 .moves li{position:relative;padding:.9rem 0 .9rem 4.4rem;border-top:1px solid var(--line-soft)}
-.moves .tag{position:absolute;left:0;top:1rem;font-size:.68rem;font-weight:700;
+.moves .tag{position:absolute;left:0;top:1rem;font-size:.75rem;font-weight:700;
   letter-spacing:.1em;color:var(--muted-strong);border:1px solid var(--line);
   border-radius:99px;padding:.1rem .4rem;background:var(--card);min-width:2.9rem;
   text-align:center}
@@ -889,7 +944,7 @@ footer.site b{color:var(--muted-strong)}
   border-top:1px solid var(--line);padding-top:.7rem}
 .prov{letter-spacing:.05em;text-transform:uppercase;max-width:44rem}
 .prov b{font-weight:700;color:var(--muted-strong)}
-.fa-tag,.cls{display:inline-block;font-size:.68rem;font-weight:700;letter-spacing:.12em;
+.fa-tag,.cls{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.12em;
   text-transform:uppercase;padding:.12rem .45rem;border-radius:99px;border:1px solid var(--line);
   color:var(--muted);white-space:nowrap;margin-right:.5rem}
 /* tier tags are PROVENANCE, not score. Monochrome, and they separate by border
@@ -941,7 +996,7 @@ footer.site b{color:var(--muted-strong)}
    grammar, never a promise — the horizons live on /roadmap/, dated and fenced. */
 ul.vstate{list-style:none;margin:1.2rem 0 0;padding:0;max-width:44rem}
 ul.vstate li{padding:.6rem 0;border-top:1px solid var(--line-soft);font-size:.92rem}
-ul.vstate .st{display:inline-block;min-width:10rem;font-size:.68rem;font-weight:700;
+ul.vstate .st{display:inline-block;min-width:10rem;font-size:.75rem;font-weight:700;
   letter-spacing:.1em;text-transform:uppercase;color:var(--muted-strong)}
 
 /* ═══ SHARED PRIMITIVES ════════════════════════════════════════════════════
@@ -965,10 +1020,10 @@ ul.vstate .st{display:inline-block;min-width:10rem;font-size:.68rem;font-weight:
   background:var(--proj-bg);border:1px solid var(--line);border-radius:var(--r-sm);
   padding:.12rem .5rem;font-size:.8rem;white-space:nowrap}
 .proj b,.proj .pv{font-size:.95rem;font-weight:700;letter-spacing:-.01em}
-.proj .ph{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--proj)}
+.proj .ph{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--proj)}
 .proj.slipped{border-color:var(--muted);color:var(--muted-strong);
   background:repeating-linear-gradient(135deg,transparent 0 3px,var(--proj-bg) 3px 6px)}
-.conf{font-size:.64rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+.conf{font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
   color:var(--proj)}
 .conf.slip{color:var(--muted-strong)}
 .dash{color:var(--muted)}
@@ -984,20 +1039,38 @@ ul.vstate .st{display:inline-block;min-width:10rem;font-size:.68rem;font-weight:
   box-shadow:var(--sheen);padding:.9rem 1rem}
 .kv.kv-2{grid-template-columns:1fr 1fr}
 .kv .v{font-size:1.5rem;font-weight:700;letter-spacing:-.01em;display:block;margin-top:.4rem}
-.kv .v small{font-size:.72rem;letter-spacing:.1em;color:var(--muted);display:block;
+.kv .v small{font-size:.75rem;letter-spacing:.1em;color:var(--muted);display:block;
   margin-top:.35rem;font-weight:600;text-transform:uppercase}
 @media(max-width:900px){.kv,.kv.kv-2{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.kv,.kv.kv-2{grid-template-columns:1fr 1fr}}
 
 /* ═══ RESPONSIVE ═══════════════════════════════════════════════════════════
    Down to 390px, where the first full screen must contain the page's answer.
-   Tables stay tables: they get a scroll frame under their own heading, never a
-   stack of pseudo-rows. A schedule that reflows into cards stops being readable
-   as a schedule. Body text never drops below 16px.
+   DENSE REFERENCE TABLES stay tables and get a scroll frame under their own
+   heading — a schedule that reflows into pseudo-rows stops being readable as
+   a schedule. The two RANK BOARDS are the standing exception since Phase 1b:
+   their information model never survived 390-440px as a table, so below 880px
+   they render as one .crd record per airline (see THE BOARDS BELOW 880px ARE
+   CARDS further down). Body text never drops below 16px.
    ═══════════════════════════════════════════════════════════════════════════ */
 @media(max-width:700px){
   .tablescroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .tablescroll table{min-width:34rem}
+}
+/* ── target sizes (Phase 1c). Standalone controls meet 24x24 CSS px
+   everywhere; at touch widths they meet the 44px preferred size. The list is
+   the controls the audit measured under: the mini buttons (90x33), the filter
+   chips (~30px), the theme switch (~35px), the column-guide disclosure
+   (~39px). Inline links inside sentences are exempt under WCAG 2.5.8 and stay
+   as they are. */
+.btn.mini,.filters button,.themetoggle,.colguide summary{min-height:24px}
+@media(max-width:700px){
+  .btn.mini,.filters button,.themetoggle,.colguide summary{min-height:44px}
+  /* line-height 2.2 keeps the 44px box reading as the single line it is:
+     the layout assert compares box height to line-height to catch words
+     split across lines, and a 44px chip around a 20px line measures like a
+     two-line wrap */
+  .filters button{padding-left:.85rem;padding-right:.85rem;line-height:2.2}
 }
 @media(max-width:600px){
   /* Vertical only. The shorthand `padding:.85rem 0` used to sit here and it
@@ -1009,12 +1082,23 @@ ul.vstate .st{display:inline-block;min-width:10rem;font-size:.68rem;font-weight:
      a 440px iPhone and guessed the cause from the symptom: "it may just be the
      menu." Never set the shorthand on an element that is also a .wrap. */
   .masthead{gap:.5rem .9rem;padding-top:.85rem;padding-bottom:.85rem}
-  /* the hamburger (round seven, note 18): the nav hides behind the checkbox
-     label and opens as a stacked column, script-free. This block sits AFTER
-     the base `.masthead nav{display:flex}` rule on purpose — order decides at
-     equal specificity. */
+  .themetoggle{margin-left:0}
+  .hero,.heroq{padding-top:2rem}
+}
+/* ── the hamburger (round seven, note 18; cut moved 600 → 880 in Phase 1c):
+   the nav hides behind the checkbox label and opens as a stacked column,
+   script-free. Between 601 and 880px the full nav row used to WRAP, putting
+   the masthead at 147-155px on some pages and 102 on others — a height no
+   single --sticky-header-height token could honestly describe, which matters
+   now that the sticky table headings hang off that token. Behind the menu
+   button the header is one stable height per width band. 880 also matches
+   the boards' card cut, so the compressed chrome starts at one width. This
+   block sits AFTER the base `.masthead nav{display:flex}` rule on purpose —
+   order decides at equal specificity. */
+@media(max-width:880px){
+  /* 44x44 (Phase 1c): the menu button measured 40x36 against the 44px floor */
   .nav-btn{display:inline-flex;align-items:center;justify-content:center;margin-left:auto;
-    width:2.5rem;height:2.25rem;border:1px solid var(--field-border);border-radius:8px;
+    width:2.75rem;height:2.75rem;border:1px solid var(--field-border);border-radius:8px;
     color:var(--ink);cursor:pointer;font-size:1.05rem;line-height:1;background:var(--card)}
   .nav-cb:focus-visible+.nav-btn{outline:2px solid var(--sky);outline-offset:2px}
   .nav-btn .x{display:none}
@@ -1024,8 +1108,6 @@ ul.vstate .st{display:inline-block;min-width:10rem;font-size:.68rem;font-weight:
   .nav-cb:checked~nav{display:flex;flex-direction:column;align-items:stretch;gap:.1rem;
     margin-left:0;order:3;flex:1 0 100%;
     border-top:1px solid var(--line-soft);padding-top:.4rem;margin-top:.2rem}
-  .themetoggle{margin-left:0}
-  .hero,.heroq{padding-top:2rem}
 }
 @media(max-width:430px){
   .wrap{padding-left:max(.9rem,env(safe-area-inset-left));
@@ -1136,19 +1218,31 @@ html.anim .track.in .fill{width:var(--pct)}
  * The rest of these were the same omission with milder symptoms: the form
  * rendered in browser defaults on every page it appears. */
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+/* the honeypot's label has NO box at all: it is not a control, and a 1px rect
+   still reads as an undersized target to anything measuring rects. Bots read
+   the DOM, not the layout, so this hides nothing from them. */
+.hp label{display:block;width:0;height:0;overflow:hidden}
 
 .frm{margin:18px 0 0}
 .ffgrid{display:grid;gap:14px 16px;grid-template-columns:1fr}
 @media (min-width:620px){.ffgrid{grid-template-columns:1fr 1fr}}
 .ff{display:flex;flex-direction:column;gap:5px;min-width:0}
 .ff.wide{grid-column:1/-1}
-.ff label,.fh{font:600 12px/1.4 var(--sans);letter-spacing:.04em;
+/* THE LABEL WRAPS ITS FIELD since Phase 1c. A 17px-tall label above a field
+   is a click target that focuses the input, and it measured 291x17 against
+   the 24/44px floors. Wrapping the control puts the whole field inside the
+   label's box — the honest fix, not a padded phantom — while the for=""
+   attribute stays for explicitness. The visible caption is the .lt span. */
+.ff label{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ff .lt,.fh{font:600 12px/1.4 var(--sans);letter-spacing:.04em;
   text-transform:uppercase;color:var(--ink-3)}
 .fh{margin:20px 0 2px;grid-column:1/-1}
 .ff input,.ff select,.ff textarea{
   font:400 15px/1.45 var(--sans);color:var(--ink);background:var(--field-bg);
   border:1px solid var(--field-border);border-radius:3px;padding:9px 11px;width:100%;
-  min-width:0;-webkit-appearance:none;appearance:none}
+  min-width:0;-webkit-appearance:none;appearance:none;
+  /* the wrapping label is uppercase microtype; what you TYPE is not */
+  text-transform:none;letter-spacing:normal}
 .ff select{background-image:none}
 .ff textarea{min-height:82px;resize:vertical}
 .ff input:focus-visible,.ff select:focus-visible,.ff textarea:focus-visible{
@@ -1180,50 +1274,71 @@ html.anim .track.in .fill{width:var(--pct)}
 .scobar .fill.sc-mix{background:var(--mixed)}
 .scobar .fill.sc-long{background:var(--long)}
 .scobar .fill.sc-no{background:var(--zero)}
-/* At phone width the full board is 1,028px of table in a 390px window: three
-   visible columns and a sideways scroll nobody discovers. Below 700px the board
-   SHEDS instead of scrolling — the bar, the rollout phase, the projected column
-   and the IATA code go, cell padding tightens, and what remains (rank, name,
-   score with its band word, tier, next-gen) fits the screen. A note under the
-   table says where the projections live. Verified at a real 390px viewport,
-   26 Jul 2026, after Jeremy caught the overflow on his phone. */
-.board-note{display:none;font-size:.78rem;color:var(--muted);margin:.5rem 0 0}
-@media(max-width:700px){
-  .tbl.board .barcell,.tbl.board .phz{display:none}
-  .tbl.board td:last-child,.tbl.board th:last-child{display:none}
-  .tbl.board .code{display:none}
-  .tbl.board td,.tbl.board th{padding-left:.3rem;padding-right:.3rem}
-  .tbl.board th{white-space:normal;font-size:.6rem;letter-spacing:.05em}
-  .tbl.board .sco{font-size:1.05rem}
-  /* the band word drops UNDER its number: same signal, half the width */
-  .tbl.board td .band{display:block;margin:.15rem 0 0}
-  /* .tbl carries min-width:40rem (and 34rem inside .tablescroll) so that DENSE
-     tables scroll rather than crush. The board sheds columns instead, so the
-     floor comes off — this line is why the board fits a phone at all.
+/* ═══ THE BOARDS BELOW 880px ARE CARDS, NOT TABLES (Phase 1b) ═════════════
+   The shed-and-squeeze approach that stood here died of its own information
+   model: rank, airline, code, score, band, tier, fitted share, next-gen odds,
+   publication state and sort state in one table row cannot be tuned into a
+   390-440px column, and `overflow-wrap:anywhere` — the rule that kept it from
+   overflowing — was rendering "America / n" and 9.6px headers while every
+   overflow sweep reported clean. That rule is gone from the boards entirely.
 
-     table-layout:fixed is the load-bearing half, and it is here because Jeremy
-     reads with his phone's text size turned up. Auto table layout sizes columns
-     to their MIN-CONTENT width, which no min-width can override: at 150% text
-     the board grew to 451px inside a 398px screen, and at 200% it forced the
-     whole document to 466px. Fixed layout gives the columns proportional widths
-     and lets the words wrap instead, so the board fits at any text size. Tested
-     in WebKit at 100/110/120/130/150/175/200%. */
-  table.tbl.board{min-width:0;width:100%;table-layout:fixed}
-  .tbl.board td,.tbl.board th{overflow-wrap:anywhere}
-  .tbl.board .rank{width:2.2rem}
-  .tbl.board .micro{width:1.9rem}
-  /* the band chip must be allowed to wrap inside its cell at large text, or it
-     pushes the column wider than the screen on its own */
-  .tbl.board .band{white-space:normal}
+   Both boards now bake TWO renderings of the SAME data model: the real table
+   (desktop earns cross-row comparison) and one .crd record per airline. CSS
+   picks exactly one. The cut is 880px, not 700: the seven-column rank board is
+   832px of table at minimum, so anywhere under ~880px it could only survive
+   inside a sideways scroll frame, which is the trap the audit called the
+   site's worst surface — and which also broke every sticky heading. Above
+   880px the boards fit the wrap with no scroll frame at all.
+
+   The record, per the approved plan: rank + name (never breaks) + code and
+   the score with its band word on the first line; next-gen odds labelled in
+   words, carrying its per cent sign; ONE supporting line that states its own
+   denominator; a 44px link to the airline page. Sorting stays as the same
+   segmented control — there are no column headers here to point at. */
+.board-note{display:none;font-size:.875rem;color:var(--muted);margin:.5rem 0 0}
+.cardsb{display:none;list-style:none;margin:.4rem 0 0;padding:0}
+.crd{border:1px solid var(--line);border-radius:var(--r-lg);background:var(--card);
+  box-shadow:var(--sheen);padding:.8rem .95rem .35rem;margin-top:.6rem}
+.crd-top{display:flex;align-items:baseline;gap:.3rem .55rem;flex-wrap:wrap}
+.crd-rank{color:var(--muted);font-size:.8rem;font-variant-numeric:tabular-nums;
+  min-width:1.6rem}
+.crd-top .aname{font-weight:700;white-space:nowrap;font-size:1.02rem}
+.crd-top .code{font-size:.75rem;font-weight:600;color:var(--muted);letter-spacing:.1em}
+.crd-sco{margin-left:auto;display:flex;align-items:baseline;gap:.45rem;white-space:nowrap}
+.crd-sco .sco{font-family:var(--serif);font-size:1.35rem;font-weight:700;
+  color:var(--band);line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.crd-ng{display:flex;align-items:baseline;justify-content:space-between;gap:.7rem;
+  margin:.45rem 0 0;font-size:.92rem;color:var(--ink-soft)}
+.crd-ng b{color:var(--ink);font-size:1.02rem;font-variant-numeric:tabular-nums;
+  text-align:right}
+.crd-sub{margin:.15rem 0 0;font-size:.875rem;color:var(--muted)}
+/* the 44px link row: WCAG 2.5.8 preferred size on touch widths, and the card's
+   one obvious door */
+.crd-go{display:flex;align-items:center;min-height:44px;font-size:.9rem;
+  margin-top:.15rem;border-top:1px solid var(--line-soft)}
+/* the 18-row boards keep the same record at a denser rhythm */
+.cardsb.dense .crd{padding:.55rem .8rem .15rem;margin-top:.45rem}
+.cardsb.dense .crd-ng{margin-top:.25rem}
+.cardsb.dense .crd-go{min-height:44px}
+@media(max-width:880px){
+  .rankb .tbl-shell,.board-shell{display:none}
+  .cardsb{display:block}
   .board-note{display:block}
+  /* no split columns in the record, so no control may point at them */
+  .rankb .filters button[data-sort="mainline"],
+  .rankb .filters button[data-sort="regional"]{display:none}
 }
 
 /* Provenance lines carry bare domains — unitedstarlinktracker.com is one
    unbreakable 25-character word — and at a raised phone text size a single one
-   of them was forcing the document to 466px in a 398px screen. Let long tokens
-   break. This is the accessibility case, not an edge case: readers who turn
-   text up are exactly the readers this site is for. */
-.prov,.src,.footnote,.credit .cbody{overflow-wrap:anywhere}
+   of them was forcing the document to 466px in a 398px screen. Phase 1b took
+   `anywhere` out sitewide with the board tables that needed it; what stays
+   here is `break-word`, which breaks NOTHING at any tested width (the layout
+   assert proves no word renders across lines) but still lets that one
+   unbreakable domain give way at 200% text instead of forcing a sideways
+   page. The difference from `anywhere` is min-content sizing: this rule can
+   no longer squeeze a column narrow enough to shatter ordinary words. */
+.prov,.src,.footnote,.credit .cbody{overflow-wrap:break-word}
 
 /* Chart lines own a third small palette, by Jeremy's call on 26 Jul 2026: the
  * bands still own scores and the sky still owns chrome, but a time-series line
@@ -1282,7 +1397,7 @@ html.dark{--chart-1:#8fc0e0;--chart-2:#b79fe0;--chart-3:#7ecfdd}
 .cwswrap{display:flex;flex-direction:column;align-items:flex-start;gap:.3rem;flex:0 0 auto}
 .cwsbadge{display:inline-block;line-height:0}
 .cwsbadge img{height:52px;width:auto;display:block}
-.cws-ver{font-size:.7rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+.cws-ver{font-size:.75rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
   color:var(--muted)}
 .cws-d{display:none}
 @media(prefers-color-scheme:dark){
@@ -1310,11 +1425,11 @@ html.light .cws-l{display:block}
 .skyline .fill.sc-no{background:var(--zero)}
 .skyline a:hover::after,.skyline a:focus-visible::after{content:attr(data-l);position:absolute;
   bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);white-space:nowrap;
-  font:700 .72rem/1.5 var(--mono);background:var(--card);color:var(--ink);
+  font:700 .75rem/1.5 var(--mono);background:var(--card);color:var(--ink);
   border:1px solid var(--line);padding:1px 7px;border-radius:6px;pointer-events:none;z-index:3}
 .skyline a:first-child:hover::after,.skyline a:first-child:focus-visible::after{left:0;transform:none}
 .skyline a:last-child:hover::after,.skyline a:last-child:focus-visible::after{left:auto;right:0;transform:none}
-.skycap{font-size:.82rem;color:var(--muted);margin-top:.45rem}
+.skycap{font-size:.875rem;color:var(--muted);margin-top:.45rem}
 
 /* ── the column guide reads as a control: a bordered, hoverable disclosure
    with a chevron that flips. details/summary, so it opens with script off. ── */
@@ -1332,22 +1447,22 @@ html.light .cws-l{display:block}
 .cg{background:var(--card);border:1px solid var(--line);border-radius:10px;
   padding:.6rem .8rem .65rem;font-size:.79rem;line-height:1.45;color:var(--ink-soft)}
 .cg b{display:block;font-size:.78rem;color:var(--ink)}
-.cg .ar{font-family:var(--mono);color:var(--muted);font-size:.72rem}
+.cg .ar{font-family:var(--mono);color:var(--muted);font-size:.75rem}
 
 /* ── the Rank-by control row. The single-class .segctrl selector is
    load-bearing: build/apitest.js reads it to prove .needs-js still sits on an
    element with its own non-block display. ── */
 .segctrl{display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap;margin:1.4rem 0 .5rem}
-.segctrl .lbl{font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+.segctrl .lbl{font-size:.75rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
   color:var(--muted-strong)}
 .segctrl .filters{margin:0}
 
 /* ── clickable sortable headers on the rank boards ── */
 html.js .rankb th[data-rc]:not([data-rc="rank"]){cursor:pointer;user-select:none}
 html.js .rankb th[data-rc]:not([data-rc="rank"]):not([aria-sort]):after{content:"\2195";
-  opacity:.45;margin-left:.3rem;font-size:.7rem}
+  opacity:.45;margin-left:.3rem;font-size:.75rem}
 .rankb th[data-rc][aria-sort="ascending"]:after{content:"\2191";opacity:.75;margin-left:.3rem;
-  font-size:.7rem}
+  font-size:.75rem}
 
 /* ── everything below a board is ONE box: hairline-ruled rows inside a single
    border, each row under a small-caps label, spanning the table width. ── */
@@ -1355,13 +1470,13 @@ html.js .rankb th[data-rc]:not([data-rc="rank"]):not([aria-sort]):after{content:
   background:var(--card);box-shadow:var(--sheen)}
 .bfoot>div{padding:.85rem 1.1rem;border-top:1px solid var(--line-soft)}
 .bfoot>div:first-child{border-top:0}
-.bfoot .bf-l{display:block;font-size:.66rem;font-weight:700;letter-spacing:.12em;
+.bfoot .bf-l{display:block;font-size:.75rem;font-weight:700;letter-spacing:.12em;
   text-transform:uppercase;color:var(--muted);margin-bottom:.35rem}
-.bfoot p{margin:0;font-size:.86rem;color:var(--ink-soft);line-height:1.55}
+.bfoot p{margin:0;font-size:.875rem;color:var(--ink-soft);line-height:1.55}
 .bf-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem 1.6rem}
 .bfoot .btnrow{margin:.1rem 0 0}
 .bfoot .src,.bfoot .board-note{margin:0;max-width:none}
-.ngunpub{font-size:.68rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+.ngunpub{font-size:.75rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
   color:var(--muted)}
 
 /* ── the Big 4 rows, tightened (the one fix on top of the mockup) ──
@@ -1385,26 +1500,10 @@ html.js .rankb th[data-rc]:not([data-rc="rank"]):not([aria-sort]):after{content:
 .tbl.board .proj{white-space:normal;flex-wrap:wrap;row-gap:.1rem}
 .tbl.board th:last-child{white-space:normal}
 
-/* ── the rank boards on a phone: shed, never scroll ──
-   Under 700px the split and projected columns go (each airline's page carries
-   them), the min-width floor comes off and fixed layout lets words wrap, the
-   same treatment .tbl.board already gets. Without this the Big 4 board sat in
-   an 832px scroll frame inside a 390px screen. */
-@media(max-width:700px){
-  .rankb table.tbl{min-width:0;width:100%;table-layout:fixed}
-  .rankb table.tbl td,.rankb table.tbl th{overflow-wrap:anywhere;
-    padding-left:.3rem;padding-right:.3rem}
-  .rankb table.tbl th{white-space:normal;font-size:.6rem;letter-spacing:.05em}
-  .rankb table.tbl th:nth-child(5),.rankb table.tbl td:nth-child(5),
-  .rankb table.tbl th:nth-child(6),.rankb table.tbl td:nth-child(6),
-  .rankb table.tbl th:last-child,.rankb table.tbl td:last-child{display:none}
-  .rankb table.tbl .sco{font-size:1.05rem}
-  .rankb table.tbl td .band{display:block;margin:.15rem 0 0;white-space:normal}
-  .rankb table.tbl .rank{width:2rem}
-  .rankb .filters button[data-sort="mainline"],
-  .rankb .filters button[data-sort="regional"]{display:none}
-  .rankb table.tbl .lab{white-space:normal}
-}
+/* ── the rank boards on a phone: the shed-and-squeeze block that stood here
+   is gone (Phase 1b). Under 880px the .rankb table is display:none and the
+   .cardsb records render instead — see THE BOARDS BELOW 880px ARE CARDS
+   above. No `overflow-wrap:anywhere`, no 9.6px headers, no hidden scroll. */
 
 /* ── the systems chart, hardware-identity palette (round seven, notes 12-14).
    A FOURTH colour owner: hardware identity, beside the bands (numbers), the
@@ -1434,12 +1533,12 @@ html.js .rankb th[data-rc]:not([data-rc="rank"]):not([aria-sort]):after{content:
   border-left:2px dashed var(--muted)}
 .sysrow .wt{font-family:var(--mono);font-weight:700;font-size:.95rem;text-align:right;
   color:var(--ink)}
-.sysrow .ms{grid-column:2/4;margin:0;font-size:.8rem;color:var(--muted)}
+.sysrow .ms{grid-column:2/4;margin:0;font-size:.875rem;color:var(--muted)}
 .sysaxis{display:grid;grid-template-columns:minmax(11rem,16rem) 1fr 3.4rem;gap:0 1.1rem;
   margin:.2rem 0 0}
 .sysaxis .ax{grid-column:2;display:flex;justify-content:space-between;
-  font:700 .7rem/1.4 var(--mono);color:var(--muted)}
-.sysaxis .wl{grid-column:3;font:700 .7rem/1.4 var(--mono);color:var(--muted);text-align:right}
+  font:700 .75rem/1.4 var(--mono);color:var(--muted)}
+.sysaxis .wl{grid-column:3;font:700 .75rem/1.4 var(--mono);color:var(--muted);text-align:right}
 @media(max-width:560px){
   .sysrow,.sysaxis{grid-template-columns:1fr 3.4rem}
   .sysrow .nm{grid-column:1/3}
