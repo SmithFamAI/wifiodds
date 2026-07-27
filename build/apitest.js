@@ -778,6 +778,60 @@ async function main() {
     '/api/docs/ says the score endpoint is retired (410), not just documents it as live');
   ok(/href="\/api\/docs\/"/.test(docs), '/api/docs/ is linked from the shared footer');
 
+  /* ── .needs-js may hide, and may not un-hide ──────────────────────────────
+   * On 26 Jul 2026 `html.js .needs-js{display:revert}` shipped alongside the
+   * disable rule. The pair is not symmetric. `html:not(.js)` and `html.js` can
+   * never both match, so with script on nothing needs to un-hide anything; but
+   * at (0,2,1) the revert rule outranked `.filters{display:flex}` (0,1,0) and
+   * `revert` drops a div to the UA `block`, so the Rank-by rows and the reel
+   * arrows lost their flex layout and their `gap` for every reader running
+   * JavaScript. It was invisible to every script-off test, because script-off
+   * was the one state where the rule did not apply.
+   *
+   * The comment explaining this lives in site.css. A comment is not a rule, so
+   * this is the rule. */
+  /* Comments are stripped first, and that is not a detail. The first version of
+   * this check read the raw file and failed on the clean tree, because the
+   * comment in site.css explaining why the rule is banned quotes the rule. A
+   * guard that cannot tell code from prose about code is not a guard. */
+  var css = fs.readFileSync(path.join(ROOT, 'assets', 'site.css'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  ok(/html:not\(\.js\)\s+\.needs-js\s*\{[^}]*display\s*:\s*none/.test(css),
+    'site.css hides .needs-js when script is off, at (0,2,1)');
+  ok(!/html\.js\s+\.needs-js\s*\{/.test(css),
+    'site.css has NO `html.js .needs-js` rule — such a rule outranks the layout ' +
+    'on the element itself and silently flattens it for JS-on readers');
+
+  /* and the reason it matters: .needs-js really does sit on elements whose own
+   * rules give them a non-block display. If that ever stops being true this
+   * count goes to 0 and the guard above is protecting nothing, so assert it. */
+  var DISPLAY_CLASSES = {};
+  css.replace(/(^|\})\s*([^{}@]+)\{([^}]*)\}/g, function (_, __, sel, body) {
+    var d = /display\s*:\s*([a-z-]+)/.exec(body);
+    if (!d || d[1] === 'none' || d[1] === 'block') return '';
+    sel.split(',').forEach(function (s) {
+      var m = /^\s*\.([A-Za-z0-9_-]+)\s*$/.exec(s);
+      if (m) DISPLAY_CLASSES[m[1]] = d[1];
+    });
+    return '';
+  });
+  var atRisk = [];
+  require(path.join(__dirname, 'routes.js')).ROUTES.forEach(function (r) {
+    if (!r.file || !/\.html$/.test(r.file)) return;
+    var f = path.join(ROOT, r.file);
+    if (!fs.existsSync(f)) return;
+    var html = fs.readFileSync(f, 'utf8');
+    (html.match(/class="[^"]*\bneeds-js\b[^"]*"/g) || []).forEach(function (c) {
+      c.slice(7, -1).split(/\s+/).forEach(function (cl) {
+        if (DISPLAY_CLASSES[cl]) atRisk.push(cl + ':' + DISPLAY_CLASSES[cl]);
+      });
+    });
+  });
+  atRisk = atRisk.filter(function (v, i, a) { return a.indexOf(v) === i; }).sort();
+  ok(atRisk.length > 0,
+    '.needs-js sits on at least one element with its own non-block display, so the ' +
+    'no-`html.js .needs-js` guard above is load-bearing', atRisk.join(' '));
+
   /* ── POST /api/report — the field-report intake ───────────────────────────
    * Same method as the MCP section above: wrangler is not installed, so the
    * module is imported and called with a mock Pages context and we assert on the

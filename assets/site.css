@@ -289,13 +289,20 @@ h1,h2,h3,h4{font-family:var(--serif);color:var(--ink);font-weight:700;letter-spa
 .skip:focus{position:fixed;top:.5rem;left:.5rem;width:auto;height:auto;overflow:visible;
   clip:auto;z-index:60;padding:.45rem .8rem;border-radius:var(--r-md);
   background:var(--btn-bg);color:var(--btn-fg);text-decoration:none}
-/* (0,2,1) on purpose: a later same-specificity rule for the wrapped element
-   (e.g. .filters{display:flex}, declared after this block) would otherwise win
-   the cascade on source order alone and leave a JS-only control showing with
-   script off — exactly the failure this class exists to prevent. The `html.js`
-   enable rule below already carries this specificity; this one needs it too. */
+/* (0,2,1) on purpose. The bare `.needs-js{display:none}` this replaced was
+   (0,1,0), so a rule on the wrapped element such as `.filters{display:flex}`
+   outranked it and left a JS-only control showing with script off.
+
+   There was an `html.js .needs-js{display:revert}` partner here until 27 Jul
+   2026. It was redundant: `html:not(.js)` and `html.js` can never both match,
+   so with script on nothing hides the element and it already keeps whatever
+   display its own rules give it. It was also harmful. At (0,2,1) it outranked
+   `.filters{display:flex}` and `.rlc-nav{display:flex}` at (0,1,0), and
+   `revert` drops a div to the UA default `block`, which collapsed the Rank-by
+   rows and the reel arrows for every reader running JavaScript, and made their
+   `gap` inert. Do not add an enable rule back. Put layout on the element and
+   let the disable rule lapse. `build/apitest.js` asserts this rule is absent. */
 html:not(.js) .needs-js{display:none}
-html.js .needs-js{display:revert}
 html.js .no-js-only{display:none}
 
 /* ── the extension banner ─────────────────────────────────────────────────
@@ -826,10 +833,12 @@ footer.site b{color:var(--muted-strong)}
    The hero IS the tool.
 
    READ THE MARKUP NOTE IN build/lib/pages.js flightCheck() BEFORE EDITING.
-   `.needs-js` sits on the plain wrapper `.fchk`, never on `.fchk-form`, because
-   `html.js .needs-js{display:revert}` (0,2,1) beats `.fchk-form{display:flex}`
-   (0,1,0) and would quietly turn the row back into a block. Layout lives on the
-   children for exactly that reason.
+   `.needs-js` sits on the plain wrapper `.fchk`, never on `.fchk-form`. That
+   used to be load-bearing: `html.js .needs-js{display:revert}` at (0,2,1) beat
+   `.fchk-form{display:flex}` at (0,1,0) and turned the row back into a block.
+   The revert rule was deleted on 27 Jul 2026, so the constraint is gone and a
+   `.needs-js` on a flex element is now safe. Keeping the split anyway: layout
+   on the children reads better and costs nothing.
    ═════════════════════════════════════════════════════════════════════════ */
 .heroq{padding:2.6rem 0 0}
 .heroq h1{font-size:clamp(1.9rem,5.2vw,3rem);line-height:1.12;letter-spacing:-.015em;
