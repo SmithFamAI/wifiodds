@@ -363,20 +363,52 @@ const WIFI_AIRLINES = {
   airfrance: {
     name: "Air France", code: "AF", asOf: "2026-07",
     nextGenSplit: "split-not-published",
-    system: "starlink", equipped: 172, fleet: 229, free: "free",
+    /* CORRECTED 2026-07-26. This entry said 172 of 229 and cited "Air France
+       Starlink rollout releases" — no release with that count exists. Air
+       France's own press release (corporate.airfrance.com, "Complimentary
+       high-speed wifi now available on board Air France flights," 9 Sep 2025)
+       gives NO fleet-wide aircraft count: only "30% of its fleet by the end
+       of the year and throughout its fleet by the end of 2026," plus one
+       dated figure, "the fifth aircraft in its fleet," as of that date. The
+       only type-by-type breakdown in circulation (28/31 777-300ER, 45/56
+       A220, 24/30 E190, 30/41 A350, 3/28 A320 -> 130 of 229) runs through One
+       Mile at a Time back to stardrift.ai, a banned aggregator (rule 3) that
+       was the sole origin of two already-corrected wrong numbers on this
+       site. Same shape as the Qatar and ZIPAIR corrections: an aggregator
+       figure with no publisher of record behind it.
+
+       So there is no sourced replacement, in either direction: not 172, not
+       130 off the aggregator route, and — the trap that bit SAS the same
+       night — not 0 either. equippedPublished(entry) derives "is this count
+       real" from the data shape (starlink named in no segment, unresolved
+       aircraft present) exactly as it does for SAS, so every template on the
+       site prints "count unpublished" instead of a number in either
+       direction nobody can check. The panasonic segment (57 aircraft) is
+       untouched — independent of the Starlink figure, keeps its own
+       citation. serviceTier moves from "mixed" to "basic" for the same
+       reason it did for SAS: with the starlink segment gone, nextGenShare is
+       0 and the remaining Panasonic aircraft do not clear the streaming
+       threshold. */
+    system: "starlink", equipped: 0, fleet: 229, free: "free",
     resolution: "systems",
-    serviceTier: "mixed", restTier: "basic",
+    serviceTier: "basic", restTier: "basic",
     segments: [
-      { system: "starlink", n: 172, free: "free", as: "2026-07",
-        src: "Air France Starlink rollout releases",
-        note: "Free for all Flying Blue members." },
       { system: "panasonic", n: 57, free: "partial", as: "2026-07",
         src: "Air France connectivity page; Ookla 2H 2025 per-provider medians",
         note: "Ookla measured Air France at 1.38 Mbps on Panasonic against 281.56 on " +
           "Starlink in the same period, a 200× spread inside one airline. The free " +
           "tier on these aircraft is messaging only." },
     ],
-    note: "172 of 229 done and free for all Flying Blue members; the remaining Panasonic aircraft measured 1.38 Mbps.",
+    unresolved: { n: 172, why: "Air France has never published a Starlink aircraft count. " +
+      "Its 9 Sep 2025 release names a target of fleetwide by end of 2026 and one dated " +
+      "figure, the fifth aircraft as of that date, but no fleet-wide total. The only " +
+      "type-by-type breakdown in circulation traces to stardrift.ai, a banned aggregator, " +
+      "not to Air France." },
+    note: "Starlink is live and free for Flying Blue members; Air France's own target is " +
+      "fleetwide by the end of 2026 (Air France, \"Complimentary high-speed wifi now " +
+      "available on board Air France flights,\" corporate.airfrance.com, 9 Sep 2025). " +
+      "Air France has not published an aircraft count. Panasonic remains on 57 aircraft, " +
+      "measured at 1.38 Mbps.",
   },
   hawaiian: {
     name: "Hawaiian", code: "HA", asOf: "2026-07",

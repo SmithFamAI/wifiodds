@@ -38,7 +38,7 @@ url                        file                                tmpl             
 /airlines/airbaltic/       airlines/airbaltic/index.html       -                 weekly   0.7  airBaltic WiFi — ConnectScore 100: good
 /airlines/zipair/          airlines/zipair/index.html          -                 weekly   0.7  ZIPAIR WiFi — ConnectScore 100: good
 /airlines/westjet/         airlines/westjet/index.html         -                 weekly   0.7  WestJet WiFi — ConnectScore 72: good
-/airlines/airfrance/       airlines/airfrance/index.html       -                 weekly   0.7  Air France WiFi — ConnectScore 80: good
+/airlines/airfrance/       airlines/airfrance/index.html       -                 weekly   0.7  Air France WiFi — ConnectScore 19: long shot
 /airlines/hawaiian/        airlines/hawaiian/index.html        -                 weekly   0.7  Hawaiian WiFi — ConnectScore 64: good
 /airlines/qatar/           airlines/qatar/index.html           -                 weekly   0.7  Qatar Airways WiFi — ConnectScore 58: mixed
 /airlines/sas/             airlines/sas/index.html             -                 weekly   0.7  SAS WiFi — ConnectScore 5: long shot
