@@ -583,14 +583,37 @@ function splitCell(a, part) {
       '<span class="sco pct">' + seg.pct + '%</span> ' + bandChip(seg.pct)
   };
 }
-/* The fleet count under the next-gen number. Generic and data-driven — no
- * per-airline commentary invented here, just whichever denominator the model
- * already carries (a.fleet, else a.known for a segments-only entry). */
+/* The aircraft count under the next-gen number. It has to be the NEXT-GEN
+ * count over the SAME denominator the score is computed on, or the label
+ * contradicts the number printed beside it.
+ *
+ * Until 27 Jul 2026 this printed `a.equipped / a.fleet`: the PRIMARY system's
+ * count over the WHOLE fleet. Two separate faults, both live, both on the
+ * homepage's top board.
+ *
+ *   American's primary system is Viasat, so the cell read "890/989 flying"
+ *   directly above a next-gen score of 0. Eight hundred and ninety modern-GEO
+ *   aircraft, printed under a heading that says next-gen.
+ *
+ *   United's read "482/1,807" beside a score of 31, and 31 is 482/1,580. The
+ *   score excludes the 227 tails whose system the tracker does not publish;
+ *   the label put them back in the denominator. No reader could reconcile the
+ *   two, and the mainline and regional columns beside it (12%, 51%) reconcile
+ *   to neither.
+ *
+ * The ledger already carries both halves: rows flagged `nextGen` and `known`,
+ * which is the denominator the score uses. Read them rather than reassembling
+ * the number from fields that mean something else.
+ *
+ * `build/apitest.js` asserts the printed pair round-trips to the printed
+ * score, on the built bytes. A comment cannot hold this; the two numbers sit
+ * in different columns and nothing else compares them. */
 function nextGenLab(a) {
-  if (a.equippedPublished === false) return '';
-  if (a.fleet) return num(a.equipped || 0) + '/' + num(a.fleet) + ' flying';
-  if (a.known) return num(a.equipped || 0) + '/' + num(a.known) + ' flying';
-  return '';
+  if (a.nextGenPublished === false) return '';
+  var L = a.ledger;
+  if (!L || !L.rows || !L.known) return '';
+  var n = L.rows.reduce(function (s, r) { return s + (r.nextGen ? r.n : 0); }, 0);
+  return num(n) + '/' + num(L.known) + ' flying';
 }
 
 /* THE "X of Y" PHRASE — one function, so "0 of 123" standing in for "not

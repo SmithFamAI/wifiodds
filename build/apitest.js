@@ -778,6 +778,41 @@ async function main() {
     '/api/docs/ says the score endpoint is retired (410), not just documents it as live');
   ok(/href="\/api\/docs\/"/.test(docs), '/api/docs/ is linked from the shared footer');
 
+  /* ── the next-gen label must round-trip to the next-gen score ─────────────
+   * Both halves worked and the wiring between them was crossed, which is the
+   * failure shape nothing throws on. The cell prints "N/M flying" above a
+   * score, in two different spans, and until 27 Jul 2026 nothing compared
+   * them. American read "890/989 flying" over a score of 0, because 890 is
+   * its VIASAT count; United read "482/1,807" over 31, because 31 is
+   * 482/1,580. Both rendered perfectly.
+   *
+   * So this asserts the description against the behaviour: parse the printed
+   * pair back out of the built HTML and demand it produces the printed score. */
+  var boardHtml = fs.readFileSync(path.join(ROOT, 'airlines', 'index.html'), 'utf8');
+  var ngCells = boardHtml.match(
+    /<td class="num vcell[^"]*" data-col="nextgen">\s*<span class="lab">([\d,]+)\/([\d,]+) flying<\/span>\s*<span class="sco">(\d+)<\/span>/g) || [];
+  var ngChecked = 0, ngBad = [];
+  ngCells.forEach(function (cell) {
+    var m = /<span class="lab">([\d,]+)\/([\d,]+) flying<\/span>\s*<span class="sco">(\d+)<\/span>/.exec(cell);
+    if (!m) return;
+    var n = Number(m[1].replace(/,/g, ''));
+    var of = Number(m[2].replace(/,/g, ''));
+    var score = Number(m[3]);
+    ngChecked++;
+    if (of <= 0) { ngBad.push('denominator 0 in "' + m[1] + '/' + m[2] + '"'); return; }
+    var implied = Math.round((n / of) * 100);
+    if (implied !== score) {
+      ngBad.push('"' + m[1] + '/' + m[2] + ' flying" implies ' + implied +
+        ' but the cell prints ' + score);
+    }
+  });
+  ok(ngChecked >= 10,
+    'found next-gen cells on /airlines/ to check (a selector that matches nothing ' +
+    'is a green light from something that was not looking)', ngChecked + ' cells');
+  eq(ngBad.length, 0,
+    'every next-gen "N/M flying" label round-trips to the score printed beside it',
+    ngBad.join(' · '));
+
   /* ── .needs-js may hide, and may not un-hide ──────────────────────────────
    * On 26 Jul 2026 `html.js .needs-js{display:revert}` shipped alongside the
    * disable rule. The pair is not symmetric. `html:not(.js)` and `html.js` can
