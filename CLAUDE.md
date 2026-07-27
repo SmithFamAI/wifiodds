@@ -144,3 +144,74 @@ message whether the linter or the file was at fault.
 - **One aggregator poisoned two live numbers** on 26 Jul. A figure that appears in ten places can
   still have one source, and that source can contradict itself two scroll-lengths down. Trace to a
   publisher of record.
+- **Unknown is not zero.** Setting a count to 0 to make an unsourced figure go away publishes a claim
+  nothing supports, and it happened on 26 Jul. SAS's Starlink count went to `equipped: 0` against a
+  fleet total left at 123, so the page read "0 of 123 (0%)" while its own note said Starlink launched
+  24 Mar 2026. That is a false, sourced-looking zero on a fleet with some real coverage nobody has
+  published a count for. The fix is `equippedPublished` / `nextGenPublished` (booleans) plus
+  `pctEquipped()` returning `null`, never `0`, when the underlying count is unpublished. Every
+  template has to read those flags before printing a number. A raw `equipped` field of 0 is ambiguous
+  between "confirmed zero" and "unknown," and this codebase shipped exactly that bug once.
+
+---
+
+## `united/data.json`'s roster is Starlink-only
+
+There is no system-by-segment crosstab in it. No Ka-band count, no ATG count, nothing broken out by
+Viasat generation. It tracks one thing: which tails have Starlink, mainline vs regional. That means
+the three-score model (`nextGenSplit` on all 18 airlines in `assets/airlines.js`, `nextGen.split` in
+the API, `VALUE_SPLIT_ALLOWED = ['united']` as the apitest tripwire that fails if anyone estimates a
+missing split for a non-United airline) produces three **NEXT-GEN ODDS**: the chance of drawing a
+Starlink or Amazon Leo aircraft, split mainline and regional. It does not produce three ConnectScores.
+ConnectScore still answers a different question, today's system quality, weighted and blended. Don't
+conflate the two when writing about "three scores." It is one score plus a two-way split of the
+next-gen number, not three independent scores of the same thing.
+
+---
+
+## The canonical-vs-device responsive checker trap
+
+Two files both claim the job:
+
+- `~/websites/scripts/responsive/check.mjs`, the canonical one, 4,768 bytes. Sweeps 23 widths in
+  WebKit and Chromium and checks two failure classes: overflow, and whether landmark left edges agree.
+  That second check catches the alignment bug an overflow test can never see. See `WIFIODDS-BOOT.md`'s
+  "browser, not curl" section for the incident that wrote this.
+- `~/.wo-respo/check.mjs`, a different and smaller script, 2,899 bytes. Imports only
+  `webkit, chromium` (no `devices`), and does zero alignment checking. Confirmed by diff on 26 Jul.
+
+`~/.wo-respo/` has a populated `node_modules/`. `~/websites/scripts/responsive/` does not, and ESM
+resolution ignores `NODE_PATH`, so running the canonical script in place fails on missing `playwright`.
+**Copy `~/websites/scripts/responsive/check.mjs` into `~/.wo-respo/` (next to its `node_modules`)
+before running it.** Do not run whichever copy happens to be closer at hand. A session that
+finds `~/.wo-respo/check.mjs` first will get a clean "no overflow" result that says nothing about
+alignment, and will not know that's what happened.
+
+---
+
+## The prose ratchet: verified, not assumed
+
+`build/slop-gate.js` does rewrite a page's baseline downward when the page's prose genuinely
+improves. This was tested directly on 26 Jul instead of taking the code comment on faith: with
+`index.html`'s recorded baseline temporarily edited to a higher `pivotUnits` (simulating a prior
+state with more em dashes than today), `node build/slop-gate.js` printed `ratcheted DOWN index.html:
+pivotPer1000 3.43 → 2.43` and rewrote the baseline file to match. The mechanism works. The edit was
+reverted with `git checkout -- build/slop-baseline.json` right after. Nothing here changed a
+committed number.
+
+The nuance that made this look broken: **`pivotPer1000` only ratchets down when the underlying
+`pivotUnits` count also fell**, not just the rate. That's deliberate. `build/slop-gate.js`'s own
+comment explains that the roster growing every morning lowers the rate on its own (measured:
+`/united/fleet/` fell from 1.71 to 1.37 on a simulated quarter of daily pulls with zero prose
+changes). Ratcheting on rate alone would let the ceiling tighten itself unattended, and that is the
+one way this gate could fail at 04:32. So a fix that doesn't reduce the actual dash count won't move
+the baseline, even if the rate would look better on paper.
+
+Separately, and worth checking before assuming a specific fix should have ratcheted anything: commit
+`8c4edf3` removed the em dash from `fitBadge()`'s tooltip `title=""` attribute across several airline
+rows, but `index.html`'s baseline sat at `pivotPer1000: 2.43` / `pivotUnits: 4.25` both before and
+after a full rebuild. Whether `slop-check.js` reads text inside HTML attributes at all, as opposed to
+only visible rendered text, was not confirmed in this pass. If it doesn't, that particular fix was
+real (better markup, unrelated to the linter) but was never going to move the score. The 2.43 ceiling
+would measure something else in that case, not unrepaid debt. Check `build/slop-check.js`'s HTML
+extraction before concluding either way.
