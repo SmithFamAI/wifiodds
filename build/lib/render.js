@@ -2498,10 +2498,24 @@ function unitedOptimizer(m) {
   /* The template is injected, never parsed: the ~1,400 lines of live-tested app
      JS and CSS in it are byte-identical in the output. Only the data-bake
      markers are touched — three in the no-JS stat line, and the route tables. */
+  /* The tracker's daily 481/1,808 and United's own quarterly filing count two
+     different populations (D1/D6: the tracker includes regional partner tails
+     United does not carry in its own consolidated fleet), so this second line
+     is a corroboration, never a replacement — both numbers come straight off
+     united/data.json's fleet.published, which reconcileUnited() already
+     refuses to build without. Nothing here is computed by dividing one
+     population's numerator by the other's denominator (see whyBothFields on
+     that object); pubPct is published equipped ÷ published total, full stop. */
+  var pub = m.fleet.published;
+  var pubPct = pub ? Math.round((pub.equipped / pub.total) * 1000) / 10 : null;
   var t = T.bake(T.load('united-optimizer'), {
     'united.equipped': num(m.fleet.equipped),
     'united.total': num(m.fleet.total),
     'site.updated': m.updated,
+    'united.pub.equipped': pub ? num(pub.equipped) : '—',
+    'united.pub.total': pub ? num(pub.total) : '—',
+    'united.pub.pct': pub ? pubPct.toFixed(1) + '%' : '—',
+    'united.pub.asof': pub ? H.chipDate(pub.asOf) : '—',
     /* The static route tables inside .no-js-only. This is the page's whole
        answer for a reader with script off, and before it existed the route
        renders zero tables and ten empty containers. See build/lib/nojsroutes.js. */
