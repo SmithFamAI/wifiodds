@@ -714,21 +714,28 @@ async function main() {
    * matters: its Big 4 row ranks next-gen at 0 on a fleet with a mixed-band
    * connectScore, and the API must agree about both numbers. */
   var home = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-  /* every skyline bar's accessible label must equal that airline's API score */
-  var skyBlock = /<div class="skyline">[\s\S]*?<\/div>/.exec(home);
-  ok(skyBlock !== null, 'homepage: the skyline is present');
-  var skyRe = /aria-label="([^"]+), ConnectScore (\d+)"/g;
-  var seenBars = 0, mBar;
-  while (skyBlock && (mBar = skyRe.exec(skyBlock[0])) !== null) {
-    var byName = all.airlines.filter(function (a) { return a.name === mBar[1]; })[0];
-    ok(!!byName, 'skyline bar names an airline the API knows', mBar[1]);
-    if (!byName) continue;
-    seenBars++;
-    eq(Number(mBar[2]), byName.connectScore,
-      'PARITY: ' + mBar[1] + ' skyline bar == API connectScore');
+
+  /* The skyline was removed on 27 Jul 2026, and it used to carry this axis of
+     parity: all 18 airlines, each bar's accessible label checked against the
+     API's connectScore. Deleting the component must not delete the coverage,
+     so the same 18 comparisons now run against the mobile cards, which are the
+     surface that replaced it and the primary rendering at phone widths.
+     Removing a check because its subject moved is how coverage evaporates
+     quietly; the check follows the data instead. */
+  var cardRe = /<li class="crd[^"]*" data-key="([^"]+)"[\s\S]*?<span class="sco">(\d+)<\/span>/g;
+  var seenCards = 0, mCard, cardKeys = {};
+  while ((mCard = cardRe.exec(home)) !== null) {
+    if (cardKeys[mCard[1]]) continue;      /* two boards render the Big 4 twice */
+    cardKeys[mCard[1]] = true;
+    var byKey = all.airlines.filter(function (a) { return a.key === mCard[1]; })[0];
+    ok(!!byKey, 'a homepage card names an airline the API knows', mCard[1]);
+    if (!byKey) continue;
+    seenCards++;
+    eq(Number(mCard[2]), byKey.connectScore,
+      'PARITY: ' + mCard[1] + ' card == API connectScore');
   }
-  eq(seenBars, all.airlines.length,
-    'PARITY: every scored airline has a skyline bar checked against the API');
+  eq(seenCards, all.airlines.length,
+    'PARITY: every scored airline has a homepage card checked against the API');
   /* the Big 4 rows carry their numbers as the data attributes the Rank-by
      control sorts on; those must agree with the API, Delta's zero included */
   var big4 = /<div class="rankb" id="home-big4-board">[\s\S]*?<\/table>/.exec(home);

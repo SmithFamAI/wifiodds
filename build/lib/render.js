@@ -117,18 +117,12 @@ function home(m) {
     if (names.length < 2) return names.join('');
     return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
   }
-  var sky = m.ranked.map(function (a) {
-    return '    <a href="/airlines/' + a.key + '/" aria-label="' + esc(a.name) +
-      ', ConnectScore ' + a.score + '" data-l="' + esc(a.name) + ' · ' + a.score +
-      '"><i class="fill ' + P.band(a.score) + '" style="height:' + a.score + '%"></i></a>';
-  }).join('\n');
   var last = m.ranked[m.ranked.length - 1];
   var doneAt100 = phases.done.length && phases.done.every(function (a) { return a.score === 100; });
   var skycap = esc(listAnd(phases.done.map(function (a) { return a.name; }))) +
     (doneAt100 ? ' are finished at 100' : ' are finished') +
     '; the pack mid-retrofit sits in the 40s and 50s; ' + esc(last.name) + ' trails at ' +
-    last.score + '. Counted ' + esc(H.chipDate(m.updated)) + '. Each bar is an airline: hover ' +
-    'or tab for the name and number, tap for the page.';
+    last.score + '. Counted ' + esc(H.chipDate(m.updated)) + '.';
 
   /* ── THE SYSTEMS CHART, hardware-identity palette (round seven, notes
    * 12-14). A fourth colour owner: the bars name HARDWARE, never a score, so
@@ -194,8 +188,15 @@ function home(m) {
     '    </div>\n' +
     '    ' + P.cwsBadge() + '\n' +
     '  </aside>\n' +
-    '  <div class="skyline">\n' + sky + '\n  </div>\n' +
-    '  <p class="skycap">' + skycap + '</p>\n' +
+    /* THE SKYLINE IS GONE, by Jeremy's call on 27 Jul 2026. Eighteen unlabelled
+       bars read as texture rather than information: no scale, no names, and on a
+       phone the tail of the field rendered as slivers a finger could not hit.
+       An external audit measured each target at 11.5px wide at 320 and 17.5px at
+       440, which fails WCAG 2.2 SC 2.5.8, and the caption admitted the problem
+       by telling readers to hover on a device that has no hover.
+       The one-line summary it carried was the useful part, so that survives as a
+       sentence. The boards below say the rest, with names attached. */
+    '  <p class="lede fieldsum">' + skycap + '</p>\n' +
     '</header>\n\n' +
     /* ── THE BIG 4, ported from /airlines/ (Option A, approved by Jeremy 26
      * Jul 2026), with round seven's column guide and consolidated board

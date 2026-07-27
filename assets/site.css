@@ -287,7 +287,7 @@ h1,h2,h3,h4{font-family:var(--serif);color:var(--ink);font-weight:700;letter-spa
   padding:0 max(1.25rem,env(safe-area-inset-right)) 0 max(1.25rem,env(safe-area-inset-left))}
 main .lede,main .sec-lede,main .footnote,main .skycap,main .src,
 main .prov,main ul.vstate,main .board-note,main .pointer,main .extfine,
-.rankb .sortcap p,.sysrows,.herocall,.skyline{max-width:none}
+.rankb .sortcap p,.sysrows,.herocall,.fieldsum{max-width:none}
 .prose{max-width:44rem}
 :focus-visible{outline:2px solid var(--sky);outline-offset:2px}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -1420,26 +1420,9 @@ html.light .cws-l{display:block}
 .extblk .cwsbadge img{height:58px}
 @media(max-width:480px){.cwsbadge img,.extblk .cwsbadge img{height:44px}}
 
-/* ── the skyline: 18 airlines as one row of linked bars ──
-   The bar's height is the score, its colour is the band. The name-and-number
-   label on hover or keyboard focus is pure CSS, so it works with script off;
-   chrome colours only, because a label is not a score. */
-.skyline{display:flex;gap:5px;align-items:flex-end;height:96px;margin:1.8rem 0 .5rem}
-.skyline a{flex:1 1 0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;
-  min-width:0;position:relative}
-.skyline .fill{display:block;border-radius:3px 3px 0 0;min-height:2px}
-.skyline .fill.sc-good{background:var(--good)}
-.skyline .fill.sc-mix{background:var(--mixed)}
-.skyline .fill.sc-long{background:var(--long)}
-.skyline .fill.sc-no{background:var(--zero)}
-.skyline a:hover::after,.skyline a:focus-visible::after{content:attr(data-l);position:absolute;
-  bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);white-space:nowrap;
-  font:700 .75rem/1.5 var(--mono);background:var(--card);color:var(--ink);
-  border:1px solid var(--line);padding:1px 7px;border-radius:6px;pointer-events:none;z-index:3}
-.skyline a:first-child:hover::after,.skyline a:first-child:focus-visible::after{left:0;transform:none}
-.skyline a:last-child:hover::after,.skyline a:last-child:focus-visible::after{left:auto;right:0;transform:none}
-.skycap{font-size:.875rem;color:var(--muted);margin-top:.45rem}
-
+/* The skyline was removed on 27 Jul 2026 along with its rules. Eighteen
+   unlabelled bars, no scale, and touch targets measured at 11.5px wide at
+   320px. See build/lib/render.js for the reasoning. */
 /* ── the column guide reads as a control: a bordered, hoverable disclosure
    with a chevron that flips. details/summary, so it opens with script off. ── */
 .colguide{margin:1.5rem 0 0}
