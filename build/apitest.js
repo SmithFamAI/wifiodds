@@ -787,6 +787,147 @@ async function main() {
     '/api/docs/ says the score endpoint is retired (410), not just documents it as live');
   ok(/href="\/api\/docs\/"/.test(docs), '/api/docs/ is linked from the shared footer');
 
+  /* ── unpublished means unpublished on EVERY surface, not just the board ───
+   * An external audit found Air France and SAS publishing "Next-gen odds …
+   * 0.0% … 0" on their detail pages while the leaderboard, the cards and the
+   * API all said "count unpublished" for the same airlines. Two rows above the
+   * zero, the same table said the count was not published.
+   *
+   * build/assert-measured-zero.js exists to stop exactly this and did not,
+   * because it validates the shape of a DATA ENTRY and this was a RENDERED
+   * claim. The guard was one layer below the defect. Field-level checks cannot
+   * see what a template does with a field.
+   *
+   * So this walks the built bytes for every airline the model says is
+   * unpublished and demands that no page prints a number for it. */
+  var A_LIB = require(path.join(ROOT, 'assets', 'airlines.js'));
+  var unpubKeys = Object.keys(A_LIB.WIFI_AIRLINES).filter(function (k) {
+    var e = A_LIB.WIFI_AIRLINES[k];
+    var L = A_LIB.ledgerFor(e);
+    return L && L.unresolved > 0 && L.nextGenShare === 0;
+  });
+  ok(unpubKeys.length > 0,
+    'there is at least one unpublished-count airline to check, so this guard is ' +
+    'protecting something', unpubKeys.join(', '));
+  var unpubBad = [];
+  unpubKeys.forEach(function (k) {
+    var f = path.join(ROOT, 'airlines', k, 'index.html');
+    if (!fs.existsSync(f)) return;
+    var html = fs.readFileSync(f, 'utf8');
+    /* the ledger's next-gen row: whatever cells follow the label, none may be a number */
+    var row = /Next-gen odds, the top row on its own([\s\S]{0,400}?)<\/tr>/.exec(html);
+    if (!row) { unpubBad.push(k + ': next-gen ledger row not found — selector rotted'); return; }
+    var cells = row[1].replace(/<[^>]+>/g, ' ');
+    var nums = cells.match(/\d+(?:\.\d+)?%?/g) || [];
+    if (nums.length) {
+      unpubBad.push(k + ' prints ' + nums.join(', ') + ' in its next-gen ledger row ' +
+        'while the model says the count is unpublished');
+    }
+  });
+  eq(unpubBad.length, 0,
+    'no page prints a numeric next-gen value for an airline whose count is unpublished',
+    unpubBad.join(' · '));
+
+  /* ── the mobile card and the desktop table must agree ─────────────────────
+   * They are separately rendered strings. A source comment claimed they "can
+   * never disagree"; an auditor changed one expression in the card renderer,
+   * ran the whole gate, got exit 0, and shipped a page reading 31% in the
+   * table and 32% in the card. The card is the primary surface at phone
+   * widths, so the mutation changed the answer to the site's core question
+   * with every check green.
+   *
+   * A comment is not a mechanism. This compares the rendered values. */
+  var homeHtml = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  var cardVals = {}, tableVals = {}, parityBad = [];
+  /* cards are <li class="crd …" data-key="american">, and the table rows carry
+     the same key. Keying on data-key rather than the display name means a
+     renaming cannot quietly drop an airline out of the comparison. */
+  /* No length cap on either match. The first version used {0,1400} and {0,1600}
+     windows and silently captured 4 rows out of 22, because the 18-board rows
+     are longer than the Big 4 rows. The floor assertion below said "4 shared"
+     and that is the only reason it was caught. A bounded window is a quiet way
+     to check a fifth of the thing and report on all of it. */
+  (homeHtml.match(/<li class="crd[^"]*" data-key="[^"]+"[\s\S]*?<\/li>/g) || []).forEach(function (c) {
+    var keyM = /data-key="([^"]+)"/.exec(c);
+    var scoreM = /<span class="sco">(\d+)<\/span>/.exec(c);
+    var ngM = /<b>(\d+)%<\/b>/.exec(c);
+    var unpub = /count unpublished/.test(c);
+    if (keyM && scoreM) cardVals[keyM[1]] = { score: scoreM[1], ng: unpub ? '' : (ngM ? ngM[1] : null) };
+  });
+  /* Two row shapes on this page, and anchoring on the wrong one is how the
+     first version covered 4 of 18. The Big 4 board emits
+     `<tr data-name data-score data-nextgen … data-key>`; the 18-board emits
+     `<tr data-f data-key>` and carries its numbers in cells rather than
+     attributes. Match on data-key, which both carry, and read the score from
+     the attribute when it is there and from the rendered cell when it is not. */
+  /* Two row shapes, and anchoring on the wrong one is how the first version
+     covered 4 of 18. The Big 4 board emits `<tr data-name data-score
+     data-nextgen … data-key>`; the 18-board emits `<tr data-f data-key>` and
+     carries its next-gen number in a cell with `data-s`, not an attribute on
+     the row.
+     Both shapes get parsed, and BOTH are kept per key rather than the later
+     one overwriting the earlier. The first working version used a plain
+     assignment, so the 18-board row (whose next-gen is in a cell) overwrote
+     the Big 4 row (whose next-gen is an attribute) with a null, and a null
+     silently skipped the comparison. The auditor's mutation then passed a
+     guard written to catch it. Every parsed rendering is compared. */
+  /* Read the labelled cell, never a guessed one. The first version of this
+     hunted for the first band-coloured cell carrying data-s and skipped
+     anything containing "fitted"; for Delta and jetBlue, whose score cell has
+     no fitted badge, it picked the ConnectScore cell and reported next-gen 49
+     against a card showing 0. Both generators now emit data-col="nextgen". */
+  function rowNextGen(r) {
+    var m = /data-nextgen="(\d*)"/.exec(r);
+    if (m) return m[1];
+    var cell = /<td[^>]*data-col="nextgen"[^>]*>[\s\S]*?<\/td>/.exec(r);
+    if (!cell) return null;
+    if (/ngunpub|count unpublished/.test(cell[0])) return '';
+    var v = /<span class="sco"[^>]*>(\d+)%?<\/span>/.exec(cell[0]) ||
+            /data-s="(\d+)"/.exec(cell[0]);
+    return v ? v[1] : null;
+  }
+  (homeHtml.match(/<tr [^>]*data-key="[^"]+"[\s\S]*?<\/tr>/g) || []).forEach(function (r) {
+    var keyM = /data-key="([^"]+)"/.exec(r);
+    if (!keyM) return;
+    var scoreM = /data-score="(\d+)"/.exec(r) || /<span class="sco">(\d+)<\/span>/.exec(r);
+    if (!scoreM) return;
+    (tableVals[keyM[1]] = tableVals[keyM[1]] || [])
+      .push({ score: scoreM[1], ng: rowNextGen(r) });
+  });
+  var shared = Object.keys(cardVals).filter(function (n) { return tableVals[n]; });
+  /* The floor is every card on the page, not an arbitrary minimum. If a card
+     exists and its row cannot be found, that airline is unprotected and the
+     build should say so rather than quietly comparing the ones it managed to
+     parse. */
+  ok(shared.length === Object.keys(cardVals).length && shared.length >= 18,
+    'every card on the page has a table row to compare against, and there are at ' +
+    'least 18 (a selector matching nothing reports parity forever)',
+    shared.length + ' of ' + Object.keys(cardVals).length + ' cards matched to rows');
+  var ngCompared = 0;
+  shared.forEach(function (n) {
+    tableVals[n].forEach(function (row, i) {
+      if (cardVals[n].score !== row.score) {
+        parityBad.push(n + ' score: card ' + cardVals[n].score + ' vs table[' + i + '] ' + row.score);
+      }
+      /* null means this rendering carries no next-gen value to compare, which
+         is only legitimate if the card carries none either. A null on one side
+         and a number on the other is itself a disagreement, not a reason to
+         skip: skipping on null is exactly how the first version passed the
+         auditor's mutation. */
+      if (cardVals[n].ng === null && row.ng === null) return;
+      ngCompared++;
+      if (String(cardVals[n].ng) !== String(row.ng)) {
+        parityBad.push(n + ' next-gen: card ' + cardVals[n].ng + ' vs table[' + i + '] ' + row.ng);
+      }
+    });
+  });
+  ok(ngCompared >= 18,
+    'the next-gen value was actually compared for at least 18 renderings, rather ' +
+    'than skipped as null on one side', ngCompared + ' comparisons made');
+  eq(parityBad.length, 0,
+    'the mobile card and the desktop table print the same numbers for the same airline',
+    parityBad.join(' · '));
+
   /* ── the theme sentence must describe the theme code ──────────────────────
    * The footer said "The page follows your system's light or dark setting"
    * while the boot script called classList.add("dark") unconditionally. Both

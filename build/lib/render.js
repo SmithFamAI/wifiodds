@@ -537,9 +537,33 @@ function ledgerTable(m, a) {
     '</td><td class="num">' + num(L.known) + '</td><td class="num">100%</td>' +
     '<td></td><td></td><td></td><td class="num"><b>' +
     (a.hasRange ? a.floor + ' to ' + a.ceiling : a.floor) + '</b></td></tr>' +
-    '<tr><td>Next-gen odds, the top row on its own</td><td></td><td class="num">' +
-    (a.nextGenShare * 100).toFixed(1) + '%</td><td></td><td></td><td></td>' +
-    '<td class="num"><b>' + a.nextGenScore + '</b></td></tr></tfoot>\n' +
+    /* `nextGenPublished === false` is the Air France and SAS shape: a segmented
+       fleet with unresolved aircraft whose primary system names no segment. The
+       leaderboard, the API and the cards all print "count unpublished" for it.
+       This row did not, and printed "0.0%" and "0" instead, two rows under a
+       line that said the count was not published. An external audit found it on
+       27 Jul 2026, on the live site, on both airlines.
+    
+       That is the SAS class the whole `equippedPublished`/`nextGenPublished`
+       mechanism exists to prevent, and it survived because
+       build/assert-measured-zero.js checks the shape of a DATA ENTRY and this is
+       a RENDERED claim. The guard was looking one layer below the defect.
+       build/apitest.js now asserts the invariant on the built bytes: if the API
+       says published is false, no page may print a number for it. */
+    (a.nextGenPublished === false
+      ? '<tr><td>Next-gen odds, the top row on its own</td><td></td>' +
+        '<td class="num"><span class="empty-state cell">count unpublished</span></td>' +
+        /* `.dash` with a middle dot, not an em dash: that is the idiom the
+           projected column already uses for "there is nothing to show here",
+           and the prose ratchet counts an em dash as pivot punctuation even
+           inside a table cell, which is the right call for a linter that
+           cannot tell a cell from a sentence. */
+        '<td></td><td></td><td></td><td class="num">' +
+        '<span class="dash" title="' + esc(a.name + ' has not published an aircraft count') +
+        '">·</span></td></tr></tfoot>\n'
+      : '<tr><td>Next-gen odds, the top row on its own</td><td></td><td class="num">' +
+        (a.nextGenShare * 100).toFixed(1) + '%</td><td></td><td></td><td></td>' +
+        '<td class="num"><b>' + a.nextGenScore + '</b></td></tr></tfoot>\n') +
     '  </table></div>\n' +
     '  <p class="tblcap">' + num(L.known) + ' aircraft with a published system' +
     (L.unresolved ? ', plus ' + num(L.unresolved) + ' left out of the denominator instead of ' +

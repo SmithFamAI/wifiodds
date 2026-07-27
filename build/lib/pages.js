@@ -543,11 +543,17 @@ function fieldTable(m) {
          aircraft with some still unresolved. That 0 is not a measurement, so
          it does not get the score treatment. It says so in words, ranks with
          data-s="-1" below every real number, and never prints a zero. */
+      /* data-col marks which cell holds the next-gen number. Without it a
+         checker has to guess from position or band class, and the parity guard
+         written on 27 Jul guessed wrong: it took the ConnectScore cell for any
+         airline whose score cell carried no fitted badge, and reported Delta's
+         next-gen as 49. A label the generator emits beats a heuristic the
+         checker infers. */
       (a.nextGenPublished === false
-        ? '<td class="num" data-s="-1"><span class="ngunpub" title="' +
+        ? '<td class="num" data-col="nextgen" data-s="-1"><span class="ngunpub" title="' +
           esc(a.name + ' has launched ' + a.systemLabel + ' but has not published an aircraft ' +
             'count') + '">counts unpublished</span></td>'
-        : '<td class="num ' + band(ng) + '" data-s="' + ng + '"><span class="sco" ' +
+        : '<td class="num ' + band(ng) + '" data-col="nextgen" data-s="' + ng + '"><span class="sco" ' +
           'style="font-size:1rem">' + ng + '</span></td>') +
       /* the span is the measurable line box: the assert reads element height
          against line-height, and a bare one-word td stretched by a taller
