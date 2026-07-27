@@ -4,6 +4,30 @@ Read this before touching anything. It encodes bugs that already cost real hours
 
 ---
 
+## ⚠️ THERE IS AN INDEPENDENT AUDITOR. READ ITS RULES BEFORE CLAIMING ANYTHING IS DONE.
+
+An external adversarial auditor reviews this site. The working relationship is governed by a
+standing document, and every session that ships anything is bound by it:
+
+    ~/wifiodds-exchange/AUDITOR-MASTER-PROMPT.md      the standing rules. Read it.
+    ~/wifiodds-exchange/STATUS.md                     what is OPEN and who is waiting
+    ~/wifiodds-exchange/README.md                     folder mechanics and the two signals
+
+Naming the folder is not enough; a good protocol nobody is told to open is no protocol. **Open the
+master prompt by name.**
+
+The rule that binds this side, and the one that slips first:
+
+> **The builder does not close a finding. The auditor clears it.** Ship the fix, request
+> verification, and leave the finding OPEN until a verdict lands on the shipped artefact.
+
+A green `bash build/ship.sh --check-only` is this repository's opinion of its own work. The last
+audit found three P0s that all passed it: a machine-readable file publishing an unsourced zero, a
+mobile surface that could disagree with the desktop one, and an analytics beacon injected at the
+edge that no check here could see because none of them read anything but bytes this repo produced.
+
+---
+
 ## ⚠️ FILE ACCESS: use Desktop Commander, not the built-in file tools
 
 **On this machine, `~/Projects/wifiodds` is usually NOT connected to the Cowork session.** The
