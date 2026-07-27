@@ -96,10 +96,18 @@
   --paper:#fbf8f2; --panel:#f4eee2; --card:#ffffff; --field:#ffffff;
   --ink:#29241c; --ink-soft:#443d32; --muted:#6e6557; --muted-strong:#59503f;
   --line:#e3daca; --line-soft:#ece5d6;
+  /* --field-border is SCOPED to form-control resting borders. --line itself
+     measures 1.20-1.43:1 against --field in both themes — fine for a card
+     edge or a divider, not enough for a control boundary, which needs 3:1
+     (WCAG 1.4.11). Reusing --sky here would fix the ratio but make a field's
+     resting and focused borders identical, trading this failure for a
+     2.4.7 one, so this is a new token rather than a --line retune or a
+     --sky reuse. Verified 3.60-4.24:1 against paper/panel/card/field. */
+  --field-border:#91794d;
 
   /* ── the bands. Every number on the site, and nothing else. ── */
-  --good:#1e7a46; --mixed:#a06400; --long:#a84b2f; --zero:#8a8177;
-  --proj:#7c7568; --proj-bg:#efe9dc;
+  --good:#1e7a46; --mixed:#975e00; --long:#a84b2f; --zero:#716a62;
+  --proj:#6e675c; --proj-bg:#efe9dc;
 
   /* ── the sky. Every piece of chrome, and nothing else. ── */
   --sky:#2d5a7d; --sky-deep:#22455f; --sky-fg:#e9f1f7;
@@ -183,7 +191,8 @@
   --paper:#1b1713; --panel:#241f19; --card:#2b251d; --field:#241f19;
   --ink:#f2e9db; --ink-soft:#cfc4b3; --muted:#a4988a; --muted-strong:#c9bda9;
   --line:#3a332a; --line-soft:#2e2820;
-  --good:#63c98a; --mixed:#e0a53f; --long:#e07a5f; --zero:#8d8172;
+  --field-border:#8a7964;
+  --good:#63c98a; --mixed:#e0a53f; --long:#e07a5f; --zero:#978c7f;
   --proj:#a99e8e; --proj-bg:#2b251d;
   --sky:#9dc2dc; --sky-deep:#16293a; --sky-fg:#c9dcea;
   --link:var(--sky); --placeholder:#7d7264;
@@ -198,7 +207,8 @@
     --paper:#1b1713; --panel:#241f19; --card:#2b251d; --field:#241f19;
     --ink:#f2e9db; --ink-soft:#cfc4b3; --muted:#a4988a; --muted-strong:#c9bda9;
     --line:#3a332a; --line-soft:#2e2820;
-    --good:#63c98a; --mixed:#e0a53f; --long:#e07a5f; --zero:#8d8172;
+    --field-border:#8a7964;
+    --good:#63c98a; --mixed:#e0a53f; --long:#e07a5f; --zero:#978c7f;
     --proj:#a99e8e; --proj-bg:#2b251d;
     --sky:#9dc2dc; --sky-deep:#16293a; --sky-fg:#c9dcea;
     --link:var(--sky); --placeholder:#7d7264;
@@ -626,7 +636,7 @@ html.js table.tbl th[data-k][aria-sort="descending"]:after{content:"\2193";opaci
   border-color:var(--btn-bg)}
 .srch{display:inline-flex;align-items:center;gap:.5rem;margin:0 0 .9rem}
 .srch input{font:inherit;padding:.5rem .7rem;border-radius:var(--r-md);font-size:.9rem;
-  background:var(--field);color:var(--ink);border:1px solid var(--line);min-width:11rem}
+  background:var(--field);color:var(--ink);border:1px solid var(--field-border);min-width:11rem}
 .srch input::placeholder{color:var(--placeholder)}
 /* No outline:none here. This selector is more specific than the sitewide
    :focus-visible rule, so suppressing the outline left the /airlines/ search
@@ -833,7 +843,7 @@ footer.site b{color:var(--muted-strong)}
   max-width:34rem}
 .fchk-in{flex:1 1 14rem;min-width:0;font:inherit;padding:.72rem .9rem;
   border-radius:var(--r-md);background:var(--field);color:var(--ink);
-  border:1px solid var(--line);-webkit-appearance:none;appearance:none}
+  border:1px solid var(--field-border);-webkit-appearance:none;appearance:none}
 .fchk-in::placeholder{color:var(--placeholder)}
 .fchk-in:focus{outline:none;border-color:var(--sky);box-shadow:0 0 0 2px rgb(45 90 125 / .18)}
 .fchk-in::-webkit-search-cancel-button{-webkit-appearance:none}
@@ -1119,7 +1129,7 @@ html.anim .track.in .fill{width:var(--pct)}
 .fh{margin:20px 0 2px;grid-column:1/-1}
 .ff input,.ff select,.ff textarea{
   font:400 15px/1.45 var(--sans);color:var(--ink);background:var(--field-bg);
-  border:1px solid var(--line);border-radius:3px;padding:9px 11px;width:100%;
+  border:1px solid var(--field-border);border-radius:3px;padding:9px 11px;width:100%;
   min-width:0;-webkit-appearance:none;appearance:none}
 .ff select{background-image:none}
 .ff textarea{min-height:82px;resize:vertical}
