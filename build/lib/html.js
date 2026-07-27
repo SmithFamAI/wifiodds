@@ -333,8 +333,19 @@ function footer(updated) {
     '  <div class="frow">Data updated <b>' + esc(updated) + '</b>. ConnectScores and per-flight odds are ' +
     'historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and ' +
     'unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</div>\n' +
-    '  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension, and ' +
-    'nothing is stored in your browser. What the server keeps is on the <a href="/privacy">privacy page</a>.</div>\n' +
+    /* "nothing is stored in your browser" was false on /united/, which caches
+       the route list under `usl2:<ORIG>-<DEST>` in localStorage. The privacy
+       page has always disclosed that cache, so the footer contradicted the page
+       it links to. An external audit found it on 27 Jul 2026 alongside the
+       Cloudflare beacon, and the two are the same failure: a global claim about
+       conduct that one surface does not honour.
+       The sentence now says what is true everywhere and points at the exception
+       rather than denying it. `build/apitest.js` asserts that any page writing
+       to storage is named here. */
+    '  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension. ' +
+    'Nothing about you is stored in your browser; <a href="/united/">the United route optimiser</a> ' +
+    'caches the route lists it fetches, and that is the only thing this site writes. ' +
+    'What the server keeps is on the <a href="/privacy">privacy page</a>.</div>\n' +
     /* This sentence was false from the day it was written. THEME_BOOT above
        calls classList.add("dark") unconditionally, so the page has never read
        the system preference. Dark by default was a deliberate decision; the
