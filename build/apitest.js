@@ -787,6 +787,67 @@ async function main() {
     '/api/docs/ says the score endpoint is retired (410), not just documents it as live');
   ok(/href="\/api\/docs\/"/.test(docs), '/api/docs/ is linked from the shared footer');
 
+  /* ── no element boundary may weld two values into a third ─────────────────
+   * Every span rendered correctly. The layout was right. But `<span>37</span>`
+   * followed with no whitespace by `<span>300+ by end-2026</span>` has the
+   * textContent "37300+ by end-2026", so Southwest's projected score of 37
+   * reached every screen reader, and every reader who copied the row, as the
+   * figure 37,300. "AmericanAA" and "51installs begin 2027-Q1FIRM" were the
+   * same fault. Nothing threw, nothing looked wrong, and no test compared the
+   * rendered text against the values it was built from.
+   *
+   * So this reads the built bytes and asks a different question: where two
+   * elements sit flush against each other, does the join create a token that
+   * exists in neither? A digit running into a digit or a letter, or a letter
+   * running into a capital, is a weld. */
+  var weldBad = [], weldChecked = 0;
+  require(path.join(__dirname, 'routes.js')).ROUTES.forEach(function (r) {
+    if (!r.file || !/\.html$/.test(r.file)) return;
+    var f = path.join(ROOT, r.file);
+    if (!fs.existsSync(f)) return;
+    var html = fs.readFileSync(f, 'utf8').replace(/<(script|style)[\s\S]*?<\/\1>/g, '');
+    /* Only INLINE TEXT siblings can weld. Adjacent links, buttons, cells and
+       headings are separate objects: a screen reader announces each one on its
+       own and a reader sees them as distinct controls, so `<a>Fleet</a><a>History</a>`
+       is not a defect and flagging it buried the two real faults under 2,400
+       false positives on the first run. The elements below are the ones that
+       join into a single spoken phrase. */
+    var INLINE = 'span|b|i|em|strong|small|code|abbr|sup|sub';
+    var re = new RegExp('([A-Za-z0-9])<\\/(?:' + INLINE + ')>' +
+                        '<(?:' + INLINE + ')(?:\\s[^>]*)?>([A-Za-z0-9])', 'g'), m;
+    while ((m = re.exec(html))) {
+      weldChecked++;
+      var a = m[1], b = m[2];
+      var weld = (/[0-9]/.test(a) && /[0-9A-Za-z]/.test(b)) ||
+                 (/[a-z]/.test(a) && /[A-Z]/.test(b));
+      if (weld) {
+        var ctx = html.slice(Math.max(0, m.index - 40), m.index + 60).replace(/\s+/g, ' ');
+        weldBad.push(r.file + ': "' + a + '" + "' + b + '" in …' + ctx.slice(-70));
+      }
+    }
+  });
+  /* The first version of this asserted `weldChecked >= 50`, meaning "at least
+     50 flush boundaries still exist to look at". That was the wrong quantity.
+     Fixing a weld ADDS a space, which removes the boundary from the scan, so
+     the healthier the site gets the closer that floor comes to tripping — it
+     stood at 51 against a floor of 50 the day it was written, and the next
+     legitimate fix would have failed the build with a message about the
+     detector rather than about the page.
+     What actually needs proving is that the detector still detects. So feed it
+     a string that is definitely a weld and demand it says so. This cannot rot
+     as the site improves. */
+  var weldProbe = 'x<span class="pv">37</span><span class="ph">300+ by end</span>y';
+  var probeRe = new RegExp('([A-Za-z0-9])<\\/(?:span)><(?:span)(?:\\s[^>]*)?>([A-Za-z0-9])');
+  var probeHit = probeRe.exec(weldProbe);
+  ok(!!probeHit && /[0-9]/.test(probeHit[1]) && /[0-9A-Za-z]/.test(probeHit[2]),
+    'the weld detector still detects a known weld (a check that has stopped ' +
+    'matching anything reports clean forever)',
+    'probe matched "' + (probeHit ? probeHit[1] + '"+"' + probeHit[2] : 'NOTHING') +
+    '" · ' + weldChecked + ' live boundaries scanned');
+  eq(weldBad.length, 0,
+    'no element boundary welds two values into a number or word that is in neither',
+    weldBad.slice(0, 6).join(' · '));
+
   /* ── the next-gen label must round-trip to the next-gen score ─────────────
    * Both halves worked and the wiring between them was crossed, which is the
    * failure shape nothing throws on. The cell prints "N/M flying" above a
@@ -803,10 +864,10 @@ async function main() {
      out of ngChecked and trip the count floor below. */
   var boardHtml = fs.readFileSync(path.join(ROOT, 'airlines', 'index.html'), 'utf8');
   var ngCells = boardHtml.match(
-    /<td class="num vcell[^"]*" data-col="nextgen">\s*<span class="lab">([\d,]+)\/([\d,]+) (?:flying|published)<\/span>\s*<span class="sco">(\d+)<\/span>/g) || [];
+    /<td class="num vcell[^"]*" data-col="nextgen">\s*<span class="lab">([\d,]+)\/([\d,]+) (?:flying|published)<\/span>\s*<span class="sco">(\d+)%?<\/span>/g) || [];
   var ngChecked = 0, ngBad = [];
   ngCells.forEach(function (cell) {
-    var m = /<span class="lab">([\d,]+)\/([\d,]+) (?:flying|published)<\/span>\s*<span class="sco">(\d+)<\/span>/.exec(cell);
+    var m = /<span class="lab">([\d,]+)\/([\d,]+) (?:flying|published)<\/span>\s*<span class="sco">(\d+)%?<\/span>/.exec(cell);
     if (!m) return;
     var n = Number(m[1].replace(/,/g, ''));
     var of = Number(m[2].replace(/,/g, ''));

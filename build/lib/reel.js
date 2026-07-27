@@ -262,7 +262,9 @@ function section() {
   return '<section class="rlc" aria-roledescription="carousel" ' +
     'aria-label="What the extension does, in four real screenshots">\n' +
     css() +
-    '  <div class="rlc-head"><span class="rlc-badge">Real screenshots · v1.5.1</span>' +
+    /* .rlc-head is display:flex with a gap, so this space changes no pixel --
+       without it "v1.5.1" welded onto "united.com" as "v1.5.1united.com". */
+    '  <div class="rlc-head"><span class="rlc-badge">Real screenshots · v1.5.1</span> ' +
     '<span class="rlc-where">united.com · app.navan.com</span>' +
     '<span class="rlc-nav needs-js">' +
     '<button class="rlc-prev" type="button" aria-label="Previous step">&#8249;</button>' +

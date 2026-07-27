@@ -830,7 +830,9 @@ function fleetPage(m) {
 
   var moversHtml = m.movers.length
     ? '<div class="movers">' + m.movers.map(function (d) {
-        return '<div class="mover"><span class="fn">' + esc(DL.prettyDate(d.date)) + '</span>' +
+        /* .mover is display:flex with a gap, so this space changes no pixel --
+           without it the date and the row text welded, e.g. "Jul 27, 2026UA2123 39%...". */
+        return '<div class="mover"><span class="fn">' + esc(DL.prettyDate(d.date)) + '</span> ' +
           '<span>' + d.rows.map(esc).join(' · ') + '</span></div>';
       }).join('') + '</div>'
     : '<div class="steady">No odds movement recorded yet — daily tracking started ' +
@@ -873,7 +875,9 @@ function fleetPage(m) {
     '<section class="blk">\n  <div class="sec-h"><h2>The rollout curve</h2>' +
     '<span class="sub">' + esc(DL.prettyDate(m.firstDay)) + ' → ' + esc(DL.prettyDate(m.updated)) +
     ' · ' + m.spanDays + ' days</span></div>\n' +
-    '  <div class="legend"><span><i class="ex"></i>Express</span><span><i class="ml"></i>Mainline</span>' +
+    /* .legend is display:flex with a gap, so these spaces change no pixel --
+       without them "Express" ran into "Mainline" and "Mainline" into "Stacked". */
+    '  <div class="legend"><span><i class="ex"></i>Express</span> <span><i class="ml"></i>Mainline</span> ' +
     '<span>Stacked — the top line is the fleet total</span></div>\n' +
     '  <div class="panel">' + V.areaTimeline(m) + '</div>\n' +
     '  <p class="tblcap">Derived from ' + num(m.fleet.equipped) + ' roster install dates; today’s point ' +

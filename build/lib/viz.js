@@ -145,9 +145,11 @@ function waffle(m) {
       : (p.equipped === 0 ? 'Awaiting first install.'
         : (p.equipped === p.total ? 'Wall of light: every aircraft of this type is equipped.'
           : 'Lit cells are confirmed installs in install order, oldest first.'));
+    /* .hpanel-h is display:flex with a gap, so these spaces change no pixel --
+       without them e.g. "CRJ-550" ran straight into "express" as "CRJ-550express". */
     return '<div class="hpanel rv">' +
-      '<div class="hpanel-h"><span class="ty">' + esc(p.type) + '</span>' +
-      '<span class="badge ' + p.seg + '">' + p.seg + '</span>' +
+      '<div class="hpanel-h"><span class="ty">' + esc(p.type) + '</span> ' +
+      '<span class="badge ' + p.seg + '">' + p.seg + '</span> ' +
       '<span class="ct"><b>' + p.equipped + '</b> / ' + p.total + ' · ' + pct + '%</span></div>' +
       '<span class="track"><i class="fill ' + (p.seg === 'express' ? 'ex' : 'ml') +
       '" style="--pct:' + pct + '%"></i></span>' +

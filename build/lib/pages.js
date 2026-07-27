@@ -112,10 +112,19 @@ function srcLine(kind, text) {
 function projected(a) {
   var p = a && a.projected;
   if (!p) return '';
+  /* The spaces between these three spans are load-bearing and must not be
+     minified away. Without them the element's textContent runs together, and
+     the result is not merely ugly: Southwest's chip read "37300+ by end-2026",
+     so a projected score of 37 rendered as the figure 37,300 to anyone copying
+     the text, and to every screen reader. American's read
+     "51installs begin 2027-Q1FIRM". The spans are laid out by the container,
+     so whitespace between them changes no pixel and fixes the text.
+     `build/apitest.js` asserts no element boundary produces a digit-letter
+     collision anywhere on the built pages. */
   return '<span class="proj' + (p.slipped ? ' slipped' : '') +
     '" data-projected="' + esc(a.key) + '">' +
-    '<span class="pv">' + p.score + '</span>' +
-    '<span class="ph">' + esc(p.horizon) + '</span>' +
+    '<span class="pv">' + p.score + '</span> ' +
+    '<span class="ph">' + esc(p.horizon) + '</span> ' +
     '<span class="conf' + (p.slipped ? ' slip' : '') + '">' + esc(p.confidence) + '</span></span>';
 }
 /* The same unit in a table cell. Where an airline has published no forward date
@@ -399,7 +408,12 @@ function playbook(m, a) {
     'available at tier ' + tier + ', which is the tier this page was derived at. Anything this ' +
     'fleet cannot support has been cut from the list.</p>\n' +
     '  <ul class="moves">\n' + moves.map(function (mv) {
-      return '    <li><span class="tag">' + esc(mv[0]) + '</span><b>' + esc(mv[1]) + '</b>' +
+      /* The space after the tag span is load-bearing: `.moves .tag` is
+         position:absolute, so it changes no pixel of the heading that follows,
+         but without it "T-48h" and "Re-check about two days out" welded into
+         "T-48hRe-check..." in the rendered textContent -- a screen reader and
+         anyone who copied the row got the fused token, not the two values. */
+      return '    <li><span class="tag">' + esc(mv[0]) + '</span> <b>' + esc(mv[1]) + '</b>' +
         '<p>' + mv[2] + '</p></li>';
     }).join('\n') + '\n  </ul>\n</section>\n\n';
 }
@@ -435,7 +449,7 @@ function fieldTable(m) {
     return '      <tr data-f="' + ph + '">' +
       '<td class="rank">' + (i + 1 < 10 ? '0' : '') + (i + 1) + '</td>' +
       '<td data-s="' + esc(a.name.toLowerCase()) + '"><a class="aname" href="/airlines/' + a.key +
-      '/">' + esc(a.name) +
+      '/">' + esc(a.name) + ' ' +
       '<span class="code">' + esc(a.code || '') + '</span></a></td>' +
       '<td class="num ' + band(a.score) + '" data-s="' + a.score + '"><span class="sco">' +
       a.score + '</span> ' + bandChip(a.score) + fitBadge(a) + '</td>' +
@@ -526,7 +540,7 @@ function leaderboard(m, limit) {
     return '      <tr class="arow' + (a.instrumented ? ' instr' : '') + '" data-f="' + tagsFor(e) +
       '" data-q="' + esc((a.name + ' ' + (a.code || '')).toLowerCase()) + '">' +
       '<td class="rank" data-s="' + (i + 1) + '">' + (i + 1) + '</td>' +
-      '<td><a class="aname" href="/airlines/' + a.key + '/">' + esc(a.name) +
+      '<td><a class="aname" href="/airlines/' + a.key + '/">' + esc(a.name) + ' ' +
       '<span class="code">' + esc(a.code || '') + '</span></a>' +
       (a.instrumented ? ' <a class="pill" href="' + (a.key === 'united' ? '/united/' : '/alaska/') +
         '">Per-flight odds →</a>' : '') + '</td>' +
@@ -608,7 +622,10 @@ function splitCell(a, part) {
        next-gen column beside them, whose denominator is the published-system
        subset. The label says so instead of leaving the reader to reconcile
        12% and 51% against a 31 they do not average to. */
-    html: '<span class="lab">' + num(seg.n) + ' of all ' + num(seg.of) + '</span>' +
+    /* `.rankb .lab` is display:block, so the space below changes no pixel --
+       the sco span already starts its own line. Without it "1,138" and "12%"
+       welded into "1,13812%" in the rendered textContent. */
+    html: '<span class="lab">' + num(seg.n) + ' of all ' + num(seg.of) + '</span> ' +
       '<span class="sco pct">' + seg.pct + '%</span> ' + bandChip(seg.pct)
   };
 }
@@ -680,14 +697,20 @@ function rankRow(a, i) {
   var ngCell = ngPublished
     ? '<td class="num vcell ' + band(ng) + '" data-col="nextgen">' +
       (lab ? '<span class="lab">' + esc(lab) + '</span>' : '') +
-      '<span class="sco">' + ng + '</span> ' + bandChip(ng) + '</td>'
+      /* The per cent sign is not decoration. Next-gen odds IS a percentage —
+         it is round(nextGenShare * 100) — and it sits in a row beside
+         "27% fitted", "12%" and "51%". Printed bare it was the one unitless
+         number on the board, and a reader had to infer the unit from its
+         neighbours. ConnectScore stays unitless because it is a weighted
+         score, not a share of anything. */
+      '<span class="sco">' + ng + '%</span> ' + bandChip(ng) + '</td>'
     : '<td class="num" data-col="nextgen"><span class="empty-state cell" title="' +
       esc(a.name + ' has launched ' + a.systemLabel + ' but has not published an aircraft count') +
       '">count unpublished</span></td>';
   return '      <tr data-name="' + esc(a.name) + '" data-score="' + a.score + '" data-nextgen="' +
     (ngPublished ? ng : '') + '" data-mainline="' + mn.v + '" data-regional="' + rg.v + '">' +
     '<td class="rank">' + (i + 1) + '</td>' +
-    '<td><b>' + esc(a.name) + '</b><span class="code">' + esc(a.code || '') + '</span></td>' +
+    '<td><b>' + esc(a.name) + '</b> <span class="code">' + esc(a.code || '') + '</span></td>' +
     '<td class="num vcell ' + band(a.score) + '" data-col="score"><span class="sco">' + a.score +
     '</span> ' + bandChip(a.score) + fitBadge(a) + '</td>' +
     ngCell +
