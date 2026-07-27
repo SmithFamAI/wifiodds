@@ -787,6 +787,33 @@ async function main() {
     '/api/docs/ says the score endpoint is retired (410), not just documents it as live');
   ok(/href="\/api\/docs\/"/.test(docs), '/api/docs/ is linked from the shared footer');
 
+  /* ── the theme sentence must describe the theme code ──────────────────────
+   * The footer said "The page follows your system's light or dark setting"
+   * while the boot script called classList.add("dark") unconditionally. Both
+   * halves worked. The sentence was simply a claim about behaviour that the
+   * behaviour had never matched, and it survived because nothing compared
+   * them. On a site whose entire argument is that every figure carries its
+   * source, a false statement about its own conduct is the most expensive
+   * kind of error available. */
+  var htmlLib = fs.readFileSync(path.join(__dirname, 'lib', 'html.js'), 'utf8');
+  var forcesDark = /classList\.add\("dark"\)/.test(htmlLib);
+  var homeFoot = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  var claimsSystem = /follows your system/i.test(homeFoot);
+  ok(!(forcesDark && claimsSystem),
+    'the footer does not claim to follow the system theme while the boot script ' +
+    'forces one (code says dark=' + forcesDark + ', copy claims system=' + claimsSystem + ')');
+  ok(forcesDark || claimsSystem,
+    'the theme sentence and the theme code are both present to compare — if the ' +
+    'boot script stops forcing a theme, the footer copy has to change with it',
+    'forcesDark=' + forcesDark);
+
+  /* ── both repositories are labelled for what they are ─────────────────── */
+  ok(/github\.com\/jeremyinthebay\/wifiodds/.test(homeFoot),
+    'the footer links the WEBSITE repository, not only the extension one');
+  ok(!/>Open source ↗</.test(homeFoot),
+    'no bare "Open source" link — it pointed at the extension repo from a page ' +
+    'about the website, so the label named the wrong thing');
+
   /* ── no element boundary may weld two values into a third ─────────────────
    * Every span rendered correctly. The layout was right. But `<span>37</span>`
    * followed with no whitespace by `<span>300+ by end-2026</span>` has the

@@ -49,7 +49,15 @@ function assetHash(rel) {
 
 var ORIGIN = 'https://wifiodds.com';
 var EXT = 'https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec';
-var REPO = 'https://github.com/jeremyinthebay/united-starlink-companion';
+/* Two repositories, two links. `REPO` used to be the only one and it pointed at
+   the EXTENSION, under a footer label that said "Open source" — so a reader
+   following it from a page about the website landed in the browser-extension
+   tree. The extension repo also still carries its pre-rename name, which is
+   agreed to change once the store accepts 2.0.0; when it does, only this
+   constant moves. */
+var REPO_SITE = 'https://github.com/jeremyinthebay/wifiodds';
+var REPO_EXT = 'https://github.com/jeremyinthebay/united-starlink-companion';
+var REPO = REPO_SITE;
 /* What the store serves TODAY, not what is in review. The banner prints it, so
  * a stale value here is a wrong claim on the homepage. build/lib/pages.js also
  * carries this string in its extension section; when the store ships a new
@@ -317,7 +325,8 @@ function footer(updated) {
        something that needs to compete with "Airlines" on every screen. */
     '<a href="/methodology/">Methodology</a>' +
     '<a href="/api/docs/">API</a><a href="/privacy">Privacy</a>' +
-    '<a href="' + REPO + '" target="_blank" rel="noopener">Open source ↗</a></div>\n' +
+    '<a href="' + REPO_SITE + '" target="_blank" rel="noopener">Site source ↗</a>' +
+    '<a href="' + REPO_EXT + '" target="_blank" rel="noopener">Extension source ↗</a></div>\n' +
     '  <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> ' +
     '· <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> ' +
     '(independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>\n' +
@@ -326,8 +335,14 @@ function footer(updated) {
     'unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</div>\n' +
     '  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension, and ' +
     'nothing is stored in your browser. What the server keeps is on the <a href="/privacy">privacy page</a>.</div>\n' +
-    '  <div class="frow">The page follows your system’s light or dark setting. The switch in the header ' +
-    'lasts until you reload, and nothing about your choice is stored.</div>\n' +
+    /* This sentence was false from the day it was written. THEME_BOOT above
+       calls classList.add("dark") unconditionally, so the page has never read
+       the system preference. Dark by default was a deliberate decision; the
+       copy describing it was not updated to match, and a site whose whole
+       claim is that every figure carries its source cannot afford a false
+       statement about its own behaviour. The code is right. This was wrong. */
+    '  <div class="frow">The page is dark by default, whatever your system is set to. The switch in ' +
+    'the header lasts until you reload, and nothing about your choice is stored.</div>\n' +
     '</footer>\n';
 }
 
