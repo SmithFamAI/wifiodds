@@ -816,23 +816,64 @@ async function main() {
   ok(unpubKeys.length > 0,
     'there is at least one unpublished-count airline to check, so this guard is ' +
     'protecting something', unpubKeys.join(', '));
-  var unpubBad = [];
+  var unpubBad = [], unpubSurfaces = 0;
   unpubKeys.forEach(function (k) {
+    var entry = A_LIB.WIFI_AIRLINES[k];
+    var nm = entry.name;
+
+    /* 1. the detail page's ledger row */
     var f = path.join(ROOT, 'airlines', k, 'index.html');
-    if (!fs.existsSync(f)) return;
-    var html = fs.readFileSync(f, 'utf8');
-    /* the ledger's next-gen row: whatever cells follow the label, none may be a number */
-    var row = /Next-gen odds, the top row on its own([\s\S]{0,400}?)<\/tr>/.exec(html);
-    if (!row) { unpubBad.push(k + ': next-gen ledger row not found — selector rotted'); return; }
-    var cells = row[1].replace(/<[^>]+>/g, ' ');
-    var nums = cells.match(/\d+(?:\.\d+)?%?/g) || [];
-    if (nums.length) {
-      unpubBad.push(k + ' prints ' + nums.join(', ') + ' in its next-gen ledger row ' +
-        'while the model says the count is unpublished');
+    if (fs.existsSync(f)) {
+      unpubSurfaces++;
+      var row = /Next-gen odds, the top row on its own([\s\S]{0,400}?)<\/tr>/.exec(fs.readFileSync(f, 'utf8'));
+      if (!row) unpubBad.push(k + ': ledger row selector rotted');
+      else {
+        var nums = row[1].replace(/<[^>]+>/g, ' ').match(/\d+(?:\.\d+)?%?/g) || [];
+        if (nums.length) unpubBad.push(k + ' detail ledger prints ' + nums.join(', '));
+      }
     }
+
+    /* 2. llms.txt, the surface written FOR assistants and therefore the one
+     *    most likely to have its number repeated to a traveller as fact. This
+     *    printed "next-gen 0" and "null/229 equipped" until 27 Jul 2026. The
+     *    round-2 acceptance test named this file and the first repair covered
+     *    only surface 1 above, which is why it is enumerated explicitly now. */
+    var lp = path.join(ROOT, 'llms.txt');
+    if (fs.existsSync(lp)) {
+      unpubSurfaces++;
+      var lines = fs.readFileSync(lp, 'utf8').split('\n').filter(function (L) {
+        return L.indexOf(nm + ' (') !== -1;
+      });
+      lines.forEach(function (L) {
+        if (/next-gen \d/.test(L)) unpubBad.push(k + ' llms.txt: "' + /next-gen \d+/.exec(L)[0] + '"');
+        if (/\bnull\b/.test(L)) unpubBad.push(k + ' llms.txt renders a literal null: ' + L.slice(0, 90));
+      });
+    }
+
+    /* 3. every other built surface that names this airline and a next-gen number */
+    ['index.html', path.join('airlines', 'index.html')].forEach(function (rel) {
+      var p2 = path.join(ROOT, rel);
+      if (!fs.existsSync(p2)) return;
+      unpubSurfaces++;
+      var h2 = fs.readFileSync(p2, 'utf8');
+      /* the card and the row for this key, each must say unpublished in the
+         NEXT-GEN field specifically, not merely somewhere in the block */
+      var card = new RegExp('<li class="crd[^"]*" data-key="' + k + '"[\\s\\S]*?<\\/li>').exec(h2);
+      if (card) {
+        var ng = /<p class="crd-ng">([\s\S]*?)<\/p>/.exec(card[0]);
+        if (ng && /\d/.test(ng[1].replace(/<[^>]+>/g, ''))) {
+          unpubBad.push(k + ' card next-gen field in ' + rel + ': "' +
+            ng[1].replace(/<[^>]+>/g, ' ').trim().slice(0, 40) + '"');
+        }
+      }
+    });
   });
+  ok(unpubSurfaces >= unpubKeys.length * 3,
+    'the unpublished check reached every surface it claims to cover ' +
+    '(detail ledger, llms.txt, homepage and board renderings)',
+    unpubSurfaces + ' surface reads for ' + unpubKeys.length + ' airlines');
   eq(unpubBad.length, 0,
-    'no page prints a numeric next-gen value for an airline whose count is unpublished',
+    'no surface prints a numeric next-gen value for an airline whose count is unpublished',
     unpubBad.join(' · '));
 
   /* ── the mobile card and the desktop table must agree ─────────────────────
@@ -854,12 +895,30 @@ async function main() {
      are longer than the Big 4 rows. The floor assertion below said "4 shared"
      and that is the only reason it was caught. A bounded window is a quiet way
      to check a fifth of the thing and report on all of it. */
+  /* Read the LABELLED field, never the whole card.
+     The first version tested /count unpublished/ against the entire card, and
+     an auditor changed the headline to "0%" while leaving the support sentence
+     saying "Starlink count unpublished". The support copy masked the
+     contradictory headline and the whole gate exited 0 on a card that read
+     "Chance of next-gen WiFi 0% · Starlink count unpublished" at once.
+     It also compared only score and next-gen, so a second mutation shifted
+     every rank by one, printed the wrong band word, and pointed every action
+     at SAS, all with the release green. Everything a reader acts on is
+     compared now: rank, score, band, next-gen state, and both hrefs. */
   (homeHtml.match(/<li class="crd[^"]*" data-key="[^"]+"[\s\S]*?<\/li>/g) || []).forEach(function (c) {
     var keyM = /data-key="([^"]+)"/.exec(c);
-    var scoreM = /<span class="sco">(\d+)<\/span>/.exec(c);
-    var ngM = /<b>(\d+)%<\/b>/.exec(c);
-    var unpub = /count unpublished/.test(c);
-    if (keyM && scoreM) cardVals[keyM[1]] = { score: scoreM[1], ng: unpub ? '' : (ngM ? ngM[1] : null) };
+    if (!keyM) return;
+    var ngField = /<p class="crd-ng">([\s\S]*?)<\/p>/.exec(c);
+    var ngTxt = ngField ? ngField[1].replace(/<[^>]+>/g, ' ') : '';
+    cardVals[keyM[1]] = {
+      score: (/<span class="sco">(\d+)<\/span>/.exec(c) || [])[1] || null,
+      band: (/<span class="band[^"]*">([^<]+)<\/span>/.exec(c) || [])[1] || null,
+      rank: (/<span class="crd-rank">(\d+)<\/span>/.exec(c) || [])[1] || null,
+      /* the state comes from the next-gen field alone */
+      ng: /unpublished/.test(ngTxt) ? '' : ((/(\d+)\s*%/.exec(ngTxt) || [])[1] || null),
+      nameHref: (/<a class="aname" href="([^"]+)"/.exec(c) || [])[1] || null,
+      goHref: (/<a class="crd-go" href="([^"]+)"/.exec(c) || [])[1] || null
+    };
   });
   /* Two row shapes on this page, and anchoring on the wrong one is how the
      first version covered 4 of 18. The Big 4 board emits
@@ -898,8 +957,13 @@ async function main() {
     if (!keyM) return;
     var scoreM = /data-score="(\d+)"/.exec(r) || /<span class="sco">(\d+)<\/span>/.exec(r);
     if (!scoreM) return;
-    (tableVals[keyM[1]] = tableVals[keyM[1]] || [])
-      .push({ score: scoreM[1], ng: rowNextGen(r) });
+    (tableVals[keyM[1]] = tableVals[keyM[1]] || []).push({
+      score: scoreM[1],
+      ng: rowNextGen(r),
+      band: (/<span class="band[^"]*">([^<]+)<\/span>/.exec(r) || [])[1] || null,
+      rank: (/<td class="rank"[^>]*>0?(\d+)<\/td>/.exec(r) || [])[1] || null,
+      nameHref: (/<a class="aname" href="([^"]+)"/.exec(r) || [])[1] || null
+    });
   });
   var shared = Object.keys(cardVals).filter(function (n) { return tableVals[n]; });
   /* The floor is every card on the page, not an arbitrary minimum. If a card
@@ -910,27 +974,51 @@ async function main() {
     'every card on the page has a table row to compare against, and there are at ' +
     'least 18 (a selector matching nothing reports parity forever)',
     shared.length + ' of ' + Object.keys(cardVals).length + ' cards matched to rows');
-  var ngCompared = 0;
+  /* Every field a reader acts on, not just the two that happened to be wrong
+     the first time. An auditor shifted every rank by one, printed the wrong
+     band word, and pointed every action link at SAS; the release exited 0
+     because none of those were compared. */
+  var FIELDS = ['score', 'ng', 'band', 'rank', 'nameHref'];
+  var compared = 0;
   shared.forEach(function (n) {
     tableVals[n].forEach(function (row, i) {
-      if (cardVals[n].score !== row.score) {
-        parityBad.push(n + ' score: card ' + cardVals[n].score + ' vs table[' + i + '] ' + row.score);
-      }
-      /* null means this rendering carries no next-gen value to compare, which
-         is only legitimate if the card carries none either. A null on one side
-         and a number on the other is itself a disagreement, not a reason to
-         skip: skipping on null is exactly how the first version passed the
-         auditor's mutation. */
-      if (cardVals[n].ng === null && row.ng === null) return;
-      ngCompared++;
-      if (String(cardVals[n].ng) !== String(row.ng)) {
-        parityBad.push(n + ' next-gen: card ' + cardVals[n].ng + ' vs table[' + i + '] ' + row.ng);
+      FIELDS.forEach(function (f) {
+        /* Both absent is the only legitimate skip. A value on one side and null
+           on the other is a disagreement, not a reason to skip: skipping on
+           null is exactly how the earlier version passed a mutation written to
+           break it.
+           Two exceptions, and each is a real difference in the markup rather
+           than a way of dodging a comparison:
+           - rank differs legitimately between the Big 4 board and the 18, so it
+             is only compared when one rendering pair exists;
+           - the Big 4 rows print the airline in <b> with no link at all, so
+             there is no href to compare against the card's. Where the row does
+             carry one it is compared, and the card's own two links are checked
+             against each other below, which is what catches an action pointing
+             somewhere its name does not. */
+        if (f === 'rank' && tableVals[n].length > 1) return;
+        if (f === 'nameHref' && row[f] == null) return;
+        if (cardVals[n][f] == null && row[f] == null) return;
+        compared++;
+        var cv = cardVals[n][f], rv = row[f];
+        /* ranks are zero-padded on cards and bare in rows; compare the value */
+        if (f === 'rank') { cv = Number(cv); rv = Number(rv); }
+        if (String(cv) !== String(rv)) {
+          parityBad.push(n + ' ' + f + ': card ' + cardVals[n][f] + ' vs table[' + i + '] ' + row[f]);
+        }
+      });
+      /* the card's own two links must agree with each other, or "View X" sends
+         a reader somewhere the name above it did not promise */
+      if (cardVals[n].goHref && cardVals[n].nameHref &&
+          cardVals[n].goHref !== cardVals[n].nameHref) {
+        parityBad.push(n + ' card action points at ' + cardVals[n].goHref +
+          ' while its name links ' + cardVals[n].nameHref);
       }
     });
   });
-  ok(ngCompared >= 18,
-    'the next-gen value was actually compared for at least 18 renderings, rather ' +
-    'than skipped as null on one side', ngCompared + ' comparisons made');
+  ok(compared >= 18 * 3,
+    'the parity check actually compared the labelled fields rather than skipping ' +
+    'them as null on one side', compared + ' field comparisons across ' + shared.length + ' airlines');
   eq(parityBad.length, 0,
     'the mobile card and the desktop table print the same numbers for the same airline',
     parityBad.join(' · '));
@@ -952,18 +1040,46 @@ async function main() {
      state is unrepresentable rather than merely detected. What is left to
      assert is that the derivation is still wired up: the rendered footer must
      carry the sentence the code selects, whichever that is. */
-  var htmlLib = fs.readFileSync(path.join(__dirname, 'lib', 'html.js'), 'utf8');
+  /* The check has been wrong twice for the same reason: it read the SPELLING of
+     the boot script. v1 matched one false sentence and a differently-worded lie
+     walked past. v2 regexed `classList.add("dark")`, and `add("js","dark")`
+     boots identically while flipping the footer copy, which an auditor
+     demonstrated with the build green.
+     `html.js` now generates both the script and the sentence from a single
+     `DEFAULT_THEME`, so what is left is to check the OBSERVED behaviour of the
+     emitted script rather than how it happens to be written: run it and see
+     which classes the document ends up with. */
   var homeFoot = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-  var forcesDark = /r\.classList\.add\("dark"\)/.test(htmlLib);
+  var bootM = /<script>\(function\(\)\{var r=document\.documentElement;([\s\S]*?)\}\)\(\);<\/script>/.exec(homeFoot);
+  ok(!!bootM, 'the theme boot script is present on the homepage');
+  var bootsDark = null;
+  if (bootM) {
+    var classes = [];
+    var fakeRoot = {
+      classList: { add: function () { classes.push.apply(classes, arguments); } },
+      get className() { return classes.join(' '); },
+      set className(v) { classes = String(v).trim().split(/\s+/); }
+    };
+    /* prefers-color-scheme reports NO dark, so a system-following script must
+       not add it; a dark-by-default script adds it regardless. */
+    var fakeMatchMedia = function () { return { matches: false }; };
+    try {
+      new Function('r', 'matchMedia', bootM[1])(fakeRoot, fakeMatchMedia);
+      bootsDark = classes.indexOf('dark') !== -1;
+    } catch (e) { bootsDark = null; }
+  }
+  ok(bootsDark !== null,
+    'the boot script could be executed to observe what it does, rather than ' +
+    'pattern-matched for how it is written');
   var footText = homeFoot.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
   var saysDark = /dark by default, whatever your system is set to/i.test(footText);
   var saysSystem = /follows your system[’']s light or dark setting/i.test(footText);
   ok(saysDark || saysSystem,
-    'the footer carries one of the two canonical theme sentences, so the derivation ' +
-    'in html.js is still reaching the page', 'saysDark=' + saysDark + ' saysSystem=' + saysSystem);
-  eq(saysDark, forcesDark,
-    'the theme sentence on the page matches what the boot script actually does ' +
-    '(boot forces dark=' + forcesDark + ', footer says dark-by-default=' + saysDark + ')');
+    'the footer carries one of the two canonical theme sentences',
+    'saysDark=' + saysDark + ' saysSystem=' + saysSystem);
+  eq(saysDark, bootsDark,
+    'the theme sentence matches what the boot script OBSERVABLY does when run ' +
+    '(script ends up dark=' + bootsDark + ', footer says dark-by-default=' + saysDark + ')');
 
   /* ── each repository link points where its LABEL says ─────────────────────
    * The first version asserted both URLs were present somewhere in the footer.

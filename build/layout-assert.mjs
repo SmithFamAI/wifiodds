@@ -79,7 +79,7 @@ try {
 /* Runs inside the page. Returns findings, never verdicts: the decision about
  * what counts as a failure stays out here where it can be read. */
 function collect(floors) {
-  const out = { brokenWords: [], smallText: [], smallTargets: [], stickyOver: [], firstViewport: {} };
+  const out = { brokenWords: [], smallText: [], smallTargets: [], stickyOver: [], overflow: null, firstViewport: {} };
   const seen = new Set();
 
   const text = el => (el.textContent || '').trim();
@@ -207,6 +207,39 @@ function collect(floors) {
     });
   }
 
+  /* THE PAGE MUST NOT SCROLL SIDEWAYS. This file was written to catch what the
+   * responsive sweep could not see, and it shipped with no document-overflow
+   * assertion at all — so when /race/ was repaired at 390 and 440 it was still
+   * 390px wide at a 360px viewport and 955px at 768px, and this harness said
+   * nothing. Fixing the widths you were shown is not closing the class.
+   *
+   * A horizontal scroller is legitimate; the excess must live inside it. So the
+   * document is checked, and any element reaching past the viewport is reported
+   * only when no ancestor is a scroll container. */
+  const de = document.documentElement;
+  if (de.scrollWidth > de.clientWidth + 1) {
+    const inScroller = el => {
+      let n = el.parentElement;
+      while (n && n !== document.body) {
+        if (/(auto|scroll)/.test(getComputedStyle(n).overflowX)) return true;
+        n = n.parentElement;
+      }
+      return false;
+    };
+    const culprits = [];
+    document.querySelectorAll('*').forEach(el => {
+      const b = el.getBoundingClientRect();
+      if (b.right > de.clientWidth + 1 && b.width < 4000 && !inScroller(el)) {
+        culprits.push((el.tagName + '.' + (el.className || '').toString().split(' ')[0])
+          .slice(0, 34) + ' w' + Math.round(b.width));
+      }
+    });
+    out.overflow = {
+      doc: de.scrollWidth, view: de.clientWidth,
+      culprits: [...new Set(culprits)].slice(0, 4)
+    };
+  }
+
   /* The audit's acceptance criterion 1: the first screen must answer something. */
   const vh = window.innerHeight;
   const h1 = document.querySelector('h1');
@@ -266,6 +299,9 @@ for (const [name, engine] of [['chromium', chromium], ['webkit', webkit]]) {
         `${x.w}x${x.h} "${x.text}"`));
       r.stickyOver.forEach(x => note(route, width, name, 'sticky heading hidden',
         `"${x.text}" top ${x.top} is above header bottom ${x.hdrBottom}`));
+      if (r.overflow) note(route, width, name, 'page scrolls sideways',
+        `document ${r.overflow.doc}px in a ${r.overflow.view}px viewport` +
+        (r.overflow.culprits.length ? ' · ' + r.overflow.culprits.join(', ') : ''));
       if (width <= 440 && route === '/' && !r.firstViewport.ctaInFold)
         note(route, width, name, 'no CTA in first viewport', 'nothing actionable above the fold');
       await ctx.close();

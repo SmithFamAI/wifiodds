@@ -132,8 +132,26 @@ var MARK_SVG = '<svg class="mk" viewBox="0 0 32 32" width="17" height="17" ' +
 /* DARK IS THE DEFAULT, by Jeremy's call on 26 Jul 2026, overriding the earlier
  * follow-the-system rule. Every visitor boots dark; the switch offers light and
  * lasts until reload. The `js` class still gates .needs-js as before. */
+/* ── ONE SEMANTIC SETTING. The boot code and the footer copy are both generated
+ * from it, so neither can be authored into disagreement.
+ *
+ * The previous version derived the sentence by running a regex over the boot
+ * script's source text. An auditor replaced two equivalent calls with
+ * `classList.add("js","dark")`, which still boots dark, and the regex stopped
+ * matching, so the footer flipped to "follows your system" and the build passed.
+ * Deriving copy from the SPELLING of code recognises one way of writing the
+ * behaviour, not the behaviour. `className += " dark"` would have done it too.
+ *
+ * There is now nothing to spell. Change DEFAULT_THEME and both the script and
+ * the sentence move together. */
+var DEFAULT_THEME = 'dark';           /* 'dark' | 'system' */
+
 var THEME_BOOT = '<script>(function(){var r=document.documentElement;' +
-  'r.classList.add("js");r.classList.add("dark");})();</script>';
+  'r.classList.add("js");' +
+  (DEFAULT_THEME === 'dark'
+    ? 'r.classList.add("dark");'
+    : 'if(matchMedia("(prefers-color-scheme: dark)").matches)r.classList.add("dark");') +
+  '})();</script>';
 
 /* ── the theme sentence is DERIVED from the theme code, not written beside it ──
  * The footer used to say "The page follows your system's light or dark setting"
@@ -147,8 +165,7 @@ var THEME_BOOT = '<script>(function(){var r=document.documentElement;' +
  * system preference and the footer rewrites itself. There is no state in which
  * this sentence is wrong, which is a better property than a test that catches
  * one way of being wrong. */
-var THEME_FORCES_DARK = /classList\.add\("dark"\)/.test(THEME_BOOT);
-var THEME_SENTENCE = THEME_FORCES_DARK
+var THEME_SENTENCE = DEFAULT_THEME === 'dark'
   ? 'The page is dark by default, whatever your system is set to. The switch in the header ' +
     'lasts until you reload, and nothing about your choice is stored.'
   : 'The page follows your system’s light or dark setting. The switch in the header ' +

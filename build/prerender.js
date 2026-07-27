@@ -299,12 +299,31 @@ function buildLlms(m) {
     /* One separator for the whole row. These rows are a data table, so the dashes that used
      * to sit between the fields were doing a middle dot's job and were counted as prose
      * pivots by the slop gate — 54 of llms.txt's 87 em dashes lived on these 18 lines. */
+    /* llms.txt is written for assistants, which makes it the WORST surface to
+       print an unsourced zero on: whatever it says is the sentence most likely
+       to be repeated to a traveller as fact, stripped of any surrounding
+       context. Until 27 Jul 2026 this line read
+           "Air France · ConnectScore 19/100, rare · next-gen 0 · Starlink, null/229 equipped"
+       for an airline whose model says nextGen.published is false and whose
+       equipped count is null. Two separate faults on one line: the score
+       ignored the publication flag, and the null denominator was concatenated
+       straight into the text.
+       The API had it right all along — it pairs score 0 with published:false in
+       the same object. The serializer simply did not honour the pairing, which
+       is the auditor's exact point: a numeric field is only safe when every
+       reader of it respects the flag beside it. */
+    var ngText = a.nextGenPublished === false
+      ? 'next-gen count unpublished'
+      : 'next-gen ' + a.nextGenScore;
+    var fleetText = !a.fleet ? 'fleetwide'
+      : (a.equippedPublished === false || a.equipped == null)
+        ? a.fleet + ' aircraft, equipped count unpublished'
+        : a.equipped + '/' + a.fleet + ' equipped';
     p((i + 1) + '. ' + a.name + ' (' + (a.code || 'no code') + ') · ConnectScore ' + a.score + '/100, ' +
       a.label + (a.hasRange ? ' (range ' + a.floor + '–' + a.ceiling + '; ' + a.resolutionLabel + ')' : '') +
-      ' · next-gen ' + a.nextGenScore + ' · today: ' + a.serviceTierLabel +
+      ' · ' + ngText + ' · today: ' + a.serviceTierLabel +
       (a.restTierLabel ? ' (rest ' + a.restTierLabel + ')' : '') +
-      ' · ' + a.systemLabel + ', ' +
-      (a.fleet ? a.equipped + '/' + a.fleet + ' equipped' : 'fleetwide') +
+      ' · ' + a.systemLabel + ', ' + fleetText +
       ' · ' + ORIGIN + '/airlines/' + a.key + '/');
   });
   p();

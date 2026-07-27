@@ -175,11 +175,11 @@ rules; read them and follow them.
 11. United (UA) · ConnectScore 48/100, mixed · next-gen 31 · today: mixed (rest streaming-class or basic) · Starlink, 483/1807 equipped · https://wifiodds.com/airlines/united/
 12. Virgin Atlantic (VS) · ConnectScore 39/100, mixed (range 39–56; systems named, counts unpublished) · next-gen 28 · today: mixed (rest streaming-class or basic) · Starlink, 12/43 equipped · https://wifiodds.com/airlines/virginatlantic/
 13. Emirates (EK) · ConnectScore 31/100, long shot (range 31–55; systems named, counts unpublished) · next-gen 16 · today: mixed (rest streaming-class or basic) · Starlink, 36/232 equipped · https://wifiodds.com/airlines/emirates/
-14. Air France (AF) · ConnectScore 19/100, rare · next-gen 0 · today: basic (rest basic) · Starlink, null/229 equipped · https://wifiodds.com/airlines/airfrance/
+14. Air France (AF) · ConnectScore 19/100, rare · next-gen count unpublished · today: basic (rest basic) · Starlink, 229 aircraft, equipped count unpublished · https://wifiodds.com/airlines/airfrance/
 15. Air Canada (AC) · ConnectScore 18/100, rare (range 18–36; systems named, counts unpublished) · next-gen 6 · today: mixed (rest streaming-class or basic) · Starlink, 12/216 equipped · https://wifiodds.com/airlines/aircanada/
 16. Southwest (WN) · ConnectScore 16/100, rare (range 16–39; systems named, counts unpublished) · next-gen 0 · today: mixed (rest streaming-class or basic) · Starlink, 1/803 equipped · https://wifiodds.com/airlines/southwest/
 17. British Airways (BA) · ConnectScore 15/100, rare · next-gen 2 · today: mixed (rest basic) · Starlink, 5/261 equipped · https://wifiodds.com/airlines/britishairways/
-18. SAS (SK) · ConnectScore 5/100, rare (range 5–13; systems named, counts unpublished) · next-gen 0 · today: basic · Starlink, null/123 equipped · https://wifiodds.com/airlines/sas/
+18. SAS (SK) · ConnectScore 5/100, rare (range 5–13; systems named, counts unpublished) · next-gen count unpublished · today: basic · Starlink, 123 aircraft, equipped count unpublished · https://wifiodds.com/airlines/sas/
 
 ## Do not
 

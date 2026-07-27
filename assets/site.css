@@ -639,10 +639,21 @@ a.pill:hover{border-color:var(--muted)}
    tables still need the sideways scroll frame, sticky physically cannot work
    inside it, and a sticky declaration that does nothing is the defect the
    layout assert exists to catch — so the headings are static there. */
-.tbl-shell,.tscroll{background:transparent;border:0}
-@media(max-width:700px){
-  .tbl-shell,.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-}
+/* EVERY table shell scrolls, at every width, and the headings are honestly
+   static. This reverses a trade made on 27 Jul 2026 that was wrong.
+   To make `position:sticky` work on thead th, the shell gave up overflow-x
+   above 700px, because an ancestor with overflow-x becomes the sticky
+   scrollport. That holds on the homepage boards, which measure 888/888 and
+   fit. It does not hold on /race/, whose table wants 960px: an external audit
+   measured the DOCUMENT at 980px in a 768px viewport and 1028px at 1024px, so
+   a tablet reader got page-level horizontal scrolling.
+   There is no CSS that gives both a sticky heading and a shell that scrolls,
+   so this is a harm ordering, not a preference. A page you cannot read without
+   dragging it sideways is worse than losing column headers part-way down a long
+   table. The sticky declaration is gone rather than left in place doing
+   nothing, which is the defect build/layout-assert.mjs exists to catch. */
+.tbl-shell,.tscroll{background:transparent;border:0;
+  overflow-x:auto;-webkit-overflow-scrolling:touch}
 table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
 table.tbl{min-width:40rem}
 /* Cell boxes hold a single line box inside their line-height (line-height 1.7
@@ -655,16 +666,16 @@ table.tbl th,table.tbl td{text-align:left;padding:.4rem .6rem .4rem 0;font-size:
    the audit floor is 12px rendered, and wide tracking below 13px is reserved
    for section eyebrows — the all-caps microcopy was exactly the text that
    wrapped worst. */
+/* NOT sticky, at any width. Every shell is a horizontal scrollport now (see
+   the .tbl-shell rule above and the harm ordering recorded there), and sticky
+   resolves against the nearest scrollport, which never scrolls vertically. A
+   sticky declaration here would sit in the stylesheet doing nothing, which is
+   precisely the defect build/layout-assert.mjs was written to find. */
 table.tbl thead th{font-size:.75rem;font-weight:650;letter-spacing:.02em;
-  color:var(--muted);white-space:nowrap;position:sticky;
-  top:var(--sticky-header-height);z-index:2;line-height:2;padding-top:.3rem;
+  color:var(--muted);white-space:nowrap;position:static;
+  z-index:2;line-height:2;padding-top:.3rem;
   background:var(--paper);border-bottom:1px solid var(--ink);padding-bottom:.4rem;
   vertical-align:bottom}
-/* AFTER the base rule, because order decides at equal specificity: below
-   700px the shell scrolls sideways again, sticky physically cannot work
-   inside that scrollport, and a sticky declaration that does nothing is the
-   defect the layout assert catches. Static there, honestly. */
-@media(max-width:700px){table.tbl thead th{position:static}}
 table.tbl tbody tr:last-child td{border-bottom:1px solid var(--line)}
 table.tbl tbody tr:hover{background:var(--panel)}
 /* Data cells may WRAP since round seven (note 2): nowrap on every .num cell
@@ -1025,9 +1036,16 @@ ul.vstate .st{display:inline-block;min-width:10rem;font-size:.75rem;font-weight:
    horizon date and a confidence word everywhere it goes, and a passed horizon
    flips to SLIPPED while keeping the date it missed. All five fence rules are
    asserted by build/prerender.js; this rule is the visual half of them. */
+/* `white-space:nowrap` made this chip an unbreakable 358px box, which set a
+   390px floor on the whole document: /race/ measured 390px wide at 320, 360 and
+   375px viewports in both engines. The chip may wrap; what it may not do is
+   split its value from its horizon date, so the parts stay whole and the box
+   breaks between them. */
 .proj{display:inline-flex;align-items:baseline;gap:.45rem;color:var(--proj);
   background:var(--proj-bg);border:1px solid var(--line);border-radius:var(--r-sm);
-  padding:.12rem .5rem;font-size:.8rem;white-space:nowrap}
+  padding:.12rem .5rem;font-size:.8rem;white-space:normal;flex-wrap:wrap;
+  row-gap:.1rem;max-width:100%}
+.proj>*{white-space:nowrap}
 .proj b,.proj .pv{font-size:.95rem;font-weight:700;letter-spacing:-.01em}
 .proj .ph{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--proj)}
 .proj.slipped{border-color:var(--muted);color:var(--muted-strong);
