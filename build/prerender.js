@@ -38,6 +38,7 @@ var Render = require('./lib/render.js');
 var SlopGate = require('./slop-gate.js');
 var Surfaces = require('./surfaces.js');
 var Provenance = require('./assert-provenance.js');
+var MeasuredZero = require('./assert-measured-zero.js');
 
 var ORIGIN = H.ORIGIN;
 var t0 = Date.now();
@@ -1065,6 +1066,12 @@ function main() {
   assertProjectionsDoNotSort(m.A);
   var projections = assertProjectionData(m.A);
 
+  /* ── a zero has to be measured ──
+   * Runs before a single page is written, because the failure this guards
+   * against is a page that renders correctly and says something false. Its
+   * own self-test runs first: see build/assert-measured-zero.js. */
+  var mz = MeasuredZero.run();
+
   /* 1. every page. ROUTES is the table; this is the switchboard, and the two
    *    have to agree — a route with no case here fails the assert in step 4. */
   write('index.html', Render.home(m));
@@ -1162,6 +1169,8 @@ function main() {
   }
 
   console.log('wifiodds prerender OK in ' + (Date.now() - t0) + ' ms');
+  console.log('  measured-zero guard OK — ' + mz.checked + ' airlines, ' + mz.violations +
+    ' bare zeros, self-test passed (it fails when tampered)');
   console.log('  data.json updated=' + m.updated + ' · equipped=' + m.fleet.equipped + '/' + m.fleet.total +
     ' · roster=' + m.registry.length + ' tails · ' + m.archiveDays + ' install days · ' +
     m.airlineCount + ' airlines');
