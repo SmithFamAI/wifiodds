@@ -113,17 +113,6 @@ function home(m) {
    * same two-owner rule every chart on the site obeys. The name-and-number
    * label is pure CSS on hover/focus, so it works with script off; the caption
    * under it carries the same reading in words. */
-  function listAnd(names) {
-    if (names.length < 2) return names.join('');
-    return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
-  }
-  var last = m.ranked[m.ranked.length - 1];
-  var doneAt100 = phases.done.length && phases.done.every(function (a) { return a.score === 100; });
-  var skycap = esc(listAnd(phases.done.map(function (a) { return a.name; }))) +
-    (doneAt100 ? ' are finished at 100' : ' are finished') +
-    '; the pack mid-retrofit sits in the 40s and 50s; ' + esc(last.name) + ' trails at ' +
-    last.score + '. Counted ' + esc(H.chipDate(m.updated)) + '.';
-
   /* ── THE SYSTEMS CHART, hardware-identity palette (round seven, notes
    * 12-14). A fourth colour owner: the bars name HARDWARE, never a score, so
    * the palette is drawn from the sky family. The weights are read out of the
@@ -188,16 +177,15 @@ function home(m) {
     '    </div>\n' +
     '    ' + P.cwsBadge() + '\n' +
     '  </aside>\n' +
-    /* THE SKYLINE IS GONE, by Jeremy's call on 27 Jul 2026. Eighteen unlabelled
-       bars read as texture rather than information: no scale, no names, and on a
-       phone the tail of the field rendered as slivers a finger could not hit.
-       An external audit measured each target at 11.5px wide at 320 and 17.5px at
-       440, which fails WCAG 2.2 SC 2.5.8, and the caption admitted the problem
-       by telling readers to hover on a device that has no hover.
-       The one-line summary it carried was the useful part, so that survives as a
-       sentence. The boards below say the rest, with names attached. */
-    '  <p class="lede fieldsum">' + skycap + '</p>\n' +
-    '</header>\n\n' +
+    /* The skyline's caption went with it on 27 Jul 2026. It was written to
+       caption a chart: it sat under the drawing, its spacing was sized around a
+       96px graphic, and with the chart gone it was an orphan line floating
+       below the extension box with 58px of section rhythm under it that used to
+       hold the bars. Keeping a caption after deleting the thing it captions is
+       how dead air gets into a page.
+       The boards below say the same thing with names attached, which is what
+       the chart could never do. */
+'</header>\n\n' +
     /* ── THE BIG 4, ported from /airlines/ (Option A, approved by Jeremy 26
      * Jul 2026), with round seven's column guide and consolidated board
      * footer. `moreHref` points at this page's own 18-board, which is one

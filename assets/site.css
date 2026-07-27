@@ -287,7 +287,14 @@ h1,h2,h3,h4{font-family:var(--serif);color:var(--ink);font-weight:700;letter-spa
   padding:0 max(1.25rem,env(safe-area-inset-right)) 0 max(1.25rem,env(safe-area-inset-left))}
 main .lede,main .sec-lede,main .footnote,main .skycap,main .src,
 main .prov,main ul.vstate,main .board-note,main .pointer,main .extfine,
-.rankb .sortcap p,.sysrows,.herocall,.fieldsum{max-width:none}
+.rankb .sortcap p,.sysrows,.herocall{max-width:none}
+/* The hero used to end on a 96px chart and a caption, so the standard section
+   rhythm below it (51px margin + 37px padding) read as normal. It now ends on
+   the bordered extension card, which already separates it from what follows, so
+   the same rhythm plus the section's own rule left 100px of dead air between
+   the card and "THE BIG 4". Scoped to the hero's next sibling: every other
+   section on every page keeps the site rhythm. */
+header.hero+.blk{margin-top:1.4rem;padding-top:1.6rem}
 .prose{max-width:44rem}
 :focus-visible{outline:2px solid var(--sky);outline-offset:2px}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
