@@ -126,6 +126,16 @@ function home(m) {
     P.flightCheck(m) +
     P.workedAnswer(m) +
     '</header>\n\n' +
+    /* ── THE BIG 4, ported from /airlines/ (Option A, approved by Jeremy 26 Jul
+     * 2026 — see build/lib/pages.js's bigFourBoard/rankBoard/rankRow, the same
+     * generator functions, unforked). An ADDITION below the answer card, not a
+     * replacement for it: a first-time visitor still meets "will you be able to
+     * work" and its worked answer before any table. `moreHref` points at
+     * /airlines/#full-board because this page has no fullRankedBoard of its own
+     * to anchor into (unlike /airlines/, where the default '#full-board' lands
+     * on the same page) — the one parameter bigFourBoard needed to work as a
+     * homepage variant without forking its markup. */
+    P.bigFourBoard(m, { boardId: 'home-big4-board', moreHref: '/airlines/#full-board' }) +
     /* ── THE BOARD. All eighteen, one view, and it is the record's spine. ──
      * The seven-card US strip leads it because it is the set a US reader
      * actually boards, and because build/apitest.js reads its bytes to prove the
