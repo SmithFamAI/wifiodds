@@ -475,6 +475,32 @@ async function main() {
   ok(Array.isArray(miss.keys) && miss.keys.length === 18, '404 lists the valid keys', miss.keys);
   assertEnvelope(res, miss, '404 airline');
 
+  /* ── PARITY: /api/airlines (LIST) and /api/airlines/{key} (DETAIL) must never
+   * drift on whether a number is published. Both read airlineJson() off the
+   * same score, so today they already agree — but this is exactly the class of
+   * assumption that let the SAS false-zero ship: LIST and DETAIL are two call
+   * sites of one function, and nothing pinned them to each other. If a future
+   * change touches one shim and not the other — a summary field added straight
+   * to airlinesAll(), a cache that serves LIST a stale build — this catches it
+   * for every airline, not just SAS. equippedPublished and nextGen.published are
+   * the two flags a consumer must check before trusting a share/pct as real;
+   * checking both endpoints report the SAME flag for the SAME airline is the
+   * whole point, so pct/share ride along as a second signal but the flags are
+   * the assertion that matters. */
+  for (var pk of all.airlines.map(function (a) { return a.key; })) {
+    var pRes = await H.airlineOne(ctx('https://wifiodds.com/api/airlines/' + pk, { key: pk }));
+    var pDetail = (await body(pRes)).airline;
+    var pList = all.airlines.filter(function (a) { return a.key === pk; })[0];
+    eq(pList.fleet.equippedPublished, pDetail.fleet.equippedPublished,
+      'PARITY: ' + pk + ' equippedPublished agrees between /api/airlines and /api/airlines/' + pk);
+    eq(pList.nextGen.published, pDetail.nextGen.published,
+      'PARITY: ' + pk + ' nextGen.published agrees between /api/airlines and /api/airlines/' + pk);
+    eq(pList.fleet.equippedPct, pDetail.fleet.equippedPct,
+      'PARITY: ' + pk + ' fleet.equippedPct agrees between /api/airlines and /api/airlines/' + pk);
+    eq(pList.nextGen.pct, pDetail.nextGen.pct,
+      'PARITY: ' + pk + ' nextGen.pct agrees between /api/airlines and /api/airlines/' + pk);
+  }
+
   /* ── GET /api/score/{flightNumber} — RETIRED 2026-07-26 (spec D7) ──────────
    * This used to be six assertions' worth of per-flight route-history checks.
    * The endpoint took a flight number with no date and answered "what usually
