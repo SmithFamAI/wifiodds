@@ -153,8 +153,13 @@ function home(m) {
     '<b>63.71 Mbps</b>; the typical flight on every other system measures less, most of them ' +
     'far less.</p>\n' +
     '  <div class="sysrows">\n' +
-    '    <div class="sysaxis"><span class="ax"><span>0 Mbps</span><span>220</span></span>' +
-    '<span class="wl">weight</span></div>\n' +
+    /* Literal spaces below: .sysaxis is a grid (.ax and .wl each own a
+       column) and .ax itself is flex with justify-content:space-between, so
+       whitespace text nodes between these spans render no box and change no
+       pixel — without them "0 Mbps" and "220" welded into "0 Mbps220", and
+       "220" and "weight" welded into "220weight". */
+    '    <div class="sysaxis"><span class="ax"><span>0 Mbps</span> <span>220</span></span>' +
+    ' <span class="wl">weight</span></div>\n' +
     sysRow('hw-leo', 'Low-earth orbit', 'Starlink · Amazon Leo', '29%', '67.7%',
       Q.leo.toFixed(2), 'slowest tenth 63.71 Mbps · typical 212.68 · 43 ms lag') +
     sysRow('hw-mgeo', 'Modern geostationary', 'Viasat · Intelsat 2Ku · Hughes · Thales',

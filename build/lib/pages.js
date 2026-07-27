@@ -794,7 +794,11 @@ function rankRow(a, i) {
   var lab = nextGenLab(a);
   var ngCell = ngPublished
     ? '<td class="num vcell ' + band(ng) + '" data-col="nextgen">' +
-      (lab ? '<span class="lab">' + esc(lab) + '</span>' : '') +
+      /* A literal space here, not styling: `.rankb .lab` is display:block (see
+         splitCell above), so the space changes no pixel — the sco span already
+         starts its own line. Without it "0/989 flying" and "0%" welded into
+         "0/989 flying0%" in the rendered textContent. */
+      (lab ? '<span class="lab">' + esc(lab) + '</span> ' : '') +
       /* The per cent sign is not decoration. Next-gen odds IS a percentage —
          it is round(nextGenShare * 100) — and it sits in a row beside
          "27% fitted", "12%" and "51%". Printed bare it was the one unitless
@@ -1409,15 +1413,22 @@ function roadmapState(row, today) {
 function roadmapLists(m) {
   return '  <span class="kicker">Shipped</span>\n' +
     '  <div class="steps rm">' + SHIPPED.map(function (s) {
+      /* Literal space before .micro: `.rm .step .sh` is display:flex with its
+         own gap, so a whitespace text node between the flex items changes no
+         pixel — without it "shipped" and the date welded into "shipped24 Jul
+         2026". */
       return '<div class="step shipped rv"><div class="sh"><h3>' + s[1] + '</h3>' +
-        '<span class="st">shipped</span><span class="micro">' +
+        '<span class="st">shipped</span> <span class="micro">' +
         (s[0] ? esc(H.chipDate(s[0])) : 'live in this build, ' + esc(H.chipDate(m.updated))) +
         '</span></div><p>' + s[2] + '</p></div>';
     }).join('') + '</div>\n\n' +
     '  <span class="kicker" style="margin-top:2rem">Ahead</span>\n' +
     '  <div class="steps rm">' + AHEAD.map(function (s) {
+      /* Same flex-gap reasoning as SHIPPED above: the space costs no pixel
+         and without it "SOFT" and the status line welded into "SOFTin this
+         state since...". */
       return '<div class="step ' + roadmapState(s, m.updated) + ' rv"><div class="sh"><h3>' +
-        esc(s[1]) + '</h3><span class="st">' + esc(s[2]) + '</span>' +
+        esc(s[1]) + '</h3><span class="st">' + esc(s[2]) + '</span> ' +
         '<span class="micro">in this state since ' + esc(H.chipDate(s[0])) + '</span></div>' +
         '<p>' + esc(s[3]) + '</p>' +
         '<p class="micro" style="margin-top:.5rem">Waiting on: ' + esc(s[4]) + '</p></div>';

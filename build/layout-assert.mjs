@@ -35,9 +35,26 @@ import path from 'node:path';
 const BASE = process.argv[2] || 'http://127.0.0.1:8787';
 const ASSERT = process.argv.includes('--assert');
 
-/* the audit's widths, plus the two this project already cared about */
-const WIDTHS = [320, 375, 390, 430, 440, 768, 1024, 1280, 1440];
-const ROUTES = ['/', '/airlines/', '/united/', '/systems/', '/record/'];
+/* 360px was missing from the first version and an auditor named it. */
+const WIDTHS = [320, 360, 375, 390, 430, 440, 768, 1024, 1280, 1440];
+
+/* ROUTES USED TO BE A HAND-WRITTEN LIST OF FIVE, and that is precisely why
+ * /race/ shipped overflowing 407px into a 390px viewport in both engines with
+ * script on and off: it was not on the list, so the assertion reported clean
+ * across every width it knew about. A checker that enumerates surfaces from
+ * memory checks the surfaces you remembered.
+ *
+ * The build already knows every route. Read it from there, so adding a page
+ * adds its coverage and nobody has to remember. Full sweep is 32 routes x 10
+ * widths x 2 engines; pass --quick for the five busiest routes when iterating. */
+const ALL_ROUTES = (() => {
+  const req = createRequire(import.meta.url);
+  const R = req(path.join(process.cwd(), 'build', 'routes.js'));
+  const all = [...(R.ROUTES || []), ...(R.UNLISTED || [])].map(r => r.url).filter(Boolean);
+  return [...new Set(all)];
+})();
+const QUICK = ['/', '/airlines/', '/united/', '/systems/', '/race/'];
+const ROUTES = process.argv.includes('--quick') ? QUICK : ALL_ROUTES;
 
 const TYPE_FLOOR_LABEL = 12;   /* px, any rendered text */
 const TYPE_FLOOR_COPY = 14;    /* px, explanatory copy */
@@ -49,9 +66,14 @@ try {
   const req = createRequire(path.join(homedir(), '.wo-respo', 'package.json'));
   ({ chromium, webkit } = req('playwright'));
 } catch (e) {
-  console.error('layout-assert: playwright not resolvable from ~/.wo-respo — SKIPPED, NOT PASSED.');
+  console.error('layout-assert: playwright not resolvable from ~/.wo-respo.');
   console.error('  ' + e.message);
-  process.exit(0);
+  /* This used to print "SKIPPED, NOT PASSED" and then exit 0, which an auditor
+     correctly called fail-open: the words said one thing and the exit code told
+     every caller the check had passed. A release must not proceed because the
+     browser was missing. Reporting still exits 0 so a human can run it
+     anywhere; asserting fails. */
+  process.exit(ASSERT ? 2 : 0);
 }
 
 /* Runs inside the page. Returns findings, never verdicts: the decision about
@@ -97,13 +119,38 @@ function collect(floors) {
   });
 
   /* Standalone controls. A link inside a sentence is exempt from target size
-   * under WCAG 2.2; a control sitting on its own is not. */
-  document.querySelectorAll('button, a[role="button"], .btn, .filters button, summary, label[for]').forEach(el => {
+   * under WCAG 2.2; a control sitting on its own is not.
+   *
+   * The first version listed element types: button, [role=button], .btn,
+   * .filters button, summary, label[for]. An auditor shrank `.crd-go` — an
+   * ordinary <a> — to an actual 23.3px and it passed, because a plain anchor
+   * was not on the list. Enumerating the control types you remember is the
+   * same mistake as enumerating the lies you have seen.
+   *
+   * So take EVERY interactive element and decide standalone-ness by what it
+   * is, not by what it is called. An anchor is inline-exempt only when it sits
+   * inside a run of sentence text; one that is its own block, or the only
+   * content of its parent, is a target a finger has to hit. */
+  const INTERACTIVE = 'a[href], button, [role="button"], summary, label[for], select, input:not([type="hidden"])';
+  document.querySelectorAll(INTERACTIVE).forEach(el => {
     const r = el.getBoundingClientRect();
     if (r.width <= 0 || r.height <= 0) return;
+    if (el.tagName === 'A') {
+      const cs = getComputedStyle(el);
+      const parent = el.parentElement;
+      const parentText = parent ? (parent.textContent || '').trim() : '';
+      const own = (el.textContent || '').trim();
+      const isBlock = cs.display !== 'inline';
+      const isOnlyContent = parentText === own;
+      /* inside a sentence: parent holds meaningfully more text than the link */
+      if (!isBlock && !isOnlyContent && parentText.length > own.length + 12) return;
+    }
     if (r.height < floors.target - 0.5 || r.width < floors.target - 0.5) {
-      const key = 'T' + text(el).slice(0, 20) + Math.round(r.height);
-      if (!seen.has(key)) { seen.add(key); out.smallTargets.push({ text: text(el).slice(0, 26) || el.className, w: Math.round(r.width), h: Math.round(r.height) }); }
+      const key = 'T' + text(el).slice(0, 20) + Math.round(r.height) + Math.round(r.width);
+      if (!seen.has(key)) {
+        seen.add(key);
+        out.smallTargets.push({ text: text(el).slice(0, 26) || el.className || el.tagName, w: Math.round(r.width), h: Math.round(r.height) });
+      }
     }
   });
 

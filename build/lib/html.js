@@ -135,6 +135,25 @@ var MARK_SVG = '<svg class="mk" viewBox="0 0 32 32" width="17" height="17" ' +
 var THEME_BOOT = '<script>(function(){var r=document.documentElement;' +
   'r.classList.add("js");r.classList.add("dark");})();</script>';
 
+/* ── the theme sentence is DERIVED from the theme code, not written beside it ──
+ * The footer used to say "The page follows your system's light or dark setting"
+ * while the line above added "dark" unconditionally. An auditor then broke the
+ * guard I wrote for that by inventing a DIFFERENT false sentence: my check
+ * pattern-matched the one lie it had seen, so a fresh one walked through.
+ *
+ * Pattern-matching known lies is a losing game; there are infinitely many. The
+ * sentence is now chosen by reading what the boot script actually does, so the
+ * copy and the behaviour cannot drift apart. Change THEME_BOOT to respect the
+ * system preference and the footer rewrites itself. There is no state in which
+ * this sentence is wrong, which is a better property than a test that catches
+ * one way of being wrong. */
+var THEME_FORCES_DARK = /classList\.add\("dark"\)/.test(THEME_BOOT);
+var THEME_SENTENCE = THEME_FORCES_DARK
+  ? 'The page is dark by default, whatever your system is set to. The switch in the header ' +
+    'lasts until you reload, and nothing about your choice is stored.'
+  : 'The page follows your system’s light or dark setting. The switch in the header ' +
+    'lasts until you reload, and nothing about your choice is stored.';
+
 /* The switch itself, wired after the button exists. It flips two classes and
  * writes nothing anywhere. If this script never runs, the button stays `hidden`
  * and the page stays dark — a control that cannot work should not be on
@@ -303,7 +322,11 @@ function credit(which) {
       '<a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener"><b>alaskastarlinktracker.com</b></a>, built by <b>@martinamps</b>. ' +
       'All credit for that data goes to them ↗. Every other airline is compiled from public airline announcements (July 2026).';
   }
-  return '<div class="credit"><span class="cb">DATA CREDIT</span><span class="cbody">' + body +
+  /* Literal space between the two spans: .credit is display:flex and .cb/
+     .cbody are flex items (site.css), so a whitespace text node between them
+     is not rendered as a box and changes no pixel — without it "DATA CREDIT"
+     and the body text welded into "CREDITFleet" etc. */
+  return '<div class="credit"><span class="cb">DATA CREDIT</span> <span class="cbody">' + body +
     ' WiFi Odds is unofficial and not affiliated with any airline, SpaceX/Starlink, Amazon, Viasat, or the trackers.</span></div>\n';
 }
 
@@ -346,14 +369,7 @@ function footer(updated) {
     'Nothing about you is stored in your browser; <a href="/united/">the United route optimiser</a> ' +
     'caches the route lists it fetches, and that is the only thing this site writes. ' +
     'What the server keeps is on the <a href="/privacy">privacy page</a>.</div>\n' +
-    /* This sentence was false from the day it was written. THEME_BOOT above
-       calls classList.add("dark") unconditionally, so the page has never read
-       the system preference. Dark by default was a deliberate decision; the
-       copy describing it was not updated to match, and a site whose whole
-       claim is that every figure carries its source cannot afford a false
-       statement about its own behaviour. The code is right. This was wrong. */
-    '  <div class="frow">The page is dark by default, whatever your system is set to. The switch in ' +
-    'the header lasts until you reload, and nothing about your choice is stored.</div>\n' +
+    '  <div class="frow">' + THEME_SENTENCE + '</div>\n' +
     '</footer>\n';
 }
 

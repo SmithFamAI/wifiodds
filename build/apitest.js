@@ -936,24 +936,49 @@ async function main() {
    * them. On a site whose entire argument is that every figure carries its
    * source, a false statement about its own conduct is the most expensive
    * kind of error available. */
+  /* The first version of this pattern-matched the one false sentence it had
+     seen ("follows your system"). An auditor broke it in seconds by writing a
+     DIFFERENT false sentence, which is the flaw in checking for known lies:
+     there are infinitely many and you can only enumerate the ones that already
+     happened.
+     `build/lib/html.js` now DERIVES the sentence from THEME_BOOT, so the wrong
+     state is unrepresentable rather than merely detected. What is left to
+     assert is that the derivation is still wired up: the rendered footer must
+     carry the sentence the code selects, whichever that is. */
   var htmlLib = fs.readFileSync(path.join(__dirname, 'lib', 'html.js'), 'utf8');
-  var forcesDark = /classList\.add\("dark"\)/.test(htmlLib);
   var homeFoot = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-  var claimsSystem = /follows your system/i.test(homeFoot);
-  ok(!(forcesDark && claimsSystem),
-    'the footer does not claim to follow the system theme while the boot script ' +
-    'forces one (code says dark=' + forcesDark + ', copy claims system=' + claimsSystem + ')');
-  ok(forcesDark || claimsSystem,
-    'the theme sentence and the theme code are both present to compare — if the ' +
-    'boot script stops forcing a theme, the footer copy has to change with it',
-    'forcesDark=' + forcesDark);
+  var forcesDark = /r\.classList\.add\("dark"\)/.test(htmlLib);
+  var footText = homeFoot.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+  var saysDark = /dark by default, whatever your system is set to/i.test(footText);
+  var saysSystem = /follows your system[’']s light or dark setting/i.test(footText);
+  ok(saysDark || saysSystem,
+    'the footer carries one of the two canonical theme sentences, so the derivation ' +
+    'in html.js is still reaching the page', 'saysDark=' + saysDark + ' saysSystem=' + saysSystem);
+  eq(saysDark, forcesDark,
+    'the theme sentence on the page matches what the boot script actually does ' +
+    '(boot forces dark=' + forcesDark + ', footer says dark-by-default=' + saysDark + ')');
 
-  /* ── both repositories are labelled for what they are ─────────────────── */
-  ok(/github\.com\/jeremyinthebay\/wifiodds/.test(homeFoot),
-    'the footer links the WEBSITE repository, not only the extension one');
-  ok(!/>Open source ↗</.test(homeFoot),
-    'no bare "Open source" link — it pointed at the extension repo from a page ' +
-    'about the website, so the label named the wrong thing');
+  /* ── each repository link points where its LABEL says ─────────────────────
+   * The first version asserted both URLs were present somewhere in the footer.
+   * An auditor swapped the two labels, left the URLs alone, and it passed: a
+   * reader following "Site source" landed in the extension tree and the check
+   * saw nothing wrong. Presence is not correspondence. */
+  var repoBad = [];
+  var EXPECT = [
+    { label: 'Site source', mustContain: '/jeremyinthebay/wifiodds' },
+    { label: 'Extension source', mustContain: '/jeremyinthebay/united-starlink-companion' }
+  ];
+  EXPECT.forEach(function (e) {
+    var re = new RegExp('<a[^>]*href="([^"]+)"[^>]*>\\s*' + e.label + '[^<]*</a>');
+    var m = re.exec(homeFoot);
+    if (!m) { repoBad.push('no link labelled "' + e.label + '"'); return; }
+    if (m[1].indexOf(e.mustContain) === -1) {
+      repoBad.push('"' + e.label + '" points at ' + m[1] + ', which is not ' + e.mustContain);
+    }
+  });
+  eq(repoBad.length, 0,
+    'every repository link points at the repository its label names',
+    repoBad.join(' · '));
 
   /* ── no element boundary may weld two values into a third ─────────────────
    * Every span rendered correctly. The layout was right. But `<span>37</span>`
@@ -986,8 +1011,14 @@ async function main() {
     while ((m = re.exec(html))) {
       weldChecked++;
       var a = m[1], b = m[2];
-      var weld = (/[0-9]/.test(a) && /[0-9A-Za-z]/.test(b)) ||
-                 (/[a-z]/.test(a) && /[A-Z]/.test(b));
+      /* An auditor got `AA51` past this by joining an uppercase letter to a
+         digit, which the first rule did not cover: it caught digit-into-
+         anything and lowercase-into-uppercase, and simply had no case for
+         letter-into-digit. Any alphanumeric running into any alphanumeric with
+         no separator is a weld; the only joins worth allowing are the ones
+         inside a single word, and a single word does not span two elements. */
+      var weld = /[0-9A-Za-z]/.test(a) && /[0-9A-Za-z]/.test(b) &&
+                 !(/[a-z]/.test(a) && /[a-z]/.test(b));
       if (weld) {
         var ctx = html.slice(Math.max(0, m.index - 40), m.index + 60).replace(/\s+/g, ' ');
         weldBad.push(r.file + ': "' + a + '" + "' + b + '" in …' + ctx.slice(-70));
