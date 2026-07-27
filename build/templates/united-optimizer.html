@@ -1586,13 +1586,22 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
    regexes pin the shape (`UA\d+`, `[A-Z]{3}`, `N[A-Z0-9]+`). The JSON route
    planner had no such constraint, which is where all three faults lived. */
 function tNum(v,min,max){
-  const n=typeof v==="number"?v:parseFloat(v);
-  return Number.isFinite(n)&&n>=min&&n<=max?n:null;
+  /* A P0 audit found `null*100`, `""*100` and `false*100` all evaluating to the
+     number 0 before this ever ran, and `parseFloat("5junk")` silently reading
+     5. Only a value that already IS a finite number is accepted; nothing here
+     coerces a string, boolean or null into a measured figure. */
+  if(typeof v!=="number"||!Number.isFinite(v))return null;
+  return v>=min&&v<=max?v:null;
 }
 function tStr(v,max,re){
+  /* The same audit found `"DENJUNK".slice(0,3)` producing "DEN", which passed
+     the IATA regex and rendered as a real airport that was never in the
+     input. The regex now runs against the FULL trimmed string; a value only
+     passes if it matches in full and is not longer than `max`, so truncation
+     can never manufacture a match. */
   if(typeof v!=="string")return null;
-  const s=v.trim().slice(0,max);
-  return s&&(!re||re.test(s))?s:null;
+  const s=v.trim();
+  return s&&s.length<=max&&(!re||re.test(s))?s:null;
 }
 /* Everything from the tracker that reaches innerHTML goes through this. The
    render sites also use it, so a value is neutralised at the point of use even
@@ -1611,26 +1620,40 @@ async function okJson(r){
 /* Returns a validated itinerary or null. One bad leg drops the itinerary
    rather than the leg, because a chain missing a leg misstates the joint
    probability it is there to report. */
-function validItinerary(it){
+function validItinerary(it,o,d){
   if(!it||typeof it!=="object")return null;
   const via=Array.isArray(it.via)?it.via.map(v=>tStr(v,3,IATA)):[];
   if(via.some(v=>v===null))return null;
-  const joint=tNum(it.joint_probability*100,0,100);
-  const any=tNum(it.at_least_one_probability*100,0,100);
-  if(joint===null||any===null||any<joint-0.05)return null;   /* P(≥1) < P(all) is impossible */
+  /* Validate the RAW field as a number before any arithmetic touches it.
+     `null*100`, `""*100` and `false*100` are all the number 0 in JS, so a
+     probability that was never published used to pass a check that ran AFTER
+     the multiply. tNum now rejects anything that is not already a finite
+     number, so the multiply only ever runs on a real value. */
+  const jointFrac=tNum(it.joint_probability,0,1);
+  const anyFrac=tNum(it.at_least_one_probability,0,1);
+  if(jointFrac===null||anyFrac===null)return null;
+  const joint=jointFrac*100,any=anyFrac*100;
+  if(any<joint-0.05)return null;   /* P(≥1) < P(all) is impossible */
   const hours=tNum(it.total_flight_hours,0,48);
   const coverage=tStr(it.coverage,12,/^[a-z]+$/);
+  if(coverage===null)return null;   /* an itinerary the tracker won't characterize is not one to book off of */
   const legsIn=Array.isArray(it.legs)?it.legs:[];
   const legs=[];
   for(const l of legsIn){
     const fn=tStr(l&&l.flight_number,8,FLIGHT);
     const route=tStr(l&&l.route,9,/^[A-Z]{3}\s*[-–→]\s*[A-Z]{3}$/);
-    const p=tNum((l&&l.probability)*100,0,100);
+    const pFrac=tNum(l&&l.probability,0,1);
     const obs=tNum(l&&l.n_observations,0,1e6);
-    if(fn===null||route===null||p===null||obs===null||!Number.isInteger(obs))return null;
-    legs.push({fn,route,p:Math.round(p),obs,conf:tStr(l.confidence,12,/^[a-z]+$/)||"unknown"});
+    if(fn===null||route===null||pFrac===null||obs===null||!Number.isInteger(obs))return null;
+    legs.push({fn,route,p:Math.round(pFrac*100),obs,conf:tStr(l&&l.confidence,12,/^[a-z]+$/)||"unknown"});
   }
   if(!legs.length)return null;
+  /* ROUTE IDENTITY. The chain's own first and last legs must start at the
+     requested origin and end at the requested destination. An itinerary that
+     describes some other pair is dropped whole, never relabelled to the pair
+     that was actually asked for. */
+  const startsAt=legs[0].route.match(/^([A-Z]{3})/),endsAt=legs[legs.length-1].route.match(/([A-Z]{3})$/);
+  if(!startsAt||!endsAt||startsAt[1]!==o||endsAt[1]!==d)return null;
   return {via,joint:+joint.toFixed(1),any:+any.toFixed(1),coverage,
           hours:hours===null?null:+hours.toFixed(1),legs};
 }
@@ -1644,18 +1667,51 @@ async function mcpText(name,args){
   const r=await tfetch(TRACKER+"/mcp",{method:"POST",
     headers:{"Content-Type":"application/json","Accept":"application/json, text/event-stream"},
     body:JSON.stringify({jsonrpc:"2.0",id:1,method:"tools/call",params:{name,arguments:args}})});
+  /* Same rule as okJson, applied to the other two tracker calls: a status the
+     server did not call OK is not data, even when the body is a well-formed
+     JSON-RPC envelope. A P0 audit found a bare 500 with a plausible
+     result.content[0].text rendered as a live flight, cached for six hours,
+     and put in the booking playbook, because this never checked r.ok. */
+  if(!r||!r.ok)throw new Error("tracker HTTP "+(r?r.status:"none"));
   const t=await r.text();
   let j;try{j=JSON.parse(t)}catch{const m=t.match(/data: (.*)/);j=m?JSON.parse(m[1]):null;}
   return j?.result?.content?.[0]?.text||"";
 }
-function parsePredict(text){
+/* Both parsers below take the (o,d) that was actually requested and enforce
+   the same three checks the JSON path gets: the route named in the text must
+   be the route that was asked for (never relabelled), every number must fall
+   in a real range, and every date/time must be a calendar date/time that
+   exists. A P0 audit served "UA9900 [mainline] (LAX-JFK) 999% (1000000000
+   obs)" in answer to a DEN→SFO request; before this, the LAX-JFK label was
+   thrown away and the 999%/1e9-observation flight was rendered as DEN→SFO. */
+function parsePredict(text,o,d){
   const out=[];const re=/^\s*(UA\d+)\s+\[(\w+)\]\s+\(([A-Z]{3})-([A-Z]{3})\)\s+(\d+)%\s+\((\d+) obs · (\w+) confidence\)/gm;
-  let m;while((m=re.exec(text)))out.push({fn:m[1],seg:m[2],prob:+m[5],obs:+m[6],conf:m[7]});
+  let m;
+  while((m=re.exec(text))){
+    const fn=tStr(m[1],8,FLIGHT),seg=tStr(m[2],20,/^[a-zA-Z]+$/);
+    const ro=tStr(m[3],3,IATA),rd=tStr(m[4],3,IATA);
+    const prob=tNum(+m[5],0,100),obs=tNum(+m[6],0,1e6),conf=tStr(m[7],12,/^[a-z]+$/i);
+    if(fn===null||seg===null||ro!==o||rd!==d||prob===null||obs===null||!Number.isInteger(obs)||conf===null)continue;
+    out.push({fn,seg,prob,obs,conf});
+  }
   return out;
 }
-function parseSearch(text){
-  const out=[];const re=/^(UA\d+)\s+([A-Z]{3})→([A-Z]{3})\s+dep\s+(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})Z\s+\(tail\s+(N[A-Z0-9]+)\)/gm;
-  let m;while((m=re.exec(text)))out.push({fn:m[1],date:m[4],time:m[5],tail:m[6]});
+function realDate(y,mo,da){
+  const dt=new Date(Date.UTC(y,mo-1,da));
+  return dt.getUTCFullYear()===y&&dt.getUTCMonth()===mo-1&&dt.getUTCDate()===da;
+}
+function parseSearch(text,o,d){
+  const out=[];const re=/^(UA\d+)\s+([A-Z]{3})→([A-Z]{3})\s+dep\s+(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})Z\s+\(tail\s+(N[A-Z0-9]+)\)/gm;
+  let m;
+  while((m=re.exec(text))){
+    const fn=tStr(m[1],8,FLIGHT),ro=tStr(m[2],3,IATA),rd=tStr(m[3],3,IATA);
+    const y=+m[4],mo=+m[5],da=+m[6],hh=+m[7],mi=+m[8];
+    const tail=tStr(m[9],10,/^N[A-Z0-9]{1,6}$/);
+    const validDate=mo>=1&&mo<=12&&da>=1&&da<=31&&realDate(y,mo,da);
+    const validTime=hh>=0&&hh<=23&&mi>=0&&mi<=59;
+    if(fn===null||ro!==o||rd!==d||tail===null||!validDate||!validTime)continue;
+    out.push({fn,date:`${m[4]}-${m[5]}-${m[6]}`,time:`${m[7]}:${m[8]}`,tail});
+  }
   return out;
 }
 function lsGet(k){try{const v=JSON.parse(localStorage.getItem(k));return v&&Date.now()-v.ts<CACHE_TTL?v:null;}catch{return null;}}
@@ -1675,10 +1731,10 @@ async function fetchLive(o,d){
      kept and the bad half is null rather than an empty array pretending to be a
      measured result. */
   const itineraries=plan.status==="fulfilled"&&Array.isArray(plan.value?.itineraries)
-    ? plan.value.itineraries.slice(0,8).map(validItinerary).filter(Boolean)
+    ? plan.value.itineraries.slice(0,8).map(x=>validItinerary(x,o,d)).filter(Boolean)
     : null;
-  const flights=predict.status==="fulfilled"?parsePredict(predict.value):null;
-  const deps=search.status==="fulfilled"?parseSearch(search.value):null;
+  const flights=predict.status==="fulfilled"?parsePredict(predict.value,o,d):null;
+  const deps=search.status==="fulfilled"?parseSearch(search.value,o,d):null;
   const out={ts:Date.now(),
     itineraries:itineraries&&itineraries.length?itineraries:null,
     flights:flights&&flights.length?flights:null,

@@ -31,6 +31,7 @@ var fs = require('fs');
 var os = require('os');
 var path = require('path');
 var cp = require('child_process');
+var vm = require('vm');
 
 var ROOT = path.join(__dirname, '..');
 var FN = path.join(ROOT, 'functions');
@@ -148,9 +149,135 @@ function assertEnvelope(res, j, label) {
     label + ': sources credit unitedstarlinktracker.com');
 }
 
+/* ── tracker validation gate (P0-02, round 5) ───────────────────────────────
+ * The two MCP calls (predict_route_starlink, search_starlink_flights) and the
+ * plan-route JSON call all reach the reader's localStorage, live badge and
+ * booking playbook through fetchLive() in
+ * build/templates/united-optimizer.html. An audit found the JSON path gated
+ * but the MCP path not: mcpText() never checked r.ok, a 200 describing the
+ * wrong route was relabelled to the requested pair instead of dropped, and
+ * `null*100`/`""*100`/`false*100`/`parseFloat("5junk")` all coerced to
+ * plausible-looking measured values.
+ *
+ * This drives fetchLive() FOR REAL — the function is extracted verbatim from
+ * the BUILT united/index.html (never the template, so it tests what actually
+ * ships) and run in a vm sandbox with a mocked fetch(), never a real network
+ * call — instead of asserting the source merely contains some regex. Each
+ * case below reproduces one of the auditor's fixtures byte-for-byte. */
+function loadTrackerGateSource() {
+  var html = fs.readFileSync(path.join(ROOT, 'united', 'index.html'), 'utf8');
+  var START = '/* ── constants ── */', END = '/* ── merged model for a route ── */';
+  var si = html.indexOf(START), ei = html.indexOf(END);
+  if (si === -1 || ei === -1 || ei <= si) return null;
+  return html.slice(si, ei);
+}
+function trackerApi(snippet, mockFetch) {
+  var store = {};
+  var localStorage = {
+    getItem: function (k) { return Object.prototype.hasOwnProperty.call(store, k) ? store[k] : null; },
+    setItem: function (k, v) { store[k] = String(v); },
+    removeItem: function (k) { delete store[k]; }
+  };
+  var sandbox = {
+    fetch: mockFetch, AbortController: AbortController, setTimeout: setTimeout,
+    clearTimeout: clearTimeout, localStorage: localStorage, console: console
+  };
+  vm.createContext(sandbox);
+  var wrapped = '(function(){\n' + snippet + '\nreturn {fetchLive:fetchLive};\n})()';
+  var api = vm.runInContext(wrapped, sandbox, { filename: 'tracker-gate-extract.js' });
+  return { api: api, store: store };
+}
+function fakeRes(status, bodyText) {
+  return {
+    ok: status >= 200 && status < 300, status: status,
+    text: function () { return Promise.resolve(bodyText); },
+    json: function () { return Promise.resolve(JSON.parse(bodyText)); }
+  };
+}
+function jsonRpcText(text) {
+  return JSON.stringify({ jsonrpc: '2.0', id: 1, result: { content: [{ type: 'text', text: text }] } });
+}
+async function checkTrackerGate() {
+  var snippet = loadTrackerGateSource();
+  ok(!!snippet, 'tracker gate: located fetchLive() and its helpers in the BUILT united/index.html');
+  if (!snippet) return;
+
+  /* Case 1 — plan-route 500 {}, both MCP calls ALSO 500 but with an otherwise
+   * well-formed JSON-RPC body. Before this fix, mcpText() never checked
+   * r.ok and this rendered a live flight at 81%, cached for 6h. */
+  var mcp500 = trackerApi(snippet, function (url, opts) {
+    if (String(url).indexOf('/api/plan-route') >= 0) return Promise.resolve(fakeRes(500, '{}'));
+    var name = JSON.parse(opts.body).params.name;
+    var text = name === 'predict_route_starlink'
+      ? 'UA9500 [mainline] (DEN-SFO) 81% (12 obs · high confidence)'
+      : 'UA9500 DEN→SFO dep 2026-07-28 10:30Z (tail N500UA)';
+    return Promise.resolve(fakeRes(500, jsonRpcText(text)));
+  });
+  var out500 = await mcp500.api.fetchLive('DEN', 'SFO');
+  ok(out500.itineraries === null && out500.flights === null && out500.deps === null,
+    'a 500 with a valid-looking MCP body yields no itineraries/flights/deps', out500);
+  eq(Object.keys(mcp500.store).length, 0, 'a 500 with a valid-looking MCP body writes no cache key');
+
+  /* Case 2 — 200 MCP responses describing LAX→JFK at 999% with 1e9
+   * observations and an impossible date/time, while DEN→SFO was requested.
+   * Before this fix, the response's own route was discarded and the page
+   * relabelled the data as DEN→SFO. */
+  var mcpRange = trackerApi(snippet, function (url, opts) {
+    if (String(url).indexOf('/api/plan-route') >= 0) return Promise.resolve(fakeRes(500, '{}'));
+    var name = JSON.parse(opts.body).params.name;
+    var text = name === 'predict_route_starlink'
+      ? 'UA9900 [mainline] (LAX-JFK) 999% (1000000000 obs · invented confidence)'
+      : 'UA9900 LAX→JFK dep 2026-99-99 99:99Z (tail N999ZZ)';
+    return Promise.resolve(fakeRes(200, jsonRpcText(text)));
+  });
+  var outRange = await mcpRange.api.fetchLive('DEN', 'SFO');
+  ok(outRange.itineraries === null && outRange.flights === null && outRange.deps === null,
+    'an out-of-range, wrong-route MCP response yields no itineraries/flights/deps', outRange);
+  eq(Object.keys(mcpRange.store).length, 0,
+    'an out-of-range, wrong-route MCP response writes no cache key (never relabelled)');
+
+  /* Case 3 — the plan-route JSON coercion fixture: DENJUNK via, null/empty/
+   * false probabilities, "5junk" hours, "7junk" observations, no coverage.
+   * Before this fix this rendered "DEN → DEN → SFO" at a fabricated 0%. */
+  var coercionBody = JSON.stringify({ itineraries: [{
+    via: ['DENJUNK'], joint_probability: null, at_least_one_probability: '',
+    total_flight_hours: '5junk',
+    legs: [{ flight_number: 'UA88', route: 'DEN-SFO', probability: false, n_observations: '7junk' }]
+  }] });
+  var coercion = trackerApi(snippet, function (url) {
+    if (String(url).indexOf('/api/plan-route') >= 0) return Promise.resolve(fakeRes(200, coercionBody));
+    return Promise.resolve(fakeRes(200, jsonRpcText('')));
+  });
+  var outCoercion = await coercion.api.fetchLive('DEN', 'SFO');
+  ok(outCoercion.itineraries === null,
+    'DENJUNK / null / false / "5junk" / "7junk" / missing coverage all drop the itinerary', outCoercion);
+  eq(Object.keys(coercion.store).length, 0, 'the coercion fixture writes no cache key');
+
+  /* Case 4 — Claude's valid control: a genuinely valid, correctly-routed
+   * itinerary must still cache and read as live. This proves the three gates
+   * above reject on their SPECIFIC defects, not on every response. */
+  var goodBody = JSON.stringify({ itineraries: [{
+    via: [], joint_probability: 0.42, at_least_one_probability: 0.42,
+    coverage: 'full', total_flight_hours: 2.6,
+    legs: [{ flight_number: 'UA1234', route: 'DEN-SFO', probability: 0.42, n_observations: 118, confidence: 'high' }]
+  }] });
+  var good = trackerApi(snippet, function () { return Promise.resolve(fakeRes(200, goodBody)); });
+  var outGood = await good.api.fetchLive('DEN', 'SFO');
+  ok(Array.isArray(outGood.itineraries) && outGood.itineraries.length === 1,
+    'a genuinely valid DEN→SFO itinerary still validates', outGood);
+  eq(outGood.itineraries && outGood.itineraries[0].joint, 42,
+    'valid control: joint probability still renders as 42');
+  eq(outGood.source, 'live', 'valid control: source is live');
+  eq(Object.keys(good.store).length, 1, 'valid control: writes exactly one cache key');
+  ok(!!good.store['usl2:DEN-SFO'], 'valid control: the cache key names the requested pair');
+}
+
 /* ── main ────────────────────────────────────────────────────────────────── */
 async function main() {
   var files = checkSyntax();
+  var checksBeforeTrackerGate = checks;
+  await checkTrackerGate();
+  var trackerGateChecks = checks - checksBeforeTrackerGate;
 
   var H = await import('../functions/_lib/handlers.mjs');
   var A = require('../assets/airlines.js');
@@ -1730,6 +1857,9 @@ async function main() {
     'the outbound payload · published:false on every stored row · the cap is ' + RPT.RATE_CAP +
     ' per hashed address per hour · ' + loaded.count + ' published report' +
     (loaded.count === 1 ? '' : 's') + ' committed in assets/reports.json');
+  console.log('  tracker gate: ' + trackerGateChecks + ' checks · a 500 with a valid MCP body, a ' +
+    'wrong-route 200, and null/bool/partial-numeric-string coercion all write zero cache keys · ' +
+    'the valid DEN→SFO control still caches and reads live');
 }
 
 main().catch(function (e) {
