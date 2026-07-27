@@ -677,13 +677,23 @@ function assertProjectionsDoNotSort(A) {
     errs.push('  without ' + orderAfter);
   }
   /* the intended comparator, written here rather than imported, so editing
-     rankAirlines() to sort on anything else fails against this copy */
+     rankAirlines() to sort on anything else fails against this copy. Ties on
+     score break on fitted coverage (tieCoverage, mirrored from A.tieCoverage
+     — airBaltic 100 on 51% fitted must not outrank JSX 100 fleetwide), then
+     alphabetically. */
+  function tieCoverage(a) {
+    var v = a.parts && typeof a.parts.pctEquipped === 'number' ? a.parts.pctEquipped : 1;
+    return v >= 0.99 ? 1 : v;
+  }
   var want = before.slice().sort(function (a, b) {
     if (b.score !== a.score) return b.score - a.score;
+    var bc = tieCoverage(b), ac = tieCoverage(a);
+    if (bc !== ac) return bc - ac;
     return a.name.localeCompare(b.name);
   }).map(function (a) { return a.key; }).join(',');
   if (orderBefore !== want) {
-    errs.push('rankAirlines() is not sorting on today\'s floor, best first, ties alphabetical:');
+    errs.push('rankAirlines() is not sorting on today\'s floor, best first, ties by fitted ' +
+      'coverage then alphabetical:');
     errs.push('  rankAirlines() ' + orderBefore);
     errs.push('  floor order    ' + want);
   }

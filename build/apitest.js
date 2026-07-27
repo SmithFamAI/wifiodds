@@ -445,9 +445,20 @@ async function main() {
   /* rule 1, at the API boundary: today's floor orders the list, and a projection
      that outranks a floor must not move anybody. American projects 51 against a
      floor of 51; jetBlue projects 25 against a floor of 55. */
-  eq(all.order, 'connectScore desc, then name', '/api/airlines declares it sorts on the score');
+  eq(all.order, 'connectScore desc, ties by fitted coverage then name',
+    '/api/airlines declares it sorts on the score');
+  /* mirrors A.tieCoverage in assets/airlines.js and the independent copy in
+     build/prerender.js's assertProjectionsDoNotSort: airBaltic 100 on 51%
+     fitted must not outrank JSX or ZIPAIR, both 100 fleetwide. */
+  function tieCoverage(x) {
+    var v = x.fleet && typeof x.fleet.total === 'number' && x.fleet.total > 0
+      ? (x.fleet.equipped || 0) / x.fleet.total : 1;
+    return v >= 0.99 ? 1 : v;
+  }
   var floorOrder = all.airlines.slice().sort(function (x, y) {
     if (y.connectScore !== x.connectScore) return y.connectScore - x.connectScore;
+    var yc = tieCoverage(y), xc = tieCoverage(x);
+    if (yc !== xc) return yc - xc;
     return x.name.localeCompare(y.name);
   }).map(function (x) { return x.key; }).join(',');
   eq(all.airlines.map(function (x) { return x.key; }).join(','), floorOrder,

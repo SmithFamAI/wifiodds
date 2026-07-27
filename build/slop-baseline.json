@@ -126,12 +126,12 @@
       "pivotUnits": 1
     },
     "airlines/index.html": {
-      "words": 1715,
+      "words": 1835,
       "llmPoints": 0.5,
       "clichePoints": 0,
       "unsub": 0,
       "pivotPer1000": 1.1,
-      "pivotUnits": 2.25
+      "pivotUnits": 3
     },
     "airlines/jetblue/index.html": {
       "words": 1138,
@@ -214,12 +214,12 @@
       "pivotUnits": 1.25
     },
     "api/docs/index.html": {
-      "words": 1913,
+      "words": 1938,
       "llmPoints": 0.5,
       "clichePoints": 0,
       "unsub": 0,
-      "pivotPer1000": 1.04,
-      "pivotUnits": 2
+      "pivotPer1000": 0.9,
+      "pivotUnits": 1.75
     },
     "index.html": {
       "words": 1749,
@@ -302,7 +302,7 @@
       "pivotUnits": 0.75
     },
     "united/index.html": {
-      "words": 4718,
+      "words": 4762,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,

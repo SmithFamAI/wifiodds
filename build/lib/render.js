@@ -2225,12 +2225,14 @@ function apiDocs(m) {
     '    <tbody>\n' + endpointRows + '\n    </tbody>\n  </table></div>\n' +
 
     '  <h3 class="apih">GET /api/airlines</h3>\n' +
-    '  <p class="sec-lede">All ' + m.airlineCount + ' airlines, ordered by ConnectScore descending, ' +
-    'ties broken by name. Same order as the leaderboard, from the same function.</p>\n' +
+    '  <p class="sec-lede">All ' + m.airlineCount + ' airlines, ordered by ConnectScore descending. ' +
+    'A tied score breaks on fitted coverage (the more of the fleet that score is actually measured ' +
+    'on, the higher it ranks), then on name. Same order as the leaderboard, from the same ' +
+    'function.</p>\n' +
     code('{\n' +
       '  "count": ' + m.airlineCount + ',\n' +
       '  "asOf": "' + (m.ranked[0].asOf || m.updated) + '",\n' +
-      '  "order": "connectScore desc, then name",\n' +
+      '  "order": "connectScore desc, ties by fitted coverage then name",\n' +
       '  "airlines": [ … ' + m.airlineCount + ' objects … ],\n' +
       '  "sources": [ … ]\n' +
       '}') +

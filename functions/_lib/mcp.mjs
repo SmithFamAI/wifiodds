@@ -323,7 +323,7 @@ async function toolListAirlineScores(context) {
   return toolOk(text, {
     count: list.length,
     asOf: out.data.asOf || null,
-    order: out.data.order || 'connectScore desc, then name',
+    order: out.data.order || 'connectScore desc, ties by fitted coverage then name',
     airlines: list.map(function (a) {
       return Object.assign({ confidenceTier: tierOf(a) }, a);
     }),

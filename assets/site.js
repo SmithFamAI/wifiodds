@@ -281,15 +281,29 @@
           var k = b.getAttribute('data-sort');
           btns.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
           table.setAttribute('data-active', k);
+          /* THE ARROW MUST MATCH THE LABEL. Every numeric column here ranks
+             best-first, i.e. descending; "A–Z" is the one column that reads
+             the other way, ascending, and has to say so — this is the exact
+             failure this control is under a test for (a labelled-A–Z control
+             that quietly sorted Z–A). */
           Array.prototype.forEach.call(table.querySelectorAll('th[data-rc]'), function (th) {
-            if (th.getAttribute('data-rc') === k) th.setAttribute('aria-sort', 'descending');
-            else th.removeAttribute('aria-sort');
+            if (th.getAttribute('data-rc') !== k) { th.removeAttribute('aria-sort'); return; }
+            th.setAttribute('aria-sort', k === 'name' ? 'ascending' : 'descending');
           });
           caps.forEach(function (p) { p.hidden = p.getAttribute('data-for') !== k; });
           var list;
           if (k === 'score') {
             list = orig.slice();
             list.forEach(function (r, i) { r.querySelector('.rank').textContent = String(i + 1); });
+          } else if (k === 'name') {
+            /* A to Z, and it is not a ranking — every row keeps the "unranked"
+               dash rather than a position number, the same idiom the numeric
+               columns use for a row with no published number, so a reader
+               never mistakes alphabetical order for a score. */
+            list = orig.slice().sort(function (a, b2) {
+              return a.getAttribute('data-name').localeCompare(b2.getAttribute('data-name'));
+            });
+            list.forEach(function (r) { r.querySelector('.rank').textContent = '—'; });
           } else {
             var ranked = orig.filter(function (r) { return val(r, k) !== null; })
               .sort(function (a, b2) {

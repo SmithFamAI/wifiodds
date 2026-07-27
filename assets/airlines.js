@@ -1539,13 +1539,32 @@ function scoreAirline(key) {
   };
 }
 
-/* Every airline, best odds first; ties break alphabetically so the order is
- * stable across runs (three carriers sit at 100). */
+/* Coverage share used ONLY to break a ConnectScore tie, e.g. airBaltic 100 on
+ * 28 of 55 aircraft (51% fitted) versus JSX 100 on 56 of 56 (fleetwide) —
+ * those are not the same claim and must not share a rank. This mirrors
+ * fitShare() in build/lib/pages.js (same >=0.99-is-effectively-full cutoff,
+ * same "no data means treat as full" rule) rather than importing it, because
+ * this file also loads as a plain classic script in the browser, which cannot
+ * `require()` a CommonJS module. If the badge threshold in pages.js ever
+ * moves, move this one with it. */
+function tieCoverage(a) {
+  var v = a.parts && typeof a.parts.pctEquipped === "number" ? a.parts.pctEquipped : 1;
+  return v >= 0.99 ? 1 : v;
+}
+
+/* Every airline, best odds first. Ties on ConnectScore break on fitted
+ * coverage, most-resolved fleet first (tieCoverage above), then
+ * alphabetically so the order is still stable when coverage also ties
+ * (three carriers sit at 100: JSX and ZIPAIR both fleetwide, airBaltic at
+ * 51% fitted — JSX and ZIPAIR now outrank airBaltic, and land JSX-then-ZIPAIR
+ * on name). The formula and every score are unchanged; this only orders. */
 function rankAirlines() {
   return Object.keys(WIFI_AIRLINES)
     .map(scoreAirline)
     .sort(function (a, b) {
       if (b.score !== a.score) return b.score - a.score;
+      var bc = tieCoverage(b), ac = tieCoverage(a);
+      if (bc !== ac) return bc - ac;
       return a.name.localeCompare(b.name);
     });
 }
@@ -1566,6 +1585,6 @@ if (typeof module !== "undefined" && module.exports) {
     knownAircraft, unresolvedAircraft, resolutionOf, ledgerFor, fleetQuality,
     isNextGen, nextGenShare, nextGenScore, nextGenSplitFor,
     serviceTierOf, serviceTierExpected, serviceTierLabel, restTierLabel,
-    labelFor, scoreClass, scoreEntry, scoreAirline, rankAirlines,
+    labelFor, scoreClass, scoreEntry, scoreAirline, rankAirlines, tieCoverage,
   };
 }

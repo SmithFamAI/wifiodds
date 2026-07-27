@@ -647,13 +647,16 @@ function rankRow(a, i) {
  * rather than restating it. Tightened from D3's draft copy, not lengthened. */
 var RANK_COLS = [
   ['score', 'ConnectScore', 'What you’d get today, across the whole fleet, weighted by system ' +
-    'quality and whether it’s free. <a href="/methodology/#formula">How it’s scored →</a>'],
+    'quality and whether it’s free. Ties break on fitted coverage, most-resolved fleet first. ' +
+    '<a href="/methodology/#formula">How it’s scored →</a>'],
   ['nextgen', 'Next-gen odds', 'Your chance of drawing Starlink or Amazon Leo on a random aircraft. ' +
     '<a href="/methodology/#formula">Why next-gen is the headline →</a>'],
   ['mainline', 'Mainline', 'Next-gen odds on the big jets. ' +
     '<a href="/methodology/">Mainline vs regional →</a>'],
   ['regional', 'Regional', 'Next-gen odds on the regional fleet, where United is furthest ahead. ' +
-    '<a href="/methodology/">Mainline vs regional →</a>']
+    '<a href="/methodology/">Mainline vs regional →</a>'],
+  ['name', 'A–Z', 'Alphabetical, not a ranking. The same airlines, ordered by name instead of ' +
+    'a score.']
 ];
 function rankBoard(id, list) {
   var btns = RANK_COLS.map(function (c, i) {
@@ -679,15 +682,28 @@ function rankBoard(id, list) {
     '  <p class="footnote">Mainline and regional are each segment’s own next-gen share, not a ' +
     'ConnectScore. Three columns, three denominators. On next-gen, mainline and regional, ties ' +
     'share a rank and a row with no published number ranks with a dash, never zero. ConnectScore ' +
-    'keeps the site’s usual 1-2-3 order. Projected figures are grey, fenced, and never sort.</p>\n' +
+    'keeps the site’s usual 1-2-3 order. Ties break on fitted coverage: the more of the fleet a ' +
+    'score is measured on, the higher it ranks at an equal score. A–Z is alphabetical order, not ' +
+    'a ranking, and carries no rank number. Projected figures are grey, fenced, and never sort.</p>\n' +
     '</div>\n';
 }
 /* The Big 4: United, American, Delta, Southwest, ranked on ConnectScore by
  * default (the order the page ships with script off). */
-function bigFourBoard(m) {
+function bigFourBoard(m, opts) {
+  opts = opts || {};
   var order = ['united', 'american', 'delta', 'southwest'];
   var list = order.map(function (k) { return m.A.scoreAirline(k); }).filter(Boolean)
-    .sort(function (a, b) { return b.score - a.score || a.name.localeCompare(b.name); });
+    .sort(function (a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      /* Same tie-break as A.rankAirlines(): fitted coverage, most-resolved
+         fleet first, before falling back to name. Keeps this board and the
+         full 18 agreeing about what a tied score means even though this list
+         is picked by key rather than read off m.ranked. */
+      var bs = fitShare(b), as = fitShare(a);
+      bs = bs === null ? 1 : bs; as = as === null ? 1 : as;
+      if (bs !== as) return bs - as;
+      return a.name.localeCompare(b.name);
+    });
   var ak = m.A.scoreAirline('alaska'), jb = m.A.scoreAirline('jetblue');
   return '<section class="blk">\n' +
     '  <span class="kicker">The Big 4</span>\n' +
@@ -697,11 +713,11 @@ function bigFourBoard(m) {
     '<em>market share</em> either, a different measure. American’s 890 of 989 next-gen figure is ' +
     'mainline only. United’s 482 of 1,807 counts mainline and regional. This board says which is ' +
     'which.</p>\n' +
-    rankBoard('big4-board', list) +
+    rankBoard(opts.boardId || 'big4-board', list) +
     '  <p class="pointer">The Big 4 frame leaves out ' + esc(ak.name) + ' (next-gen ' +
     ak.nextGenScore + ', ' + num(ak.equipped || 0) + ' aircraft flying today) and ' + esc(jb.name) +
     ' (free fleetwide Viasat). Both are real picks for a wifi-first flyer. ' +
-    '<a href="#full-board">See all 18 →</a></p>\n' +
+    '<a href="' + (opts.moreHref || '#full-board') + '">See all 18 →</a></p>\n' +
     '</section>\n\n';
 }
 /* All 18, same columns, same control, its own default ConnectScore order. */
