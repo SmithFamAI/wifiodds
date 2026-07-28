@@ -496,6 +496,40 @@ async function checkTrackerGate() {
   var outFresh = await freshCache.api.fetchLive('DEN', 'SFO');
   ok(Array.isArray(outFresh.flights) && outFresh.flights.length === 1 && outFresh.flights[0].fn === 'UA9090',
     'current-ts control: a valid current cache record is still served', outFresh);
+
+  /* ── round 8: the missing LOWER bound on "all legs" for 3+ legs ──
+   * Three 90% legs claiming 0% joint passed: the failure chances total at
+   * most 30%, so all three succeed at least 70% of the time (Fréchet). */
+
+  /* Case 17 — the violation: DEN-ORD-IAH-SFO, three 90% legs, joint 0%. */
+  var threeLegs = function (joint, any) { return JSON.stringify({ itineraries: [{
+    via: ['ORD', 'IAH'], joint_probability: joint, at_least_one_probability: any,
+    coverage: 'partial', total_flight_hours: 9,
+    legs: [
+      { flight_number: 'UA30', route: 'DEN-ORD', probability: 0.9, n_observations: 30, confidence: 'high' },
+      { flight_number: 'UA31', route: 'ORD-IAH', probability: 0.9, n_observations: 30, confidence: 'high' },
+      { flight_number: 'UA32', route: 'IAH-SFO', probability: 0.9, n_observations: 30, confidence: 'high' }
+    ]
+  }] }); };
+  var lowJoint = trackerApi(snippet, function (url) {
+    if (String(url).indexOf('/api/plan-route') >= 0) return Promise.resolve(fakeRes(200, threeLegs(0, 0.999)));
+    return Promise.resolve(fakeRes(200, jsonRpcText('')));
+  });
+  var outLowJoint = await lowJoint.api.fetchLive('DEN', 'SFO');
+  ok(outLowJoint.itineraries === null,
+    'three 90% legs claiming 0% joint are dropped (all three must work at least 70% of the time)', outLowJoint);
+  eq(Object.keys(lowJoint.store).length, 0, 'the low-joint violation writes no cache key');
+
+  /* Case 18 — the valid three-leg control: same legs, joint 73% (0.9^3),
+   * at-least-one 99.9%. Both sit inside every bound; must still validate. */
+  var threeGood = trackerApi(snippet, function (url) {
+    if (String(url).indexOf('/api/plan-route') >= 0) return Promise.resolve(fakeRes(200, threeLegs(0.73, 0.999)));
+    return Promise.resolve(fakeRes(200, jsonRpcText('')));
+  });
+  var outThreeGood = await threeGood.api.fetchLive('DEN', 'SFO');
+  ok(Array.isArray(outThreeGood.itineraries) && outThreeGood.itineraries.length === 1,
+    'valid three-leg control: 90%/90%/90% legs at 73% joint and 99.9% at-least-one still validate',
+    outThreeGood);
 }
 
 /* ── main ────────────────────────────────────────────────────────────────── */

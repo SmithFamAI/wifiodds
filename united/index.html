@@ -2294,6 +2294,11 @@ function itineraryTopologyOk(via,legs,joint,any,o,d){
      bound is imposed, since the higher-order terms are not carried here. */
   const sumP=legPs.reduce((a,b)=>a+b,0);
   if(any>Math.min(100,sumP)+PROB_TOL)return false;
+  /* LOWER BOUND ON "ALL LEGS" (Fréchet). A round-8 P0 audit accepted three
+     90% legs at 0% joint: the failure chances total at most 30%, so all
+     three succeed at least 70% of the time. joint >= sum(legs) - 100·(k-1),
+     floored at 0. Holds for every leg count; binding once the legs are good. */
+  if(joint<Math.max(0,sumP-100*(legs.length-1))-PROB_TOL)return false;
   if(legs.length===2&&Math.abs(any-(legPs[0]+legPs[1]-joint))>PROB_TOL)return false;
   if(legs.length===1&&(Math.abs(joint-legPs[0])>PROB_TOL||Math.abs(any-legPs[0])>PROB_TOL))return false;
   return true;
