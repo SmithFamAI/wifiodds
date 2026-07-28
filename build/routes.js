@@ -48,8 +48,15 @@ var ROUTES = [
   { url: '/record/', file: 'record/index.html', kind: 'gen', changefreq: 'weekly', priority: '0.4' },
   /* url is the path Cloudflare serves; file is what lands on disk. They differ
      only here: /privacy.html 308s to /privacy, so the sitemap must advertise
-     /privacy or it is pointing crawlers at a redirect. */
-  { url: '/privacy', file: 'privacy.html', kind: 'gen', tmpl: 'privacy', changefreq: 'yearly', priority: '0.3' }
+     /privacy or it is pointing crawlers at a redirect.
+     lastmod is a DECLARED CONSTANT, not the checkout's file mtime. A fresh
+     clone made on the other side of a UTC-day boundary used to change this
+     line's date in the sitemap with zero content change (P2-02); a clone has
+     no stable mtime, only the content does. Bump this by hand, on purpose,
+     the same day you actually edit build/templates/privacy.html — it is not
+     meant to track every build. */
+  { url: '/privacy', file: 'privacy.html', kind: 'gen', tmpl: 'privacy', changefreq: 'yearly',
+    priority: '0.3', lastmod: '2026-07-27' }
 ];
 
 AIRLINE_KEYS.forEach(function (k) {

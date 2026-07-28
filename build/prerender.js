@@ -356,19 +356,31 @@ function buildLlms(m) {
   return L.join('\n');
 }
 
+/* yearly lastmod comes from R.ROUTES[i].lastmod, a hand-declared constant — NOT
+ * fs.statSync(file).mtime. A clone has no stable mtime: two clean clones made on
+ * opposite sides of a UTC-day boundary produced two different bytes for the
+ * exact same committed content, and check-only reported it as "Nothing staged"
+ * (P2-02). A declared date only moves when someone editing the page moves it on
+ * purpose, so the same source always emits the same sitemap everywhere. A yearly
+ * route with no declared lastmod fails the build rather than silently falling
+ * back to checkout time — see the assertion in buildSitemap() below. */
 function buildSitemap(m) {
   var urls = R.ROUTES.map(function (r) {
-    var mod = r.changefreq === 'yearly' ? fileMod(r.file) : m.updated;
+    var mod = m.updated;
+    if (r.changefreq === 'yearly') {
+      if (!r.lastmod || !/^\d{4}-\d{2}-\d{2}$/.test(r.lastmod)) {
+        throw new Error('buildSitemap: yearly route ' + r.url + ' has no declared lastmod ' +
+          '(build/routes.js) — a checkout-time fallback is exactly the P2-02 clone-time bug. ' +
+          'Add a real YYYY-MM-DD constant to this route.');
+      }
+      mod = r.lastmod;
+    }
     return '  <url><loc>' + ORIGIN + r.url + '</loc><lastmod>' + mod +
       '</lastmod><changefreq>' + r.changefreq + '</changefreq><priority>' + r.priority + '</priority></url>';
   });
   return '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     urls.join('\n') + '\n</urlset>\n';
-}
-function fileMod(f) {
-  try { return fs.statSync(abs(f)).mtime.toISOString().slice(0, 10); }
-  catch (e) { return new Date().toISOString().slice(0, 10); }
 }
 
 /* ── functions/_lib/score.mjs — ONE FORMULA, TWO RUNTIMES ─────────────────
@@ -590,8 +602,13 @@ function reconcileUnited() {
     /* the note quotes both numbers with a thousands comma */
     .replace(RE_NOTE, 'note: "' + eq.toLocaleString('en-US') + ' of ' +
       tot.toLocaleString('en-US') + ' aircraft')
+    /* as: is measurementAsOf, not the raw refresh-attempt date (P1-01) — a
+       healed/retained pull must keep the date the count was actually last
+       measured, or this per-tail-verified stamp claims a measurement that
+       never happened today. See measurementDates() in build/lib/data.js for
+       the same rule applied to every other page reading united/data.json. */
     .replace(RE_STARLINK, '{ system: "starlink", n: ' + eq +
-      ', free: "loyalty-free", as: "' + D.updated + '"');
+      ', free: "loyalty-free", as: "' + (D.measurementAsOf || D.updated) + '"');
 
   var mlSeg = D.fleet.mainline, exSeg = D.fleet.express;
   if (!mlSeg || !exSeg || typeof mlSeg.equipped !== 'number' || typeof exSeg.equipped !== 'number') {

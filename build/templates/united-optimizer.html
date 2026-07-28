@@ -1932,12 +1932,12 @@ async function fetchLive(o,d){
 function buildModel(o,d,live){
   const key=o+"-"+d;
   const curated=DATA.routes[key]||null;
-  const cache=DATA.routeCache?.[key]||null;
-  let flights=[],source="none";
+  const snap=DATA.routeCache?.[key]||null;
+  let flights=[],flightsProv="none";
   const liveFl=live?.flights;
-  if(liveFl&&liveFl.length){flights=liveFl.map(f=>({...f}));source=live.source==="cache"?"cache":"live";}
-  else if(cache?.flights?.length){flights=cache.flights.map(f=>({...f}));source="snapshot";}
-  else if(curated){flights=curated.flights.map(f=>({...f}));source="snapshot";}
+  if(liveFl&&liveFl.length){flights=liveFl.map(f=>({...f}));flightsProv=live.source==="cache"?"cache":"live";}
+  else if(snap?.flights?.length){flights=snap.flights.map(f=>({...f}));flightsProv="snapshot";}
+  else if(curated){flights=curated.flights.map(f=>({...f}));flightsProv="snapshot";}
   if(curated){
     for(const f of flights){
       const c=curated.flights.find(x=>x.fn===f.fn);
@@ -1947,22 +1947,25 @@ function buildModel(o,d,live){
       if(!flights.some(f=>f.fn===c.fn))
         flights.push({...c,tz:curated.tz});
   }
-  /* PROVENANCE MUST DESCRIBE WHAT IS ON SCREEN, not one dataset of three.
-     `source` above is set from the FLIGHT rows only. An audit found the page
-     labelled "daily snapshot · 2026-07-27" while showing live itineraries,
-     because the itinerary call had succeeded and the predict call had not.
-     A reader deciding whether to trust a routing was told the wrong thing
-     about where it came from.
-     If any displayed dataset is live, the page is showing live data and must
-     say so; the badge can still name what is older underneath. */
-  const liveParts=[];
-  if(live&&live.source!=="cache"){
-    if(live.flights&&live.flights.length)liveParts.push("flights");
-    if(live.itineraries&&live.itineraries.length)liveParts.push("routings");
-    if(live.deps&&live.deps.length)liveParts.push("tail assignments");
-  }
-  if(liveParts.length&&source!=="live")source="live-partial";
-  const deps=live?.deps||[];
+  /* PROVENANCE MUST DESCRIBE WHAT IS ON SCREEN, dataset by dataset, not one
+     dataset standing in for all three. A round-8 audit found two mirror-image
+     bugs from a single `source` string derived only from the flight rows:
+     a live-partial badge that always said "for the routings" even when
+     flights or tail assignments were the part that was actually live, and a
+     cached routing (a genuine, non-expired browser cache hit) rendered under
+     a badge reading "daily snapshot" because the flight rows themselves had
+     fallen back to the bundled snapshot while the routing had not.
+     Each of the three displayed datasets now carries its own provenance:
+     "live" (fetched this load), "cache" (this browser's still-valid recent
+     copy) or "snapshot" (the bundled daily fallback). renderBadge() reads
+     these instead of guessing from one dataset for all three. */
+  const liveItins=live?.itineraries;
+  let itinsProv="none",itins=[];
+  if(liveItins&&liveItins.length){itins=liveItins;itinsProv=live.source==="cache"?"cache":"live";}
+  else if(snap?.itineraries&&snap.itineraries.length){itins=snap.itineraries;itinsProv="snapshot";}
+  const liveDeps=live?.deps;
+  let depsProv="none",deps=[];
+  if(liveDeps&&liveDeps.length){deps=liveDeps;depsProv=live.source==="cache"?"cache":"live";}
   for(const f of flights)f.confirmedDep=deps.find(x=>x.fn===f.fn)||null;
   flights.sort((a,b)=>b.prob-a.prob);
   const maxP=flights.length?flights[0].prob:0;
@@ -1970,8 +1973,8 @@ function buildModel(o,d,live){
     const zeroFleet=f.aircraft?/MAX|A319|A320(?!.*neo)|757/i.test(f.aircraft):false;
     f.verdict=f.prob===maxP&&f.prob>=30?"best":f.prob>=35?"good":f.prob>=20?(zeroFleet?"risky":"ok"):"avoid";
   }
-  const itins=(live?.itineraries&&live.itineraries.length?live.itineraries:cache?.itineraries)||[];
-  return {key,curated,flights,itins,deps,source,ts:live?.ts||(cache?Date.parse(cache.ts):null)};
+  return {key,curated,flights,itins,deps,flightsProv,itinsProv,depsProv,
+    ts:live?.ts||(snap?Date.parse(snap.ts):null)};
 }
 
 /* ── renderers ── */
@@ -1992,14 +1995,43 @@ function ring(p){
       stroke-linecap="butt" stroke-dasharray="${C}" stroke-dashoffset="${off}"/>
   </svg><div class="pct" style="color:${col}">${pct(p)}</div></div>`;
 }
+/* Joins dataset names for the badge: "flights", "flights and routings",
+   "flights, routings and tail assignments". */
+function partNames(names){
+  if(names.length<=1)return names[0]||"";
+  if(names.length===2)return names[0]+" and "+names[1];
+  return names.slice(0,-1).join(", ")+" and "+names[names.length-1];
+}
 function renderBadge(m){
   const b=$("rt-badge");b.classList.remove("hidden");
-  if(m.source==="live"){b.className="badge live";b.textContent="live tracker data";}
-  else if(m.source==="live-partial"){b.className="badge live";
-    b.textContent="live tracker data for the routings; older data elsewhere";}
-  else if(m.source==="cache"){b.className="badge cachetag";b.textContent="cached "+Math.round((Date.now()-m.ts)/36e5*10)/10+"h ago";}
-  else if(m.source==="snapshot"){b.className="badge cachetag";b.textContent="daily snapshot · "+DATA.updated;}
-  else{b.className="badge offline";b.textContent="no data yet";}
+  const parts=[
+    {name:"flights",n:m.flights.length,prov:m.flightsProv},
+    {name:"routings",n:m.itins.length,prov:m.itinsProv},
+    {name:"tail assignments",n:m.deps.length,prov:m.depsProv}
+  ].filter(p=>p.n>0);
+  if(!parts.length){b.className="badge offline";b.textContent="no data yet";return;}
+  const live=parts.filter(p=>p.prov==="live").map(p=>p.name);
+  const cached=parts.filter(p=>p.prov==="cache").map(p=>p.name);
+  const snap=parts.filter(p=>p.prov==="snapshot").map(p=>p.name);
+  /* "All live" keeps its original plain meaning only when the full three-part
+     set (flights, routings, tail assignments) is on screen and every part of
+     it is live. A route that only ever shows one or two of the three (say,
+     no published tail assignments yet) still names what it has: naming is
+     what a partial state means everywhere else on this badge, and a single
+     live dataset is a partial state, not the full picture. */
+  if(parts.length===3&&live.length===3){b.className="badge live";b.textContent="live tracker data";return;}
+  if(parts.length===3&&snap.length===3){b.className="badge cachetag";b.textContent="daily snapshot · "+DATA.updated;return;}
+  /* MIXED PROVENANCE. Name each displayed dataset by where it actually came
+     from instead of one hardcoded word standing in for every state: a cached
+     dataset is never called the daily snapshot, and a live dataset that is
+     not the routings still says which one it is. */
+  const ageH=m.ts!=null?Math.round((Date.now()-m.ts)/36e5*10)/10:null;
+  const segs=[];
+  if(live.length)segs.push(`live tracker data for the ${partNames(live)}`);
+  if(cached.length)segs.push(`${partNames(cached)} cached${ageH!=null?" "+ageH+"h ago":""}`);
+  if(snap.length)segs.push(`${partNames(snap)} from the daily snapshot · ${DATA.updated}`);
+  b.className=live.length?"badge live":"badge cachetag";
+  b.textContent=segs.join("; ");
 }
 function renderFlights(m){
   const list=$("flights");
@@ -2085,19 +2117,34 @@ function renderPlaybook(m){
   if(m.flights.length&&!$("cf-flight").value)$("cf-flight").value=m.flights[0].fn;
   updCheckLink();
 }
-async function renderTrip(mOut){
+async function renderTrip(mOut,gen){
+  /* STALE-WRITE GUARD (P1-04). loadRoute() calls this without awaiting it, and
+     the reverse-direction fetch below can resolve long after the reader has
+     picked a different route. Without a check here, a delayed old response
+     used to overwrite a NEWER route's trip selects while every visible label
+     still named the new route: ORD to EWR rendered correctly, then a slow
+     SFO to DEN reply replaced UA200/UA201 with DEN/SFO options underneath the
+     unchanged ORD/EWR labels. `gen` is the generation token loadRoute() held
+     when it called this function; `reqSeq` is the live counter it bumps on
+     every call. Any mismatch means a newer route is now current, and this
+     call must write nothing rather than guess which write is still safe. */
+  if(gen!==reqSeq)return;
   const sec=$("trip-sec");
   $("out-label").textContent=`Outbound · ${orig} → ${dest}`;
   $("ret-label").textContent=`Return · ${dest} → ${orig}`;
+  const tOrig=orig,tDest=dest;
   let mRet;
-  try{mRet=buildModel(dest,orig,await fetchLive(dest,orig));}catch{mRet=buildModel(dest,orig,null);}
+  try{mRet=buildModel(tDest,tOrig,await fetchLive(tDest,tOrig));}catch{mRet=buildModel(tDest,tOrig,null);}
+  if(gen!==reqSeq)return; // stale: a newer route was picked while the reverse leg was in flight
   const legOptions=m=>{
     const opts=m.flights.map(f=>`<option value="${f.prob}">${f.fn}${f.dep?` · ${f.dep} ${f.tz||""}`:""} · ${pct(f.prob)}</option>`);
     const bestIt=m.itins.find(it=>it.via.length&&it.coverage==="full");
     if(bestIt)opts.push(`<option value="${bestIt.joint}">connection via ${bestIt.via.join("+")} · ${Math.round(bestIt.joint)}%</option>`);
     return opts.join("");
   };
+  if(gen!==reqSeq)return; // re-checked immediately before every DOM write below
   if(!mOut.flights.length&&!mRet.flights.length){sec.classList.add("hidden");return;}
+  if(gen!==reqSeq)return;
   sec.classList.remove("hidden");
   $("trip-out-sel").innerHTML=legOptions(mOut)||'<option value="0">no data</option>';
   $("trip-ret-sel").innerHTML=legOptions(mRet)||'<option value="0">no data</option>';
@@ -2281,7 +2328,7 @@ async function loadRoute(){
   const m=buildModel(o,d,live);
   cur=m;
   renderBadge(m);renderFlights(m);renderItins(m);renderDeps(m);renderPlaybook(m);
-  renderTrip(m);
+  renderTrip(m,seq);
 }
 function bind(){
   const dl=$("airports");

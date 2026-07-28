@@ -57,7 +57,19 @@ fi
 
 if [ -n "$CHECK_ONLY" ]; then
   echo ""
-  echo "── check-only: build and suite are green. Nothing staged. ──"
+  # Truthful, not reassuring: a clean clone made on the other side of a UTC-day
+  # boundary once left `M sitemap.xml` in the tree while this line still said
+  # "Nothing staged" (P2-02). check-only writes files to disk exactly like a
+  # real ship does; only staging and pushing are skipped. So assert what the
+  # build actually did to the tracked tree instead of a fixed sentence.
+  TREE_DIFF=$(git status --porcelain -- . ':!node_modules' 2>/dev/null | grep -v '^??' || true)
+  if [ -z "$TREE_DIFF" ]; then
+    echo "── check-only: build and suite are green. Working tree is clean; the build changed no tracked file. ──"
+  else
+    echo "── check-only: build and suite are green, but the build changed tracked files relative to HEAD: ──"
+    echo "$TREE_DIFF" | sed 's/^/  /'
+    echo "── This is NOT \"nothing staged\" — a real ship would stage and commit the paths above. ──"
+  fi
   exit 0
 fi
 

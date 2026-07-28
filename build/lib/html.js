@@ -284,7 +284,21 @@ function subnav(section, here, label) {
  * The switch ships `hidden` and the inline script at the foot of the page
  * reveals it. Its title text is deliberate down to the last clause — it is the
  * only place a reader is told that the choice is not stored. */
-function masthead(here, suffix, updated) {
+/* wasRetained/refreshAttemptedOn (P1-01): when the daily refresh healed an
+ * implausible pull by keeping the prior verified count, `updated` is that
+ * count's real measurement date, not today. "this build DATE" read as an
+ * unqualified freshness claim over a value that was not in fact re-measured
+ * today, so on a retained day the chip has to say both: the pipeline ran
+ * today, and the number in front of you is still the older one. */
+function datechipText(updated, refreshAttemptedOn, wasRetained) {
+  if (!wasRetained || !refreshAttemptedOn) {
+    return 'Inflight WiFi as a forecast · figures checked daily · this build <b>' +
+      esc(chipDate(updated)) + '</b>';
+  }
+  return 'Inflight WiFi as a forecast · figures checked daily · checked <b>' +
+    esc(chipDate(refreshAttemptedOn)) + '</b> · data as of <b>' + esc(chipDate(updated)) + '</b>';
+}
+function masthead(here, suffix, updated, refreshAttemptedOn, wasRetained) {
   return '<header class="site">\n' +
     '  <div class="wrap masthead">\n' +
     '    <a class="wordmark" href="/">' + MARK_SVG + 'WiFi&nbsp;Odds' +
@@ -306,8 +320,7 @@ function masthead(here, suffix, updated) {
     '    </nav>\n' +
     '    <button class="themetoggle" id="themetoggle" type="button" hidden\n' +
     '      title="Dark by default. The switch lasts until you reload; nothing is stored."></button>\n' +
-    '    <div class="datechip">Inflight WiFi as a forecast · figures checked daily · this build <b>' +
-    esc(chipDate(updated)) + '</b></div>\n' +
+    '    <div class="datechip">' + datechipText(updated, refreshAttemptedOn, wasRetained) + '</div>\n' +
     '  </div>\n</header>\n';
 }
 
@@ -354,7 +367,11 @@ function credit(which) {
  * stored in your browser is your light/dark choice" — that key is gone, and a
  * footer that still claimed it would be the site lying about its own storage on
  * thirty routes. */
-function footer(updated) {
+function footer(updated, refreshAttemptedOn, wasRetained) {
+  var updatedLine = (!wasRetained || !refreshAttemptedOn)
+    ? 'Data updated <b>' + esc(updated) + '</b>.'
+    : 'Checked <b>' + esc(refreshAttemptedOn) + '</b> · data as of <b>' + esc(updated) +
+      '</b> (the refresh ran but the count itself was not re-measured that day).';
   return '<footer class="site">\n' +
     '  <div class="flinks"><a href="/airlines/">Airlines</a><a href="/race/">The Race</a>' +
     '<a href="/systems/">Systems</a><a href="/united/">United</a>' +
@@ -370,7 +387,7 @@ function footer(updated) {
     '  <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> ' +
     '· <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> ' +
     '(independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>\n' +
-    '  <div class="frow">Data updated <b>' + esc(updated) + '</b>. ConnectScores and per-flight odds are ' +
+    '  <div class="frow">' + updatedLine + ' ConnectScores and per-flight odds are ' +
     'historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and ' +
     'unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</div>\n' +
     /* "nothing is stored in your browser" was false on /united/, which caches
@@ -449,7 +466,7 @@ function page(o) {
     /* First focusable thing on every page, and invisible until it has focus. */
     '<a class="skip" href="#main-content">Skip to content</a>\n' +
     (o.preWrap || '') +
-    masthead(o.here, o.suffix, o.updated) +
+    masthead(o.here, o.suffix, o.updated, o.refreshAttemptedOn, o.wasRetained) +
     '<div class="wrap">\n' +
     subnav(o.section, o.canonical, o.suffix) +
     /* <main> starts AFTER the subnav so the skip link actually skips the
@@ -462,7 +479,7 @@ function page(o) {
     (o.crumb ? crumb(o.crumb) : '') +
     o.body +
     '</main>\n' +
-    footer(o.updated) +
+    footer(o.updated, o.refreshAttemptedOn, o.wasRetained) +
     '</div>\n' +
     (o.afterWrap || '') +
     THEME_SWITCH +

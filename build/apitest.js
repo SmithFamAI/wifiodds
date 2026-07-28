@@ -1006,14 +1006,18 @@ async function main() {
     var r = await MCP.mcpRequest(mcpCtx(payload, method));
     return { res: r, j: r.status === 202 ? null : await body(r) };
   }
-  /* ── MCP TEXT MAY NOT NUMBER AN UNPUBLISHED COUNT ────────────────────────
+  /* ── MCP TEXT MAY NOT NUMBER AN UNPUBLISHED COUNT — ON EVERY REGISTERED TOOL
    * A model usually relays the text block and drops structuredContent, so a
    * numeric zero in the text is a numeric zero a traveller hears, even when
-   * the structured record beside it honestly says published:false. An auditor
-   * appended `next-gen 0` to this serializer from its own structured field and
-   * the whole release exited 0, because the unpublished guard walked built
-   * files and MCP is a Worker function that produces none.
-   * It is exercised here, where the module is already imported. */
+   * the structured record beside it honestly says published:false. Round 4
+   * caught a mutation inside get_airline_score's serializer; the very next
+   * round proved a mutation confined to list_airline_scores' serializer
+   * passed the whole release at exit 0, because the guard hand-enumerated
+   * one tool by name instead of the registry. So this walks MCP.TOOLS — the
+   * exact array tools/list serves — and calls EVERY tool that can emit an
+   * airline record. A future airline-listing tool inherits the guard the
+   * moment it is added to TOOLS in functions/_lib/mcp.mjs; nothing here
+   * names a tool by string. */
   /* local require: A_LIB is assigned several hundred lines below, and `var`
      hoisting would give us undefined here rather than an error at the top */
   var A_MCP = require(path.join(ROOT, 'assets', 'airlines.js'));
@@ -1021,26 +1025,96 @@ async function main() {
     var L = A_MCP.ledgerFor(A_MCP.WIFI_AIRLINES[k]);
     return L && L.unresolved > 0 && L.nextGenShare === 0;
   });
-  var mcpBad = [], mcpChecked = 0;
-  for (var ui = 0; ui < UNPUB.length; ui++) {
-    var uk = UNPUB[ui];
-    var mr = await rpc({ jsonrpc: '2.0', id: 9, method: 'tools/call',
-      params: { name: 'get_airline_score', arguments: { key: uk } } });
-    var blocks = (mr.j && mr.j.result && mr.j.result.content) || [];
-    var text = blocks.map(function (b2) { return b2.text || ''; }).join(' ').replace(/\s+/g, ' ');
-    if (!text) { mcpBad.push(uk + ': no MCP text block to inspect'); continue; }
-    mcpChecked++;
-    var hit = /next[- ]gen[^.·|]{0,30}?(\d+(?:\.\d+)?)\s*%?/i.exec(text);
-    if (hit) mcpBad.push(uk + ' MCP text: "…' + hit[0].slice(-52) + '"');
-    var sc = mr.j && mr.j.result && mr.j.result.structuredContent;
-    var pub = sc && sc.airline && sc.airline.nextGen && sc.airline.nextGen.published;
-    if (pub !== false) mcpBad.push(uk + ' MCP structuredContent lost published:false');
+  var UNPUB_META = {};
+  UNPUB.forEach(function (k) { UNPUB_META[k] = { name: A_MCP.WIFI_AIRLINES[k].name }; });
+
+  /* Line-scoped, not blob-scoped: list_airline_scores' text has one line per
+     airline, so scanning the whole joined blob for "next-gen NN%" would also
+     trip on a PUBLISHED airline's honest number sitting a few lines away.
+     Only the line(s) that name the unpublished airline may not carry one. */
+  function scanMcpText(text, label, bad, covered) {
+    text.split('\n').forEach(function (line) {
+      Object.keys(UNPUB_META).forEach(function (k) {
+        if (line.indexOf(UNPUB_META[k].name) === -1) return;
+        covered[k] = true;
+        var hit = /next[- ]gen[^.·|]{0,30}?(\d+(?:\.\d+)?)\s*%?/i.exec(line);
+        if (hit) bad.push(label + ' ' + k + ' MCP text: "…' + hit[0].slice(-52) + '"');
+      });
+    });
   }
-  ok(mcpChecked === UNPUB.length,
-    'MCP text was inspected for every unpublished-count airline',
-    mcpChecked + ' of ' + UNPUB.length);
+
+  /* Any structured airline record — however a tool nests it — must carry
+     published:false for an unpublished-count airline. Recursing rather than
+     reading one fixed path (e.g. `.airline.nextGen`) is what covers a NEW
+     tool's structuredContent shape without another edit here. */
+  function scanMcpStructured(node, label, bad, covered, visited) {
+    if (!node || typeof node !== 'object' || visited.has(node)) return;
+    visited.add(node);
+    if (typeof node.key === 'string' && UNPUB_META[node.key] && node.nextGen &&
+        typeof node.nextGen === 'object') {
+      covered[node.key] = true;
+      if (node.nextGen.published !== false) {
+        bad.push(label + ' ' + node.key + ' MCP structuredContent lost published:false');
+      }
+    }
+    /* A flat numeric next-gen field (nextGenScore is the documented floor
+       score and legitimately 0) is only safe while the honest
+       nextGen.published:false flag sits beside it on the same record. A
+       serializer that emits the number and drops the object drops the flag
+       with it, and the scan above never fires because it requires the object.
+       This branch catches exactly that shape: an unpublished-count airline
+       record carrying a numeric next-gen field with NO published:false
+       sibling. No fixed field name, so a renamed variant is caught too. */
+    if (typeof node.key === 'string' && UNPUB_META[node.key] &&
+        !(node.nextGen && typeof node.nextGen === 'object' && node.nextGen.published === false)) {
+      Object.keys(node).forEach(function (fk) {
+        if (/next.?gen/i.test(fk) && typeof node[fk] === 'number') {
+          covered[node.key] = true;
+          bad.push(label + ' ' + node.key + ' MCP structuredContent carries flat numeric ' +
+            fk + '=' + node[fk] + ' with no published:false beside it');
+        }
+      });
+    }
+    Object.keys(node).forEach(function (k) {
+      var v = node[k];
+      if (Array.isArray(v)) {
+        v.forEach(function (item) { scanMcpStructured(item, label, bad, covered, visited); });
+      } else if (v && typeof v === 'object') {
+        scanMcpStructured(v, label, bad, covered, visited);
+      }
+    });
+  }
+
+  var mcpBad = [], mcpChecked = 0, mcpCovered = {};
+  for (var ti = 0; ti < MCP.TOOLS.length; ti++) {
+    var toolDef = MCP.TOOLS[ti];
+    var takesKey = !!(toolDef.inputSchema && toolDef.inputSchema.properties &&
+      toolDef.inputSchema.properties.key);
+    /* A tool with a `key` argument is exercised once per unpublished airline,
+       the way a model would actually call it. A tool with none (a listing
+       tool) is called once and must keep every airline's row clean in that
+       single response. */
+    var argSets = takesKey ? UNPUB.map(function (k) { return { key: k }; }) : [{}];
+    for (var ai = 0; ai < argSets.length; ai++) {
+      var label = toolDef.name + (argSets[ai].key ? '(' + argSets[ai].key + ')' : '');
+      var mr = await rpc({ jsonrpc: '2.0', id: 9, method: 'tools/call',
+        params: { name: toolDef.name, arguments: argSets[ai] } });
+      var blocks = (mr.j && mr.j.result && mr.j.result.content) || [];
+      var text = blocks.map(function (b2) { return b2.text || ''; }).join('\n');
+      if (!text) { mcpBad.push(label + ': no MCP text block to inspect'); continue; }
+      mcpChecked++;
+      scanMcpText(text, label, mcpBad, mcpCovered);
+      var sc = mr.j && mr.j.result && mr.j.result.structuredContent;
+      scanMcpStructured(sc, label, mcpBad, mcpCovered, new Set());
+    }
+  }
+  ok(Object.keys(mcpCovered).length === UNPUB.length,
+    'every unpublished-count airline was inspected across the whole MCP tool registry (' +
+    MCP.TOOLS.map(function (t) { return t.name; }).join(', ') + ')',
+    Object.keys(mcpCovered).length + ' of ' + UNPUB.length);
   eq(mcpBad.length, 0,
-    'MCP text never numbers a next-gen count the model says is unpublished',
+    'no MCP tool (get_airline_score, list_airline_scores, or any future registry entry) numbers a ' +
+    'next-gen count the model says is unpublished',
     mcpBad.join(' · '));
 
   /* every tool result must carry the credit in the TEXT block, because a model

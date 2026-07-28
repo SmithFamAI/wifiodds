@@ -259,7 +259,7 @@ function home(m) {
       'Leo aircraft, and what the fleet actually delivers today. Plus per-flight odds for United and ' +
       'Alaska, where ' + num(eq) + ' of ' + num(m.fleet.total) + ' aircraft are equipped. Free, ' +
       'unofficial, no tracking.',
-    canonical: '/', here: '/', updated: m.updated,
+    canonical: '/', here: '/', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained,
     body: body,
     jsonld: [
       {
@@ -365,7 +365,7 @@ function recordPage(m) {
     title: 'WiFi Odds · the written record',
     desc: 'The confidence ladder, the projection fence and the observation channels behind the ' +
       'WiFi Odds board, in full.',
-    canonical: '/record/', here: '/', updated: m.updated, crumb: crumbs,
+    canonical: '/record/', here: '/', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained, crumb: crumbs,
     body: body,
     jsonld: [crumbLd(crumbs)]
   });
@@ -448,7 +448,7 @@ function airlinesIndex(m) {
     title: 'Airline WiFi leaderboard — ' + m.airlineCount + ' ConnectScores',
     desc: 'Which airline has the best WiFi right now — Starlink, Amazon Leo and Viasat fleets compared ' +
       'in one sortable score. Free, unofficial, no tracking.',
-    canonical: '/airlines/', here: '/airlines/', updated: m.updated,
+    canonical: '/airlines/', here: '/airlines/', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained,
     crumb: [['/', 'Home'], ['/airlines/', 'Airlines']],
     body: body,
     jsonld: [{
@@ -816,7 +816,7 @@ function airlinePage(m, key) {
     /* the two instrumented airlines have a multi-page section and get tabs;
        the other sixteen are a single page and get the way back, nothing more */
     section: key === 'united' ? 'united' : key === 'alaska' ? 'alaska' : 'airline',
-    updated: m.updated, crumb: crumbs, body: body,
+    updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained, crumb: crumbs, body: body,
     jsonld: [{
       '@context': 'https://schema.org', '@type': 'FAQPage',
       mainEntity: faqs.map(function (f) {
@@ -972,7 +972,7 @@ function fleetPage(m) {
       'floor, the install pace, and the full tail registry with install dates. Data by unitedstarlinktracker.com.',
     canonical: '/united/fleet/', here: '/united/fleet/', suffix: 'United',
     section: 'united',
-    updated: m.updated, crumb: crumbs, body: body,
+    updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained, crumb: crumbs, body: body,
     jsonld: [datasetLd(m), crumbLd(crumbs)]
   });
 }
@@ -1242,7 +1242,7 @@ function racePage(m) {
     desc: 'Which airlines are finished, which are mid-retrofit and which have only signed: next-gen ' +
       'fleet share plus the public finish line for ' + m.airlineCount + ' airlines, with United as the ' +
       'fastest large retrofit. Updated ' + m.updated + '.',
-    canonical: '/race/', here: '/race/', updated: m.updated, crumb: crumbs, body: body,
+    canonical: '/race/', here: '/race/', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained, crumb: crumbs, body: body,
     jsonld: [{
       '@context': 'https://schema.org', '@type': 'ItemList',
       name: 'Airline next-gen inflight WiFi rollout race',
@@ -1469,7 +1469,7 @@ function systemsPage(m) {
     desc: 'Starlink and Amazon Leo head to head, plus every inflight WiFi system flying on the ' +
       'airlines we track: how each one works, real-world cabin speed, reliability, price and the ' +
       'weight it carries in ConnectScore. Reviewed ' + MK.VERIFIED + '.',
-    canonical: '/systems/', here: '/systems/', updated: m.updated, crumb: crumbs, body: body,
+    canonical: '/systems/', here: '/systems/', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained, crumb: crumbs, body: body,
     jsonld: [{
       '@context': 'https://schema.org', '@type': 'FAQPage',
       mainEntity: faqs.map(function (f) {
@@ -1536,7 +1536,7 @@ function roadmapPage(m) {
     desc: 'Shipped with dates: the extension, the public ConnectScore API, the fenced projected ' +
       'score, the per-tail rollout archive. Ahead, with what each one is waiting on: extension ' +
       'v2.0.0, Tail-swap Guardian, the next instrumented airline.',
-    canonical: '/roadmap/', here: '/roadmap/', updated: m.updated, crumb: crumbs, body: body,
+    canonical: '/roadmap/', here: '/roadmap/', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained, crumb: crumbs, body: body,
     jsonld: [crumbLd(crumbs)]
   });
 }
@@ -2168,7 +2168,7 @@ function methodologyPage(m) {
       'through with live numbers, the fence around the projected score, the three published ' +
       'measurements of Starlink speed that disagree by two to five times, reader field reports, ' +
       'and what the score cannot know.',
-    canonical: '/methodology/', here: '/', updated: m.updated, crumb: crumbs,
+    canonical: '/methodology/', here: '/', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained, crumb: crumbs,
     extraHead: css, body: body, afterWrap: formJs,
     jsonld: [{
       '@context': 'https://schema.org', '@type': 'TechArticle',
@@ -2500,7 +2500,7 @@ function apiDocs(m) {
     title: 'ConnectScore API — free airline WiFi scores as JSON',
     desc: 'The free public ConnectScore API: every airline’s inflight WiFi score as JSON, plus ' +
       'per-flight Starlink odds for United. No key, no accounts, CORS open, credits in every response.',
-    canonical: '/api/docs/', here: '/', updated: m.updated, crumb: crumbs,
+    canonical: '/api/docs/', here: '/', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained, crumb: crumbs,
     extraHead: css, body: body,
     jsonld: [{
       '@context': 'https://schema.org', '@type': 'WebAPI',
@@ -2531,7 +2531,7 @@ function notFound(m) {
     '</header>\n\n';
   return H.page({
     title: 'Page not found — WiFi Odds', desc: 'That page does not exist on wifiodds.com.',
-    canonical: '/404.html', here: '/', updated: m.updated, body: body,
+    canonical: '/404.html', here: '/', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained, body: body,
     jsonld: []
   });
 }
@@ -2580,7 +2580,7 @@ function unitedOptimizer(m) {
       'ranked by live odds, the smartest routings, confirmed tails, and a booking playbook. Updated daily ' +
       'and on demand.',
     canonical: '/united/', here: '/', suffix: 'United', section: 'united',
-    updated: m.updated, crumb: crumbs,
+    updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained, crumb: crumbs,
     extraHead: t.head, preWrap: t.prewrap, body: t.body, afterWrap: t.foot,
     jsonld: [{
       '@context': 'https://schema.org', '@type': 'WebApplication',
@@ -2625,7 +2625,7 @@ function unitedHistory(m) {
       'and every route and odds movement since ' + DL.shortMonth(m.firstDay) + ' 2025. ' +
       'Data by unitedstarlinktracker.com.',
     canonical: '/united/history/', here: '/', suffix: 'United', section: 'united',
-    updated: m.updated, crumb: crumbs,
+    updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained, crumb: crumbs,
     extraHead: t.head, body: histBody, afterWrap: t.foot,
     jsonld: [datasetLd(m), crumbLd([['/', 'Home'], ['/united/', 'United'],
       ['/united/history/', 'History']])]
@@ -2671,7 +2671,7 @@ function alaskaRollout(m) {
       'ConnectScore ' + al.score + '/100, free for everyone onboard, and per-flight odds on alaskaair.com. ' +
       'Fleet data from alaskastarlinktracker.com.',
     canonical: '/alaska/', here: '/', suffix: 'Alaska', section: 'alaska',
-    updated: m.updated, crumb: crumbs,
+    updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained, crumb: crumbs,
     extraHead: t.head, body: t.body,
     jsonld: [{
       '@context': 'https://schema.org', '@type': 'FAQPage',
@@ -2713,7 +2713,7 @@ function privacyPage(m) {
        Cloudflare serves it at /privacy and 308s the .html form to it. The
        canonical and the crumb name the URL a reader actually lands on, because
        a canonical pointing at a redirect is a canonical the crawler discards. */
-    canonical: '/privacy', here: '/', updated: m.updated,
+    canonical: '/privacy', here: '/', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained,
     extraHead: t.head, body: t.body,
     jsonld: [crumbLd([['/', 'Home'], ['/privacy', 'Privacy']])]
   });

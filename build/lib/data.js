@@ -38,9 +38,55 @@ function shortMonth(iso) { var p = iso.split('-'); return MON[+p[1] - 1] + (p[1]
 function num(n) { return Number(n).toLocaleString('en-US'); }
 
 /* ── the derived model ───────────────────────────────────────────────────── */
+/* ── measurementAsOf vs refreshAttemptedOn (P1-01) ──────────────────────────
+ * The daily refresh can HEAL an implausible pull by keeping the prior verified
+ * count rather than accept a bad new one (see fleet.plausibility in
+ * united/data.json). Before this, `D.updated` was written as today regardless,
+ * so a retained value sat behind an unqualified "updated today" on every page
+ * that quotes it, and a same-day history point could get appended for a number
+ * nobody actually re-measured that day.
+ *
+ * Two dates now, both optional in the schema for back-compat with a data.json
+ * snapshot written before this existed (treated as an ordinary same-day
+ * measurement, i.e. today's shipped behaviour):
+ *   refreshAttemptedOn — the pipeline ran, whether or not anything changed.
+ *   measurementAsOf    — the date fleet.equipped/fleet.total were actually
+ *                        LAST MEASURED. Equal to refreshAttemptedOn on a clean
+ *                        pull; stays at the OLD date when that pull was healed.
+ * `updated` below is redefined to mean measurementAsOf — every "as of" /
+ * "fleet counts as of" claim already reads m.updated, and that claim is about
+ * the MEASUREMENT, never the attempt. */
+function measurementDates(D) {
+  var refreshAttemptedOn = D.refreshAttemptedOn ||
+    (D.fleet && D.fleet.plausibility && D.fleet.plausibility.checkedOn) || D.updated;
+  var measurementAsOf = D.measurementAsOf || D.updated;
+  return { measurementAsOf: measurementAsOf, refreshAttemptedOn: refreshAttemptedOn,
+    wasRetained: measurementAsOf !== refreshAttemptedOn };
+}
+
+/* A same-day history point that duplicates the retained value is not a new
+ * measurement, it is the same figure with a fresh coat of paint on the trend
+ * line. Heal it away (log, do not silently ship it, do not hard-exit the
+ * unattended build over it — same doctrine as reconcileUnited() in
+ * build/prerender.js) rather than let a flat/retained series look like it was
+ * independently re-measured on the attempt date. */
+function healRetainedHistory(D, dates) {
+  if (!dates.wasRetained || !Array.isArray(D.history) || !D.history.length) return;
+  var last = D.history[D.history.length - 1];
+  if (last.date === dates.refreshAttemptedOn &&
+      last.equipped === D.fleet.equipped && last.total === D.fleet.total) {
+    D.history.pop();
+    console.log('  united: healed a same-day history point for the retained ' +
+      dates.measurementAsOf + ' measurement (' + dates.refreshAttemptedOn +
+      ' would have looked like a second, independent pull of the same number).');
+  }
+}
+
 function build() {
   var D = loadData();
   var A = loadAirlines();
+  var dates = measurementDates(D);
+  healRetainedHistory(D, dates);
   var roster = (D.roster || []).slice();
   var hist = (D.history || []).slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; });
 
@@ -60,12 +106,31 @@ function build() {
     byDate[day].forEach(function (r) { if (r.fleet === 'express') ex++; else ml++; });
     series.push({ d: day, ml: ml, ex: ex });
   });
-  /* The terminal point is always `now`: fleet.mainline/express.equipped, which is
-   * what every KPI card on the page shows. Anchoring the curve there is why the
-   * chart's end labels and the KPI strip can never disagree. */
-  if (series[series.length - 1].d !== D.updated) series.push({ d: D.updated, ml: 0, ex: 0 });
-  series[series.length - 1].ml = D.fleet.mainline.equipped;
-  series[series.length - 1].ex = D.fleet.express.equipped;
+  /* The terminal point is fleet.mainline/express.equipped, which is what every
+   * KPI card on the page shows — anchoring the curve there is why the chart's
+   * end labels and the KPI strip can never disagree. Anchored at
+   * measurementAsOf, not the raw refresh-attempt date: labelling that value
+   * with today's date on a healed/retained pull would be the exact same lie in
+   * chart form — "as of today, X installed" when X was never measured today.
+   * A retained measurementAsOf can, in principle, sit BEFORE the newest
+   * install day already in the roster (the roster is a separate feed from the
+   * fleet count), so this inserts in date order rather than assuming the
+   * terminal point is always newest — a series that goes backward at the end
+   * would be its own false claim. */
+  var termIdx = series.length - 1;
+  if (series[termIdx].d !== dates.measurementAsOf) {
+    if (dates.measurementAsOf > series[termIdx].d) {
+      series.push({ d: dates.measurementAsOf, ml: 0, ex: 0 });
+      termIdx = series.length - 1;
+    } else {
+      var insertAt = series.length;
+      while (insertAt > 0 && series[insertAt - 1].d > dates.measurementAsOf) insertAt--;
+      series.splice(insertAt, 0, { d: dates.measurementAsOf, ml: 0, ex: 0 });
+      termIdx = insertAt;
+    }
+  }
+  series[termIdx].ml = D.fleet.mainline.equipped;
+  series[termIdx].ex = D.fleet.express.equipped;
 
   /* last 10 ISO weeks of install pace */
   var wkNow = weekStart(D.updated), weeks = [];
@@ -155,7 +220,14 @@ function build() {
 
   return {
     D: D, A: A,
-    updated: D.updated,
+    /* updated is measurementAsOf, not the refresh-attempt date — see
+       measurementDates() above. refreshAttemptedOn/wasRetained let the masthead
+       and footer qualify the claim instead of printing an unqualified "updated
+       today" over a retained value. */
+    updated: dates.measurementAsOf,
+    measurementAsOf: dates.measurementAsOf,
+    refreshAttemptedOn: dates.refreshAttemptedOn,
+    wasRetained: dates.wasRetained,
     source: D.source || '',
     fleet: F,
     sharePct: Math.round(F.equipped / F.total * 100),

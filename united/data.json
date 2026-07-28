@@ -1,5 +1,7 @@
 {
  "updated": "2026-07-27",
+ "measurementAsOf": "2026-07-27",
+ "refreshAttemptedOn": "2026-07-27",
  "source": "unitedstarlinktracker.com (API + server pages), seeded from 7/23/2026 research pull",
  "fleet": {
   "equipped": 483,

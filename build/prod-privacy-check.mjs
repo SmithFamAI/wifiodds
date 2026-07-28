@@ -43,6 +43,28 @@ const ALLOWED_HOSTS = ['unitedstarlinktracker.com'];
  * each one. `/united/` caches route lists under `usl3:<ORIG>-<DEST>`. */
 const ALLOWED_STORAGE = { '/united/': /^usl3:/ };
 
+/* P1-03: this file used to close each page after `networkidle` plus 500ms and
+ * read only `document.cookie`. Both are blind spots an auditor demonstrated
+ * directly: an HttpOnly cookie never appears in `document.cookie` (that is
+ * what HttpOnly means), and a request fired 2.5s after the page settles
+ * outlives a 500ms tail. Neither control passed before; both fixes below are
+ * load-bearing, not cosmetic:
+ *   - SETTLE_MS keeps every page open, with its request/response listeners
+ *     still attached, for a DECLARED window of at least 3s after networkidle.
+ *   - the cookie jar is read via ctx.cookies(), the browser context's actual
+ *     cookie store, which Playwright populates from Set-Cookie regardless of
+ *     the HttpOnly flag — document.cookie is kept only as a second signal. */
+const SETTLE_MS = 3500;
+
+/* Test-only escape hatch: point the sweep at a fixed route list instead of
+ * build/routes.js, so the four acceptance controls (clean / visible-cookie /
+ * HttpOnly-cookie / delayed third-party request) can run against a throwaway
+ * local server without touching production or this repo's real route table.
+ * Unset in every normal invocation, including build/ship.sh (which does not
+ * call this file at all — see the header comment on why). */
+const ROUTES_OVERRIDE = process.env.PRIVACY_CHECK_ROUTES
+  ? JSON.parse(process.env.PRIVACY_CHECK_ROUTES) : null;
+
 let chromium;
 try {
   const req = createRequire(path.join(homedir(), '.wo-respo', 'package.json'));
@@ -56,7 +78,7 @@ try {
   process.exit(ASSERT ? 2 : 0);
 }
 
-const ROUTES = (() => {
+const ROUTES = ROUTES_OVERRIDE || (() => {
   const R = createRequire(import.meta.url)(path.join(process.cwd(), 'build', 'routes.js'));
   const all = [...(R.ROUTES || []), ...(R.UNLISTED || [])].map(r => r.url).filter(Boolean);
   return [...new Set(all)];
@@ -70,7 +92,7 @@ let tested = 0;
 for (const route of ROUTES) {
   const ctx = await browser.newContext();          /* cold profile every time */
   const page = await ctx.newPage();
-  const hosts = [], scripts = [];
+  const hosts = [], scripts = [], setCookieHeaders = [];
   page.on('request', q => { try { hosts.push(new URL(q.url()).host); } catch (e) {} });
   page.on('response', async res => {
     try {
@@ -78,12 +100,24 @@ for (const route of ROUTES) {
       if (u.host !== origin && /javascript|\.js($|\?)/.test((res.headers()['content-type'] || '') + u.pathname)) {
         scripts.push(u.host + u.pathname);
       }
+      /* Set-Cookie, read straight off the wire. This sees a cookie even if it
+       * is deleted, expired, or scoped somewhere ctx.cookies() would not
+       * report it by the time the page is torn down — a second, independent
+       * signal alongside the context's cookie jar below, not a replacement
+       * for it (see the SETTLE_MS comment for why both exist). */
+      const raw = res.headerValue ? await res.headerValue('set-cookie') : (res.headers()['set-cookie'] || null);
+      if (raw) raw.split(/,(?=[^;]+?=)/).forEach(c => setCookieHeaders.push(c.split('=')[0].trim()));
     } catch (e) {}
   });
   try {
     await page.goto(BASE + route + '?cb=' + Math.random(), { waitUntil: 'networkidle', timeout: 40000 });
   } catch (e) { await ctx.close(); findings.push({ route, kind: 'unreachable', detail: e.message.slice(0, 70) }); continue; }
-  await page.waitForTimeout(500);
+  /* Observe for a DECLARED window of at least 3s after networkidle, with the
+   * request/response listeners above still attached the whole time. Round 4's
+   * auditor demonstrated a request fired at 2.5s outliving the old 500ms tail;
+   * this is long enough to see it and short enough to keep the sweep
+   * practical across every route. */
+  await page.waitForTimeout(SETTLE_MS);
   tested++;
 
   [...new Set(hosts)].filter(h => h !== origin && !ALLOWED_HOSTS.includes(h))
@@ -98,7 +132,21 @@ for (const route of ROUTES) {
   [].concat(store.ls, store.ss).forEach(k => {
     if (!allowed || !allowed.test(k)) findings.push({ route, kind: 'undisclosed storage', detail: k });
   });
-  store.cookies.forEach(c => findings.push({ route, kind: 'cookie set', detail: c }));
+
+  /* Cookies, from every source that can see one — NOT just document.cookie,
+   * which is blind to HttpOnly by definition. ctx.cookies() is the browser
+   * context's actual cookie jar: Playwright populates it from Set-Cookie
+   * whether or not HttpOnly is set, so this is the primary check; the raw
+   * Set-Cookie headers captured above are the second, independent source. */
+  const jarCookies = await ctx.cookies();
+  const cookieNames = new Set(store.cookies);
+  jarCookies.forEach(c => cookieNames.add(c.name));
+  setCookieHeaders.forEach(n => cookieNames.add(n));
+  const httpOnlyNames = new Set(jarCookies.filter(c => c.httpOnly).map(c => c.name));
+  [...cookieNames].forEach(name => findings.push({
+    route, kind: 'cookie set',
+    detail: name + (httpOnlyNames.has(name) ? ' (HttpOnly — invisible to document.cookie)' : '')
+  }));
 
   /* The copy must name the exception rather than deny it. A page that writes
    * storage while its own footer says nothing is stored is the defect, not the
