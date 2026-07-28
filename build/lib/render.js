@@ -1533,9 +1533,9 @@ function roadmapPage(m) {
     P.srcLine('reported', 'Fleet and per-tail verification for United, Alaska and Hawaiian: unitedstarlinktracker.com and alaskastarlinktracker.com (@martinamps), ' + esc(H.plateDate(m.updated)) + '. Every other airline from public airline announcements, Jul 2026. <a href="/methodology/#credit">Full credit and citation →</a>');
   return H.page({
     title: 'WiFi Odds roadmap — what shipped, and what has not',
-    desc: 'Shipped with dates: the extension, the public ConnectScore API, the fenced projected ' +
-      'score, the per-tail rollout archive. Ahead, with what each one is waiting on: extension ' +
-      'v2.0.0, Tail-swap Guardian, the next instrumented airline.',
+    desc: 'Shipped with dates: extension v2.0.0, the tail-swap Guardian, the public ConnectScore ' +
+      'API, the fenced projected score, the per-tail rollout archive. Ahead, with what it is ' +
+      'waiting on: the next instrumented airline.',
     canonical: '/roadmap/', here: '/roadmap/', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained, crumb: crumbs, body: body,
     jsonld: [crumbLd(crumbs)]
   });

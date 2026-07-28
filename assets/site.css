@@ -188,40 +188,53 @@
 
 :root.dark{
   color-scheme:dark;
-  --paper:#1b1713; --panel:#241f19; --card:#2b251d; --field:#241f19;
-  --ink:#f2e9db; --ink-soft:#cfc4b3; --muted:#a4988a; --muted-strong:#c9bda9;
-  /* --line raised from #3a332a (~1.2:1 vs --card, invisible) to #7a7360
-     (~3.2:1, meets WCAG 1.4.11) — Option A, approved by Jeremy 27 Jul 2026.
-     --line-soft is unchanged; it backs internal row hairlines, not the card/
-     board frame this fix targets. This token exists in TWO places (this block
-     and the @media(prefers-color-scheme:dark) twin below) — build/apitest.js
-     asserts they match, so a change here without its twin fails the build. */
-  --line:#7a7360; --line-soft:#2e2820;
-  --field-border:#8a7964;
-  --good:#63c98a; --mixed:#e0a53f; --long:#e07a5f; --zero:#978c7f;
-  --proj:#a99e8e; --proj-bg:#2b251d;
-  --sky:#9dc2dc; --sky-deep:#16293a; --sky-fg:#c9dcea;
-  --link:var(--sky); --placeholder:#7d7264;
-  --btn-bg:#9dc2dc; --btn-fg:#12222f;
-  --sheen:inset 0 1px 0 rgba(242,233,219,.06);
+  /* V5 THEME PORT (28 Jul 2026). Approved palette: design-competition/theme-v5.css.
+     Ground goes near-black, ink goes pure white, the chrome accent becomes the
+     cyan/violet pair, and the score bands get slightly brighter siblings. See
+     the --line note just below for the one value this port did NOT take
+     literally, and why. */
+  --paper:#050505; --panel:#0d0d0f; --panel2:#121216; --card:#121216; --field:#0d0d0f;
+  --ink:#ffffff; --ink-soft:#d3d3d8; --muted:#a6a6ad; --muted-strong:#c0c0c7;
+  /* The approved palette gives --line the hex #29292f. Measured against
+     --panel/--card that is ~1.3:1 — the exact invisible-border shape Option A
+     fixed on 27 Jul 2026 (raised from ~1.2:1 to ~3.2:1 for the card/board
+     frame, WCAG 1.4.11). Taking #29292f literally as --line would undo that
+     fix, so the approved hex is kept here as --line-soft instead (internal
+     row hairlines, no 3:1 floor), and --line gets a lighter neutral, #65656d,
+     which measures ~3.0-3.5:1 against panel/card/paper. --field-border
+     matches --line for the same reason (control boundary, not a hairline).
+     This token exists in TWO places (this block and the
+     @media(prefers-color-scheme:dark) twin below) — build/apitest.js asserts
+     they match, so a change here without its twin fails the build. */
+  --line:#65656d; --line-soft:#29292f;
+  --field-border:#65656d;
+  --good:#54f09b; --mixed:#ffd45a; --long:#ff698d; --zero:#87878f; --unknown:#85858e;
+  --proj:#c0c0c7; --proj-bg:#121216;
+  --sky:#29d8ff; --sky-deep:#0b2e38; --sky-fg:#c9f0fa;
+  --link:var(--sky); --placeholder:#6d6d75;
+  --cyan:#29d8ff; --violet:#926cff;
+  --btn-bg:#29d8ff; --btn-fg:#052029;
+  --sheen:inset 0 1px 0 rgba(255,255,255,.05);
   --viz-empty:var(--panel);
 }
 
 @media (prefers-color-scheme:dark){
   :root:not(.light){
     color-scheme:dark;
-    --paper:#1b1713; --panel:#241f19; --card:#2b251d; --field:#241f19;
-    --ink:#f2e9db; --ink-soft:#cfc4b3; --muted:#a4988a; --muted-strong:#c9bda9;
-    /* twin of :root.dark's --line above; keep them identical (build/apitest.js
-       checks it). */
-    --line:#7a7360; --line-soft:#2e2820;
-    --field-border:#8a7964;
-    --good:#63c98a; --mixed:#e0a53f; --long:#e07a5f; --zero:#978c7f;
-    --proj:#a99e8e; --proj-bg:#2b251d;
-    --sky:#9dc2dc; --sky-deep:#16293a; --sky-fg:#c9dcea;
-    --link:var(--sky); --placeholder:#7d7264;
-    --btn-bg:#9dc2dc; --btn-fg:#12222f;
-    --sheen:inset 0 1px 0 rgba(242,233,219,.06);
+    --paper:#050505; --panel:#0d0d0f; --panel2:#121216; --card:#121216; --field:#0d0d0f;
+    --ink:#ffffff; --ink-soft:#d3d3d8; --muted:#a6a6ad; --muted-strong:#c0c0c7;
+    /* twin of :root.dark's --line/--line-soft/--field-border above; keep them
+       identical (build/apitest.js checks it). See that block for why --line
+       is #65656d rather than the approved palette's literal #29292f. */
+    --line:#65656d; --line-soft:#29292f;
+    --field-border:#65656d;
+    --good:#54f09b; --mixed:#ffd45a; --long:#ff698d; --zero:#87878f; --unknown:#85858e;
+    --proj:#c0c0c7; --proj-bg:#121216;
+    --sky:#29d8ff; --sky-deep:#0b2e38; --sky-fg:#c9f0fa;
+    --link:var(--sky); --placeholder:#6d6d75;
+    --cyan:#29d8ff; --violet:#926cff;
+    --btn-bg:#29d8ff; --btn-fg:#052029;
+    --sheen:inset 0 1px 0 rgba(255,255,255,.05);
     --viz-empty:var(--panel);
   }
 }

@@ -92,7 +92,7 @@ var STEPS = [
     key: 'guard', shot: 'united', z: 1.8, ox: 100, oy: 100,
     label: 'Guard',
     text: 'The panel names what it cannot know yet: tails firm up around 48 hours out. Watching ' +
-      'that window after you book is the Tail-swap Guardian, which is built, in test, and ships in 2.1.'
+      'that window after you book is the Tail-swap Guardian, which is in the store build today.'
   }
 ];
 

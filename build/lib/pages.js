@@ -1385,6 +1385,11 @@ var SHIPPED = [
     'review. Everything v1.5.1 did on united.com and app.navan.com, plus alaskaair.com and Google ' +
     'Flights behind a permission you grant in the popup and off until you do, plus an 18-airline ' +
     'odds popup. Read off the listing body on approval day, not off the manifest.'],
+  ['2026-07-28', 'Tail-swap Guardian', 'Shipped inside v2.0.0, not as a later release. Watches a ' +
+    'booked flight for an equipment swap between booking and boarding. The state machine, the ' +
+    'alarms and notifications permission and the popup UI all landed before 2.0.0 cleared review. ' +
+    'Its own source still calls it a v1.6 prototype, and nobody has checked it end to end against ' +
+    'a real swap yet.'],
   ['2026-07-24', 'Extension v1.5.1', 'Odds badges and a one-click odds sort on united.com and ' +
     'app.navan.com, plus the route panel. The date and the coverage were read off the Chrome Web ' +
     'Store listing body, not off the repository manifest.'],
@@ -1400,22 +1405,22 @@ var SHIPPED = [
     '<a href="/united/fleet/">The floor →</a>']
 ];
 var AHEAD = [
-  ['2026-07-24', 'Extension v2.0.0', 'SOFT',
-    'alaskaair.com and Google Flights behind permissions you grant yourself, and every ConnectScore ' +
-    'in the popup.', 'Chrome Web Store review. Submitted 24 Jul 2026; the queue is not ours to date.'],
-  ['2026-07-24', 'Tail-swap Guardian', 'SOFT',
-    'Watches a booked flight for an equipment swap between booking and boarding.',
-    'Extension 2.1, which follows 2.0.0 out of review. Built and in test, in no store build.'],
   ['2026-07-01', 'The next instrumented airline', 'SOFT',
     'Hawaiian is next on the list: the highest next-gen share of any US carrier, and already ' +
     'tail-verified.', 'A per-flight history to count. Verified tails are not enough on their own — ' +
     'that is the difference between tier A and tier B, and it is the whole reason Alaska stops at ' +
     'the sub-fleet.']
 ];
-/* A row slips when it has a published finish date (index 5) and that date has
- * passed with nothing shipped. No row carries one today, so this returns
- * `building` for all three — and the day someone adds a date, the flip happens
- * on the next build without waiting for anyone to notice. */
+/* Extension v2.0.0 and the tail-swap Guardian both moved OUT of this array on
+ * 28 Jul 2026: v2.0.0 cleared review and Guardian shipped inside it (see
+ * the WHAT THIS SECTION MAY CLAIM comment above extensionSection()). Leaving
+ * either here after the fact would have said "still ahead" next to a SHIPPED
+ * entry claiming the same thing, which is its own kind of false claim.
+ *
+ * A row slips when it has a published finish date (index 5) and that date has
+ * passed with nothing shipped. The one row left carries no date, so this
+ * returns `building` for it — and the day someone adds a date, the flip
+ * happens on the next build without waiting for anyone to notice. */
 function roadmapState(row, today) {
   return row[5] && row[5] < today ? 'slipped' : 'building';
 }
@@ -1476,9 +1481,16 @@ function roadmapSteps(limit) {
  *
  * So the store build NOW ships: united.com + app.navan.com automatically;
  * alaskaair.com + Google Flights behind an optional permission granted in the
- * popup and off until granted; the 18-airline odds popup. Still NOT in any
- * store build: the tail-swap Guardian (2.1, built and in test — ROADMAP owns
- * its date). Do not claim it.
+ * popup and off until granted; the 18-airline odds popup; AND the tail-swap
+ * Guardian. That last one is a correction, not a re-statement: this file used
+ * to say Guardian was "built, unreleased" and "in no store build yet." It is
+ * not. extension/bg.js carries the full state machine (swap-lost/swap-gained
+ * transitions), manifest.json already declares alarms + notifications, and
+ * popup.js renders the guarded-trips UI, all landed in the "1.6 bridge"
+ * commits BEFORE 2.0.0 cleared review on 28 Jul 2026 — so it shipped with
+ * 2.0.0, not after it. What is still true: its own source calls it a v1.6
+ * prototype, and nobody has checked it end to end against a real swap. Say
+ * that it ships and that it is unproven. Do not say it does not exist.
  *
  * The reel's screenshots are v1.5.1 captures and its badge says so; the
  * surfaces they show (united.com badges, sort, panel) are unchanged in 2.0.0,
@@ -1530,9 +1542,11 @@ function extensionSection(m) {
     'tail is confirmed equipped, and the percentage until then. alaskaair.com and Google Flights ' +
     'ride behind a permission you grant in the popup and stay off until you do, and the popup ' +
     'ranks all ' + m.airlineCount + ' airlines. Cleared review 28 Jul 2026.</p></li>\n' +
-    '    <li><span class="st blt">Built, unreleased</span><p><b>Tail-swap Guardian</b> watches a ' +
-    'booked flight for an equipment swap between booking and boarding. In no store build yet. ' +
-    '<a class="btn ghost mini" href="/roadmap/">Its date on the roadmap →</a></p></li>\n' +
+    '    <li><span class="st live">In the store build</span><p><b>Tail-swap Guardian</b> watches a ' +
+    'booked flight for an equipment swap between booking and boarding. It shipped inside v' +
+    esc(H.EXT_VERSION) + ', not after it; its own source still calls it a v1.6 prototype and it ' +
+    'has not been checked end to end against a real swap yet. ' +
+    '<a class="btn ghost mini" href="/roadmap/">More on the roadmap →</a></p></li>\n' +
     '  </ul>\n' +
     '  <div class="cta-row">' + cwsBadge() + '</div>\n' +
     '  <p class="note extfine"><b>No accounts, no analytics, no tracking.</b> It keeps your ' +
