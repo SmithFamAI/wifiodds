@@ -232,9 +232,21 @@ function checkDateFieldsMigrated() {
    * re-measure (measurementAsOf === today) is exempt: re-measuring today
    * twice is legitimate. Pure so it can be proven on synthetic inputs. */
   function fleetDateConsistency(prevD, curD, todayStr) {
-    if (!prevD || !prevD.measurementAsOf || !curD || !curD.measurementAsOf) return { checked: false };
-    if (curD.measurementAsOf !== prevD.measurementAsOf) return { checked: false, reason: 'date advanced' };
-    if (curD.measurementAsOf >= todayStr) return { checked: false, reason: 'same-day re-measure window' };
+    /* FAIL CLOSED (P1-06). The round-13 version returned {checked:false} when
+       the HEAD baseline was missing and treated ANY date difference as
+       "advanced" — so a lost baseline or a date rolled BACKWARD exempted the
+       whole check. A gate that skips when its own dependency breaks is the
+       failure shape this repo keeps paying for. Now: no baseline is itself a
+       failure, dates must be monotonic and never in the future, and only a
+       genuine forward move exempts the field comparison. */
+    if (!curD || !curD.measurementAsOf) return { bad: ['measurementAsOf missing from the working data.json'] };
+    if (!prevD || !prevD.measurementAsOf) return { bad: ['no readable HEAD baseline for united/data.json: the gate cannot vouch for the fleet dates, and refusing to vouch is a failure, not a skip'] };
+    if (curD.measurementAsOf > todayStr) return { bad: ['measurementAsOf ' + curD.measurementAsOf + ' is in the future'] };
+    if (curD.refreshAttemptedOn && curD.refreshAttemptedOn > todayStr) return { bad: ['refreshAttemptedOn ' + curD.refreshAttemptedOn + ' is in the future'] };
+    if (curD.refreshAttemptedOn && curD.refreshAttemptedOn < curD.measurementAsOf) return { bad: ['refreshAttemptedOn ' + curD.refreshAttemptedOn + ' predates measurementAsOf ' + curD.measurementAsOf] };
+    if (curD.measurementAsOf < prevD.measurementAsOf) return { bad: ['measurementAsOf moved BACKWARD ' + prevD.measurementAsOf + ' → ' + curD.measurementAsOf + ': a measurement date never rolls back'] };
+    if (curD.measurementAsOf > prevD.measurementAsOf) return { checked: false, reason: 'measurement genuinely advanced', bad: [] };
+    if (curD.measurementAsOf === todayStr) return { checked: false, reason: 'same-day re-measure window', bad: [] };
     var FIELDS = ['equipped', 'total', 'last30', 'mainline', 'express', 'mainlinePacePerWeek', 'types'];
     var bad = [];
     FIELDS.forEach(function (f) {
@@ -259,20 +271,32 @@ function checkDateFieldsMigrated() {
   ok(rGood.checked && rGood.bad.length === 0,
     'fleet date-consistency gate passes a genuinely unchanged retained measurement', JSON.stringify(rGood));
   var curFresh = JSON.parse(JSON.stringify(curBad)); curFresh.measurementAsOf = '2026-07-28';
-  ok(fleetDateConsistency(prevSyn, curFresh, '2026-07-28').checked === false,
-    'fleet date-consistency gate exempts a measurement whose date advanced');
+  var rFresh = fleetDateConsistency(prevSyn, curFresh, '2026-07-28');
+  ok(rFresh.checked === false && (rFresh.bad || []).length === 0,
+    'fleet date-consistency gate exempts a measurement whose date genuinely advanced');
+  /* P1-06 fail-closed cases: each of these used to slip through as a skip. */
+  var rNoBase = fleetDateConsistency(null, curBad, '2026-07-28');
+  ok((rNoBase.bad || []).length === 1 && /no readable HEAD baseline/.test(rNoBase.bad[0]),
+    'a missing or unreadable HEAD baseline FAILS the gate rather than skipping it', JSON.stringify(rNoBase));
+  var curBack = JSON.parse(JSON.stringify(curBad)); curBack.measurementAsOf = '2026-07-20';
+  var rBack = fleetDateConsistency(prevSyn, curBack, '2026-07-28');
+  ok((rBack.bad || []).length === 1 && /BACKWARD/.test(rBack.bad[0]),
+    'the balanced 143/340 shift under a BACKWARD-rolled measurementAsOf fails the gate', JSON.stringify(rBack));
+  var curFut = JSON.parse(JSON.stringify(prevSyn)); curFut.measurementAsOf = '2027-01-01';
+  ok(((fleetDateConsistency(prevSyn, curFut, '2026-07-28').bad) || []).some(function (b) { return /future/.test(b); }),
+    'a future measurementAsOf fails the gate');
 
   /* The real invocation: compare working data.json against HEAD's copy. */
   var prevReal = null;
   try {
     prevReal = JSON.parse(require('child_process').execSync(
       'git show HEAD:united/data.json', { cwd: ROOT, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }));
-  } catch (e) { /* no git or file not yet committed: real check is skipped, synthetics above still gate */ }
+  } catch (e) { /* prevReal stays null and fleetDateConsistency FAILS on it: a gate that cannot read its baseline refuses to vouch (P1-06) */ }
   var todayStr = new Date().toISOString().slice(0, 10);
   var rReal = fleetDateConsistency(prevReal, D, todayStr);
   eq((rReal.bad || []).length, 0,
-    'united/data.json: no fleet field changed under an unchanged past measurementAsOf' +
-    (rReal.checked ? '' : ' (window not applicable this run: ' + (rReal.reason || 'no HEAD baseline') + ')'),
+    'united/data.json: fleet dates are monotonic and no fleet field changed under an unchanged past measurementAsOf' +
+    (rReal.checked === false && !(rReal.bad || []).length ? ' (comparison window not applicable this run: ' + rReal.reason + ')' : ''),
     (rReal.bad || []).join(', '));
 }
 
