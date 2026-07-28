@@ -219,6 +219,61 @@ function checkDateFieldsMigrated() {
   ok(typeof D.refreshAttemptedOn === 'string' && ISO_DATE.test(D.refreshAttemptedOn),
     'united/data.json has a valid refreshAttemptedOn — the P1-01 date-field migration landed',
     D.refreshAttemptedOn);
+
+  /* ── the retained-date fleet consistency gate (P1-01, round 12) ──
+   * measurementAsOf dates the WHOLE fleet observation. A round-12 audit
+   * shipped a balanced mainline/express shift (sum unchanged) under a
+   * retained date: the writer's headline pair was atomic but its segment
+   * fields were not, and no release check could see it. This one can: if the
+   * staged data.json keeps the SAME measurementAsOf as HEAD's committed copy,
+   * and that date is in the past, then every fleet field that date covers
+   * must be identical to HEAD's — an unchanged measurement date with changed
+   * measured values is a new measurement wearing an old date. A same-day
+   * re-measure (measurementAsOf === today) is exempt: re-measuring today
+   * twice is legitimate. Pure so it can be proven on synthetic inputs. */
+  function fleetDateConsistency(prevD, curD, todayStr) {
+    if (!prevD || !prevD.measurementAsOf || !curD || !curD.measurementAsOf) return { checked: false };
+    if (curD.measurementAsOf !== prevD.measurementAsOf) return { checked: false, reason: 'date advanced' };
+    if (curD.measurementAsOf >= todayStr) return { checked: false, reason: 'same-day re-measure window' };
+    var FIELDS = ['equipped', 'total', 'last30', 'mainline', 'express', 'mainlinePacePerWeek', 'types'];
+    var bad = [];
+    FIELDS.forEach(function (f) {
+      if (JSON.stringify((prevD.fleet || {})[f]) !== JSON.stringify((curD.fleet || {})[f])) bad.push(f);
+    });
+    return { checked: true, bad: bad };
+  }
+
+  /* Synthetic proof both ways, so the gate is tamper-visible regardless of
+   * what today's real data looks like. */
+  var prevSyn = { measurementAsOf: '2026-07-26', fleet: { equipped: 483, total: 1807, last30: 51,
+    mainline: { equipped: 142, total: 1138 }, express: { equipped: 341, total: 669 },
+    mainlinePacePerWeek: 4.5, types: [{ type: 'E175', equipped: 100, total: 200 }] } };
+  var curBad = JSON.parse(JSON.stringify(prevSyn));
+  curBad.fleet.mainline.equipped = 143; curBad.fleet.express.equipped = 340; /* balanced: sums unchanged */
+  var rBad = fleetDateConsistency(prevSyn, curBad, '2026-07-28');
+  ok(rBad.checked && rBad.bad.length === 2 && rBad.bad.indexOf('mainline') >= 0 && rBad.bad.indexOf('express') >= 0,
+    'fleet date-consistency gate catches a BALANCED mainline/express shift under an unchanged past measurementAsOf',
+    JSON.stringify(rBad));
+  var curGood = JSON.parse(JSON.stringify(prevSyn));
+  var rGood = fleetDateConsistency(prevSyn, curGood, '2026-07-28');
+  ok(rGood.checked && rGood.bad.length === 0,
+    'fleet date-consistency gate passes a genuinely unchanged retained measurement', JSON.stringify(rGood));
+  var curFresh = JSON.parse(JSON.stringify(curBad)); curFresh.measurementAsOf = '2026-07-28';
+  ok(fleetDateConsistency(prevSyn, curFresh, '2026-07-28').checked === false,
+    'fleet date-consistency gate exempts a measurement whose date advanced');
+
+  /* The real invocation: compare working data.json against HEAD's copy. */
+  var prevReal = null;
+  try {
+    prevReal = JSON.parse(require('child_process').execSync(
+      'git show HEAD:united/data.json', { cwd: ROOT, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }));
+  } catch (e) { /* no git or file not yet committed: real check is skipped, synthetics above still gate */ }
+  var todayStr = new Date().toISOString().slice(0, 10);
+  var rReal = fleetDateConsistency(prevReal, D, todayStr);
+  eq((rReal.bad || []).length, 0,
+    'united/data.json: no fleet field changed under an unchanged past measurementAsOf' +
+    (rReal.checked ? '' : ' (window not applicable this run: ' + (rReal.reason || 'no HEAD baseline') + ')'),
+    (rReal.bad || []).join(', '));
 }
 
 /* ── dark-token twin guard ───────────────────────────────────────────────────
