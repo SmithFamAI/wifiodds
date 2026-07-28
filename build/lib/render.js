@@ -173,7 +173,13 @@ function home(m) {
     '    <div class="hc-t">\n' +
     '      <p class="hc-h"><b>WiFi Odds for Flights</b> · the Chrome extension</p>\n' +
     '      <p class="hc-s">The same odds, on every flight in a united.com or Navan results page ' +
-    'while you book. <a class="btn ghost mini" href="#companion">Screenshots ↓</a></p>\n' +
+    'while you book.</p>\n' +
+    /* The button lives outside the paragraph now (Option A bundle, approved
+       27 Jul 2026): jammed inside <p class="hc-s"> it read as part of the
+       sentence rather than a control. Same classes, same #companion anchor,
+       new label; site.css scopes the on-blue restyle to `.herocall .btn.ghost.mini`
+       so no other ghost/mini button anywhere else changes. */
+    '      <div class="hc-btnrow"><a class="btn ghost mini" href="#companion">Learn more ↓</a></div>\n' +
     '    </div>\n' +
     '    ' + P.cwsBadge() + '\n' +
     '  </aside>\n' +

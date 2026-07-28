@@ -197,6 +197,63 @@ function fakeRes(status, bodyText) {
 function jsonRpcText(text) {
   return JSON.stringify({ jsonrpc: '2.0', id: 1, result: { content: [{ type: 'text', text: text }] } });
 }
+
+/* ── dark-token twin guard ───────────────────────────────────────────────────
+ * assets/site.css carries the dark palette in TWO places: the `:root.dark`
+ * block (the explicit toggle) and the `@media(prefers-color-scheme:dark){
+ * :root:not(.light){...} }` block (an OS-level preference with no toggle
+ * click at all). A reader who never touches the toggle gets the second block
+ * only, so if the two ever drift, dark mode silently disagrees with itself
+ * depending on how someone arrived at it — one more thing this repo cannot
+ * see with a check that only reads bytes it wrote, but CAN see once the two
+ * blocks are compared against each other.
+ *
+ * This parses both blocks into name→value maps of their custom-property
+ * declarations and fails naming the exact token that diverged, not just "the
+ * blocks differ". */
+function checkDarkTokenTwins() {
+  var css = fs.readFileSync(path.join(ROOT, 'assets', 'site.css'), 'utf8');
+
+  function parseTokens(body) {
+    var map = {};
+    var re = /--([A-Za-z0-9-]+)\s*:\s*([^;]+);/g;
+    var m;
+    while ((m = re.exec(body))) map[m[1]] = m[2].trim();
+    return map;
+  }
+
+  var mDark = /:root\.dark\s*\{([\s\S]*?)\n\}/.exec(css);
+  ok(!!mDark, 'site.css has a `:root.dark{...}` block for the dark-token twin guard to read');
+
+  var mMedia = /@media\s*\(prefers-color-scheme:\s*dark\)\s*\{\s*:root:not\(\.light\)\s*\{([\s\S]*?)\n\s*\}\s*\n\}/
+    .exec(css);
+  ok(!!mMedia, 'site.css has a `@media(prefers-color-scheme:dark){ :root:not(.light){...} }` block ' +
+    'for the dark-token twin guard to read');
+
+  if (!mDark || !mMedia) return;
+
+  var tokDark = parseTokens(mDark[1]);
+  var tokMedia = parseTokens(mMedia[1]);
+  var names = Object.keys(tokDark).concat(Object.keys(tokMedia))
+    .filter(function (v, i, a) { return a.indexOf(v) === i; }).sort();
+  ok(names.length >= 15,
+    'dark-token twin guard found a plausible number of custom properties to compare ' +
+    '(a selector that matched nothing would report 0 as a false pass)', names.length);
+
+  var diffs = [];
+  names.forEach(function (name) {
+    if (tokDark[name] !== tokMedia[name]) {
+      diffs.push('--' + name + ': :root.dark=' +
+        (name in tokDark ? tokDark[name] : '(missing)') +
+        ' vs prefers-color-scheme:dark=' +
+        (name in tokMedia ? tokMedia[name] : '(missing)'));
+    }
+  });
+  ok(diffs.length === 0,
+    'dark tokens in :root.dark and @media(prefers-color-scheme:dark) :root:not(.light) are identical',
+    diffs.length === 0 ? undefined : diffs.join(' · '));
+}
+
 async function checkTrackerGate() {
   var snippet = loadTrackerGateSource();
   ok(!!snippet, 'tracker gate: located fetchLive() and its helpers in the BUILT united/index.html');
@@ -535,6 +592,7 @@ async function checkTrackerGate() {
 /* ── main ────────────────────────────────────────────────────────────────── */
 async function main() {
   var files = checkSyntax();
+  checkDarkTokenTwins();
   var checksBeforeTrackerGate = checks;
   await checkTrackerGate();
   var trackerGateChecks = checks - checksBeforeTrackerGate;

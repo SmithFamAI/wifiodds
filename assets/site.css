@@ -190,7 +190,13 @@
   color-scheme:dark;
   --paper:#1b1713; --panel:#241f19; --card:#2b251d; --field:#241f19;
   --ink:#f2e9db; --ink-soft:#cfc4b3; --muted:#a4988a; --muted-strong:#c9bda9;
-  --line:#3a332a; --line-soft:#2e2820;
+  /* --line raised from #3a332a (~1.2:1 vs --card, invisible) to #7a7360
+     (~3.2:1, meets WCAG 1.4.11) — Option A, approved by Jeremy 27 Jul 2026.
+     --line-soft is unchanged; it backs internal row hairlines, not the card/
+     board frame this fix targets. This token exists in TWO places (this block
+     and the @media(prefers-color-scheme:dark) twin below) — build/apitest.js
+     asserts they match, so a change here without its twin fails the build. */
+  --line:#7a7360; --line-soft:#2e2820;
   --field-border:#8a7964;
   --good:#63c98a; --mixed:#e0a53f; --long:#e07a5f; --zero:#978c7f;
   --proj:#a99e8e; --proj-bg:#2b251d;
@@ -206,7 +212,9 @@
     color-scheme:dark;
     --paper:#1b1713; --panel:#241f19; --card:#2b251d; --field:#241f19;
     --ink:#f2e9db; --ink-soft:#cfc4b3; --muted:#a4988a; --muted-strong:#c9bda9;
-    --line:#3a332a; --line-soft:#2e2820;
+    /* twin of :root.dark's --line above; keep them identical (build/apitest.js
+       checks it). */
+    --line:#7a7360; --line-soft:#2e2820;
     --field-border:#8a7964;
     --good:#63c98a; --mixed:#e0a53f; --long:#e07a5f; --zero:#978c7f;
     --proj:#a99e8e; --proj-bg:#2b251d;
@@ -733,6 +741,47 @@ html.js table.tbl th[data-k][aria-sort="descending"]:after{content:"\2193";opaci
 .rankb .sortcap p a{color:inherit}
 .rankb .pointer{font-size:.9rem;color:var(--ink-soft);margin:.6rem 0 0}
 .rankb table.tbl{min-width:52rem}
+/* Big 4 board fix (approved mockup, 27 Jul 2026): the mainline/regional split
+   cells were narrow enough that "split not published" and "no regional
+   fleet · ..." wrapped to 2-3 lines inside their dashed empty-state box, on
+   both boards that render this pair. Widen the cells and stop the text from
+   wrapping so the placeholder reads as one line; #home-big4-board and
+   #big4-board below also drop the table's own min-width so this doesn't force
+   a sideways scroll on the Big 4 board specifically (the full 18-airline
+   board may keep its scroll). */
+.rankb td[data-col="mainline"],.rankb td[data-col="regional"]{min-width:7.4rem}
+.rankb .empty-state.cell{white-space:nowrap}
+/* The Big 4 board specifically must not scroll sideways (both places it
+   renders: the homepage's #home-big4-board and /airlines/'s own #big4-board,
+   same id rankBoard() falls back to). Drop the table's 52rem floor so it can
+   size to its own four rows' content instead of a width picked for the wider
+   18-row board; the 18-row #full-board-rankb keeps min-width:52rem and its
+   scroll unchanged. */
+#home-big4-board table.tbl,#big4-board table.tbl{min-width:0}
+/* The one-line empty-state fix above makes the mainline/regional columns'
+   own min-content their full unwrapped text width, and once ANY column on
+   the Big 4 board has a hard floor, a `width:100%` auto-layout table can
+   render past its container rather than shrink it (that is the actual
+   mechanism `.tbl-shell{overflow-x:auto}` was quietly forgiving). The
+   "Signed, not flying" column already wraps onto more than one line at
+   normal widths (its own .proj is flex-wrap:wrap) so it is the one column
+   that can safely give the ~125px back; capping it lets the table settle at
+   the container width instead of past it. Scoped to the two Big 4 ids so
+   the 18-row board's own last-child rule (`.rankb th:last-child{width:30%}`
+   below) is untouched. */
+#home-big4-board th:last-child,#big4-board th:last-child,
+#home-big4-board td:last-child,#big4-board td:last-child{width:auto;max-width:11.5rem}
+/* Southwest's longer projection phrase ("300+ by end-2026, installs running")
+   would not wrap inside the capped column above and spilled past it instead.
+   Two things were holding it to one line: `.proj>*{white-space:nowrap}`
+   (site-wide, so a short chip phrase never breaks mid-word) and a flex
+   item's automatic minimum size, which defaults to its content's max-content
+   width and blocks it from shrinking even where wrapping IS allowed. Site-
+   wide every other projection phrase is short enough that nowrap never
+   costs a line; Southwest's is not, once the column is capped to fit. Both
+   are undone here, scoped to the two Big 4 ids only — /airlines/southwest/
+   and the 18-row board keep the site-wide one-line chip look. */
+#home-big4-board .proj>*,#big4-board .proj>*{white-space:normal;min-width:0}
 .rankb .lab{display:block;font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;
   color:var(--muted);margin-bottom:.12rem;font-weight:600}
 .rankb .sco.pct{font-size:1.02rem}
@@ -1411,11 +1460,22 @@ html.dark{--chart-1:#8fc0e0;--chart-2:#b79fe0;--chart-3:#7ecfdd}
 
 /* ── the hero call: extension surface 1 of the sitewide 3 ── */
 .herocall{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem 1.6rem;margin:1.7rem 0 .3rem;
-  padding:.95rem 1.15rem;background:var(--card);border:1px solid var(--line);border-radius:12px}
+  padding:.95rem 1.15rem;border-radius:12px;
+  /* Google Chrome Blue banner, approved by Jeremy 27 Jul 2026 — hardcoded,
+     not a theme token, so it reads the same in light and dark mode rather
+     than guessing at a second, unapproved light-mode treatment. */
+  background:#1a73e8;border:1px solid #1a73e8}
 .herocall .hc-t{flex:1 1 17rem;min-width:0}
-.herocall .hc-h{margin:0;font-size:.98rem}
-.herocall .hc-h b{font-family:var(--serif);font-size:1.04rem}
-.herocall .hc-s{margin:.15rem 0 0;font-size:.85rem;line-height:1.5;color:var(--ink-soft)}
+.herocall .hc-h{margin:0;font-size:.98rem;color:#fff}
+.herocall .hc-h b{font-family:var(--serif);font-size:1.04rem;color:#fff}
+.herocall .hc-s{margin:.15rem 0 0;font-size:.85rem;line-height:1.5;color:#fff}
+/* the button now lives in its own row under .hc-s, not inside its sentence */
+.herocall .hc-btnrow{margin-top:.55rem}
+/* white/filled, blue text — legible on the blue ground, in place of the
+   ghost look .btn.ghost.mini has everywhere else. Scoped to .herocall so no
+   other ghost/mini button on the site changes. */
+.herocall .btn.ghost.mini{background:#fff;color:#1a73e8;border-color:#fff}
+.herocall .btn.ghost.mini:hover{background:#fff;color:#1a73e8;border-color:#fff;filter:saturate(1.1)}
 @media(max-width:480px){
   .herocall{padding:.6rem .8rem;gap:.5rem .8rem;margin:1.15rem 0 .1rem}
   .herocall .hc-s{display:none}

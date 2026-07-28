@@ -691,7 +691,12 @@ function leaderboard(m, limit) {
  * facts of each fleet's composition (all-737, all-A220, ...), not a figure
  * that needs a citation of its own. */
 var NO_REGIONAL_NOTE = {
-  southwest: 'every aircraft is a 737', jetblue: 'all A320/A321/A220',
+  /* Trimmed from 'every aircraft is a 737' to 'all 737' (Big 4 board fix,
+     approved by Jeremy 27 Jul 2026, mockup-approved layout) so the empty-state
+     text fits the widened split columns on one line without wrapping. Both
+     boards read this same table, so both render the shorter note; the full
+     18-airline board keeps its own horizontal scroll regardless. */
+  southwest: 'all 737', jetblue: 'all A320/A321/A220',
   airbaltic: 'all A220', zipair: 'all 787', emirates: 'all widebody',
   virginatlantic: 'all widebody'
 };
