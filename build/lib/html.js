@@ -374,7 +374,7 @@ function footer(updated) {
     'historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and ' +
     'unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</div>\n' +
     /* "nothing is stored in your browser" was false on /united/, which caches
-       the route list under `usl2:<ORIG>-<DEST>` in localStorage. The privacy
+       the route list under `usl3:<ORIG>-<DEST>` in localStorage. The privacy
        page has always disclosed that cache, so the footer contradicted the page
        it links to. An external audit found it on 27 Jul 2026 alongside the
        Cloudflare beacon, and the two are the same failure: a global claim about

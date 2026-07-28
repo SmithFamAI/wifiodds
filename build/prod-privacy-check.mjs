@@ -40,8 +40,8 @@ const ASSERT = process.argv.includes('--assert');
 const ALLOWED_HOSTS = ['unitedstarlinktracker.com'];
 
 /* Routes that may write to browser storage, and the page that must disclose
- * each one. `/united/` caches route lists under `usl2:<ORIG>-<DEST>`. */
-const ALLOWED_STORAGE = { '/united/': /^usl2:/ };
+ * each one. `/united/` caches route lists under `usl3:<ORIG>-<DEST>`. */
+const ALLOWED_STORAGE = { '/united/': /^usl3:/ };
 
 let chromium;
 try {

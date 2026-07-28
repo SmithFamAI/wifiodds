@@ -1524,7 +1524,7 @@
    Everything below fetchLive() talks to unitedstarlinktracker.com from the
    reader's browser: one GET to /api/plan-route and two JSON-RPC POSTs to /mcp,
    per direction, fired on load and again on every route change. The answers are
-   cached in localStorage under `usl2:<ORIG>-<DEST>` for CACHE_TTL.
+   cached in localStorage under `usl3:<ORIG>-<DEST>` for CACHE_TTL.
 
    The site's stated budget is zero off-origin requests and no storage of any
    kind, so this page is a documented exception rather than an oversight, and
@@ -1610,12 +1610,121 @@ function tEsc(v){
   return String(v==null?"":v).replace(/[&<>"']/g,c=>
     ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
-const IATA=/^[A-Z]{3}$/,FLIGHT=/^UA\d{1,5}$/;
+const IATA=/^[A-Z]{3}$/,FLIGHT=/^UA\d{1,5}$/,ROUTE_RE=/^[A-Z]{3}\s*[-–→]\s*[A-Z]{3}$/;
+/* DECLARED ALLOWED VALUES. A round-6 P0 audit found `coverage:"banana"`
+   rendered as "partial coverage" and an invented confidence word printed
+   verbatim as "invented confidence", because both fields were only ever
+   checked for SHAPE ("some lowercase letters"), never against what the
+   tracker actually emits. These three sets are read off the tracker's own
+   vocabulary, not invented here: `full`/`partial` are the only two coverage
+   values united/data.json's curated snapshot ever carries; `high`/`medium`/
+   `low` are the only three confidence words that appear anywhere in that
+   file's `conf` fields; `mainline`/`express` are the two fleet segments used
+   throughout build/lib/data.js. A value outside its set is not a stricter
+   spelling of a real category — it is not one of the tracker's categories at
+   all, and is handled exactly like a missing one. */
+const COVERAGE_ALLOWED=new Set(["full","partial"]);
+const CONF_ALLOWED=new Set(["high","medium","low"]);
+const SEG_ALLOWED=new Set(["mainline","express"]);
+/* THE SECTION'S OWN PROMISE. The hero copy says this page "lists the tails
+   already assigned for the next 72 hours". A round-6 P0 audit got a tail
+   dated 2099-01-01 rendered as a confirmed assignment: a calendar-valid date
+   is not the same claim as a near-term one. HORIZON_PAST_MS is a small grace
+   window, not a second promise — a tail can be reported a little after its
+   own departure while the tracker catches up — not a licence for 73 years early. */
+const HORIZON_FUTURE_MS=72*3600*1000,HORIZON_PAST_MS=24*3600*1000;
+function withinHorizon(y,mo,da,hh,mi){
+  const t=Date.UTC(y,mo-1,da,hh,mi);
+  const now=Date.now();
+  return Number.isFinite(t)&&t>=now-HORIZON_PAST_MS&&t<=now+HORIZON_FUTURE_MS;
+}
 /* A response the server did not say was OK is not data. Checked BEFORE parsing,
    because a 500 with a JSON body parses perfectly well. */
 async function okJson(r){
   if(!r||!r.ok)throw new Error("tracker HTTP "+(r?r.status:"none"));
   return r.json();
+}
+/* CROSS-FIELD TOPOLOGY AND PROBABILITY, shared by fresh validation
+   (validItinerary) and cache-hit revalidation (validCanonicalItinerary,
+   further down) so a cache hit is held to the identical bar fresh data is.
+   Route identity alone checks only the first origin and the last
+   destination, so a round-6 P0 audit sent an empty `via` with legs DEN-LAX
+   and LAX-SFO, a 90% joint probability and two 10% legs, and it rendered as a
+   90% DIRECT trip: right endpoints, impossible middle. This walks the whole
+   chain leg-to-leg through the declared `via` stops, and checks the reported
+   probabilities are ones the legs could actually produce. PROB_TOL is the
+   declared rounding tolerance: every leg percentage is already rounded to a
+   whole percent before this runs, and joint/any are rounded to a whole
+   percent again at render time (Math.round(it.joint), Math.round(it.any)),
+   so a one-point gap is agreement, not error. */
+const PROB_TOL=1;
+function itineraryTopologyOk(via,legs,joint,any,o,d){
+  if(legs.length!==via.length+1||!legs.length)return false;
+  let prevEnd=o;
+  for(let i=0;i<legs.length;i++){
+    const m=legs[i].route.match(ROUTE_RE);
+    if(!m)return false;
+    const start=m[0].match(/^[A-Z]{3}/)[0],end=m[0].match(/[A-Z]{3}$/)[0];
+    if(start!==prevEnd)return false;
+    if(i<via.length&&via[i]!==end)return false;
+    prevEnd=end;
+  }
+  if(prevEnd!==d)return false;
+  const legPs=legs.map(l=>l.p),minP=Math.min(...legPs),maxP=Math.max(...legPs);
+  if(joint>minP+PROB_TOL)return false;   /* P(all legs) cannot exceed any one leg */
+  if(any<maxP-PROB_TOL)return false;     /* P(≥1 leg) cannot be below any one leg */
+  if(legs.length===1&&(Math.abs(joint-legPs[0])>PROB_TOL||Math.abs(any-legPs[0])>PROB_TOL))return false;
+  return true;
+}
+/* THE SAME GATE, RUN AGAIN ON A CACHE HIT. A round-6 P0 audit preloaded the
+   exact already-processed shape this file itself writes to localStorage —
+   UA9900 at 999%, a billion observations, an impossible date, DEN → DEN →
+   SFO — and fetchLive() returned it straight from the cache before any
+   parser or validator ran, because a cache HIT used to skip validation
+   entirely. This runs every field of a STORED itinerary through the same
+   checks a fresh one gets, so a record that never genuinely earned its shape
+   by passing validItinerary is rejected on read even if it matches the shape
+   byte-for-byte. */
+function validCanonicalItinerary(it,o,d){
+  if(!it||typeof it!=="object")return false;
+  const via=it.via;
+  if(!Array.isArray(via)||via.some(v=>typeof v!=="string"||!IATA.test(v)))return false;
+  if(typeof it.coverage!=="string"||!COVERAGE_ALLOWED.has(it.coverage))return false;
+  if(typeof it.joint!=="number"||!Number.isFinite(it.joint)||it.joint<0||it.joint>100)return false;
+  if(typeof it.any!=="number"||!Number.isFinite(it.any)||it.any<0||it.any>100)return false;
+  if(it.hours!==null&&(typeof it.hours!=="number"||!Number.isFinite(it.hours)||it.hours<0||it.hours>48))return false;
+  const legs=it.legs;
+  if(!Array.isArray(legs)||!legs.length)return false;
+  for(const l of legs){
+    if(!l||typeof l!=="object")return false;
+    if(typeof l.fn!=="string"||!FLIGHT.test(l.fn))return false;
+    if(typeof l.route!=="string"||!ROUTE_RE.test(l.route))return false;
+    if(typeof l.p!=="number"||!Number.isFinite(l.p)||l.p<0||l.p>100)return false;
+    if(typeof l.obs!=="number"||!Number.isInteger(l.obs)||l.obs<0||l.obs>1e6)return false;
+    if(typeof l.conf!=="string"||!(CONF_ALLOWED.has(l.conf)||l.conf==="unknown"))return false;
+  }
+  return itineraryTopologyOk(via,legs,it.joint,it.any,o,d);
+}
+function validCanonicalFlight(f){
+  if(!f||typeof f!=="object")return false;
+  if(typeof f.fn!=="string"||!FLIGHT.test(f.fn))return false;
+  if(typeof f.seg!=="string"||!SEG_ALLOWED.has(f.seg))return false;
+  if(typeof f.prob!=="number"||!Number.isFinite(f.prob)||f.prob<0||f.prob>100)return false;
+  if(typeof f.obs!=="number"||!Number.isInteger(f.obs)||f.obs<0||f.obs>1e6)return false;
+  if(typeof f.conf!=="string"||!CONF_ALLOWED.has(f.conf))return false;
+  return true;
+}
+function validCanonicalDep(dep){
+  if(!dep||typeof dep!=="object")return false;
+  if(typeof dep.fn!=="string"||!FLIGHT.test(dep.fn))return false;
+  if(typeof dep.tail!=="string"||!/^N[A-Z0-9]{1,6}$/.test(dep.tail))return false;
+  const dm=/^(\d{4})-(\d{2})-(\d{2})$/.exec(dep.date||"");
+  const tm=/^(\d{2}):(\d{2})$/.exec(dep.time||"");
+  if(!dm||!tm)return false;
+  const y=+dm[1],mo=+dm[2],da=+dm[3],hh=+tm[1],mi=+tm[2];
+  if(!(mo>=1&&mo<=12&&da>=1&&da<=31&&realDate(y,mo,da)))return false;
+  if(!(hh>=0&&hh<=23&&mi>=0&&mi<=59))return false;
+  return withinHorizon(y,mo,da,hh,mi);
 }
 /* Returns a validated itinerary or null. One bad leg drops the itinerary
    rather than the leg, because a chain missing a leg misstates the joint
@@ -1636,26 +1745,33 @@ function validItinerary(it,o,d){
   if(any<joint-0.05)return null;   /* P(≥1) < P(all) is impossible */
   const hours=tNum(it.total_flight_hours,0,48);
   const coverage=tStr(it.coverage,12,/^[a-z]+$/);
-  if(coverage===null)return null;   /* an itinerary the tracker won't characterize is not one to book off of */
+  if(coverage===null||!COVERAGE_ALLOWED.has(coverage))return null;   /* an itinerary the tracker won't characterize, in a category we recognize, is not one to book off of */
   const legsIn=Array.isArray(it.legs)?it.legs:[];
   const legs=[];
   for(const l of legsIn){
     const fn=tStr(l&&l.flight_number,8,FLIGHT);
-    const route=tStr(l&&l.route,9,/^[A-Z]{3}\s*[-–→]\s*[A-Z]{3}$/);
+    const route=tStr(l&&l.route,9,ROUTE_RE);
     const pFrac=tNum(l&&l.probability,0,1);
     const obs=tNum(l&&l.n_observations,0,1e6);
     if(fn===null||route===null||pFrac===null||obs===null||!Number.isInteger(obs))return null;
-    legs.push({fn,route,p:Math.round(pFrac*100),obs,conf:tStr(l&&l.confidence,12,/^[a-z]+$/)||"unknown"});
+    const confRaw=l&&l.confidence;
+    let conf;
+    if(confRaw===undefined||confRaw===null){conf="unknown";}
+    else{
+      const cs=tStr(confRaw,12,/^[a-z]+$/);
+      if(cs===null||!CONF_ALLOWED.has(cs))return null;   /* an invented confidence word is not a real one */
+      conf=cs;
+    }
+    legs.push({fn,route,p:Math.round(pFrac*100),obs,conf});
   }
   if(!legs.length)return null;
-  /* ROUTE IDENTITY. The chain's own first and last legs must start at the
-     requested origin and end at the requested destination. An itinerary that
-     describes some other pair is dropped whole, never relabelled to the pair
-     that was actually asked for. */
-  const startsAt=legs[0].route.match(/^([A-Z]{3})/),endsAt=legs[legs.length-1].route.match(/([A-Z]{3})$/);
-  if(!startsAt||!endsAt||startsAt[1]!==o||endsAt[1]!==d)return null;
-  return {via,joint:+joint.toFixed(1),any:+any.toFixed(1),coverage,
-          hours:hours===null?null:+hours.toFixed(1),legs};
+  const result={via,joint:+joint.toFixed(1),any:+any.toFixed(1),coverage,
+    hours:hours===null?null:+hours.toFixed(1),legs};
+  /* ONE GATE, RUN TWICE. The same topology/probability check that guards a
+     cache hit also guards fresh data on the way in, so "trusted because this
+     function just built it" is never load-bearing on its own — it still has
+     to pass the identical check a stored record gets on every future read. */
+  return validCanonicalItinerary(result,o,d)?result:null;
 }
 
 /* ── live tracker calls ── */
@@ -1688,10 +1804,20 @@ function parsePredict(text,o,d){
   const out=[];const re=/^\s*(UA\d+)\s+\[(\w+)\]\s+\(([A-Z]{3})-([A-Z]{3})\)\s+(\d+)%\s+\((\d+) obs · (\w+) confidence\)/gm;
   let m;
   while((m=re.exec(text))){
-    const fn=tStr(m[1],8,FLIGHT),seg=tStr(m[2],20,/^[a-zA-Z]+$/);
+    const fn=tStr(m[1],8,FLIGHT);
+    const segRaw=tStr(m[2],20,/^[a-zA-Z]+$/);
+    const seg=segRaw?segRaw.toLowerCase():null;
     const ro=tStr(m[3],3,IATA),rd=tStr(m[4],3,IATA);
-    const prob=tNum(+m[5],0,100),obs=tNum(+m[6],0,1e6),conf=tStr(m[7],12,/^[a-z]+$/i);
-    if(fn===null||seg===null||ro!==o||rd!==d||prob===null||obs===null||!Number.isInteger(obs)||conf===null)continue;
+    const prob=tNum(+m[5],0,100),obs=tNum(+m[6],0,1e6);
+    const confRaw=tStr(m[7],12,/^[a-z]+$/i);
+    const conf=confRaw?confRaw.toLowerCase():null;
+    /* segment and confidence are DECLARED ALLOWED VALUES, not "some letters":
+       a round-6 P0 audit found the tracker's own bracketed segment word and
+       its confidence word both replaced with `invented` and both printed
+       verbatim, because the old check only asked whether the field was
+       lowercase letters. Either one outside its real set drops the record. */
+    if(fn===null||seg===null||!SEG_ALLOWED.has(seg)||ro!==o||rd!==d||prob===null||obs===null||
+       !Number.isInteger(obs)||conf===null||!CONF_ALLOWED.has(conf))continue;
     out.push({fn,seg,prob,obs,conf});
   }
   return out;
@@ -1710,16 +1836,51 @@ function parseSearch(text,o,d){
     const validDate=mo>=1&&mo<=12&&da>=1&&da<=31&&realDate(y,mo,da);
     const validTime=hh>=0&&hh<=23&&mi>=0&&mi<=59;
     if(fn===null||ro!==o||rd!==d||tail===null||!validDate||!validTime)continue;
+    /* THE SECTION'S OWN HORIZON. A round-6 P0 audit got a tail dated
+       2099-01-01 shown as confirmed under a section whose hero copy promises
+       "the next 72 hours". A calendar-valid date is not the same claim as a
+       near-term one. */
+    if(!withinHorizon(y,mo,da,hh,mi))continue;
     out.push({fn,date:`${m[4]}-${m[5]}-${m[6]}`,time:`${m[7]}:${m[8]}`,tail});
   }
   return out;
 }
-function lsGet(k){try{const v=JSON.parse(localStorage.getItem(k));return v&&Date.now()-v.ts<CACHE_TTL?v:null;}catch{return null;}}
-function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+/* CACHE_SCHEMA bumps whenever the stored shape's meaning changes. Combined
+   with the usl2→usl3 namespace rename below, a round-6 P0 audit's finding —
+   records the PRIOR build wrote sat in a reader's browser for up to
+   CACHE_TTL after upgrade, served with none of today's checks run against
+   them — is closed two ways: the old namespace is no longer read at all, and
+   any hit under the CURRENT namespace/schema is still revalidated field by
+   field in lsGet() before use, so a same-schema forged or stale record fares
+   no better than an old one. */
+const CACHE_SCHEMA=2;
+function lsGet(k,o,d){
+  let v;
+  try{v=JSON.parse(localStorage.getItem(k));}catch{return null;}
+  if(!v||typeof v!=="object"||v.schema!==CACHE_SCHEMA)return null;
+  if(!Number.isFinite(v.ts)||Date.now()-v.ts>=CACHE_TTL)return null;
+  /* REVALIDATE ON READ, not just on write. A cache HIT used to return
+     straight from localStorage before any parser or validator ran; this puts
+     every stored itinerary, flight and tail assignment back through the
+     identical checks fresh data gets, keeping the good parts and dropping
+     the rest exactly as fetchLive() already does for a live response. */
+  const itineraries=Array.isArray(v.itineraries)
+    ?v.itineraries.filter(it=>validCanonicalItinerary(it,o,d))
+    :null;
+  const flights=Array.isArray(v.flights)?v.flights.filter(validCanonicalFlight):null;
+  const deps=Array.isArray(v.deps)?v.deps.filter(validCanonicalDep):null;
+  if(!(itineraries&&itineraries.length)&&!(flights&&flights.length)&&!(deps&&deps.length))return null;
+  return {ts:v.ts,
+    itineraries:itineraries&&itineraries.length?itineraries:null,
+    flights:flights&&flights.length?flights:null,
+    deps:deps&&deps.length?deps:null,
+    source:"live"};
+}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify({...v,schema:CACHE_SCHEMA}));}catch{}}
 
 async function fetchLive(o,d){
-  const key=`usl2:${o}-${d}`;
-  const hit=lsGet(key);
+  const key=`usl3:${o}-${d}`;
+  const hit=lsGet(key,o,d);
   if(hit)return {...hit,source:"cache"};
   const [plan,predict,search]=await Promise.allSettled([
     tfetch(`${TRACKER}/api/plan-route?origin=${o}&destination=${d}`).then(okJson),

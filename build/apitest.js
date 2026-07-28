@@ -269,7 +269,164 @@ async function checkTrackerGate() {
     'valid control: joint probability still renders as 42');
   eq(outGood.source, 'live', 'valid control: source is live');
   eq(Object.keys(good.store).length, 1, 'valid control: writes exactly one cache key');
-  ok(!!good.store['usl2:DEN-SFO'], 'valid control: the cache key names the requested pair');
+  ok(!!good.store['usl3:DEN-SFO'], 'valid control: the cache key names the requested pair');
+
+  /* ── round 6: saved-data and cross-field consistency (P0-02 remained open) ──
+   * Two holes the round-6 audit found in the round-5 repair:
+   *   (a) a cache HIT returned before any validator ran, so a record the
+   *       PRE-REPAIR build could write (same schema, same shape) stayed
+   *       readable and renderable for up to CACHE_TTL after upgrade.
+   *   (b) route identity checked only the first origin and last destination,
+   *       so an itinerary with the right endpoints and an internally
+   *       impossible middle (wrong leg count, disconnected legs, or
+   *       probabilities the legs could not produce) still passed.
+   * Every case below drives the same extracted fetchLive(), never a second
+   * reimplementation of the checks. */
+
+  /* Case 5 — the saved-record case, byte-for-byte the auditor's fixture,
+   * translated into a forged entry under the CURRENT namespace/schema rather
+   * than the old one, so this proves the REVALIDATION gate independently of
+   * the namespace rename: UA9900 at 999%, a billion observations, an
+   * impossible date, and a DEN → DEN → SFO itinerary (via:['DEN'] with only
+   * one leg, so via.length+1 !== legs.length). All three network calls fail,
+   * so nothing but the poisoned cache entry could produce a result. */
+  var poisoned = trackerApi(snippet, function () { return Promise.resolve(fakeRes(500, '{}')); });
+  poisoned.store['usl3:DEN-SFO'] = JSON.stringify({
+    schema: 2, ts: Date.now(), source: 'live',
+    itineraries: [{
+      via: ['DEN'], joint: 0, any: 0, coverage: 'partial', hours: 5,
+      legs: [{ fn: 'UA88', route: 'DEN-SFO', p: 0, obs: 7, conf: 'unknown' }]
+    }],
+    flights: [{ fn: 'UA9900', seg: 'mainline', prob: 999, obs: 1000000000, conf: 'invented' }],
+    deps: [{ fn: 'UA9900', date: '2026-99-99', time: '99:99', tail: 'N999ZZ' }]
+  });
+  var outPoisoned = await poisoned.api.fetchLive('DEN', 'SFO');
+  ok(outPoisoned.itineraries === null && outPoisoned.flights === null && outPoisoned.deps === null,
+    'a forged cache entry under the current namespace/schema (UA9900 999%, DEN→DEN→SFO, 2026-99-99) ' +
+    'is rejected on read, not served — falls back to the daily snapshot', outPoisoned);
+
+  /* Case 6 — the impossible-topology/probability itinerary. A fresh, correctly
+   * routed (DEN endpoint to SFO endpoint) plan-route response with an empty
+   * via[], two legs (DEN-LAX, LAX-SFO), joint/at-least-one both 90% and each
+   * leg at 10%. Before topology/probability checks existed, endpoint-only
+   * route identity passed this and it rendered as a 90% DIRECT trip. */
+  var badTopoBody = JSON.stringify({ itineraries: [{
+    via: [], joint_probability: 0.9, at_least_one_probability: 0.9,
+    coverage: 'banana', total_flight_hours: 4,
+    legs: [
+      { flight_number: 'UA1', route: 'DEN-LAX', probability: 0.1, n_observations: 10, confidence: 'high' },
+      { flight_number: 'UA2', route: 'LAX-SFO', probability: 0.1, n_observations: 10, confidence: 'high' }
+    ]
+  }] });
+  var badTopo = trackerApi(snippet, function (url) {
+    if (String(url).indexOf('/api/plan-route') >= 0) return Promise.resolve(fakeRes(200, badTopoBody));
+    return Promise.resolve(fakeRes(200, jsonRpcText('')));
+  });
+  var outBadTopo = await badTopo.api.fetchLive('DEN', 'SFO');
+  ok(outBadTopo.itineraries === null,
+    'a two-leg DEN-LAX/LAX-SFO itinerary with empty via[] and 90% odds on two 10% legs is dropped ' +
+    '(legs.length !== via.length + 1, and joint exceeds each leg\'s probability)', outBadTopo);
+  eq(Object.keys(badTopo.store).length, 0, 'the impossible-topology itinerary writes no cache key');
+
+  /* Case 7 — probability relationships alone, topology held constant and
+   * valid: a genuine two-leg connection (DEN-ORD, ORD-SFO, via ORD) where each
+   * leg is 10% but joint/any are both declared 95%. Topology passes; the
+   * cross-leg probability check must still catch it on its own. */
+  var badProbBody = JSON.stringify({ itineraries: [{
+    via: ['ORD'], joint_probability: 0.95, at_least_one_probability: 0.95,
+    coverage: 'partial', total_flight_hours: 5,
+    legs: [
+      { flight_number: 'UA10', route: 'DEN-ORD', probability: 0.1, n_observations: 20, confidence: 'high' },
+      { flight_number: 'UA11', route: 'ORD-SFO', probability: 0.1, n_observations: 20, confidence: 'high' }
+    ]
+  }] });
+  var badProb = trackerApi(snippet, function (url) {
+    if (String(url).indexOf('/api/plan-route') >= 0) return Promise.resolve(fakeRes(200, badProbBody));
+    return Promise.resolve(fakeRes(200, jsonRpcText('')));
+  });
+  var outBadProb = await badProb.api.fetchLive('DEN', 'SFO');
+  ok(outBadProb.itineraries === null,
+    'a correctly-connected DEN-ORD-SFO itinerary claiming 95% joint odds on two 10% legs is dropped',
+    outBadProb);
+
+  /* Case 8 — coverage outside the declared allow-list, everything else valid:
+   * a direct DEN-SFO leg at 42%, but coverage:"banana". */
+  var badCovBody = JSON.stringify({ itineraries: [{
+    via: [], joint_probability: 0.42, at_least_one_probability: 0.42,
+    coverage: 'banana', total_flight_hours: 2,
+    legs: [{ flight_number: 'UA20', route: 'DEN-SFO', probability: 0.42, n_observations: 50, confidence: 'high' }]
+  }] });
+  var badCov = trackerApi(snippet, function (url) {
+    if (String(url).indexOf('/api/plan-route') >= 0) return Promise.resolve(fakeRes(200, badCovBody));
+    return Promise.resolve(fakeRes(200, jsonRpcText('')));
+  });
+  var outBadCov = await badCov.api.fetchLive('DEN', 'SFO');
+  ok(outBadCov.itineraries === null, 'coverage:"banana" (outside {full,partial}) drops the itinerary', outBadCov);
+
+  /* Case 9 — leg confidence outside the declared allow-list, everything else
+   * valid: a direct DEN-SFO leg at 42%, confidence:"invented". */
+  var badConfBody = JSON.stringify({ itineraries: [{
+    via: [], joint_probability: 0.42, at_least_one_probability: 0.42,
+    coverage: 'full', total_flight_hours: 2,
+    legs: [{ flight_number: 'UA21', route: 'DEN-SFO', probability: 0.42, n_observations: 50, confidence: 'invented' }]
+  }] });
+  var badConf = trackerApi(snippet, function (url) {
+    if (String(url).indexOf('/api/plan-route') >= 0) return Promise.resolve(fakeRes(200, badConfBody));
+    return Promise.resolve(fakeRes(200, jsonRpcText('')));
+  });
+  var outBadConf = await badConf.api.fetchLive('DEN', 'SFO');
+  ok(outBadConf.itineraries === null, 'confidence:"invented" (outside {high,medium,low}) drops the itinerary',
+    outBadConf);
+
+  /* Case 10 — segment and confidence outside the declared allow-list on the
+   * predict_route_starlink (flights) path: the auditor's own semantic-gaps
+   * text, "[invented] ... invented confidence" for an otherwise correctly
+   * routed DEN-SFO record. */
+  var badSegConf = trackerApi(snippet, function (url, opts) {
+    if (String(url).indexOf('/api/plan-route') >= 0) return Promise.resolve(fakeRes(500, '{}'));
+    var name = JSON.parse(opts.body).params.name;
+    var text = name === 'predict_route_starlink'
+      ? 'UA555 [invented] (DEN-SFO) 50% (10 obs · invented confidence)' : '';
+    return Promise.resolve(fakeRes(200, jsonRpcText(text)));
+  });
+  var outBadSegConf = await badSegConf.api.fetchLive('DEN', 'SFO');
+  ok(outBadSegConf.flights === null,
+    'predict_route_starlink text with segment "invented" and confidence "invented" ' +
+    '(both outside their declared allow-lists) yields no flights', outBadSegConf);
+
+  /* Case 11 — a correctly-routed tail assignment dated far outside the ~72h
+   * horizon the hero copy promises, WITHOUT the wrong-route confound case 2
+   * already covers, isolating the horizon check on its own. */
+  var farHorizon = trackerApi(snippet, function (url, opts) {
+    if (String(url).indexOf('/api/plan-route') >= 0) return Promise.resolve(fakeRes(500, '{}'));
+    var name = JSON.parse(opts.body).params.name;
+    var text = name === 'search_starlink_flights'
+      ? 'UA800 DEN→SFO dep 2099-01-01 12:00Z (tail N800UA)' : '';
+    return Promise.resolve(fakeRes(200, jsonRpcText(text)));
+  });
+  var outFarHorizon = await farHorizon.api.fetchLive('DEN', 'SFO');
+  ok(outFarHorizon.deps === null,
+    'a correctly-routed, calendar-valid tail assignment dated 2099 is dropped for being outside the ' +
+    '~72h horizon the section promises', outFarHorizon);
+
+  /* Case 12 — near-term assignment control: a genuinely near-term tail
+   * (2 hours from whenever this test runs, well inside the ~72h horizon)
+   * must still validate, cache and render. Proves case 11's guard rejects on
+   * ITS specific defect (too far out), not on every tail assignment. */
+  var near = new Date(Date.now() + 2 * 3600 * 1000);
+  var pad = function (n) { return String(n).padStart(2, '0'); };
+  var nearText = 'UA700 DEN→SFO dep ' + near.getUTCFullYear() + '-' + pad(near.getUTCMonth() + 1) + '-' +
+    pad(near.getUTCDate()) + ' ' + pad(near.getUTCHours()) + ':' + pad(near.getUTCMinutes()) +
+    'Z (tail N700UA)';
+  var nearCtl = trackerApi(snippet, function (url, opts) {
+    if (String(url).indexOf('/api/plan-route') >= 0) return Promise.resolve(fakeRes(500, '{}'));
+    var name = JSON.parse(opts.body).params.name;
+    return Promise.resolve(fakeRes(200, jsonRpcText(name === 'search_starlink_flights' ? nearText : '')));
+  });
+  var outNear = await nearCtl.api.fetchLive('DEN', 'SFO');
+  ok(Array.isArray(outNear.deps) && outNear.deps.length === 1 && outNear.deps[0].tail === 'N700UA',
+    'near-term control: a tail assignment ~2 hours out still validates and renders', outNear);
+  eq(Object.keys(nearCtl.store).length, 1, 'near-term control: writes exactly one cache key');
 }
 
 /* ── main ────────────────────────────────────────────────────────────────── */
