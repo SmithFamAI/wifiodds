@@ -295,7 +295,7 @@ function home(m) {
            ships yet: the machine-readable surface was making a claim the visible
            copy carefully does not. Both now describe what installing today
            actually gets you. See extensionSection() in build/lib/pages.js. */
-        softwareVersion: '1.5.1',
+        softwareVersion: '2.0.0',
         description: 'Shows Starlink WiFi odds on the airline booking page itself: colour-coded badges ' +
           'on every United flight on united.com and Navan, one-click sort by odds, and a live route ' +
           'panel. No accounts, no analytics, no tracking.',

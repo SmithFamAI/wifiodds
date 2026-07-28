@@ -48,7 +48,7 @@ function assetHash(rel) {
  * banner, which is homepage-only and appears nowhere else on the site. */
 
 var ORIGIN = 'https://wifiodds.com';
-var EXT = 'https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec';
+var EXT = 'https://chromewebstore.google.com/detail/wifi-odds-for-flights/ojpladpffbibebedfbcgbhckajbnijec';
 /* Two repositories, two links. `REPO` used to be the only one and it pointed at
    the EXTENSION, under a footer label that said "Open source" — so a reader
    following it from a page about the website landed in the browser-extension
@@ -62,7 +62,7 @@ var REPO = REPO_SITE;
  * a stale value here is a wrong claim on the homepage. build/lib/pages.js also
  * carries this string in its extension section; when the store ships a new
  * build, both move. */
-var EXT_VERSION = '1.5.1';
+var EXT_VERSION = '2.0.0'; /* cleared review 2026-07-28; verified by listing body, not the manifest */
 
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {

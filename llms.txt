@@ -58,7 +58,7 @@ GET https://wifiodds.com/api/score/{flightNumber} was retired 2026-07-26: a flig
 only ever answered what usually happens on that route, not whether THIS flight has it. Map the
 flight number to its airline and answer with GET https://wifiodds.com/api/airlines/{key} instead, named
 plainly as the fleet-wide ConnectScore, not a per-flight number. For a real per-flight answer,
-point the user at the WiFi Odds browser extension (https://chromewebstore.google.com/detail/starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec), which runs on the airline's
+point the user at the WiFi Odds browser extension (https://chromewebstore.google.com/detail/wifi-odds-for-flights/ojpladpffbibebedfbcgbhckajbnijec), which runs on the airline's
 own booking page where the flight AND the date are already known; for United specifically,
 unitedstarlinktracker.com/check-flight/{flightNumber}/{date} answers the same way.
 

@@ -1381,9 +1381,13 @@ function kpi(n, label, detail, cls) {
  * in one command. The alternative was to type a plausible day next to each one,
  * and a site that fences Delta's 2028 promise has no business doing that. */
 var SHIPPED = [
+  ['2026-07-28', 'Extension v2.0.0, renamed WiFi Odds for Flights', 'Cleared Chrome Web Store ' +
+    'review. Everything v1.5.1 did on united.com and app.navan.com, plus alaskaair.com and Google ' +
+    'Flights behind a permission you grant in the popup and off until you do, plus an 18-airline ' +
+    'odds popup. Read off the listing body on approval day, not off the manifest.'],
   ['2026-07-24', 'Extension v1.5.1', 'Odds badges and a one-click odds sort on united.com and ' +
-    'app.navan.com, plus the route panel. The date and the coverage are read off the Chrome Web ' +
-    'Store listing body, not off the repository manifest, which is already at 2.0.0.'],
+    'app.navan.com, plus the route panel. The date and the coverage were read off the Chrome Web ' +
+    'Store listing body, not off the repository manifest.'],
   [null, 'The public ConnectScore API', 'Answering today: <code>GET /api/airlines</code> and ' +
     '<code>GET /api/airlines/qatar</code>. No key, CORS open, credits in every response body. ' +
     '<a href="/api/docs/">The docs →</a>'],
@@ -1464,31 +1468,28 @@ function roadmapSteps(limit) {
  * own light-on-dark palette, so it needs one in both themes) plus feature detail.
  *
  * ═══ WHAT THIS SECTION MAY CLAIM — READ BEFORE ADDING A FEATURE ═══════════
- * The repo's extension/manifest.json says 2.0.0 and lists alaskaair.com and
- * www.google.com under optional_host_permissions. THE STORE DOES NOT SHIP THAT
- * YET. Verified by the listing body, not by a version constant:
+ * 2.0.0 CLEARED REVIEW 2026-07-28, verified by the listing body on approval
+ * day, never by the manifest:
  *
- *     $ curl -s https://chromewebstore.google.com/detail/ \
- *         starlink-odds-for-united/ojpladpffbibebedfbcgbhckajbnijec | grep -i version
- *     → Version 1.5.1 · Updated July 24, 2026 · "Starlink Odds for United Flights"
+ *     $ curl -sL https://chromewebstore.google.com/detail/ojpladpffbibebedfbcgbhckajbnijec
+ *     → 3 hits for "2.0.0", slug wifi-odds-for-flights, name "WiFi Odds for Flights"
  *
- * and united-starlink-companion/STORE.md says so too: the live listing is "the
- * shipped v1.5.x/1.6 copy" and the "v2.0 SUBMISSION COPY (WiFi Odds rename)"
- * block is still waiting to be uploaded.
+ * So the store build NOW ships: united.com + app.navan.com automatically;
+ * alaskaair.com + Google Flights behind an optional permission granted in the
+ * popup and off until granted; the 18-airline odds popup. Still NOT in any
+ * store build: the tail-swap Guardian (2.1, built and in test — ROADMAP owns
+ * its date). Do not claim it.
  *
- * So this section is split IN TWO on purpose, and the split is not cosmetic:
- *   LIVE TODAY (1.5.1)  united.com + app.navan.com badges, sort, route panel.
- *                       That is also exactly what the reel above shows — the two
- *                       screenshots are 1.5.1 captures and the reel says so on
- *                       its own badge, so the pictures and the copy agree.
- *   NOT YET INSTALLABLE alaskaair.com + Google Flights + all-18 ConnectScores in
- *                       the popup (2.0, awaiting store review) and the tail-swap
- *                       Guardian (2.1, built and in test — see ROADMAP above).
+ * The reel's screenshots are v1.5.1 captures and its badge says so; the
+ * surfaces they show (united.com badges, sort, panel) are unchanged in 2.0.0,
+ * so the pictures stay honest. Replace them with 2.0.0 captures when new ones
+ * exist, and move the badge label then, not before.
  *
- * A visitor who clicks "Add to Chrome" gets the FIRST group. Promising them the
- * second is the same failure as a 200 with an empty body: technically sourced,
- * factually false. When 2.0 clears review, move the pills up and re-run the curl
- * above to prove it — do not move them because the manifest says 2.0.0. */
+ * The doctrine that governed the old two-way split stands: a visitor who
+ * clicks "Add to Chrome" gets exactly what the listing body serves TODAY.
+ * Promising more is the same failure as a 200 with an empty body: technically
+ * sourced, factually false. Any future version flip re-runs the curl above
+ * first. */
 /* ── GOOGLE'S BADGE, THE ONLY INSTALL CONTROL ─────────────────────────────
  * assets/cws/ holds Google's own "Available in the Chrome Web Store" art,
  * byte-identical to the originals. The branding rules this markup honours:
@@ -1525,13 +1526,10 @@ function extensionSection(m) {
        page that owns what has not shipped. */
     '  <ul class="vstate">\n' +
     '    <li><span class="st live">In the store</span><p><b>v' + esc(H.EXT_VERSION) + '</b> ' +
-    'covers united.com and app.navan.com. A badge carries a tick once the assigned tail is ' +
-    'confirmed equipped, and the percentage until then. Checked ' + esc(H.chipDate(m.updated)) +
-    '.</p></li>\n' +
-    '    <li><span class="st">Submitted, in review</span><p><b>v2.0.0</b> adds alaskaair.com and ' +
-    'Google Flights, each behind a permission you grant in the popup and off until you do, plus ' +
-    'an ' + m.airlineCount + '-airline odds popup. Installing today gets you none of it until ' +
-    'the store approves.</p></li>\n' +
+    'covers united.com and app.navan.com out of the box. A badge carries a tick once the assigned ' +
+    'tail is confirmed equipped, and the percentage until then. alaskaair.com and Google Flights ' +
+    'ride behind a permission you grant in the popup and stay off until you do, and the popup ' +
+    'ranks all ' + m.airlineCount + ' airlines. Cleared review 28 Jul 2026.</p></li>\n' +
     '    <li><span class="st blt">Built, unreleased</span><p><b>Tail-swap Guardian</b> watches a ' +
     'booked flight for an equipment swap between booking and boarding. In no store build yet. ' +
     '<a class="btn ghost mini" href="/roadmap/">Its date on the roadmap →</a></p></li>\n' +
@@ -1541,8 +1539,8 @@ function extensionSection(m) {
     'settings on your own machine and phones nothing home. Unofficial, and not affiliated with any ' +
     'airline, Navan, SpaceX/Starlink or the trackers.</p>\n' +
     '  <p class="src">' + cls('reported') + ' Store version and coverage read off the Chrome Web ' +
-    'Store listing body, 24 Jul 2026, rather than off the repository manifest, which is already ' +
-    'at 2.0.0.</p>\n' +
+    'Store listing body, 28 Jul 2026, the day 2.0.0 cleared review, rather than off the ' +
+    'repository manifest.</p>\n' +
     '</section>\n\n';
 }
 
