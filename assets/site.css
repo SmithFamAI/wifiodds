@@ -1476,6 +1476,16 @@ html.dark{--chart-1:#8fc0e0;--chart-2:#b79fe0;--chart-3:#7ecfdd}
    other ghost/mini button on the site changes. */
 .herocall .btn.ghost.mini{background:#fff;color:#1a73e8;border-color:#fff}
 .herocall .btn.ghost.mini:hover{background:#fff;color:#1a73e8;border-color:#fff;filter:saturate(1.1)}
+/* P2-04: .cws-ver's sitewide rule below sets color:var(--muted) (#a4988a),
+   which measures 1.595:1 against this banner's #1a73e8 — nowhere near the
+   4.5:1 AA floor the rest of this component holds (.hc-h/.hc-s/.hc-h b all
+   measure 4.505:1 at #fff). Scoped to .herocall so the sitewide muted
+   .cws-ver used elsewhere (on light/dark page backgrounds, not this blue
+   banner) is untouched. #fff is the ceiling here, not an arbitrary pick:
+   background luminance is fixed, so no color lighter than white exists, and
+   white is exactly what the rest of this banner's text already uses —
+   measures 4.505:1, same as the heading/description/button. */
+.herocall .cws-ver{color:#fff}
 @media(max-width:480px){
   .herocall{padding:.6rem .8rem;gap:.5rem .8rem;margin:1.15rem 0 .1rem}
   .herocall .hc-s{display:none}

@@ -198,6 +198,29 @@ function jsonRpcText(text) {
   return JSON.stringify({ jsonrpc: '2.0', id: 1, result: { content: [{ type: 'text', text: text }] } });
 }
 
+/* ── P1-01 migration gate ────────────────────────────────────────────────
+ * The consumer side (build/lib/data.js's measurementDates()) already reads
+ * measurementAsOf/refreshAttemptedOn correctly, with a fallback to `updated`
+ * for an old-shape file. That fallback is exactly what let Round 10's real
+ * producer bug hide: unitedstarlinktracker.com's daily writer
+ * (~/websites/scripts/update-unitedstarlink.js) never wrote either field, so
+ * a plain copy into united/data.json silently kept working — falling back
+ * every day to raw "updated=today" semantics — with nothing here to say the
+ * migration had not actually happened upstream. This fails the build outright
+ * the moment either field goes missing, so a producer that regresses (or a
+ * data.json restored from an old snapshot) cannot ship quietly. */
+function checkDateFieldsMigrated() {
+  var raw = fs.readFileSync(path.join(ROOT, 'united', 'data.json'), 'utf8');
+  var D = JSON.parse(raw);
+  var ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+  ok(typeof D.measurementAsOf === 'string' && ISO_DATE.test(D.measurementAsOf),
+    'united/data.json has a valid measurementAsOf — the P1-01 date-field migration landed',
+    D.measurementAsOf);
+  ok(typeof D.refreshAttemptedOn === 'string' && ISO_DATE.test(D.refreshAttemptedOn),
+    'united/data.json has a valid refreshAttemptedOn — the P1-01 date-field migration landed',
+    D.refreshAttemptedOn);
+}
+
 /* ── dark-token twin guard ───────────────────────────────────────────────────
  * assets/site.css carries the dark palette in TWO places: the `:root.dark`
  * block (the explicit toggle) and the `@media(prefers-color-scheme:dark){
@@ -592,6 +615,7 @@ async function checkTrackerGate() {
 /* ── main ────────────────────────────────────────────────────────────────── */
 async function main() {
   var files = checkSyntax();
+  checkDateFieldsMigrated();
   checkDarkTokenTwins();
   var checksBeforeTrackerGate = checks;
   await checkTrackerGate();
@@ -1026,17 +1050,59 @@ async function main() {
     return L && L.unresolved > 0 && L.nextGenShare === 0;
   });
   var UNPUB_META = {};
-  UNPUB.forEach(function (k) { UNPUB_META[k] = { name: A_MCP.WIFI_AIRLINES[k].name }; });
+  UNPUB.forEach(function (k) {
+    var al = A_MCP.WIFI_AIRLINES[k];
+    UNPUB_META[k] = { name: al.name, code: al.code || null, key: k };
+  });
+
+  /* An airline can be named on a line by its key, its IATA code, or its full
+   * name — Round 10's mutation relabelled list rows by CODE ("AF", "SK") and
+   * the old scan only recognised the full name, so the numeric "next-gen 0%"
+   * it appended sailed through unseen. All three are aliases now. Each is
+   * matched as a whole word/label (flanked by start/end or a non-alnum
+   * character), NEVER as a bare substring — "AF" must not fire on "Air
+   * France" or on unrelated text that merely contains the two letters. */
+  function aliasesFor(k) {
+    var m = UNPUB_META[k];
+    return [m.key, m.name, m.code].filter(Boolean);
+  }
+  function lineNamesAlias(line, alias) {
+    var esc = alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp('(^|[^A-Za-z0-9])' + esc + '([^A-Za-z0-9]|$)', 'i').test(line);
+  }
+
+  /* Recurses a tool's structuredContent the same way scanMcpStructured does,
+   * but only to answer "which unpublished airlines does THIS invocation's
+   * structured payload actually name" — the set the matching text is required
+   * to cover. Scoping this per call (not one shared tally across every tool
+   * in the registry) is the fix for Round 10: the old code let one tool's
+   * honest coverage of an airline stand in for another tool's dishonest text
+   * about the very same airline, because completeness was checked once, in
+   * aggregate, after the whole registry had been walked. */
+  function unpubKeysNamedIn(node, found, visited) {
+    if (!node || typeof node !== 'object' || visited.has(node)) return found;
+    visited.add(node);
+    if (typeof node.key === 'string' && UNPUB_META[node.key]) found[node.key] = true;
+    Object.keys(node).forEach(function (k) {
+      var v = node[k];
+      if (Array.isArray(v)) v.forEach(function (item) { unpubKeysNamedIn(item, found, visited); });
+      else if (v && typeof v === 'object') unpubKeysNamedIn(v, found, visited);
+    });
+    return found;
+  }
 
   /* Line-scoped, not blob-scoped: list_airline_scores' text has one line per
      airline, so scanning the whole joined blob for "next-gen NN%" would also
      trip on a PUBLISHED airline's honest number sitting a few lines away.
-     Only the line(s) that name the unpublished airline may not carry one. */
-  function scanMcpText(text, label, bad, covered) {
+     Only the line(s) that name the unpublished airline (by any alias) may not
+     carry one. `wanted` restricts the scan to the airlines THIS invocation's
+     own structured content actually named — the per-invocation half of the fix. */
+  function scanMcpText(text, label, bad, wanted, invCovered) {
     text.split('\n').forEach(function (line) {
-      Object.keys(UNPUB_META).forEach(function (k) {
-        if (line.indexOf(UNPUB_META[k].name) === -1) return;
-        covered[k] = true;
+      Object.keys(wanted).forEach(function (k) {
+        var matched = aliasesFor(k).some(function (alias) { return lineNamesAlias(line, alias); });
+        if (!matched) return;
+        invCovered[k] = true;
         var hit = /next[- ]gen[^.·|]{0,30}?(\d+(?:\.\d+)?)\s*%?/i.exec(line);
         if (hit) bad.push(label + ' ' + k + ' MCP text: "…' + hit[0].slice(-52) + '"');
       });
@@ -1085,7 +1151,7 @@ async function main() {
     });
   }
 
-  var mcpBad = [], mcpChecked = 0, mcpCovered = {};
+  var mcpBad = [], mcpChecked = 0, mcpEverCovered = {};
   for (var ti = 0; ti < MCP.TOOLS.length; ti++) {
     var toolDef = MCP.TOOLS[ti];
     var takesKey = !!(toolDef.inputSchema && toolDef.inputSchema.properties &&
@@ -1103,18 +1169,34 @@ async function main() {
       var text = blocks.map(function (b2) { return b2.text || ''; }).join('\n');
       if (!text) { mcpBad.push(label + ': no MCP text block to inspect'); continue; }
       mcpChecked++;
-      scanMcpText(text, label, mcpBad, mcpCovered);
       var sc = mr.j && mr.j.result && mr.j.result.structuredContent;
-      scanMcpStructured(sc, label, mcpBad, mcpCovered, new Set());
+
+      /* PER-INVOCATION, not global: ask only THIS call's own structured
+       * payload which unpublished airlines it named, then require only
+       * THIS call's own text to be clean for exactly those airlines. A
+       * tool's dishonest text can no longer hide behind another tool's
+       * honest coverage of the same airline recorded once, in aggregate,
+       * at the end of the whole registry walk. */
+      var namedHere = unpubKeysNamedIn(sc, {}, new Set());
+      var invCovered = {};
+      scanMcpText(text, label, mcpBad, namedHere, invCovered);
+      Object.keys(namedHere).forEach(function (k) {
+        mcpEverCovered[k] = true;
+        if (!invCovered[k]) {
+          mcpBad.push(label + ' ' + k + ': structuredContent named this unpublished airline but no ' +
+            'text line in the SAME invocation could be matched to it by key, code or name');
+        }
+      });
+      scanMcpStructured(sc, label, mcpBad, mcpEverCovered, new Set());
     }
   }
-  ok(Object.keys(mcpCovered).length === UNPUB.length,
+  ok(Object.keys(mcpEverCovered).length === UNPUB.length,
     'every unpublished-count airline was inspected across the whole MCP tool registry (' +
     MCP.TOOLS.map(function (t) { return t.name; }).join(', ') + ')',
-    Object.keys(mcpCovered).length + ' of ' + UNPUB.length);
+    Object.keys(mcpEverCovered).length + ' of ' + UNPUB.length);
   eq(mcpBad.length, 0,
     'no MCP tool (get_airline_score, list_airline_scores, or any future registry entry) numbers a ' +
-    'next-gen count the model says is unpublished',
+    'next-gen count the model says is unpublished, checked per invocation not globally',
     mcpBad.join(' · '));
 
   /* every tool result must carry the credit in the TEXT block, because a model
