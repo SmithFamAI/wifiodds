@@ -427,6 +427,75 @@ async function checkTrackerGate() {
   ok(Array.isArray(outNear.deps) && outNear.deps.length === 1 && outNear.deps[0].tail === 'N700UA',
     'near-term control: a tail assignment ~2 hours out still validates and renders', outNear);
   eq(Object.keys(nearCtl.store).length, 1, 'near-term control: writes exactly one cache key');
+
+  /* ── round 7: the union upper bound and the negative cache age ──
+   * Two holes the round-7 audit found in the round-6 repair. */
+
+  /* Case 13 — the union upper bound (P0-02). A correctly-connected
+   * DEN-ORD-SFO itinerary (via ORD) with two 10% legs, joint 0% but
+   * at-least-one 90%. Round 6 bounded "at least one" only from BELOW, so this
+   * passed and rendered "P(≥1) 90%". P(≥1 of two 10% events) cannot exceed
+   * their sum, 20%. */
+  var unionBadBody = JSON.stringify({ itineraries: [{
+    via: ['ORD'], joint_probability: 0, at_least_one_probability: 0.9,
+    coverage: 'partial', total_flight_hours: 5,
+    legs: [
+      { flight_number: 'UA10', route: 'DEN-ORD', probability: 0.1, n_observations: 20, confidence: 'high' },
+      { flight_number: 'UA11', route: 'ORD-SFO', probability: 0.1, n_observations: 20, confidence: 'high' }
+    ]
+  }] });
+  var unionBad = trackerApi(snippet, function (url) {
+    if (String(url).indexOf('/api/plan-route') >= 0) return Promise.resolve(fakeRes(200, unionBadBody));
+    return Promise.resolve(fakeRes(200, jsonRpcText('')));
+  });
+  var outUnionBad = await unionBad.api.fetchLive('DEN', 'SFO');
+  ok(outUnionBad.itineraries === null,
+    'a DEN-ORD-SFO itinerary with two 10% legs claiming 90% at-least-one is dropped ' +
+    '(the union of two 10% events cannot exceed their 20% sum)', outUnionBad);
+  eq(Object.keys(unionBad.store).length, 0, 'the union-bound violation writes no cache key');
+
+  /* Case 14 — the valid two-leg control the union bound must NOT over-reject:
+   * two 10% legs, joint 0%, at-least-one 20% (= p1 + p2 - joint exactly). */
+  var unionGoodBody = JSON.stringify({ itineraries: [{
+    via: ['ORD'], joint_probability: 0, at_least_one_probability: 0.2,
+    coverage: 'partial', total_flight_hours: 5,
+    legs: [
+      { flight_number: 'UA10', route: 'DEN-ORD', probability: 0.1, n_observations: 20, confidence: 'high' },
+      { flight_number: 'UA11', route: 'ORD-SFO', probability: 0.1, n_observations: 20, confidence: 'high' }
+    ]
+  }] });
+  var unionGood = trackerApi(snippet, function (url) {
+    if (String(url).indexOf('/api/plan-route') >= 0) return Promise.resolve(fakeRes(200, unionGoodBody));
+    return Promise.resolve(fakeRes(200, jsonRpcText('')));
+  });
+  var outUnionGood = await unionGood.api.fetchLive('DEN', 'SFO');
+  ok(Array.isArray(outUnionGood.itineraries) && outUnionGood.itineraries.length === 1,
+    'valid two-leg control: 10%/10% legs, 0% joint, 20% at-least-one still validates (the bound holds exactly)',
+    outUnionGood);
+
+  /* Case 15 — a future cache timestamp (P1-05). lsGet() rejected records OLDER
+   * than CACHE_TTL but not a NEGATIVE age. A valid flight record timestamped a
+   * year ahead was served as "cached -8760h ago". All network calls fail, so
+   * only the future-dated cache entry could produce a result. */
+  var future = trackerApi(snippet, function () { return Promise.resolve(fakeRes(500, '{}')); });
+  future.store['usl3:DEN-SFO'] = JSON.stringify({
+    schema: 2, ts: Date.now() + 365 * 24 * 3600 * 1000, source: 'live',
+    flights: [{ fn: 'UA9090', seg: 'mainline', prob: 80, obs: 100, conf: 'high' }]
+  });
+  var outFuture = await future.api.fetchLive('DEN', 'SFO');
+  ok(outFuture.itineraries === null && outFuture.flights === null && outFuture.deps === null,
+    'a cache record timestamped a year ahead (negative age) is rejected, not served — no UA9090', outFuture);
+
+  /* Case 16 — the current-timestamp control the negative-age check must NOT
+   * reject: the same valid flight record at a current ts is served from cache. */
+  var freshCache = trackerApi(snippet, function () { return Promise.resolve(fakeRes(500, '{}')); });
+  freshCache.store['usl3:DEN-SFO'] = JSON.stringify({
+    schema: 2, ts: Date.now(), source: 'live',
+    flights: [{ fn: 'UA9090', seg: 'mainline', prob: 80, obs: 100, conf: 'high' }]
+  });
+  var outFresh = await freshCache.api.fetchLive('DEN', 'SFO');
+  ok(Array.isArray(outFresh.flights) && outFresh.flights.length === 1 && outFresh.flights[0].fn === 'UA9090',
+    'current-ts control: a valid current cache record is still served', outFresh);
 }
 
 /* ── main ────────────────────────────────────────────────────────────────── */

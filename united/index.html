@@ -2287,6 +2287,14 @@ function itineraryTopologyOk(via,legs,joint,any,o,d){
   const legPs=legs.map(l=>l.p),minP=Math.min(...legPs),maxP=Math.max(...legPs);
   if(joint>minP+PROB_TOL)return false;   /* P(all legs) cannot exceed any one leg */
   if(any<maxP-PROB_TOL)return false;     /* P(≥1 leg) cannot be below any one leg */
+  /* UNION UPPER BOUND. A round-7 P0 audit accepted two 10% legs reporting 90%
+     "at least one": P(≥1) can never exceed the sum of the leg odds (nor 100).
+     For exactly two legs, inclusion-exclusion makes any = p1 + p2 - joint an
+     identity, so it is checked exactly; for three or more legs only the sum
+     bound is imposed, since the higher-order terms are not carried here. */
+  const sumP=legPs.reduce((a,b)=>a+b,0);
+  if(any>Math.min(100,sumP)+PROB_TOL)return false;
+  if(legs.length===2&&Math.abs(any-(legPs[0]+legPs[1]-joint))>PROB_TOL)return false;
   if(legs.length===1&&(Math.abs(joint-legPs[0])>PROB_TOL||Math.abs(any-legPs[0])>PROB_TOL))return false;
   return true;
 }
@@ -2472,7 +2480,13 @@ function lsGet(k,o,d){
   let v;
   try{v=JSON.parse(localStorage.getItem(k));}catch{return null;}
   if(!v||typeof v!=="object"||v.schema!==CACHE_SCHEMA)return null;
-  if(!Number.isFinite(v.ts)||Date.now()-v.ts>=CACHE_TTL)return null;
+  /* A round-7 P0 audit served a record timestamped a year AHEAD, labelled it
+     "cached -8760h ago", and kept it eligible until six hours past that future
+     instant. Age is computed once and must be a real, non-negative span shorter
+     than the lifetime: a negative age is a corrected device clock, not fresh
+     data, and is dropped like an expired one. */
+  const age=Date.now()-v.ts;
+  if(!Number.isFinite(age)||age<0||age>=CACHE_TTL)return null;
   /* REVALIDATE ON READ, not just on write. A cache HIT used to return
      straight from localStorage before any parser or validator ran; this puts
      every stored itinerary, flight and tail assignment back through the
