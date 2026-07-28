@@ -495,5 +495,10 @@ module.exports = {
   topbar: masthead,
   subnav: subnav, crumb: crumb, credit: credit, footer: footer,
   plateDate: plateDate, chipDate: chipDate,
-  MARK_SVG: MARK_SVG, FAVICON: FAVICON
+  MARK_SVG: MARK_SVG, FAVICON: FAVICON,
+  /* THEME_BOOT and assetHash: exported additively for Render.home(), which does
+     NOT call page() (see build/lib/render.js) but still has to carry the exact
+     same theme-boot script and the same cache-busted asset hashing every other
+     route gets, copied rather than reimplemented so the two can never drift. */
+  THEME_BOOT: THEME_BOOT, assetHash: assetHash
 };

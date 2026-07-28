@@ -19,7 +19,7 @@ generated, and the build fails on any served `.html` that is not listed here.
 
 ```
 url                        file                                tmpl              freq     pri  title
-/                          index.html                          -                 daily    1.0  WiFi Odds · every airline’s inflight WiFi, scored
+/                          index.html                          -                 daily    1.0  WiFi Odds · your odds of next-gen WiFi
 /airlines/                 airlines/index.html                 -                 daily    0.9  Airline WiFi leaderboard — 18 ConnectScores
 /race/                     race/index.html                     -                 daily    0.9  The race to next-gen inflight WiFi · every airline’s rollout timeline
 /systems/                  systems/index.html                  -                 monthly  0.8  Inflight WiFi systems compared — Starlink vs Amazon Leo vs Viasat
@@ -112,7 +112,6 @@ Read a change in one as a prompt to go look. Read the total as nothing at all.
 
 ```
 url         links
-/           6
 /united/    2
 /api/docs/  2
 ```

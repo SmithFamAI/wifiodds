@@ -50,280 +50,302 @@ function crumbLd(items) {
   };
 }
 
-/* ═══ / ═════════════════════════════════════════════════════════════════ */
-/* The two carriers with tail-verified counts but no published daily archive.
- * They get a labelled TODAY count beside the chart, never an invented curve. */
-function raceCountRows(m) {
-  return ['alaska', 'hawaiian'].map(function (k, i) {
-    var a = m.ranked.filter(function (x) { return x.key === k; })[0];
-    if (!a) return '';
-    return '      <li><i class="dot c' + (i + 2) + '"></i><b>' + num(a.equipped) + '</b> ' +
-      esc(a.name) + ', today’s count</li>\n';
-  }).join('');
+/* ═══ / (V5) ═══════════════════════════════════════════════════════════
+ * build/templates/home.html is the Jeremy-approved V5 mockup
+ * (~/wifiodds-exchange/design-competition/codex-redesign-v5.html), kept
+ * byte-for-byte except four markers this function fills in:
+ *
+ *   <!--HOME:HEAD_EXTRA-->   the shared <head> essentials every other route
+ *                            gets from H.page() — canonical link, favicon,
+ *                            og/twitter tags, the theme-boot script — copied
+ *                            from the exact same H.* strings, not retyped.
+ *   <!--HOME:BIG4_CARDS-->   the four Big-4 <article class="aircard"> cards.
+ *   <!--HOME:BOARD_ROWS-->   all 18 <a class="row"> board entries.
+ *   <!--HOME:CWS_BADGE-->    Google's own cached Chrome Web Store badge,
+ *                            replacing the mockup's embedded base64 PNG.
+ *
+ * THIS DOES NOT CALL H.page(). The template already carries its own <body
+ * data-view="nextgen">, <nav>, <main> and <footer> — H.page() would duplicate
+ * every one of them, nest <main>, and drop the server-rendered data-view
+ * (see GOLIVE-PLAN.md, "AMENDED after Codex validation", blocker 1). Every
+ * other route keeps calling H.page() unchanged.
+ *
+ * ONE HELPER PER AIRLINE (homeRow / homeCard below) emits the WHOLE element —
+ * visible text AND every data-* attribute — from the same model value.
+ * data-bake (build/lib/tmpl.js) only ever replaces inner text, never an
+ * attribute (blocker 2): a helper that baked the percentage into the text but
+ * left an old default on data-odds/data-floor would pass the build and then
+ * display one figure, sort by a second and fill the heat ramp to a third.
+ * There is no such helper here — homeRow/homeCard are the only place either
+ * number is written, in both places at once.
+ *
+ * BRANCH ON `published`, NEVER ON THE SCORE. Air France and SAS carry a real
+ * ConnectScore (they are not zero) but `nextGenPublished === false`: their
+ * Starlink count has never been published, so nextGenScore's 0 is not a
+ * measurement (see nextGenPublished() in assets/airlines.js). homeRow's very
+ * first line branches on that flag, before touching a single number, and the
+ * unpublished branch never prints a percentage or a ramp position for either
+ * view — "unpublished" / "not computable", data-odds="-1", data-floor="-1",
+ * data-rankable="false", no data-score suppression (ConnectScore is a
+ * different, always-published question).
+ *
+ * THE STREAMING FLOOR is a metric this codebase did not previously compute:
+ * the share of the KNOWN fleet (unresolved aircraft excluded from the
+ * denominator, never assumed into it — the same "publish the floor" rule as
+ * everywhere else on this site) sitting on a system whose quality meets or
+ * beats STREAMING_MIN_Q (assets/airlines.js). A segment whose quality straddles
+ * that threshold (an unpublished split inside one named system, e.g.
+ * Southwest's Anuvu-or-Viasat bucket) cannot be counted either way, so it
+ * counts toward neither the numerator nor a false certainty — it flips
+ * floorUncertain on instead, same as a genuinely unresolved aircraft count.
+ * Once the floor is already 100 there is no headroom left for any remainder
+ * to raise, so the uncertainty flag is forced off there (a bare 100%, never
+ * a nonsensical "≥100%") — this is why JSX/ZIPAIR/airBaltic show plain 100%
+ * despite airBaltic alone carrying 27 unresolved aircraft. */
+
+var FS = require('fs');
+var PATH = require('path');
+
+/* The exact board order the approved mockup ships with. It also happens to be
+ * non-increasing in today's nextGenScore, so it doubles as a valid initial
+ * sort — the client script re-sorts on load regardless, and Array#sort's
+ * required stability means ties (JSX/ZIPAIR/airBaltic, all 100/100 today)
+ * keep this relative order after the client re-sorts, never a random one. */
+var HOME_BOARD_ORDER = [
+  'jsx', 'zipair', 'airbaltic', 'westjet', 'hawaiian', 'qatar', 'united', 'alaska',
+  'virginatlantic', 'emirates', 'aircanada', 'britishairways', 'jetblue', 'american',
+  'delta', 'southwest'
+];
+var HOME_UNPUBLISHED_ORDER = ['airfrance', 'sas'];
+var HOME_BIG4_ORDER = ['united', 'american', 'delta', 'southwest'];
+
+/* Insertion into build/templates/home.html is raw and unescaped, so every
+ * baked value has to clear this fence before it is allowed near the page:
+ * finite, defined, never NaN. An airline whose model output cannot pass this
+ * fails the BUILD, not the page. */
+function homeNum(x, label) {
+  if (typeof x !== 'number' || !isFinite(x)) {
+    throw new Error('Render.home: ' + label + ' is not a finite number (got ' + x + ')');
+  }
+  return x;
+}
+function homeStr(x, label) {
+  if (typeof x !== 'string' || !x) {
+    throw new Error('Render.home: ' + label + ' is not a non-empty string (got ' + JSON.stringify(x) + ')');
+  }
+  return x;
+}
+
+/* V5's own percentage convention: one decimal below 1% ("0.1%", Southwest's
+ * single confirmed aircraft), a bare integer otherwise. Distinct from
+ * pages.js's pctText(), which prints "<1%" instead — this page already shipped
+ * approved with the decimal, so that is the string this keeps. */
+function homeFmtPct(raw) {
+  if (raw > 0 && raw < 1) return raw.toFixed(1);
+  return String(Math.round(raw));
+}
+
+/* The streaming-or-better floor and its uncertainty flag. See the header
+ * comment above for the full rule; this is the one and only place it is
+ * computed, so a row and a Big-4 card reading the same airline can never
+ * disagree. */
+function homeStreamingFloor(m, a) {
+  var thresh = m.A.STREAMING_MIN_Q;
+  var segs = a.segments || [];
+  var known = a.known || 0;
+  if (!segs.length || !known) {
+    /* Non-segmented model (no ledger): floor, ceiling and score already
+       coincide, so there is nothing to split and nothing uncertain. */
+    return { pct: homeNum(a.floor, a.key + '.floor'), uncertain: false };
+  }
+  var certain = 0, ambiguous = false;
+  segs.forEach(function (s) {
+    if (s.qMin >= thresh) certain += s.n;
+    else if (s.qMax >= thresh) ambiguous = true;
+  });
+  var pct = (certain / known) * 100;
+  var uncertain = ((a.unresolved || 0) > 0 || ambiguous) && pct < 100 - 1e-9;
+  return { pct: pct, uncertain: uncertain };
+}
+
+function homeRowClass(oddsScore) {
+  return oddsScore >= 60 ? 'good' : oddsScore >= 40 ? 'mixed' : 'long';
+}
+
+/* The odds-only <small> label. Plain, honest, three-way — never the bespoke
+ * per-airline prose the mockup shipped as a placeholder, because reproducing
+ * eighteen hand-tuned captions from the model without inventing a fact none
+ * of them state was not achievable this pass; see the go-live report. */
+function homeOddsLabel(a) {
+  if (a.nextGenScore >= 99) return 'Next-gen fleet';
+  if (a.nextGenScore > 0) return 'Mixed fleet';
+  return 'No next-gen aircraft yet';
+}
+/* The tier-only <small> label. Only prints a number when the uncertainty is a
+ * real unresolved-aircraft count; a same-known-fleet ambiguous split (no
+ * unresolved aircraft, just an unpublished system mix) gets the words with no
+ * percentage, because there is no fleet-count fraction to attach one to. */
+function homeTierNote(a, sf) {
+  if (!sf.uncertain) return '';
+  var total = (a.ledger && a.ledger.total) || ((a.known || 0) + (a.unresolved || 0));
+  if ((a.unresolved || 0) > 0 && total > 0) {
+    return homeFmtPct((a.unresolved / total) * 100) + '% remainder unknown';
+  }
+  return 'remainder unknown';
+}
+function homeSysLabel(a) {
+  var segs = a.segments || [];
+  if (segs.length === 1) return segs[0].systemLabel + ' fleetwide';
+  return 'Mixed systems fleet';
+}
+
+function homeRow(m, key, rank) {
+  var a = m.A.scoreAirline(key);
+  if (!a) throw new Error('Render.home: unknown airline key "' + key + '"');
+  var href = ORIGIN + '/airlines/' + key + '/';
+  var dataName = esc(a.name.toLowerCase() + ' ' + (a.code || '').toLowerCase());
+  var score = homeNum(a.score, key + '.score');
+
+  if (a.nextGenPublished === false) {
+    return '        <a class="row unranked" href="' + href + '" data-name="' + dataName +
+      '" data-rankable="false" data-score="' + score + '" data-odds="-1" data-floor="-1">' +
+      '<div class="who"><b><span class="rank-text">–</span> · ' + esc(a.name) + '</b> ' +
+      '<small>Starlink count unpublished</small></div>' +
+      '<div class="metric primary"><b class="unknown odds-only">unpublished</b>' +
+      '<b class="unknown tier-only">not computable</b><small>primary</small></div>' +
+      '<div class="metric"><b>' + score + '</b> <small>ConnectScore</small></div></a>\n';
+  }
+
+  var odds = homeNum(a.nextGenScore, key + '.nextGenScore');
+  var sf = homeStreamingFloor(m, a);
+  var floorStr = homeStr(homeFmtPct(sf.pct), key + '.floorStr');
+  var rowClass = homeRowClass(odds);
+  var uncertainAttr = sf.uncertain ? ' data-floor-uncertain="true"' : '';
+  var tierNote = homeTierNote(a, sf);
+  var smallHtml = tierNote
+    ? '<small><span class="odds-only">' + esc(homeOddsLabel(a)) + '</span> ' +
+      '<span class="tier-only">' + esc(tierNote) + '</span></small>'
+    : '<small>' + esc(homeSysLabel(a)) + '</small>';
+
+  return '        <a class="row ' + rowClass + '" href="' + href + '" data-name="' + dataName +
+    '" data-rankable="true" data-score="' + score + '" data-odds="' + odds + '" data-floor="' +
+    floorStr + '"' + uncertainAttr + '><div class="who"><b><span class="rank-text">' +
+    String(rank).padStart(2, '0') + '</span> · ' + esc(a.name) + '</b> ' + smallHtml + '</div>' +
+    '<div class="metric primary"><b class="odds-only">' + odds + '%</b><b class="tier-only">' +
+    (sf.uncertain ? '≥' : '') + floorStr + '%</b><small>primary</small></div>' +
+    '<div class="metric"><b>' + score + '</b> <small>ConnectScore</small></div></a>\n';
+}
+
+function homeBoardRows(m) {
+  var ranked = HOME_BOARD_ORDER.map(function (k, i) { return homeRow(m, k, i + 1); }).join('');
+  var unranked = HOME_UNPUBLISHED_ORDER.map(function (k) { return homeRow(m, k, 0); }).join('');
+  return ranked +
+    '        <div class="unpublished-break"><b>Count unpublished · not ranked as zero</b>' +
+    '<span>separate group by design</span></div>\n' + unranked;
+}
+
+function homeCard(m, key) {
+  var a = m.A.scoreAirline(key);
+  if (!a) throw new Error('Render.home: unknown Big 4 airline key "' + key + '"');
+  var odds = homeNum(a.nextGenScore, key + '.nextGenScore');
+  var score = homeNum(a.score, key + '.score');
+  var sf = homeStreamingFloor(m, a);
+  var streamStr = homeStr(homeFmtPct(sf.pct), key + '.streamStr');
+  var ngCount = (a.segments || []).reduce(function (s, r) { return s + (r.nextGen ? r.n : 0); }, 0);
+  var known = a.known || 0;
+  var note = num(ngCount) + ' of ' + num(known) + ' aircraft next-gen today';
+  var sup = key === 'united' ? '<sup>*</sup>' : '';
+  var tierLabel = sf.uncertain ? 'streaming<br>floor' : 'streaming<br>or better';
+
+  return '        <article class="aircard" data-nextgen="' + odds + '" data-streaming="' + streamStr +
+    '"><div class="airtop"><span class="airname">' + esc(a.name) + '</span> <span class="code">' +
+    esc(a.code || '') + '</span></div>' +
+    '<div class="primary-stat odds-only"><strong>' + odds + '%' + sup + '</strong>' +
+    '<span>next-gen<br>odds</span></div>' +
+    '<div class="primary-stat tier-only"><strong class="tier-value">' + (sf.uncertain ? '≥' : '') +
+    streamStr + '%' + sup + '</strong><span>' + tierLabel + '</span></div>' +
+    '<div class="band"><i></i></div>' +
+    '<div class="support"><span>ConnectScore · all systems</span> <b>' + score + '</b></div>' +
+    '<p class="airnote">' + esc(note) + '</p></article>\n';
+}
+
+function homeBig4Cards(m) {
+  return HOME_BIG4_ORDER.map(function (k) { return homeCard(m, k); }).join('');
+}
+
+/* The shared <head> essentials, copied from the exact strings H.page() emits
+ * for every other route (canonical, og/twitter, favicon, theme-boot), not
+ * retyped — see H.THEME_BOOT / H.FAVICON / H.assetHash, exported from
+ * html.js for exactly this caller. Title/description are new copy: the old
+ * home()'s title was 'WiFi Odds · every airline's inflight WiFi, scored',
+ * which the go-live checklist explicitly retires. */
+function homeHeadExtra(m) {
+  var title = 'WiFi Odds · your odds of next-gen WiFi';
+  var desc = 'Your odds of a next-gen Starlink or Amazon Leo aircraft, next to what each fleet ' +
+    'delivers today, across all ' + m.airlineCount + ' tracked airlines. Free, unofficial, no tracking.';
+  var url = ORIGIN + '/';
+  var ogImg = ORIGIN + '/assets/og.png?v=' + H.assetHash('assets/og.png');
+  return H.THEME_BOOT + '\n' +
+    '<link rel="icon" href="' + H.FAVICON + '">\n' +
+    '<link rel="canonical" href="' + url + '">\n' +
+    '<meta name="description" content="' + esc(desc) + '">\n' +
+    '<meta property="og:type" content="website">\n' +
+    '<meta property="og:site_name" content="WiFi Odds">\n' +
+    '<meta property="og:title" content="' + esc(title) + '">\n' +
+    '<meta property="og:description" content="' + esc(desc) + '">\n' +
+    '<meta property="og:url" content="' + url + '">\n' +
+    '<meta property="og:image" content="' + ogImg + '">\n' +
+    '<meta property="og:image:width" content="1200">\n' +
+    '<meta property="og:image:height" content="630">\n' +
+    '<meta property="og:image:alt" content="WiFi Odds · know before you book">\n' +
+    '<meta name="twitter:card" content="summary_large_image">\n' +
+    '<meta name="twitter:title" content="' + esc(title) + '">\n' +
+    '<meta name="twitter:description" content="' + esc(desc) + '">\n' +
+    '<meta name="twitter:image" content="' + ogImg + '">\n';
+}
+
+/* Google's own badge art, cached under assets/cws/ (see pages.js's
+ * cwsBadge() header comment on the branding rule), replacing the mockup's
+ * embedded base64 PNG. This page is permanently dark (fixed --bg:#050505, no
+ * theme switch of its own), so it always wants the bordered art meant for a
+ * dark ground, never the plain one. Kept in the template's OWN .badge-link /
+ * .badge-meta markup and CSS rather than pages.js's cwswrap/cwsbadge classes,
+ * which belong to a stylesheet (site.css) this page does not load. */
+function homeCwsBadge() {
+  return '<a class="badge-link" href="' + H.EXT + '" target="_blank" rel="noopener">' +
+    '<img alt="Available in the Chrome Web Store" width="496" height="150" ' +
+    'src="/assets/cws/badge-border-large.png"></a>';
 }
 
 function home(m) {
-  /* Still read below, in the page description. The "+N today" delta and the two
-     United rollout visuals that used to sit here left with §4: a homepage that
-     scores eighteen airlines has no business leading with one airline's install
-     count. They are on /race/ and /united/fleet/, which are pages about United. */
-  var eq = m.fleet.equipped;
+  var tplPath = PATH.join(__dirname, '..', 'templates', 'home.html');
+  var tpl = FS.readFileSync(tplPath, 'utf8');
 
-  /* The three phase counts in §3. Derived here from the same phaseOf() that
-     /race/ and P.fieldTable() use, so the counts in the strip and the rows in
-     the table can never disagree. A "5 finished" line over a table showing four
-     is exactly the kind of quiet lie this project keeps auditing for. */
-  var phases = { done: [], installing: [], signed: [], none: [] };
-  m.ranked.forEach(function (a) { phases[MK.phaseOf(m.A, a)].push(a); });
-  /* ═══ THE SPLIT HOMEPAGE ══════════════════════════════════════════════════
-   * TWO NAMED HALVES WITH A VISIBLE SEAM, which is the shape ARCHETYPES.md sets
-   * and the reason this page reads as one argument instead of six.
-   *
-   *   FIRST HALF · THE RECORD
-   *     the check · the worked answer card, with its umbrella
-   *     the board, all 18 · the confidence ladder and the fence
-   *   SECOND HALF · THE COMPANION
-   *     the extension — the ONE pitch on this site · the loop
-   *
-   * WHAT LEFT, AND WHY. The §1–§6 spine this replaced had two extra sections
-   * doing quiet damage. §4 "Full depth, one airline" put United's rollout trivia
-   * — a waffle, a sparkline and four KPI cells — on a homepage that scores
-   * eighteen airlines; it is now the top of /race/ and the whole of
-   * /united/fleet/, which are the pages about United. §6 "Open by default" was
-   * six cards of links to the method, the API, the privacy page and the repo,
-   * every one of which is in the footer of every route already.
-   *
-   * There is no roadmap band, and there was not one before either. /roadmap/ is
-   * in the footer, which is where a page about what does not exist yet belongs.
-   *
-   * ONE EXTENSION PITCH IN THE BODY. The companion section is the pitch; the
-   * hero call above the skyline is wayfinding to it plus Google's badge. If a
-   * third place on this page starts to feel like it needs an install ask, it
-   * needs a better ending instead — that is the failure that killed version
-   * one of this site, and no linter catches it.
-   *
-   * ROUND SEVEN (27 Jul 2026) reshaped the top: the flight-check box and the
-   * worked answer card left, along with the client script that armed them, and
-   * the hero now answers with the skyline — every airline, drawn and linked —
-   * plus the hero-level extension call wearing Google's badge. The named
-   * halves and their seam strips left with them; the companion section's own
-   * kicker says it is the one pitch. */
-  /* ── THE SKYLINE: all 18 airlines drawn as one row of bars, each a link.
-   * The bar's height is the score and its colour is the band, which is the
-   * same two-owner rule every chart on the site obeys. The name-and-number
-   * label is pure CSS on hover/focus, so it works with script off; the caption
-   * under it carries the same reading in words. */
-  /* ── THE SYSTEMS CHART, hardware-identity palette (round seven, notes
-   * 12-14). A fourth colour owner: the bars name HARDWARE, never a score, so
-   * the palette is drawn from the sky family. The weights are read out of the
-   * scoring table, never typed; the measured ranges are Ookla's 2H 2025
-   * figures, the same ones /systems/ prints, and the bar geometry draws them
-   * on a shared 0-220 Mbps axis with a dashed line at Starlink's slowest
-   * tenth (63.71/220 = 29%). */
-  var Q = m.A.QUALITY_TIER;
-  function sysRow(cls2, name2, vendors, left, width, wt, ms) {
-    return '    <div class="sysrow ' + cls2 + '"><div class="nm"><i class="hwdot"></i>' + name2 +
-      '<small>' + vendors + '</small></div><span class="scobar rngb"><i class="fill" ' +
-      'style="left:' + left + ';width:' + width + '"></i><i class="p10"></i></span>' +
-      '<span class="wt">' + wt + '</span><p class="ms">' + ms + '</p></div>\n';
+  /* Rule 5's fence, enforced twice: here at render time (fails the build the
+     moment a key drifts) and again in build/apitest.js against the finished
+     document (fails the build if the template's own row markup ever stops
+     matching what this function generated). Both directions: a model key with
+     no row here is exactly as wrong as a row for a key the model no longer has. */
+  var modelKeys = Object.keys(m.A.WIFI_AIRLINES).slice().sort();
+  var tmplKeys = HOME_BOARD_ORDER.concat(HOME_UNPUBLISHED_ORDER).slice().sort();
+  if (modelKeys.length !== tmplKeys.length || modelKeys.join(',') !== tmplKeys.join(',')) {
+    throw new Error('Render.home: airline key parity broken.\n  model:    [' + modelKeys.join(', ') +
+      ']\n  template: [' + tmplKeys.join(', ') + ']');
   }
-  var systemsBlock =
-    '<section class="blk" id="systems">\n' +
-    '  <span class="kicker">The systems</span>\n' +
-    '  <div class="sec-h"><h2>The slowest Starlink flights are still faster than everyone ' +
-    'else’s typical flight</h2></div>\n' +
-    '  <p class="sec-lede">Four kinds of hardware fly. Starlink’s slowest tenth measures ' +
-    '<b>63.71 Mbps</b>; the typical flight on every other system measures less, most of them ' +
-    'far less.</p>\n' +
-    '  <div class="sysrows">\n' +
-    /* Literal spaces below: .sysaxis is a grid (.ax and .wl each own a
-       column) and .ax itself is flex with justify-content:space-between, so
-       whitespace text nodes between these spans render no box and change no
-       pixel — without them "0 Mbps" and "220" welded into "0 Mbps220", and
-       "220" and "weight" welded into "220weight". */
-    '    <div class="sysaxis"><span class="ax"><span>0 Mbps</span> <span>220</span></span>' +
-    ' <span class="wl">weight</span></div>\n' +
-    sysRow('hw-leo', 'Low-earth orbit', 'Starlink · Amazon Leo', '29%', '67.7%',
-      Q.leo.toFixed(2), 'slowest tenth 63.71 Mbps · typical 212.68 · 43 ms lag') +
-    sysRow('hw-mgeo', 'Modern geostationary', 'Viasat · Intelsat 2Ku · Hughes · Thales',
-      '19.1%', '7.3%', Q.modernGeo.toFixed(2), 'typical 42 to 58 Mbps · around 740 ms lag') +
-    sysRow('hw-lgeo', 'Legacy geostationary', 'Panasonic · Inmarsat · SITA · Anuvu',
-      '.5%', '6.8%', Q.legacyGeo.toFixed(2), 'slowest tenth 1.06 Mbps · typical 9 to 16') +
-    sysRow('hw-atg', 'Air-to-ground', 'Gogo ATG-4 · EAN', '.05%', '.35%',
-      Q.atg.toFixed(2), '0.1 to 0.8 Mbps per device · 260 to 310 ms · messages send, video ' +
-      'will not') +
-    '  </div>\n' +
-    '  <p class="footnote">The dashed line is Starlink’s slowest tenth. No other bar reaches it. ' +
-    'The weight is how much each hardware counts toward ConnectScore, ' + Q.leo.toFixed(2) +
-    ' down to ' + Q.atg.toFixed(2) + '; the colours name hardware, never a score.</p>\n' +
-    '  <div class="btnrow"><a class="btn ghost mini" href="/systems/">Every system, measured ' +
-    '→</a></div>\n' +
-    P.srcLine('measured', 'Ookla speedtest provider medians and tenth percentiles, 2H 2025.') +
-    '</section>\n\n';
 
-  var body =
-    '<header class="hero">\n' +
-    '  <span class="kicker">The record</span>\n' +
-    '  <h1>Inflight WiFi, scored: <span class="tag">' + m.airlineCount + ' airlines, ranked on ' +
-    'what flies today.</span></h1>\n' +
-    '  <p class="lede">Who has a fast cabin now, who is mid-install, and who has only signed.</p>\n' +
-    /* Extension surface 1 of the sitewide 3. The install control is Google's
-       badge; the h1 above it stays the biggest thing on the screen. */
-    '  <aside class="herocall" aria-label="The Chrome extension">\n' +
-    '    <div class="hc-t">\n' +
-    '      <p class="hc-h"><b>WiFi Odds for Flights</b> · the Chrome extension</p>\n' +
-    '      <p class="hc-s">The same odds, on every flight in a united.com or Navan results page ' +
-    'while you book.</p>\n' +
-    /* The button lives outside the paragraph now (Option A bundle, approved
-       27 Jul 2026): jammed inside <p class="hc-s"> it read as part of the
-       sentence rather than a control. Same classes, same #companion anchor,
-       new label; site.css scopes the on-blue restyle to `.herocall .btn.ghost.mini`
-       so no other ghost/mini button anywhere else changes. */
-    '      <div class="hc-btnrow"><a class="btn ghost mini" href="#companion">Learn more ↓</a></div>\n' +
-    '    </div>\n' +
-    '    ' + P.cwsBadge() + '\n' +
-    '  </aside>\n' +
-    /* The skyline's caption went with it on 27 Jul 2026. It was written to
-       caption a chart: it sat under the drawing, its spacing was sized around a
-       96px graphic, and with the chart gone it was an orphan line floating
-       below the extension box with 58px of section rhythm under it that used to
-       hold the bars. Keeping a caption after deleting the thing it captions is
-       how dead air gets into a page.
-       The boards below say the same thing with names attached, which is what
-       the chart could never do. */
-'</header>\n\n' +
-    /* ── THE BIG 4, ported from /airlines/ (Option A, approved by Jeremy 26
-     * Jul 2026), with round seven's column guide and consolidated board
-     * footer. `moreHref` points at this page's own 18-board, which is one
-     * scroll below. */
-    P.bigFourBoard(m, { boardId: 'home-big4-board', moreHref: '#board' }) +
-    /* ── THE BOARD. All eighteen, one view, and it is the record's spine.
-     * Rank-by control plus clickable headers (site.js §7); everything under
-     * the table is one bfoot box emitted by P.fieldTable(). */
-    '<section class="blk" id="board">\n' +
-    '  <span class="kicker">The board</span>\n' +
-    '  <div class="sec-h"><h2>Where all ' + m.airlineCount + ' airlines stand</h2>' +
-    '<a class="btn ghost mini more" href="/airlines/">The full leaderboard →</a></div>\n' +
-    '  <p class="sec-lede">' + phases.done.length + ' fleets are finished, ' +
-    phases.installing.length + ' are mid-retrofit and ' + phases.signed.length + ' have signed for ' +
-    'hardware that has not flown, counted ' + esc(H.chipDate(m.updated)) + '.</p>\n' +
-    P.fieldTable(m) +
-    '</section>\n\n' +
+  var out = tpl
+    .replace('<!--HOME:HEAD_EXTRA-->', homeHeadExtra(m))
+    .replace('<!--HOME:BIG4_CARDS-->', homeBig4Cards(m))
+    .replace('<!--HOME:BOARD_ROWS-->', homeBoardRows(m))
+    .replace('<!--HOME:CWS_BADGE-->', homeCwsBadge());
 
-    /* ── THE SYSTEMS, the round-seven chart. ── */
-    systemsBlock +
-
-    /* ── THE RACE, drawn. United is the one carrier with a public daily install
-     * history, so its curve is the only line; drawing an Alaska or Hawaiian
-     * curve would require inventing points between counts, and inventing data
-     * is the one sin this site does not commit. Their TODAY counts ride beside
-     * the chart as labelled marks instead. The ladder section that stood here
-     * moved to /record/ with the rest of the working. */
-    '<section class="blk" id="race">\n' +
-    '  <span class="kicker">The race</span>\n' +
-    '  <div class="sec-h"><h2>Installed Starlink tails</h2>' +
-    '<a class="btn ghost mini more" href="/race/">Month by month →</a></div>\n' +
-    '  <div class="racestrip">\n' +
-    '    <div class="rs-chart">' + V.spark(m) + '</div>\n' +
-    '    <ul class="rs-counts">\n' +
-    '      <li><i class="dot c1"></i><b>' + num(m.fleet.equipped) + '</b> United, ' +
-    'daily history drawn</li>\n' +
-    raceCountRows(m) +
-    '    </ul>\n' +
-    '  </div>\n' +
-    P.srcLine('reported', 'Counts from unitedstarlinktracker.com and alaskastarlinktracker.com ' +
-      '(@martinamps), ' + esc(H.plateDate(m.updated)) + '. United is the one carrier with a ' +
-      'published day-by-day archive, so it is the one drawn as a line.') +
-    '</section>\n\n' +
-
-    /* THE ONE PITCH ON THIS SITE. There is no second one, on this page or on
-     * any other route. See the header of P.extensionSection(); its section
-     * carries id="companion", which the masthead nav and the hero call target. */
-    P.extensionSection(m) +
-
-    /* ── THE LOOP, slimmed to one bar by the 26 Jul pivot. The five channels
-     * and their descriptions live on /record/#loop now; the homepage keeps one
-     * sentence and the door. */
-    '<section class="blk" id="loop">\n' +
-    '  <div class="loopbar">\n' +
-    '    <span class="kicker" style="margin:0">Add an observation</span>\n' +
-    '    <p>Installs stop at the cabin door. If you flew this month, thirty seconds is a data ' +
-    'point nobody else has.</p>\n' +
-    '    <a class="btn ghost mini" href="/record/#loop">The ways in →</a>\n' +
-    '  </div>\n' +
-    '</section>\n\n';
-
-  return H.page({
-    title: 'WiFi Odds · every airline’s inflight WiFi, scored',
-    desc: 'Two numbers for ' + m.airlineCount + ' airlines: the odds of a next-gen Starlink or Amazon ' +
-      'Leo aircraft, and what the fleet actually delivers today. Plus per-flight odds for United and ' +
-      'Alaska, where ' + num(eq) + ' of ' + num(m.fleet.total) + ' aircraft are equipped. Free, ' +
-      'unofficial, no tracking.',
-    canonical: '/', here: '/', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained,
-    body: body,
-    jsonld: [
-      {
-        '@context': 'https://schema.org', '@type': 'WebSite', '@id': ORIGIN + '/#website',
-        name: 'WiFi Odds', url: ORIGIN + '/',
-        description: 'ConnectScore: every airline’s chance of good inflight WiFi in one number, plus ' +
-          'per-flight Starlink odds for United and Alaska.',
-        publisher: { '@id': ORIGIN + '/#org' }
-      },
-      {
-        '@context': 'https://schema.org', '@type': 'Organization', '@id': ORIGIN + '/#org',
-        name: 'WiFi Odds', url: ORIGIN + '/', logo: ORIGIN + '/assets/og.png',
-        sameAs: [H.EXT, H.REPO]
-      },
-      /* NO ItemList here since round seven: the seven-card strip it declared
-       * left the page, and the 18-airline list belongs to /airlines/, which is
-       * the page whose job is the ranking. Declaring a list this page does not
-       * render would be the two-sources-of-truth bug in structured data. */
-      /* The extension is the thing a person can actually install, and it was
-       * invisible to answer engines: the homepage described it in prose and
-       * declared nothing. SoftwareApplication is the type they look for, and
-       * price 0 is the fact that gets it quoted. */
-      {
-        '@context': 'https://schema.org', '@type': 'SoftwareApplication',
-        '@id': ORIGIN + '/#extension',
-        name: 'WiFi Odds for Flights',
-        applicationCategory: 'BrowserApplication',
-        applicationSubCategory: 'Browser extension',
-        operatingSystem: 'Chrome, Edge, Brave (Chromium)',
-        url: H.EXT, installUrl: H.EXT, downloadUrl: H.EXT,
-        /* THE STORE VERSION, not the repo's manifest. This block used to say 2.0
-           and list Alaska and the 18-airline popup, neither of which the store
-           ships yet: the machine-readable surface was making a claim the visible
-           copy carefully does not. Both now describe what installing today
-           actually gets you. See extensionSection() in build/lib/pages.js. */
-        softwareVersion: '2.0.0',
-        description: 'Shows Starlink WiFi odds on the airline booking page itself: colour-coded badges ' +
-          'on every United flight on united.com and Navan, one-click sort by odds, and a live route ' +
-          'panel. No accounts, no analytics, no tracking.',
-        featureList: [
-          'Per-flight Starlink odds badges on united.com search results',
-          'The same badges on app.navan.com',
-          'Sort a whole page of flights by WiFi odds',
-          'A route panel that flips itself for the return leg',
-          'Works with no account and stores nothing but your settings'
-        ],
-        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-        isAccessibleForFree: true,
-        publisher: { '@id': ORIGIN + '/#org' },
-        isBasedOn: {
-          '@type': 'WebSite', name: 'unitedstarlinktracker.com',
-          url: 'https://unitedstarlinktracker.com'
-        },
-        privacyPolicy: ORIGIN + '/privacy'
-      }
-    ]
-  });
+  if (out.indexOf('<!--HOME:') !== -1) {
+    throw new Error('Render.home: an unbaked HOME: marker remains in the output — a new marker was ' +
+      'added to build/templates/home.html without a matching .replace() here.');
+  }
+  return out;
 }
 
-/* ═══ /record/ ══════════════════════════════════════════════════════════
- * Where the homepage's working moved when the 26 Jul pivot drew the numbers.
- * The confidence ladder, the projection fence and the five observation channels
- * left the default view; this page is them, in full, prerendered, one tap from
- * the board. It is allowed to be dense on purpose: dense is its job. */
 function recordPage(m) {
   var crumbs = [['/', 'Home'], ['/record/', 'The written record']];
   var body =

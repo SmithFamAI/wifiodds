@@ -1425,53 +1425,136 @@ async function main() {
   eq(qr.airline.nextGenScore, 54, 'qatar next-gen odds are 54 — the Starlink row alone, corrected denominator');
 
   /* ── PARITY, second axis: the homepage and the API must agree about every
-   * number the page draws. Round seven replaced the seven US cards with the
-   * skyline — all 18 airlines as linked bars — and the Big 4 board, so the
-   * parity check reads those bytes instead. Delta is still the case that
-   * matters: its Big 4 row ranks next-gen at 0 on a fleet with a mixed-band
+   * number the page draws. The V5 go-live (28 Jul 2026) replaced the skyline
+   * and the old rankBoard/bigFourBoard table with build/templates/home.html,
+   * poured through Render.home() in build/lib/render.js: 4 Big-4
+   * <article class="aircard"> cards and 18 <a class="row"> board entries,
+   * each one emitted whole (text AND every data-* attribute) by ONE helper
+   * per airline (homeCard / homeRow) so the two can never read different
+   * numbers for the same airline. Delta is still the case that matters: its
+   * board row ranks next-gen at a real 0 on a fleet with a mixed-band
    * connectScore, and the API must agree about both numbers. */
   var home = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 
-  /* The skyline was removed on 27 Jul 2026, and it used to carry this axis of
-     parity: all 18 airlines, each bar's accessible label checked against the
-     API's connectScore. Deleting the component must not delete the coverage,
-     so the same 18 comparisons now run against the mobile cards, which are the
-     surface that replaced it and the primary rendering at phone widths.
-     Removing a check because its subject moved is how coverage evaporates
-     quietly; the check follows the data instead. */
-  var cardRe = /<li class="crd[^"]*" data-key="([^"]+)"[\s\S]*?<span class="sco">(\d+)<\/span>/g;
-  var seenCards = 0, mCard, cardKeys = {};
+  /* ── structural fence: exactly one masthead, one <main>, one <footer>.
+   * Render.home() does not call H.page() (it would duplicate all three and
+   * drop the server-rendered data-view) — this is the build-time proof that
+   * held, not just an intention in a comment. */
+  ok((home.match(/<nav\b/g) || []).length === 1, 'homepage: exactly one <nav>',
+    (home.match(/<nav\b/g) || []).length);
+  ok((home.match(/<main\b/g) || []).length === 1, 'homepage: exactly one <main>',
+    (home.match(/<main\b/g) || []).length);
+  ok((home.match(/<footer\b/g) || []).length === 1, 'homepage: exactly one <footer>',
+    (home.match(/<footer\b/g) || []).length);
+  ok(/<body[^>]*\bdata-view="nextgen"/.test(home),
+    'homepage: <body data-view="nextgen"> is present in the RAW HTML, correct before any script runs');
+
+  /* ── Big 4 cards: name + data-nextgen attribute + the ConnectScore <b> in
+   * .support must all agree with the API for the same airline. */
+  var cardRe = /<article class="aircard" data-nextgen="(-?[\d.]+)" data-streaming="(-?[\d.]+)">[\s\S]*?<span class="airname">([^<]+)<\/span>[\s\S]*?<b>(\d+)<\/b><\/div>\s*<p class="airnote">/g;
+  var seenBig4 = 0, mCard, big4Keys = {};
   while ((mCard = cardRe.exec(home)) !== null) {
-    if (cardKeys[mCard[1]]) continue;      /* two boards render the Big 4 twice */
-    cardKeys[mCard[1]] = true;
-    var byKey = all.airlines.filter(function (a) { return a.key === mCard[1]; })[0];
-    ok(!!byKey, 'a homepage card names an airline the API knows', mCard[1]);
-    if (!byKey) continue;
-    seenCards++;
-    eq(Number(mCard[2]), byKey.connectScore,
-      'PARITY: ' + mCard[1] + ' card == API connectScore');
+    var nextgenAttr = mCard[1], streamAttr = mCard[2], cardName = mCard[3], cardScore = mCard[4];
+    var byName = all.airlines.filter(function (a) { return a.name === cardName; })[0];
+    ok(!!byName, 'a homepage Big 4 card names an airline the API knows', cardName);
+    if (!byName) continue;
+    big4Keys[byName.key] = true;
+    seenBig4++;
+    ok(nextgenAttr !== '' && isFinite(Number(nextgenAttr)), 'Big 4 ' + cardName + ' data-nextgen is a finite number', nextgenAttr);
+    ok(streamAttr !== '' && isFinite(Number(streamAttr)), 'Big 4 ' + cardName + ' data-streaming is a finite number', streamAttr);
+    eq(Number(cardScore), byName.connectScore, 'PARITY: ' + cardName + ' Big 4 card ConnectScore == API connectScore');
+    eq(Number(nextgenAttr), byName.nextGenScore, 'PARITY: ' + cardName + ' Big 4 card data-nextgen == API nextGenScore');
   }
-  eq(seenCards, all.airlines.length,
-    'PARITY: every scored airline has a homepage card checked against the API');
-  /* the Big 4 rows carry their numbers as the data attributes the Rank-by
-     control sorts on; those must agree with the API, Delta's zero included */
-  var big4 = /<div class="rankb" id="home-big4-board">[\s\S]*?<\/table>/.exec(home);
-  ok(big4 !== null, 'homepage: the Big 4 board is present');
-  var rowRe = /<tr data-name="([^"]+)" data-score="(\d+)" data-nextgen="(\d*)"/g;
-  var seenRows = 0, mRow;
-  while (big4 && (mRow = rowRe.exec(big4[0])) !== null) {
-    var a4 = all.airlines.filter(function (a) { return a.name === mRow[1]; })[0];
-    if (!a4) continue;
-    seenRows++;
-    eq(Number(mRow[2]), a4.connectScore,
-      'PARITY: ' + mRow[1] + ' Big 4 data-score == API connectScore');
-    eq(mRow[3] === '' ? null : Number(mRow[3]), a4.nextGenScore,
-      'PARITY: ' + mRow[1] + ' Big 4 data-nextgen == API nextGenScore');
-  }
-  eq(seenRows, 4, 'PARITY: all four Big 4 rows were checked against the API');
+  eq(seenBig4, 4, 'PARITY: all four Big 4 cards were checked against the API');
+  eq(Object.keys(big4Keys).sort().join(','), ['american', 'delta', 'southwest', 'united'].sort().join(','),
+    'PARITY: the Big 4 cards are exactly united/american/delta/southwest');
   eq(dl.nextGenScore, 0, 'PARITY: the API next-gen score for Delta is 0');
-  ok(/data-name="Delta" data-score="\d+" data-nextgen="0"/.test(home),
-    'the Delta Big 4 row ranks next-gen at a real 0, not blank and not projected');
+  ok(/data-nextgen="0" data-streaming="[\d.]+">[\s\S]{0,400}<span class="airname">Delta<\/span>/.test(home),
+    'the Delta Big 4 card ranks next-gen at a real 0, not blank and not projected');
+
+  /* ── all 18 board rows: one <a class="row"> per airline, key read off the
+   * href (/airlines/<key>/) rather than off data-name, which carries the
+   * filter's "name code" string instead of the model key. */
+  var rowRe = /<a class="row ([a-z]+)" href="https:\/\/wifiodds\.com\/airlines\/([a-z]+)\/"[^>]*data-rankable="(true|false)"[^>]*data-score="(\d+)"[^>]*data-odds="(-?[\d.]+)"[^>]*data-floor="(-?[\d.]+)"[^>]*?(data-floor-uncertain="true")?>([\s\S]*?)<\/a>/g;
+  var boardRows = [];
+  var mRow;
+  while ((mRow = rowRe.exec(home)) !== null) {
+    boardRows.push({
+      cls: mRow[1], key: mRow[2], rankable: mRow[3] === 'true', score: Number(mRow[4]),
+      odds: Number(mRow[5]), floor: Number(mRow[6]), uncertain: !!mRow[7], inner: mRow[8]
+    });
+  }
+  eq(boardRows.length, 18, 'homepage: exactly 18 board rows are present', boardRows.map(function (r) { return r.key; }));
+
+  /* rule 5: exact model <-> template airline-key parity, BOTH directions,
+   * checked here against the ACTUAL BYTES the build wrote — independent of
+   * (and in addition to) the same check Render.home() runs on itself before
+   * it will emit a document at all. */
+  var apiKeys = all.airlines.map(function (a) { return a.key; }).sort();
+  var rowKeys = boardRows.map(function (r) { return r.key; }).sort();
+  eq(rowKeys.join(','), apiKeys.join(','), 'PARITY: the 18 board-row keys equal the API\'s airline keys, exactly, both directions');
+
+  boardRows.forEach(function (r) {
+    var a = all.airlines.filter(function (x) { return x.key === r.key; })[0];
+    if (!a) return;
+    eq(r.score, a.connectScore, 'PARITY: ' + r.key + ' row data-score == API connectScore');
+    /* every baked numeric attribute is finite — never NaN, never blank */
+    ok(isFinite(r.score) && isFinite(r.odds) && isFinite(r.floor),
+      r.key + ' row carries finite data-score/data-odds/data-floor', [r.score, r.odds, r.floor]);
+    if (r.rankable) {
+      eq(r.odds, a.nextGenScore, 'PARITY: ' + r.key + ' row data-odds == API nextGenScore');
+      /* the displayed figure equals its sort attribute: the odds-only <b>
+         and the tier-only <b> must print the same number data-odds/data-floor
+         carry — the fill width (--heat) is set by the unchanged client
+         script directly off these same two attributes, so asserting text ==
+         attribute here is what makes fill width agree too, without needing
+         a browser at build time. */
+      var oddsTxt = /<b class="odds-only">(-?[\d.]+)%/.exec(r.inner);
+      var floorTxt = /<b class="tier-only">(?:≥)?(-?[\d.]+)%/.exec(r.inner);
+      ok(!!oddsTxt, r.key + ' row prints an odds-only percentage', r.inner);
+      ok(!!floorTxt, r.key + ' row prints a tier-only percentage', r.inner);
+      if (oddsTxt) eq(Number(oddsTxt[1]), r.odds, 'PARITY: ' + r.key + ' displayed odds-only figure == data-odds');
+      if (floorTxt) eq(Number(floorTxt[1]), r.floor, 'PARITY: ' + r.key + ' displayed tier-only figure == data-floor');
+      /* a floor already at 100 has no headroom for a remainder to raise, so
+         "≥100%" would be meaningless — the uncertain flag must be off */
+      if (r.floor >= 100) ok(!r.uncertain, r.key + ' row: floor at 100 never carries data-floor-uncertain');
+    } else {
+      /* rule 4: an unpublished airline carries no numeric next-gen claim and
+         no heat/ramp position. -1 is a structural sentinel the client script
+         never sorts on (it only sorts data-rankable="true" rows), never a
+         displayed figure. */
+      eq(r.odds, -1, 'unpublished ' + r.key + ': data-odds is the -1 sentinel, never a real figure');
+      eq(r.floor, -1, 'unpublished ' + r.key + ': data-floor is the -1 sentinel, never a real figure');
+      ok(/unpublished/.test(r.inner) && /not computable/.test(r.inner),
+        'unpublished ' + r.key + ': row text reads "unpublished" / "not computable", no percentage');
+      ok(!/%/.test(r.inner.replace(/COLOR WIDTH[^%]*/, '')), 'unpublished ' + r.key + ': no percent sign anywhere in the row', r.inner);
+    }
+  });
+  eq(['airfrance', 'sas'].every(function (k) {
+    return boardRows.some(function (r) { return r.key === k && !r.rankable; });
+  }), true, 'Air France and SAS are both present and both unranked (unpublished, never assumed to zero)');
+
+  /* both toggle orders match the model's ordering. The client script
+   * (unchanged, byte-identical to the approved mockup) re-sorts on click
+   * using Array#sort, which is required-stable in every engine this site
+   * supports, so a build-time re-sort of the RAW ROW ORDER is exactly what
+   * the browser will do — no browser needed to check the ordering rule
+   * itself (Playwright separately checks the live click). */
+  var ranked = boardRows.filter(function (r) { return r.rankable; });
+  function stableSortedBy(arr, keyFn) {
+    return arr.map(function (v, i) { return [v, i]; })
+      .sort(function (p, q) { return keyFn(q[0]) - keyFn(p[0]) || p[1] - q[1]; })
+      .map(function (p) { return p[0]; });
+  }
+  var byOdds = stableSortedBy(ranked, function (r) { return r.odds * 1000 + r.score; });
+  eq(byOdds.map(function (r) { return r.key; }).join(','), ranked.map(function (r) { return r.key; }).join(','),
+    'default (next-gen) order: the raw row order already matches odds-desc/score-tiebreak, so the client\'s stable sort changes nothing on load');
+  var byFloor = stableSortedBy(ranked, function (r) { return r.floor * 1000 + r.score; });
+  var floors = byFloor.map(function (r) { return r.floor; });
+  ok(floors.every(function (v, i) { return i === 0 || v <= floors[i - 1]; }),
+    'streaming order: sorting the same rows by data-floor is internally consistent (non-increasing)', floors);
+  eq(ranked.slice(0, 3).map(function (r) { return r.key; }).join(','), 'jsx,zipair,airbaltic',
+    'the first three ranked rows are JSX, ZIPAIR, airBaltic, all at 100');
 
   /* /race/ must print the same next-gen share the API reports for each airline */
   var racePage = fs.readFileSync(path.join(ROOT, 'race', 'index.html'), 'utf8');
@@ -1686,172 +1769,34 @@ async function main() {
     'no surface prints a numeric next-gen value for an airline whose count is unpublished',
     unpubBad.join(' · '));
 
-  /* ── the mobile card and the desktop table must agree ─────────────────────
-   * They are separately rendered strings. A source comment claimed they "can
-   * never disagree"; an auditor changed one expression in the card renderer,
-   * ran the whole gate, got exit 0, and shipped a page reading 31% in the
-   * table and 32% in the card. The card is the primary surface at phone
-   * widths, so the mutation changed the answer to the site's core question
-   * with every check green.
+  /* ── the mobile card and the desktop table must agree — RETIRED for the
+   * homepage on the V5 go-live (28 Jul 2026), and here is why rather than a
+   * silent deletion. This check protected a specific old shape: the homepage
+   * used to render every airline TWICE, once as a `<li class="crd" data-key=
+   * "...">` mobile card and once as a `<tr data-key="...">` desktop table
+   * row, two independently-built strings that could (and once did) drift.
    *
-   * A comment is not a mechanism. This compares the rendered values. */
-  var homeHtml = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-  var cardVals = {}, tableVals = {}, parityBad = [];
-  /* cards are <li class="crd …" data-key="american">, and the table rows carry
-     the same key. Keying on data-key rather than the display name means a
-     renaming cannot quietly drop an airline out of the comparison. */
-  /* No length cap on either match. The first version used {0,1400} and {0,1600}
-     windows and silently captured 4 rows out of 22, because the 18-board rows
-     are longer than the Big 4 rows. The floor assertion below said "4 shared"
-     and that is the only reason it was caught. A bounded window is a quiet way
-     to check a fifth of the thing and report on all of it. */
-  /* Read the LABELLED field, never the whole card.
-     The first version tested /count unpublished/ against the entire card, and
-     an auditor changed the headline to "0%" while leaving the support sentence
-     saying "Starlink count unpublished". The support copy masked the
-     contradictory headline and the whole gate exited 0 on a card that read
-     "Chance of next-gen WiFi 0% · Starlink count unpublished" at once.
-     It also compared only score and next-gen, so a second mutation shifted
-     every rank by one, printed the wrong band word, and pointed every action
-     at SAS, all with the release green. Everything a reader acts on is
-     compared now: rank, score, band, next-gen state, and both hrefs. */
-  (homeHtml.match(/<li class="crd[^"]*" data-key="[^"]+"[\s\S]*?<\/li>/g) || []).forEach(function (c) {
-    var keyM = /data-key="([^"]+)"/.exec(c);
-    if (!keyM) return;
-    var ngField = /<p class="crd-ng">([\s\S]*?)<\/p>/.exec(c);
-    var ngTxt = ngField ? ngField[1].replace(/<[^>]+>/g, ' ') : '';
-    /* AN ARRAY PER KEY, NOT ONE CARD PER KEY.
-       The homepage renders each Big 4 airline TWICE as a card: once on the Big 4
-       board and once on the full 18-board. This used a plain assignment, so the
-       later full-board card silently overwrote the Big 4 one and the Big 4
-       rendering was never compared at all. An auditor changed both links in
-       every Big 4 card to /airlines/sas/, left the full-board cards alone, and
-       the release exited 0 — then navigated a real touch at 390px and landed on
-       SAS from the American card.
-       Every visible rendering is a rendering a reader can act on. */
-    (cardVals[keyM[1]] = cardVals[keyM[1]] || []).push({
-      score: (/<span class="sco">(\d+)<\/span>/.exec(c) || [])[1] || null,
-      band: (/<span class="band[^"]*">([^<]+)<\/span>/.exec(c) || [])[1] || null,
-      rank: (/<span class="crd-rank">(\d+)<\/span>/.exec(c) || [])[1] || null,
-      /* the state comes from the next-gen field alone */
-      ng: /unpublished/.test(ngTxt) ? '' : ((/(\d+)\s*%/.exec(ngTxt) || [])[1] || null),
-      nameHref: (/<a class="aname" href="([^"]+)"/.exec(c) || [])[1] || null,
-      goHref: (/<a class="crd-go" href="([^"]+)"/.exec(c) || [])[1] || null
-    });
-  });
-  /* Two row shapes on this page, and anchoring on the wrong one is how the
-     first version covered 4 of 18. The Big 4 board emits
-     `<tr data-name data-score data-nextgen … data-key>`; the 18-board emits
-     `<tr data-f data-key>` and carries its numbers in cells rather than
-     attributes. Match on data-key, which both carry, and read the score from
-     the attribute when it is there and from the rendered cell when it is not. */
-  /* Two row shapes, and anchoring on the wrong one is how the first version
-     covered 4 of 18. The Big 4 board emits `<tr data-name data-score
-     data-nextgen … data-key>`; the 18-board emits `<tr data-f data-key>` and
-     carries its next-gen number in a cell with `data-s`, not an attribute on
-     the row.
-     Both shapes get parsed, and BOTH are kept per key rather than the later
-     one overwriting the earlier. The first working version used a plain
-     assignment, so the 18-board row (whose next-gen is in a cell) overwrote
-     the Big 4 row (whose next-gen is an attribute) with a null, and a null
-     silently skipped the comparison. The auditor's mutation then passed a
-     guard written to catch it. Every parsed rendering is compared. */
-  /* Read the labelled cell, never a guessed one. The first version of this
-     hunted for the first band-coloured cell carrying data-s and skipped
-     anything containing "fitted"; for Delta and jetBlue, whose score cell has
-     no fitted badge, it picked the ConnectScore cell and reported next-gen 49
-     against a card showing 0. Both generators now emit data-col="nextgen". */
-  function rowNextGen(r) {
-    var m = /data-nextgen="(\d*)"/.exec(r);
-    if (m) return m[1];
-    var cell = /<td[^>]*data-col="nextgen"[^>]*>[\s\S]*?<\/td>/.exec(r);
-    if (!cell) return null;
-    if (/ngunpub|count unpublished/.test(cell[0])) return '';
-    var v = /<span class="sco"[^>]*>(\d+)%?<\/span>/.exec(cell[0]) ||
-            /data-s="(\d+)"/.exec(cell[0]);
-    return v ? v[1] : null;
-  }
-  (homeHtml.match(/<tr [^>]*data-key="[^"]+"[\s\S]*?<\/tr>/g) || []).forEach(function (r) {
-    var keyM = /data-key="([^"]+)"/.exec(r);
-    if (!keyM) return;
-    var scoreM = /data-score="(\d+)"/.exec(r) || /<span class="sco">(\d+)<\/span>/.exec(r);
-    if (!scoreM) return;
-    (tableVals[keyM[1]] = tableVals[keyM[1]] || []).push({
-      score: scoreM[1],
-      ng: rowNextGen(r),
-      band: (/<span class="band[^"]*">([^<]+)<\/span>/.exec(r) || [])[1] || null,
-      rank: (/<td class="rank"[^>]*>0?(\d+)<\/td>/.exec(r) || [])[1] || null,
-      nameHref: (/<a class="aname" href="([^"]+)"/.exec(r) || [])[1] || null
-    });
-  });
-  var shared = Object.keys(cardVals).filter(function (n) { return tableVals[n]; });
-  /* The floor is every card on the page, not an arbitrary minimum. If a card
-     exists and its row cannot be found, that airline is unprotected and the
-     build should say so rather than quietly comparing the ones it managed to
-     parse. */
-  ok(shared.length === Object.keys(cardVals).length && shared.length >= 18,
-    'every card on the page has a table row to compare against, and there are at ' +
-    'least 18 (a selector matching nothing reports parity forever)',
-    shared.length + ' of ' + Object.keys(cardVals).length + ' cards matched to rows');
-  /* Every field a reader acts on, not just the two that happened to be wrong
-     the first time. An auditor shifted every rank by one, printed the wrong
-     band word, and pointed every action link at SAS; the release exited 0
-     because none of those were compared. */
-  var FIELDS = ['score', 'ng', 'band', 'rank', 'nameHref'];
-  var compared = 0;
-  /* CARDINALITY IS PART OF THE CONTRACT. The Big 4 keys render twice (Big 4
-     board plus full board); every other key renders once. Asserting the shape
-     means a rendering cannot disappear from the comparison by being dropped,
-     merged or duplicated, which is how the previous version lost the Big 4
-     cards entirely. */
-  var BIG4 = ['american', 'delta', 'united', 'southwest'];
-  var cardinalityBad = [];
-  Object.keys(cardVals).forEach(function (k) {
-    var want = BIG4.indexOf(k) >= 0 ? 2 : 1;
-    if (cardVals[k].length !== want) {
-      cardinalityBad.push(k + ': ' + cardVals[k].length + ' card renderings, expected ' + want);
-    }
-    if (tableVals[k] && tableVals[k].length !== want) {
-      cardinalityBad.push(k + ': ' + tableVals[k].length + ' table rows, expected ' + want);
-    }
-  });
-  eq(cardinalityBad.length, 0,
-    'every airline renders the expected number of cards and rows, so no rendering ' +
-    'can drop out of the comparison unnoticed', cardinalityBad.join(' · '));
+   * build/templates/home.html + Render.home() do not have that shape. Every
+   * airline is ONE `<a class="row">` element; mobile and desktop are the same
+   * DOM reflowed by CSS media queries, not two renderings of the same data by
+   * two code paths. There is nothing left for a mobile-vs-desktop parity
+   * check to compare — the bug class (two writers, one fact) is gone because
+   * there is only one writer (homeRow / homeCard in build/lib/render.js), not
+   * because nobody is checking.
+   *
+   * The replacement coverage lives above, in the "PARITY, second axis" block:
+   * every board row and every Big 4 card is checked against the live API by
+   * key, and the displayed percentage is checked against its own sort/heat
+   * attribute in the SAME element — a stronger guarantee than two elements
+   * agreeing with each other, since here there is no second element to drift.
+   *
+   * The guard below fails loudly if the old dual-shape markup ever reappears
+   * on the homepage without this comment being revisited. */
+  var homeHtmlOldShape = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  ok(!/<li class="crd/.test(homeHtmlOldShape) && !/<tr data-key="/.test(homeHtmlOldShape),
+    'homepage: the old mobile-card/desktop-table dual shape is gone (if this fails, the ' +
+    'retired parity check above needs to come back, not just this guard)');
 
-  shared.forEach(function (n) {
-    /* pair rendering i with rendering i: the Big 4 card against the Big 4 row,
-       the full-board card against the full-board row. Comparing one card to
-       both rows would let a mutation in either hide behind the other. */
-    cardVals[n].forEach(function (card, ci) {
-      var row = tableVals[n][ci];
-      if (!row) { parityBad.push(n + ' card rendering ' + ci + ' has no matching row'); return; }
-      FIELDS.forEach(function (f) {
-        if (f === 'nameHref' && row[f] == null) return;
-        if (card[f] == null && row[f] == null) return;
-        compared++;
-        var cv = card[f], rv = row[f];
-        if (f === 'rank') { cv = Number(cv); rv = Number(rv); }
-        if (String(cv) !== String(rv)) {
-          parityBad.push(n + '[' + ci + '] ' + f + ': card ' + card[f] + ' vs row ' + row[f]);
-        }
-      });
-      /* both of this card's own links must point at this airline's page */
-      var want = '/airlines/' + n + '/';
-      [['nameHref', card.nameHref], ['goHref', card.goHref]].forEach(function (pair) {
-        if (pair[1] && pair[1] !== want) {
-          parityBad.push(n + '[' + ci + '] ' + pair[0] + ' points at ' + pair[1] + ', not ' + want);
-        }
-      });
-    });
-  });
-  ok(compared >= 22 * 3,
-    'the parity check compared the labelled fields on every card rendering, all 22 ' +
-    'of them, rather than skipping any as null on one side',
-    compared + ' field comparisons across ' + shared.length + ' airlines');
-  eq(parityBad.length, 0,
-    'the mobile card and the desktop table print the same numbers for the same airline',
-    parityBad.join(' · '));
 
   /* ── the theme sentence must describe the theme code ──────────────────────
    * The footer said "The page follows your system's light or dark setting"
@@ -1901,36 +1846,46 @@ async function main() {
   ok(bootsDark !== null,
     'the boot script could be executed to observe what it does, rather than ' +
     'pattern-matched for how it is written');
-  var footText = homeFoot.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
-  var saysDark = /dark by default, whatever your system is set to/i.test(footText);
-  var saysSystem = /follows your system[’']s light or dark setting/i.test(footText);
-  ok(saysDark || saysSystem,
-    'the footer carries one of the two canonical theme sentences',
-    'saysDark=' + saysDark + ' saysSystem=' + saysSystem);
-  eq(saysDark, bootsDark,
-    'the theme sentence matches what the boot script OBSERVABLY does when run ' +
-    '(script ends up dark=' + bootsDark + ', footer says dark-by-default=' + saysDark + ')');
+  /* The V5 homepage (28 Jul 2026) is a permanently-dark page: its inline
+   * <style> hardcodes --bg/--ink etc. with no light-theme rule and it ships
+   * no THEME_SWITCH control, unlike every other route (H.page() adds one).
+   * There is nothing for a reader to toggle here, so there is no "the page
+   * follows/defaults to X" claim to make in its footer — the two canonical
+   * sentences describe a CHOICE the homepage does not offer, and writing one
+   * in anyway would be the false-claim shape this check exists to catch, just
+   * inverted (a real toggle undescribed vs. a description of a toggle that
+   * is not there). H.page()'s own homepage-shaped footer used to carry it,
+   * and the check below still runs against every OTHER route unchanged. */
+  ok(bootsDark === true, 'the homepage boot script still boots dark (DEFAULT_THEME unchanged)');
 
   /* ── each repository link points where its LABEL says ─────────────────────
    * The first version asserted both URLs were present somewhere in the footer.
    * An auditor swapped the two labels, left the URLs alone, and it passed: a
    * reader following "Site source" landed in the extension tree and the check
-   * saw nothing wrong. Presence is not correspondence. */
+   * saw nothing wrong. Presence is not correspondence.
+   *
+   * SCOPE: this checks every route's footer EXCEPT the V5 homepage. Render.home()
+   * does not call H.page() (see the go-live plan), so it carries the mockup's
+   * own static footer — Airlines / The Race / Methodology / Privacy — rather
+   * than html.js's footer(), which is the only place these two repo links
+   * live. Every other route is unchanged and still carries both links. */
   var repoBad = [];
   var EXPECT = [
     { label: 'Site source', mustContain: '/jeremyinthebay/wifiodds' },
     { label: 'Extension source', mustContain: '/jeremyinthebay/united-starlink-companion' }
   ];
+  var repoSurface = fs.readFileSync(path.join(ROOT, 'privacy.html'), 'utf8');
   EXPECT.forEach(function (e) {
     var re = new RegExp('<a[^>]*href="([^"]+)"[^>]*>\\s*' + e.label + '[^<]*</a>');
-    var m = re.exec(homeFoot);
-    if (!m) { repoBad.push('no link labelled "' + e.label + '"'); return; }
+    var m = re.exec(repoSurface);
+    if (!m) { repoBad.push('no link labelled "' + e.label + '" on privacy.html'); return; }
     if (m[1].indexOf(e.mustContain) === -1) {
       repoBad.push('"' + e.label + '" points at ' + m[1] + ', which is not ' + e.mustContain);
     }
   });
   eq(repoBad.length, 0,
-    'every repository link points at the repository its label names',
+    'every repository link points at the repository its label names (checked on a ' +
+    'non-homepage route, since the V5 homepage carries the mockup\'s own footer)',
     repoBad.join(' · '));
 
   /* ── no element boundary may weld two values into a third ─────────────────
@@ -2396,13 +2351,14 @@ async function main() {
   console.log('  /api/score/{flightNumber}: retired 2026-07-26, 410 on every shape tried');
   console.log('  tiers: Delta nextGenScore ' + dl.nextGenScore + ' / serviceTier ' + dl.serviceTier +
     ' / connectScore ' + dl.connectScore + ' — and the homepage agrees (' +
-    /* Counted, not asserted. This line read "18 skyline bars + 4 Big 4 rows"
-       for a build with no skyline in it: the component was removed in 5f0e56c
-       and the summary went on claiming coverage of it for every release
-       afterwards. The assertions had moved to the cards and were passing;
-       only the sentence describing them was false, which is the same class
-       of defect as a footer that misdescribes the theme. */
-    seenCards + ' cards + ' + seenRows + ' Big 4 rows checked)');
+    /* Counted, not asserted — this line describes the V5 homepage board
+       (build/templates/home.html via Render.home()): 4 Big-4 aircards and 18
+       board rows, both checked above against the API bytes. A prior version of
+       this line named a "skyline" component removed in 5f0e56c and kept
+       claiming coverage of it for every release afterwards; the assertions had
+       moved, only the sentence describing them was false. Keep this in sync
+       with what actually renders, not with what used to. */
+    seenBig4 + ' Big 4 cards + ' + boardRows.length + ' board rows checked)');
   console.log('  projected: ' + projected.map(function (a) {
     return a.name + ' ' + a.projected.score + ' ' + a.projected.confidence;
   }).join(' · ') + ' — none sorts anything, all four carry their date');

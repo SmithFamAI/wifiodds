@@ -222,12 +222,12 @@
       "pivotUnits": 1.75
     },
     "index.html": {
-      "words": 2173,
+      "words": 971,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
-      "pivotPer1000": 0.72,
-      "pivotUnits": 1.25
+      "pivotPer1000": 0,
+      "pivotUnits": 0
     },
     "llms.txt": {
       "words": 2428,
@@ -270,7 +270,7 @@
       "pivotUnits": 2.75
     },
     "roadmap/index.html": {
-      "words": 769,
+      "words": 752,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
