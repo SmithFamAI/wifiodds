@@ -41,18 +41,35 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
 @media(max-width:390px){.wrap{width:calc(100% - 28px)}.brand{font-size:18px}.navlinks .pill{padding:0 13px}.hero h1{font-size:51px}.lede{font-size:18px}.hero-actions,.hero-ctas{flex-direction:column}.section h2{font-size:40px}.allgrid{grid-template-columns:1fr}.row,.row:nth-child(odd){border-right:0}.row:nth-last-child(2){border-bottom:1px solid var(--line)}.row{min-height:82px}.weights{grid-template-columns:1fr 1fr}.route{padding:14px}.times b{font-size:14px}.odds{min-width:52px}.legend{gap:12px}.proof-facts{grid-template-columns:1fr}.proof-fact:nth-child(odd){border-right:0}.proof-fact:nth-last-child(2){border-bottom:1px solid var(--line)}.gap-values{flex-wrap:wrap}}
 @media(max-width:700px){.connect-key{grid-template-columns:auto 1fr}.connect-more{grid-column:2}.filterbar{grid-template-columns:1fr auto}.filterbar>span{grid-column:1/-1}.method-v3 .answer{padding:18px}.route-head{align-items:flex-start;gap:12px}.route-head span{text-align:right}.extension-brand{margin-bottom:15px}body[data-view="streaming"] .proof-main{grid-template-columns:1fr;gap:20px}body[data-view="streaming"] .proof-num{font-size:82px}body[data-view="streaming"] .proof-copy h2{font-size:38px}.multi-filter{width:100%}.multi-panel{position:static}.multi-options{grid-template-columns:1fr;max-height:300px}body[data-view="streaming"] .aircard .tier-value{font-size:72px!important}}
 @media(max-width:700px){.ramp-legend{grid-template-columns:auto minmax(120px,1fr) auto;width:100%}.ramp-legend>em{grid-column:1/-1;margin-left:0}.united-callout{grid-template-columns:auto 1fr}.united-callout a{grid-column:2;justify-self:start}.badge-link{width:min(254px,100%)}}
+/* STICKY MASTHEAD, DESKTOP ONLY (28 Jul 2026). The interior routes have had a
+   sticky header all along via `header.site` in assets/site.css; the homepage
+   carries its own chrome and was position:static, so it scrolled away and the
+   two halves of the site behaved differently. Measured before the fix: interior
+   header top stayed at 0 after scrolling 1600px, homepage went to -1600.
+   Bounded at 881px on purpose, and NOT because desktop-only was a stylistic
+   preference. On a 390px screen the sticky interior header measured 179px tall
+   against an 844px viewport, so a fifth of the phone was permanently spent on
+   chrome. Below 881 the header scrolls away on every route now.
+   .sitebar is full-bleed and the .wrap inside it keeps the 1240 measure, so the
+   background spans the viewport while the nav stays aligned with the content.
+   The border stays on .nav, which is where it already was, so nothing moves at
+   rest. */
+.sitebar{background:var(--bg)}
+@media(min-width:881px){.sitebar{position:sticky;top:0;z-index:40}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.pill{transition:none}}
 </style>
 <!--HOME:HEAD_EXTRA-->
 </head>
 <body data-view="nextgen">
 <a class="skip" href="#main">Skip to content</a>
+<header class="sitebar">
 <div class="wrap">
   <nav class="nav" aria-label="Main navigation">
     <a class="brand" href="https://wifiodds.com/"><svg class="mark" viewBox="128 128 768 768" aria-hidden="true" focusable="false"><defs><linearGradient id="wo-mk-home-nav" x1="270" y1="700" x2="754" y2="700" gradientUnits="userSpaceOnUse"><stop stop-color="#29d8ff"/><stop offset="1" stop-color="#926cff"/></linearGradient></defs><path d="M292 700A320 320 0 1 1 732 700" fill="none" stroke="url(#wo-mk-home-nav)" stroke-width="68" stroke-linecap="round"/><g transform="translate(0 -24)"><rect x="267" y="405" width="176" height="134" rx="24" fill="url(#wo-mk-home-nav)"/><rect x="581" y="405" width="176" height="134" rx="24" fill="url(#wo-mk-home-nav)"/><path d="M443 472h35M546 472h35" stroke="currentColor" stroke-width="24" stroke-linecap="round"/><rect x="466" y="362" width="92" height="220" rx="38" fill="currentColor"/><circle cx="512" cy="472" r="31" fill="url(#wo-mk-home-nav)"/><path d="M449 300Q512 341 575 300Q563 251 512 251Q461 251 449 300Z" fill="url(#wo-mk-home-nav)"/></g><path d="M512 612C499 612 492 625 489 645L480 704L410 747C399 754 393 765 393 779L478 754L483 807L457 829V846L512 831L567 846V829L541 807L546 754L631 779C631 765 625 754 614 747L544 704L535 645C532 625 525 612 512 612Z" fill="currentColor"/></svg>WiFi Odds</a>
     <div class="navlinks"><a href="#proof">United fleet</a><a href="#big4">Big 4</a><a href="#all">All 18</a><a class="pill" href="#extension">Get Chrome Extension</a></div>
   </nav>
 </div>
+</header>
 <main id="main">
   <header class="hero hero-v2">
     <div class="wrap hero-inner">

@@ -1339,6 +1339,21 @@ ul.vstate .st{display:inline-block;min-width:10rem;font-size:.75rem;font-weight:
   .nav-btn{order:3;margin-left:0}
   .masthead .datechip{order:5}
   .masthead .themetoggle{order:6;margin-left:0}
+  /* THE HEADER STOPS STICKING BELOW 881px (28 Jul 2026). It stuck at every width
+     before, and measured 179px tall on /united/fleet/ at 390px — a fifth of an
+     844px viewport permanently spent on chrome, on the surface with the least of
+     it to spare. Desktop keeps the sticky header; the phone gets its screen back.
+
+     --sticky-header-height MUST go to zero with it, and this is the coupling that
+     makes the change non-trivial. Three things read that token: the sticky
+     <thead> in the 700-880px band, html{scroll-padding-top}, and
+     [id]{scroll-margin-top}. Leave it at 7rem while the header no longer occupies
+     that space and the table headings hang 112px below the viewport top with
+     nothing above them, and every in-page anchor lands 112px short of its target.
+     Both selectors are repeated because html.hdr-c (0,1,1) outranks :root (0,1,0)
+     and the collapsed-header override earlier in this file would otherwise win. */
+  header.site{position:static}
+  :root,html.hdr-c{--sticky-header-height:0rem}
 }
 @media(max-width:430px){
   /* At the narrowest widths the wordmark plus a full-width pill plus the burger
