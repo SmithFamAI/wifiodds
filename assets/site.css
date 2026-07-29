@@ -325,11 +325,30 @@ h2{letter-spacing:-.038em}
    lines is structured (board footers, release states) rather than set as a
    raw paragraph. The max-width:none group below is the other half of the same
    note. */
-.wrap{max-width:58rem;margin:0 auto;position:relative;
+/* 1240px since 28 Jul 2026, was 58rem/928px. The homepage shipped at 1240 and
+   the interiors did not, so the two halves of the site had visibly different
+   canvases while sharing every token. Round 17 measured it: 1240 vs 928 shell,
+   888px main.
+   Widening the SHELL is not the same as widening the TEXT, and the group below
+   is what keeps them apart: data (tables, boards, grids, charts) gets the full
+   1240, prose gets a measure. Without that second half this rule would set
+   120-character lines, which is worse than the narrow canvas it replaced. */
+.wrap{max-width:var(--max,77.5rem);margin:0 auto;position:relative;
   padding:0 max(1.25rem,env(safe-area-inset-right)) 0 max(1.25rem,env(safe-area-inset-left))}
 main .lede,main .sec-lede,main .footnote,main .skycap,main .src,
 main .prov,main ul.vstate,main .board-note,main .pointer,main .extfine,
 .rankb .sortcap p,.sysrows,.herocall{max-width:none}
+/* THE READING MEASURE, and it is the other half of the 1240px wrap above.
+   `ch` not `rem`, so the cap follows the type rather than the root size. 74ch
+   lands around 66-70 characters of running text in Inter, which is the top of
+   the comfortable band; going wider is what makes a wide canvas feel like a
+   regression rather than an improvement.
+   Scoped to the direct text children of a section, so it reaches paragraphs and
+   ledes and NOT the things that legitimately want 1240: tables, boards, grids,
+   charts, card rows, the rollout curve. Those are data, and data reads better
+   wide. Anything that needs to opt out can set `max-width:none` locally, and
+   the group directly above is the existing list of things that already do. */
+main p,main .lede,main .sec-lede,main .say,main dl.loop dd,main .callout p{max-width:74ch}
 /* The hero used to end on a 96px chart and a caption, so the standard section
    rhythm below it (51px margin + 37px padding) read as normal. It now ends on
    the bordered extension card, which already separates it from what follows, so
@@ -442,13 +461,17 @@ html{scroll-padding-top:calc(var(--sticky-header-height) + .5rem)}
    the only nav item styled as an action; its href always comes from H.EXT,
    never a literal store URL, so a store-side redirect only has to be fixed
    in one constant. */
-.masthead nav .pill{display:inline-flex;align-items:center;justify-content:center;
-  min-height:2.2rem;padding:0 1rem;margin-left:.3rem;border-radius:99px;
+/* `.masthead .mast-cta`, not `.masthead nav .pill`: the pill moved OUT of <nav>
+   on 28 Jul so the hamburger could not take it down with the menu. The selector
+   had to follow it, and it must not go back to a `nav`-descendant form. */
+.masthead .mast-cta{display:inline-flex;align-items:center;justify-content:center;
+  min-height:2.75rem;padding:0 1.15rem;margin-left:.3rem;border-radius:99px;
   font-size:.78rem;font-weight:800;letter-spacing:.02em;text-transform:none;
   line-height:1;color:#050505;background:linear-gradient(100deg,var(--cyan),var(--violet));
-  border:0;white-space:nowrap}
-.masthead nav .pill:hover{background:linear-gradient(100deg,#82eaff,#c2b0ff);color:#050505}
-.masthead nav .pill:focus-visible{outline:3px solid var(--sky);outline-offset:3px}
+  border:0;white-space:nowrap;text-decoration:none;align-self:center}
+.masthead .mast-cta:hover{background:linear-gradient(100deg,#82eaff,#c2b0ff);color:#050505;
+  text-decoration:none}
+.masthead .mast-cta:focus-visible{outline:3px solid var(--sky);outline-offset:3px}
 .datechip{font-size:.78rem;color:var(--muted);letter-spacing:.02em;width:100%;
   padding-bottom:.15rem}
 .datechip b{color:var(--muted-strong);font-weight:600}
@@ -521,9 +544,25 @@ html{scroll-padding-top:calc(var(--sticky-header-height) + .5rem)}
 .hero:before{content:"";position:absolute;width:18rem;height:14rem;right:0;top:-4rem;
   background:radial-gradient(circle,rgba(41,216,255,.16),rgba(146,108,255,.08) 46%,transparent 70%);
   filter:blur(10px);pointer-events:none}
-.hero h1{position:relative;font-size:clamp(1.9rem,5.2vw,3rem);line-height:1.02;letter-spacing:-.05em;
-  max-width:21ch}
-h1.ph{font-size:clamp(1.7rem,4vw,2.4rem);line-height:1.14;margin:.5rem 0 0}
+/* Display scale, 28 Jul 2026. Was clamp(1.9rem,5.2vw,3rem) = 38.4px at 1440 and
+   27.2px at 390, against the homepage's 121px and 51px. Round 17 named the gap
+   as the real content of "the interior pages don't match": same tokens, same
+   face, a third of the size. The approved interior system sets 94px desktop and
+   54.6px phone, which is what these two clamps land on.
+   The vw term carries the middle of the range, so the floor and ceiling are the
+   two ends that matter: 3.4rem keeps the phone at 54.4px (6.5vw would only give
+   25px there) and 5.875rem caps the desktop at 94px before the viewport runs
+   away with it. */
+.hero h1{position:relative;font-size:clamp(3.4rem,6.5vw,5.875rem);line-height:.94;
+  letter-spacing:-.055em;max-width:16ch}
+/* `h1.ph` is the PAGE-HEADER heading and it is what almost every interior route
+   actually renders — `.hero h1` is the homepage-style hero, used on far fewer
+   pages. Measuring only `.hero h1` after the first scale change is why the
+   interiors came back at 68px instead of 94px: the rule that ran was this one.
+   Same clamp as `.hero h1` deliberately. Two display scales one step apart read
+   as an accident when the pages sit next to each other in a nav. */
+h1.ph{font-size:clamp(3.4rem,6.5vw,5.875rem);line-height:.94;letter-spacing:-.055em;
+  margin:.5rem 0 0;max-width:18ch}
 /* the second line of the hero, one step down the scale */
 .hero h1 .tag{display:block;font-size:clamp(1.05rem,2.4vw,1.4rem);font-weight:400;
   letter-spacing:-.004em;margin-top:.6rem;color:var(--ink-soft)}
@@ -1279,8 +1318,33 @@ ul.vstate .st{display:inline-block;min-width:10rem;font-size:.75rem;font-weight:
   .nav-cb:checked+.nav-btn .h{display:none}
   .masthead nav{display:none}
   .nav-cb:checked~nav{display:flex;flex-direction:column;align-items:stretch;gap:.1rem;
-    margin-left:0;order:3;flex:1 0 100%;
+    margin-left:0;order:4;flex:1 0 100%;
     border-top:1px solid var(--line-soft);padding-top:.4rem;margin-top:.2rem}
+  /* Explicit order, because DOM order puts the burger BEFORE the pill and the
+     burger carries `margin-left:auto`. Left to itself that pushes the burger to
+     the right edge and strands the pill past it. The pill takes the auto margin
+     instead and both sit at the right, CTA first, in the reading order a thumb
+     expects. `order` on the menu is 4 so the opened column still drops below
+     the whole row rather than between the two controls. */
+  /* EVERY child gets an explicit order here, because leaving any of them at the
+     default 0 is what put the theme toggle on row one. First attempt set order
+     only on the pill and the burger; the toggle kept order 0, sorted ahead of
+     both, and took the space beside the wordmark — so the masthead went to three
+     rows and ~360px of chrome before any content on a 390px screen.
+     Row 1 is identity and action: wordmark, CTA, menu. The datechip is
+     width:100% so it always breaks the line, and everything after it is
+     secondary. */
+  .masthead .wordmark{order:1}
+  .masthead .mast-cta{order:2;margin-left:auto;margin-right:.5rem}
+  .nav-btn{order:3;margin-left:0}
+  .masthead .datechip{order:5}
+  .masthead .themetoggle{order:6;margin-left:0}
+}
+@media(max-width:430px){
+  /* At the narrowest widths the wordmark plus a full-width pill plus the burger
+     will not sit on one line, and wrapping the masthead to three rows costs more
+     than the label does. The pill keeps its 44px target and loses only padding. */
+  .masthead .mast-cta{padding:0 .8rem;font-size:.72rem;margin-right:.35rem}
 }
 @media(max-width:430px){
   .wrap{padding-left:max(.9rem,env(safe-area-inset-left));

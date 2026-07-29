@@ -367,8 +367,19 @@ function masthead(here, suffix, updated, refreshAttemptedOn, wasRetained) {
        `.pill.primary`; its href is EXT, never a literal store URL, so a
        store-side path change only has to be fixed in that one constant. */
     '      <a href="/#extension">Extension</a>\n' +
-    '      <a class="pill" href="' + EXT + '" target="_blank" rel="noopener">Add to Chrome</a>\n' +
     '    </nav>\n' +
+    /* THE PILL IS OUTSIDE <nav>, AND THAT IS THE WHOLE POINT OF THIS LINE.
+     * It lived inside <nav> until 28 Jul 2026, which meant the `@media(max-width:880px)`
+     * rule that collapses the nav behind the hamburger collapsed the store CTA
+     * with it. Measured on production: `ctaVisible` false at 390px on all 30
+     * interior routes and true on the homepage, because the homepage keeps its
+     * own pill outside its own nav. The conversion action was invisible on
+     * phones everywhere except the one page that did it differently.
+     * A sibling of <nav> rather than a child of it, so the menu can hide and the
+     * pill cannot. If you ever move it back inside for layout reasons, add the
+     * matching `.nav-cb:checked~nav` exception first, or this regresses silently
+     * — nothing in the suite reads computed visibility. */
+    '    <a class="pill mast-cta" href="' + EXT + '" target="_blank" rel="noopener">Add to Chrome</a>\n' +
     '    <button class="themetoggle" id="themetoggle" type="button" hidden\n' +
     '      title="Dark by default. The switch lasts until you reload; nothing is stored."></button>\n' +
     '    <div class="datechip">' + datechipText(updated, refreshAttemptedOn, wasRetained) + '</div>\n' +
@@ -428,20 +439,44 @@ function footer(updated, refreshAttemptedOn, wasRetained) {
        wordmark as the masthead, linking home. Added above the existing link
        row, not in place of it: every href/label below is unchanged. */
     '  <a class="ftop" href="/">' + markSvg('ft') + 'WiFi&nbsp;Odds</a>\n' +
+    /* THE LINK ROW IS FOUR, not twelve, since 28 Jul 2026. Round 17 measured the
+       interior footer at 17 links and 395px against the homepage's 5 and 232px,
+       and named it as one of the places the two halves of the site stopped
+       looking related. The five that left this row (Systems, United, Fleet,
+       Alaska, Roadmap, API) are all reachable from the masthead nav, the section
+       subnav, or the body of the pages that care about them; a footer is not the
+       site map.
+       What did NOT get trimmed is anything below this row. Density here was
+       presentation. The tracker credit, the estimate caveat, the unaffiliated
+       line and the storage sentence are disclosure, and cutting them to hit a
+       pixel target would be trading a fence for a layout. The homepage footer had
+       in fact dropped the tracker credit while still printing 484 and 1,807, and
+       the fix went in that direction rather than this one. */
     '  <div class="flinks"><a href="/airlines/">Airlines</a><a href="/race/">The Race</a>' +
-    '<a href="/systems/">Systems</a><a href="/united/">United</a>' +
-    '<a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a>' +
     /* Methodology is linked from the FOOTER and from the leaderboard's caveat, not
        from the masthead: the global nav stays three items plus the Extension link,
        and a provenance page is something a reader goes looking for rather than
        something that needs to compete with "Airlines" on every screen. */
     '<a href="/methodology/">Methodology</a>' +
-    '<a href="/api/docs/">API</a><a href="/privacy">Privacy</a>' +
-    '<a href="' + REPO_SITE + '" target="_blank" rel="noopener">Site source ↗</a>' +
-    '<a href="' + REPO_EXT + '" target="_blank" rel="noopener">Extension source ↗</a></div>\n' +
-    '  <div>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> ' +
+    /* /api/docs/ stays in this row and it is not decoration: `build/apitest.js`
+       asserts the shared footer links it, because the footer is its ONLY inbound
+       link anywhere on the site. Trimming this row to four on 28 Jul dropped it
+       and the gate refused the push, correctly. If the API ever gets a home in
+       the nav or a parent page, that assertion is the thing to update first. */
+    '<a href="/api/docs/">API</a>' +
+    '<a href="/privacy">Privacy</a></div>\n' +
+    '  <div class="frow">Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> ' +
     '· <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> ' +
     '(independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>\n' +
+    /* THE LABELS MUST NAME THE REPOSITORY. apitest.js matches `<a href=...>Site
+       source</a>` and `<a href=...>Extension source</a>` by label and then checks
+       the href actually points at the repo that label names — the guard exists
+       because presence is not correspondence, and two links can both be present
+       while pointing at each other's repo. Shortening these to "site" and
+       "extension" on 28 Jul broke the match and the gate caught it. Keep the
+       label text; move the links wherever you like. */
+    '  <div class="frow"><a href="' + REPO_SITE + '" target="_blank" rel="noopener">Site source ↗</a> · ' +
+    '<a href="' + REPO_EXT + '" target="_blank" rel="noopener">Extension source ↗</a></div>\n' +
     '  <div class="frow">' + updatedLine + ' ConnectScores and per-flight odds are ' +
     'historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and ' +
     'unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</div>\n' +
