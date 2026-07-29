@@ -56,6 +56,55 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
    rest. */
 .sitebar{background:var(--bg)}
 @media(min-width:881px){.sitebar{position:sticky;top:0;z-index:40}}
+/* The toolbar switch is hidden until the hero's own switch has scrolled out of
+   view, so at rest the bar is exactly the one row Codex designed and the control
+   is never on screen twice. .pinned is set by an IntersectionObserver at the
+   foot of the page.
+   Hidden by default rather than shown by default, and that is the safe direction:
+   with no script the sort does nothing, so a switch that is always visible would
+   be a dead control. No observer, no class, no switch.
+   Bounded at 881px to match the sticky bar itself — below that the bar does not
+   stick, so a switch in it would scroll away and buy nothing. */
+.navswitch-wrap{display:none}
+@media(min-width:881px){
+  .sitebar.pinned .navswitch-wrap{display:flex;justify-content:flex-end;
+    padding-bottom:11px;margin-top:-4px}
+}
+/* Compact, but the buttons keep a 44px minimum. The bar is desktop-only, so the
+   touch-target floor is not strictly load-bearing here; it stays anyway because
+   a 44px floor that holds only where it is convenient is not a floor. */
+.navswitch{box-shadow:none;border-radius:13px;padding:4px}
+.navswitch button{min-height:44px;padding:0 16px;font-size:12px;border-radius:9px}
+/* EVERY IN-PAGE ANCHOR LANDED UNDER THE STICKY BAR, and this predates the
+   toolbar switch. Measured on the built page: clicking any of the four nav
+   links put the target at top:61 while the bar's bottom sat at 78 unpinned and
+   139 pinned, so the heading you asked for was behind the chrome every time.
+   The interior routes never had this because assets/site.css spends
+   --sticky-header-height on scroll-padding-top; the homepage carries its own
+   chrome and had no equivalent.
+   Sized for the PINNED bar, not the resting one, and static rather than
+   switched on .pinned. Scroll padding is read as the scroll begins: clicking an
+   anchor from the top of the page starts while the bar is still one row, so a
+   value that changes with .pinned would be read at 78, then the bar would grow
+   to 139 mid-flight and occlude the target anyway. Every anchor target on this
+   page sits below the hero, so the bar is always pinned on arrival.
+
+   ONE property, not two. Setting scroll-padding-top on the scroller AND
+   scroll-margin-top on the target does not pick the larger of the two, it adds
+   them: 151 + 151 = 302, and the section landed at 363 because the bar also grew
+   61px mid-scroll as it pinned. Nothing was hidden, but the heading sat in the
+   lower half of a 900px viewport, which is its own kind of wrong.
+
+   90 rather than 139, because the 61px the bar gains when .navswitch-wrap
+   appears pushes everything below it down by that much — the sitebar is sticky
+   but still in normal flow. 90 + 61 = 151, which clears the pinned bar's 139 by
+   12. And where the bar does NOT pin (#proof is close enough to the top that the
+   hero switch stays in view) there is no growth and no pin, so 90 clears the
+   resting 78 by the same 12. The one value is correct in both states, which is
+   why it is not conditional on .pinned. */
+@media(min-width:881px){
+  html{scroll-padding-top:90px}
+}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.pill{transition:none}}
 </style>
 <!--HOME:HEAD_EXTRA-->
@@ -68,6 +117,22 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
     <a class="brand" href="https://wifiodds.com/"><svg class="mark" viewBox="128 128 768 768" aria-hidden="true" focusable="false"><defs><linearGradient id="wo-mk-home-nav" x1="270" y1="700" x2="754" y2="700" gradientUnits="userSpaceOnUse"><stop stop-color="#29d8ff"/><stop offset="1" stop-color="#926cff"/></linearGradient></defs><path d="M292 700A320 320 0 1 1 732 700" fill="none" stroke="url(#wo-mk-home-nav)" stroke-width="68" stroke-linecap="round"/><g transform="translate(0 -24)"><rect x="267" y="405" width="176" height="134" rx="24" fill="url(#wo-mk-home-nav)"/><rect x="581" y="405" width="176" height="134" rx="24" fill="url(#wo-mk-home-nav)"/><path d="M443 472h35M546 472h35" stroke="currentColor" stroke-width="24" stroke-linecap="round"/><rect x="466" y="362" width="92" height="220" rx="38" fill="currentColor"/><circle cx="512" cy="472" r="31" fill="url(#wo-mk-home-nav)"/><path d="M449 300Q512 341 575 300Q563 251 512 251Q461 251 449 300Z" fill="url(#wo-mk-home-nav)"/></g><path d="M512 612C499 612 492 625 489 645L480 704L410 747C399 754 393 765 393 779L478 754L483 807L457 829V846L512 831L567 846V829L541 807L546 754L631 779C631 765 625 754 614 747L544 704L535 645C532 625 525 612 512 612Z" fill="currentColor"/></svg>WiFi Odds</a>
     <div class="navlinks"><a href="#proof">United fleet</a><a href="#big4">Big 4</a><a href="#all">All 18</a><a class="pill" href="#extension">Get Chrome Extension</a></div>
   </nav>
+</div>
+<!-- THE PERSISTENT VIEW SWITCH. A second .view-switch, not a moved one, and that
+     is deliberate: the page script does
+       querySelectorAll('.view-switch button[data-view]')
+     and then sets aria-pressed on EVERY button in that list inside order(), so a
+     second control is picked up and kept in sync with no JS change at all. Both
+     sets are static markup present before the script runs. If you ever make this
+     switch dynamic, it stops being wired, because that NodeList is captured once.
+     The aria-labels differ on purpose. When the bar is pinned both switches are
+     in the accessibility tree, and two groups labelled identically give a screen
+     reader user no way to tell which one they are on. -->
+<div class="wrap navswitch-wrap">
+  <div class="view-switch navswitch" role="group" aria-label="Choose WiFi view (toolbar)">
+    <button type="button" data-view="nextgen" aria-pressed="true">Next-gen odds</button>
+    <button type="button" data-view="streaming" aria-pressed="false">Streaming or better</button>
+  </div>
 </div>
 </header>
 <main id="main">
@@ -130,6 +195,25 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
   </section>
 </main>
 <footer class="footer"><div class="wrap"><div class="footer-top"><a class="brand" href="https://wifiodds.com/"><svg class="mark" viewBox="128 128 768 768" aria-hidden="true" focusable="false"><defs><linearGradient id="wo-mk-home-foot" x1="270" y1="700" x2="754" y2="700" gradientUnits="userSpaceOnUse"><stop stop-color="#29d8ff"/><stop offset="1" stop-color="#926cff"/></linearGradient></defs><path d="M292 700A320 320 0 1 1 732 700" fill="none" stroke="url(#wo-mk-home-foot)" stroke-width="68" stroke-linecap="round"/><g transform="translate(0 -24)"><rect x="267" y="405" width="176" height="134" rx="24" fill="url(#wo-mk-home-foot)"/><rect x="581" y="405" width="176" height="134" rx="24" fill="url(#wo-mk-home-foot)"/><path d="M443 472h35M546 472h35" stroke="currentColor" stroke-width="24" stroke-linecap="round"/><rect x="466" y="362" width="92" height="220" rx="38" fill="currentColor"/><circle cx="512" cy="472" r="31" fill="url(#wo-mk-home-foot)"/><path d="M449 300Q512 341 575 300Q563 251 512 251Q461 251 449 300Z" fill="url(#wo-mk-home-foot)"/></g><path d="M512 612C499 612 492 625 489 645L480 704L410 747C399 754 393 765 393 779L478 754L483 807L457 829V846L512 831L567 846V829L541 807L546 754L631 779C631 765 625 754 614 747L544 704L535 645C532 625 525 612 512 612Z" fill="currentColor"/></svg>WiFi Odds</a><div class="footlinks"><a href="https://wifiodds.com/airlines/">Airlines</a><a href="https://wifiodds.com/race/">The Race</a><a href="https://wifiodds.com/methodology/">Methodology</a><a href="https://wifiodds.com/privacy">Privacy</a></div></div><div class="fine"><p>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> and <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a>, independent community trackers by @martinamps · every other airline from public announcements, July 2026. ConnectScores and per-flight odds are historical estimates; aircraft assignments change until departure. WiFi Odds is unofficial and unaffiliated with any airline, SpaceX, Amazon, Viasat, or the independent trackers.</p><span>No accounts · no analytics · no tracking</span></div></div></footer>
+<script>
+/* PINS THE TOOLBAR SWITCH once the hero's own switch leaves the viewport.
+   Its own IIFE on purpose: the main page script returns early on `if(!grid)return`,
+   and anything appended there would silently stop running the day #airline-grid
+   is renamed or removed. This has no dependency on the grid.
+   The observer watches the HERO switch and toggles a class on the BAR, so there
+   is one source of truth for "has the control scrolled away" and no scroll
+   handler running on every frame.
+   -90px rootMargin so the swap happens as the hero control passes under the bar
+   rather than after it has already gone, which would show a gap with no switch. */
+(function(){
+  var heroSwitch = document.querySelector('.hero .view-switch');
+  var bar = document.querySelector('.sitebar');
+  if (!heroSwitch || !bar || !('IntersectionObserver' in window)) return;
+  new IntersectionObserver(function (entries) {
+    bar.classList.toggle('pinned', !entries[0].isIntersecting);
+  }, { rootMargin: '-90px 0px 0px 0px' }).observe(heroSwitch);
+})();
+</script>
 <script>
 (function(){
   var buttons=[].slice.call(document.querySelectorAll('.view-switch button[data-view]'));
