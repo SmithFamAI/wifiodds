@@ -1170,25 +1170,12 @@ function main() {
   /* 1. every page. ROUTES is the table; this is the switchboard, and the two
    *    have to agree — a route with no case here fails the assert in step 4. */
   write('index.html', Render.home(m));
-  write('airlines/index.html', Render.airlinesIndex(m));
-  write('race/index.html', Render.racePage(m));
-  write('systems/index.html', Render.systemsPage(m));
-  R.AIRLINE_KEYS.forEach(function (k) {
-    write('airlines/' + k + '/index.html', Render.airlinePage(m, k));
-  });
-  write('united/fleet/index.html', Render.fleetPage(m));
   write('methodology/index.html', Render.methodologyPage(m));
   write('technology/index.html', Render.technologyPage(m));
-  write('roadmap/index.html', Render.roadmapPage(m));
-  write('api/docs/index.html', Render.apiDocs(m));
-  write('404.html', Render.notFound(m));
-  /* the four former hand-authored pages — content from build/templates/, chrome
-     from build/lib/html.js, numbers baked from data.json at render time */
-  write('united/index.html', Render.unitedOptimizer(m));
-  write('united/history/index.html', Render.unitedHistory(m));
-  write('alaska/index.html', Render.alaskaRollout(m));
+  /* the two remaining template pages: content from build/templates/, numbers
+     baked from data.json at render time. Everything else was 301'd on 28 Jul. */
   write('privacy.html', Render.privacyPage(m));
-  write('record/index.html', Render.recordPage(m));
+  write('404.html', Render.notFound(m));
 
   /* 2. machine surfaces */
   write('sitemap.xml', buildSitemap(m));

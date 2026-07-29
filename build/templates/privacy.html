@@ -49,7 +49,7 @@
   <span class="kicker">The short version</span>
   <p>No accounts, no cookies, no analytics, no advertising, and nothing about you is sold or passed
   on. Two things do leave your browser and both are named below. The extension asks two public
-  community trackers for odds. One page here, the <a href="/united/">United route optimizer</a>, asks
+  community trackers for odds. One page here, the United route optimizer, asks
   one of those trackers to plan a route while you are looking at it, and keeps the answer in your
   browser for six hours so it does not ask twice. That is the script talking: turn JavaScript off
   and the same page serves prerendered route tables and calls nobody. The other 29 pages are
@@ -104,7 +104,7 @@
 <section class="blk pol" id="offorigin">
   <span class="kicker">§4 · The exception</span>
   <h2>The United route optimizer calls another site</h2>
-  <p><a href="/united/">/united/</a> ranks the flights on a city pair, and the ranking comes from
+  <p>/united/ ranks the flights on a city pair, and the ranking comes from
   somebody else's data. With JavaScript running, opening that page makes your browser send three
   requests to
   <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a>,
@@ -137,9 +137,9 @@
   <p style="margin-top:1rem">Blocking scripts on wifiodds.com stops the call and leaves you the
   static tables, which is the cheapest way to read that page without touching another host. Three
   more pages carry United material and are prerendered the same way:
-  <a href="/united/fleet/">the hangar floor and full tail registry</a>,
-  <a href="/united/history/">the day-by-day install archive</a>, and
-  <a href="/airlines/united/">the United score page</a> with the arithmetic on it. The optimizer
+  the hangar floor and full tail registry,
+  the day-by-day install archive, and
+  the United score page with the arithmetic on it. The optimizer
   says the same thing at the top of itself when script is off.</p>
   <p class="src"><span class="cls">Reported</span> Read off the page's own source on 26 Jul 2026:
   one GET to <b>/api/plan-route</b> and two JSON-RPC calls to <b>/mcp</b>, per direction, all of

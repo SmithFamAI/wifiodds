@@ -15,3 +15,28 @@
 # ever need to live on this side of the fence:
 # /unitedstarlink      /united/   301
 # /unitedstarlink/*     /united/:splat  301
+
+# ── 28 Jul 2026 three-page cut ──────────────────────────────────────────────
+# Every route below was removed from build/routes.js and its file deleted; these
+# send the old URLs (and anything Google/inbound links still hold) to the home
+# page with a real 301. Destinations are all "/", so order does not matter.
+#
+# The /united/ paths are enumerated EXACTLY, never globbed as /united/*, because
+# united/data.json lives in that directory and the Chrome extension fetches it.
+# A real static asset would win over a redirect on Cloudflare Pages anyway, but
+# not writing the glob is the belt to that suspenders. Likewise /api/docs/ is
+# exact so it cannot shadow the /api/* Pages Functions.
+/airlines/            /   301
+/airlines/*           /   301
+/race/                /   301
+/race/*               /   301
+/systems/             /   301
+/systems/*            /   301
+/united/              /   301
+/united/fleet/        /   301
+/united/history/      /   301
+/alaska/              /   301
+/alaska/*             /   301
+/roadmap/             /   301
+/record/              /   301
+/api/docs/            /   301

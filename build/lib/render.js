@@ -234,18 +234,17 @@ function homeSysLabel(a) {
 function homeRow(m, key, rank) {
   var a = m.A.scoreAirline(key);
   if (!a) throw new Error('Render.home: unknown airline key "' + key + '"');
-  var href = ORIGIN + '/airlines/' + key + '/';
   var dataName = esc(a.name.toLowerCase() + ' ' + (a.code || '').toLowerCase());
   var score = homeNum(a.score, key + '.score');
 
   if (a.nextGenPublished === false) {
-    return '        <a class="row unranked" href="' + href + '" data-name="' + dataName +
+    return '        <div class="row unranked" data-key="' + key + '" data-name="' + dataName +
       '" data-rankable="false" data-score="' + score + '" data-odds="-1" data-floor="-1">' +
       '<div class="who"><b><span class="rank-text">–</span> · ' + esc(a.name) + '</b> ' +
       '<small>Starlink count unpublished</small></div>' +
       '<div class="metric primary"><b class="unknown odds-only">unpublished</b>' +
       '<b class="unknown tier-only">not computable</b><small>primary</small></div>' +
-      '<div class="metric"><b>' + score + '</b> <small>ConnectScore</small></div></a>\n';
+      '<div class="metric"><b>' + score + '</b> <small>ConnectScore</small></div></div>\n';
   }
 
   var odds = homeNum(a.nextGenScore, key + '.nextGenScore');
@@ -259,13 +258,13 @@ function homeRow(m, key, rank) {
       '<span class="tier-only">' + esc(tierNote) + '</span></small>'
     : '<small>' + esc(homeSysLabel(a)) + '</small>';
 
-  return '        <a class="row ' + rowClass + '" href="' + href + '" data-name="' + dataName +
+  return '        <div class="row ' + rowClass + '" data-key="' + key + '" data-name="' + dataName +
     '" data-rankable="true" data-score="' + score + '" data-odds="' + odds + '" data-floor="' +
     floorStr + '"' + uncertainAttr + '><div class="who"><b><span class="rank-text">' +
     String(rank).padStart(2, '0') + '</span> · ' + esc(a.name) + '</b> ' + smallHtml + '</div>' +
     '<div class="metric primary"><b class="odds-only">' + odds + '%</b><b class="tier-only">' +
     (sf.uncertain ? '≥' : '') + floorStr + '%</b><small>primary</small></div>' +
-    '<div class="metric"><b>' + score + '</b> <small>ConnectScore</small></div></a>\n';
+    '<div class="metric"><b>' + score + '</b> <small>ConnectScore</small></div></div>\n';
 }
 
 function homeBoardRows(m) {
@@ -2683,13 +2682,13 @@ function notFound(m) {
     '<header class="hero">\n  <span class="kicker">404</span>\n' +
     '  <h1 class="ph" style="margin-top:.6rem">No page at this address</h1>\n' +
     '  <p class="lede">Unlike the WiFi, that one is a certainty.</p>\n' +
-    '  <div class="btnrow" style="margin-top:1.2rem"><a class="btn ghost mini" ' +
-    'href="/airlines/">The board, all ' + m.airlineCount + ' airlines →</a>' +
-    '<a class="btn ghost mini" href="/airlines/united/">United, the deepest page here →</a>' +
-    '<a class="btn ghost mini" href="/methodology/">How every number was derived →</a></div>\n' +
+    '  <div class="btnrow" style="margin-top:1.2rem">' +
+    '<a class="btn ghost mini" href="/methodology/">How every number is derived →</a>' +
+    '<a class="btn ghost mini" href="/technology/">The three tiers of inflight WiFi →</a>' +
+    '<a class="btn ghost mini" href="/">Back to the homepage →</a></div>\n' +
     '</header>\n\n';
   return H.page({
-    title: 'Page not found — WiFi Odds', desc: 'That page does not exist on wifiodds.com.',
+    title: 'Page not found · WiFi Odds', desc: 'That page does not exist on wifiodds.com.',
     canonical: '/404.html', here: '/', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained, body: body,
     jsonld: []
   });
@@ -2865,7 +2864,7 @@ function privacyPage(m) {
     'routes.rows': String(nj.rows)
   }, 'privacy');
   return H.page({
-    title: 'Privacy Policy — WiFi Odds for Flights',
+    title: 'Privacy Policy · WiFi Odds for Flights',
     desc: 'Privacy policy for WiFi Odds (wifiodds.com) and the WiFi Odds for Flights browser extension. ' +
       'No accounts, no analytics, no tracking, and no personal data collected.',
     /* The file on disk is privacy.html and routes.js keeps it that way, but

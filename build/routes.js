@@ -23,55 +23,21 @@ var AIRLINE_KEYS = ['united', 'alaska', 'jsx', 'airbaltic', 'zipair', 'westjet',
   'southwest', 'american', 'delta', 'jetblue'];
 
 var ROUTES = [
+  /* THE THREE-PAGE SITE (28 Jul 2026 cut). Down from 31 routes to four: the
+     homepage, a rebuilt /methodology/, a new /technology/, and /privacy (kept
+     for the Chrome Web Store listing, out of the nav). The other 28 routes are
+     301'd to / in _redirects. The /united/ DIRECTORY stays on disk because the
+     extension reads united/data.json; only the /united/ PAGE routes are gone.
+     NEVER HAND-EDIT A FILE LISTED HERE. */
   { url: '/', file: 'index.html', kind: 'gen', changefreq: 'daily', priority: '1.0' },
-  { url: '/airlines/', file: 'airlines/index.html', kind: 'gen', changefreq: 'daily', priority: '0.9' },
-  /* THE RACE — every airline's rollout timeline to full next-gen. changefreq
-     daily because the next-gen share in every row is re-baked from the same daily
-     pull as the leaderboard; only the finish-line prose is editorial. */
-  { url: '/race/', file: 'race/index.html', kind: 'gen', changefreq: 'daily', priority: '0.9' },
-  /* SYSTEMS — the evergreen hardware primer. Starlink vs Amazon Leo plus every
-     system flying on the fleets we score. Monthly: satellites do not move house,
-     and the carrier lists inside it are derived so they stay current anyway. */
-  { url: '/systems/', file: 'systems/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.8' },
-  { url: '/united/', file: 'united/index.html', kind: 'gen', tmpl: 'united-optimizer', changefreq: 'daily', priority: '0.9' },
-  { url: '/united/fleet/', file: 'united/fleet/index.html', kind: 'gen', changefreq: 'daily', priority: '0.9' },
-  { url: '/united/history/', file: 'united/history/index.html', kind: 'gen', tmpl: 'united-history', changefreq: 'daily', priority: '0.6' },
-  { url: '/alaska/', file: 'alaska/index.html', kind: 'gen', tmpl: 'alaska-rollout', changefreq: 'weekly', priority: '0.8' },
-  /* The provenance page. changefreq daily because its freshness stamp and worked
-     examples are re-baked from data.json with everything else, and it is the page
-     an answer engine is most likely to re-check before quoting a number. */
   { url: '/methodology/', file: 'methodology/index.html', kind: 'gen', changefreq: 'daily', priority: '0.7' },
-  /* TECHNOLOGY — what the three WiFi eras feel like in a seat, and the page
-     /methodology/ hands the reader on to. Monthly, and that is not laziness:
-     unlike every other route here it interpolates nothing from data.json, so a
-     daily rebuild would republish identical bytes under a fresh lastmod and
-     teach crawlers to ignore the date on all 31 routes. It changes when the
-     hardware story changes. */
   { url: '/technology/', file: 'technology/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.8' },
-  { url: '/roadmap/', file: 'roadmap/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.5' },
-  { url: '/api/docs/', file: 'api/docs/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.5' },
-  /* The written record: where the homepage's working lives after the 26 Jul
-     pivot drew the default view. */
-  { url: '/record/', file: 'record/index.html', kind: 'gen', changefreq: 'weekly', priority: '0.4' },
-  /* url is the path Cloudflare serves; file is what lands on disk. They differ
-     only here: /privacy.html 308s to /privacy, so the sitemap must advertise
-     /privacy or it is pointing crawlers at a redirect.
-     lastmod is a DECLARED CONSTANT, not the checkout's file mtime. A fresh
-     clone made on the other side of a UTC-day boundary used to change this
-     line's date in the sitemap with zero content change (P2-02); a clone has
-     no stable mtime, only the content does. Bump this by hand, on purpose,
-     the same day you actually edit build/templates/privacy.html — it is not
-     meant to track every build. */
   { url: '/privacy', file: 'privacy.html', kind: 'gen', tmpl: 'privacy', changefreq: 'yearly',
     priority: '0.3', lastmod: '2026-07-27' }
 ];
 
-AIRLINE_KEYS.forEach(function (k) {
-  ROUTES.push({
-    url: '/airlines/' + k + '/', file: 'airlines/' + k + '/index.html',
-    kind: 'gen', airline: k, changefreq: 'weekly', priority: '0.7'
-  });
-});
+/* The 18 /airlines/{key}/ routes were removed in the 28 Jul cut. AIRLINE_KEYS
+   stays: prerender.js and functions/_lib/mcp.mjs still import it. */
 
 /* Not in the sitemap; Cloudflare Pages serves it for any unmatched path. */
 var UNLISTED = [{ url: '/404.html', file: '404.html', kind: 'gen' }];

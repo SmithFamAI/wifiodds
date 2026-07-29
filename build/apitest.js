@@ -357,6 +357,13 @@ function checkDarkTokenTwins() {
 }
 
 async function checkTrackerGate() {
+  /* The /united/ optimizer PAGE was removed in the 28 Jul 2026 three-page cut, so
+     fetchLive() no longer ships anywhere on the site and there is no built
+     united/index.html to extract it from. This gate proxied the SHIPPED page's
+     tracker-input validation (P0-02, round 5); with the page gone, its subject is
+     gone too. The extension keeps its own copy and its own tests. Reactivates
+     automatically if /united/ ever returns to the build. */
+  if (!fs.existsSync(path.join(ROOT, 'united', 'index.html'))) return;
   var snippet = loadTrackerGateSource();
   ok(!!snippet, 'tracker gate: located fetchLive() and its helpers in the BUILT united/index.html');
   if (!snippet) return;
@@ -1397,29 +1404,10 @@ async function main() {
   /* ── 3. PARITY: one formula, proved against the rendered HTML ─────────────
    * Not "both call the same function" — that is what we believe. This reads the
    * bytes of the page a visitor gets and demands the API agree with them. */
-  var page = fs.readFileSync(path.join(ROOT, 'airlines', 'qatar', 'index.html'), 'utf8');
-  var seen = {
-    title: /<title>Qatar Airways WiFi — ConnectScore (\d+):/.exec(page),
-    ring: /<text class="ring-n"[^>]*>(\d+)<\/text>/.exec(page),
-    stat: /<div class="n">(\d+)<\/div><div class="l">ConnectScore<\/div>/.exec(page),
-    math: /= (\d+) \/ 100/.exec(page)
-  };
-  Object.keys(seen).forEach(function (k) {
-    ok(seen[k] !== null, 'qatar page: could not find the score in the ' + k);
-  });
-  var rendered = Object.keys(seen).map(function (k) { return seen[k] ? Number(seen[k][1]) : -1; });
-  ok(rendered.every(function (n) { return n === rendered[0]; }),
-    'the four places /airlines/qatar/ prints its score disagree with each other', rendered);
-  /* 54.3 + 3.7 + 0 = 58. CORRECTED 2026-07-26 alongside the 140 → 120 src fix
-     in assets/airlines.js: the Starlink row shrank to 120 and the 20-aircraft
-     gap moved to unresolved, out of the denominator, so `known` is 221 rather
-     than 241. The segmented score is 120/221 Starlink at leo/free (+54.3),
-     plus the 53 pre-Starlink widebodies on Inmarsat or SITA at the legacy
-     weight and a paid factor (+3.7), plus the 48 aircraft Qatar has never
-     listed as connected in a zero row. */
-  eq(rendered[0], 58, 'the rendered /airlines/qatar/ page shows 58');
-  eq(qr.airline.connectScore, rendered[0],
-    'PARITY: the API score for qatar equals the score rendered on /airlines/qatar/');
+/* The /airlines/qatar/ detail page was removed in the 28 Jul cut, so the
+     render-vs-API parity that read its bytes is retired with it. The API-side
+     assertions below still pin qatar's numbers. */
+  
   eq(qr.airline.connectScore, 58, 'PARITY: the API score for qatar is 58');
   /* next-gen odds move with the same correction: 120/221, not 140/241. */
   eq(qr.airline.nextGenScore, 54, 'qatar next-gen odds are 54 — the Starlink row alone, corrected denominator');
@@ -1472,10 +1460,11 @@ async function main() {
   ok(/data-nextgen="0" data-streaming="[\d.]+">[\s\S]{0,400}<span class="airname">Delta<\/span>/.test(home),
     'the Delta Big 4 card ranks next-gen at a real 0, not blank and not projected');
 
-  /* ── all 18 board rows: one <a class="row"> per airline, key read off the
-   * href (/airlines/<key>/) rather than off data-name, which carries the
-   * filter's "name code" string instead of the model key. */
-  var rowRe = /<a class="row ([a-z]+)" href="https:\/\/wifiodds\.com\/airlines\/([a-z]+)\/"[^>]*data-rankable="(true|false)"[^>]*data-score="(\d+)"[^>]*data-odds="(-?[\d.]+)"[^>]*data-floor="(-?[\d.]+)"[^>]*?(data-floor-uncertain="true")?>([\s\S]*?)<\/a>/g;
+/* ── all 18 board rows: one <div class="row"> per airline. The rows were
+   * delinked in the 28 Jul cut (the airline detail pages they linked to are
+   * gone), so the model key is read off the explicit data-key attribute that
+   * homeRow now emits, rather than off the old /airlines/<key>/ href. */
+  var rowRe = /<div class="row ([a-z]+)" data-key="([a-z]+)"[^>]*data-rankable="(true|false)"[^>]*data-score="(\d+)"[^>]*data-odds="(-?[\d.]+)"[^>]*data-floor="(-?[\d.]+)"[^>]*?(data-floor-uncertain="true")?>([\s\S]*?<small>ConnectScore<\/small><\/div>)<\/div>/g;
   var boardRows = [];
   var mRow;
   while ((mRow = rowRe.exec(home)) !== null) {
@@ -1556,23 +1545,10 @@ async function main() {
   eq(ranked.slice(0, 3).map(function (r) { return r.key; }).join(','), 'jsx,zipair,airbaltic',
     'the first three ranked rows are JSX, ZIPAIR, airBaltic, all at 100');
 
-  /* /race/ must print the same next-gen share the API reports for each airline */
-  var racePage = fs.readFileSync(path.join(ROOT, 'race', 'index.html'), 'utf8');
-  var raceMissing = all.airlines.filter(function (a) {
-    return racePage.indexOf('/airlines/' + a.key + '/') < 0;
-  });
-  eq(raceMissing.length, 0, '/race/ links every scored airline',
-    raceMissing.map(function (a) { return a.key; }));
-  ok(/Amazon Leo/.test(racePage), '/race/ names Amazon Leo');
-  var sysPage = fs.readFileSync(path.join(ROOT, 'systems', 'index.html'), 'utf8');
-  ok(/Amazon Leo/.test(sysPage), '/systems/ names Amazon Leo');
-  /* toFixed(2), not toFixed(1): the weights are 0.55 / 0.22 / 0.12 now, and
-     (0.55).toFixed(1) prints "0.6" — the old assertion would have passed while
-     the page printed a weight the scoring does not use. */
-  ok(sysPage.indexOf(A.SYSTEM_QUALITY.viasat.toFixed(2)) !== -1,
-    '/systems/ prints the Viasat quality weight straight from the scoring table');
-  ok(sysPage.indexOf(A.SYSTEM_QUALITY.panasonic.toFixed(2)) !== -1,
-    '/systems/ prints the legacy GEO weight straight from the scoring table');
+/* /race/ was removed in the 28 Jul cut; its render checks go with it. */
+
+/* /systems/ was removed in the 28 Jul cut; its weight-echo checks go with it. */
+  
 
   /* and the generated module really is a verbatim copy, not a second hand-typed
    * implementation that happens to agree today */
@@ -1585,14 +1561,10 @@ async function main() {
     'node build/prerender.js (it regenerates it) and never hand-edit the generated file');
   ok(/DO NOT EDIT/.test(genSrc), 'score.mjs carries its generated-file warning');
 
-  /* the docs page exists and is the page we think it is */
-  var docs = fs.readFileSync(path.join(ROOT, 'api', 'docs', 'index.html'), 'utf8');
-  ok(/<title>ConnectScore API/.test(docs), '/api/docs/ has the API title');
-  ok(docs.indexOf('/api/score/{flightNumber}') !== -1,
-    '/api/docs/ still names the retired score endpoint, so a bookmark leads somewhere');
-  ok(/410/.test(docs) && /retired/i.test(docs),
-    '/api/docs/ says the score endpoint is retired (410), not just documents it as live');
-  ok(/href="\/api\/docs\/"/.test(docs), '/api/docs/ is linked from the shared footer');
+/* /api/docs/ was removed in the 28 Jul cut. The JSON endpoints it documented
+     (functions/api/*) still ship and are exercised directly above; the HTML page
+     and its footer-link assertion are retired with the page. */
+
 
   /* ── unpublished means unpublished on EVERY surface, not just the board ───
    * An external audit found Air France and SAS publishing "Next-gen odds …
@@ -1691,9 +1663,16 @@ async function main() {
       if (TEXTY.indexOf(path.extname(e.name)) >= 0) builtFiles.push(full);
     });
   })(ROOT);
-  ok(builtFiles.length >= 30,
-    'the unpublished sweep found the built surfaces to walk',
-    builtFiles.length + ' text-bearing files');
+  var mustWalk = require(path.join(__dirname, 'routes.js')).ROUTES
+    .filter(function (r) { return r.file && /\.(html|txt|json|xml)$/.test(r.file); })
+    .map(function (r) { return path.join(ROOT, r.file); })
+    .concat([path.join(ROOT, 'llms.txt'), path.join(ROOT, 'sitemap.xml'),
+             path.join(ROOT, 'robots.txt'), path.join(ROOT, 'united', 'data.json')]);
+  var missWalk = mustWalk.filter(function (f) { return builtFiles.indexOf(f) < 0; });
+  eq(missWalk.length, 0,
+    'the unpublished sweep walked every built route file plus the machine surfaces, '+
+    'derived from routes.js rather than a magic count',
+    missWalk.map(function (f) { return path.relative(ROOT, f); }).join(', '));
   /* RECORD-AWARE, because a flat text scan is not.
      The first version stripped tags and matched name-to-number across up to 120
      characters. That crossed row boundaries: "Air France" reached into Air
@@ -1761,7 +1740,7 @@ async function main() {
   });
   ok(ldChecked > 0, 'JSON-LD blocks were parsed and inspected', ldChecked + ' blocks');
   unpubSurfaces += builtFiles.length * unpubKeys.length;
-  ok(unpubSurfaces >= unpubKeys.length * 30,
+  ok(unpubSurfaces >= unpubKeys.length * builtFiles.length,
     'the unpublished check reached every built text surface, derived from disk ' +
     'rather than from a list somebody remembered to update',
     unpubSurfaces + ' surface reads for ' + unpubKeys.length + ' airlines');
@@ -1955,44 +1934,11 @@ async function main() {
     'no element boundary welds two values into a number or word that is in neither',
     weldBad.slice(0, 6).join(' · '));
 
-  /* ── the next-gen label must round-trip to the next-gen score ─────────────
-   * Both halves worked and the wiring between them was crossed, which is the
-   * failure shape nothing throws on. The cell prints "N/M flying" above a
-   * score, in two different spans, and until 27 Jul 2026 nothing compared
-   * them. American read "890/989 flying" over a score of 0, because 890 is
-   * its VIASAT count; United read "482/1,807" over 31, because 31 is
-   * 482/1,580. Both rendered perfectly.
-   *
-   * So this asserts the description against the behaviour: parse the printed
-   * pair back out of the built HTML and demand it produces the printed score. */
-  /* The label's last word is "flying" when the denominator is the whole
-     fleet, "published" when it is the published-system subset (United). The
-     round-trip check accepts both; a cell with any OTHER wording would fall
-     out of ngChecked and trip the count floor below. */
-  var boardHtml = fs.readFileSync(path.join(ROOT, 'airlines', 'index.html'), 'utf8');
-  var ngCells = boardHtml.match(
-    /<td class="num vcell[^"]*" data-col="nextgen">\s*<span class="lab">([\d,]+)\/([\d,]+) (?:flying|published)<\/span>\s*<span class="sco">(\d+)%?<\/span>/g) || [];
-  var ngChecked = 0, ngBad = [];
-  ngCells.forEach(function (cell) {
-    var m = /<span class="lab">([\d,]+)\/([\d,]+) (?:flying|published)<\/span>\s*<span class="sco">(\d+)%?<\/span>/.exec(cell);
-    if (!m) return;
-    var n = Number(m[1].replace(/,/g, ''));
-    var of = Number(m[2].replace(/,/g, ''));
-    var score = Number(m[3]);
-    ngChecked++;
-    if (of <= 0) { ngBad.push('denominator 0 in "' + m[1] + '/' + m[2] + '"'); return; }
-    var implied = Math.round((n / of) * 100);
-    if (implied !== score) {
-      ngBad.push('"' + m[1] + '/' + m[2] + ' flying" implies ' + implied +
-        ' but the cell prints ' + score);
-    }
-  });
-  ok(ngChecked >= 10,
-    'found next-gen cells on /airlines/ to check (a selector that matches nothing ' +
-    'is a green light from something that was not looking)', ngChecked + ' cells');
-  eq(ngBad.length, 0,
-    'every next-gen "N/M flying" label round-trips to the score printed beside it',
-    ngBad.join(' · '));
+/* The /airlines/ leaderboard table was removed in the 28 Jul cut, so its
+   * N/M-flying round-trip is retired. The homepage board carries the same
+   * guarantee in the PARITY second-axis block above: each row's displayed
+   * odds/floor is checked against its own data-odds/data-floor and the API. */
+
 
   /* ── .needs-js may hide, and may not un-hide ──────────────────────────────
    * On 26 Jul 2026 `html.js .needs-js{display:revert}` shipped alongside the
@@ -2018,9 +1964,14 @@ async function main() {
     'site.css has NO `html.js .needs-js` rule — such a rule outranks the layout ' +
     'on the element itself and silently flattens it for JS-on readers');
 
-  /* and the reason it matters: .needs-js really does sit on elements whose own
-   * rules give them a non-block display. If that ever stops being true this
-   * count goes to 0 and the guard above is protecting nothing, so assert it. */
+  /* Before the 28 Jul cut this asserted the guard was load-bearing: .needs-js
+   * really sat on non-block elements (the segctrl/rank-by controls), so the
+   * revert bug could bite. Those controls were on the deleted interior pages.
+   * No surviving page uses .needs-js now, so the guard is DORMANT — the two
+   * site.css assertions above still stop the 26 Jul revert rule from returning,
+   * but there is no rendered element for it to protect today. The check below
+   * asserts that dormant state, and flips to a failure the moment a page brings
+   * .needs-js back without restoring the load-bearing check. */
   var DISPLAY_CLASSES = {};
   css.replace(/(^|\})\s*([^{}@]+)\{([^}]*)\}/g, function (_, __, sel, body) {
     var d = /display\s*:\s*([a-z-]+)/.exec(body);
@@ -2044,9 +1995,11 @@ async function main() {
     });
   });
   atRisk = atRisk.filter(function (v, i, a) { return a.indexOf(v) === i; }).sort();
-  ok(atRisk.length > 0,
-    '.needs-js sits on at least one element with its own non-block display, so the ' +
-    'no-`html.js .needs-js` guard above is load-bearing', atRisk.join(' '));
+  eq(atRisk.length, 0,
+    'no surviving page carries a .needs-js element with a non-block display; the ' +
+    'site.css needs-js guard is dormant by design after the 28 Jul cut (if this ' +
+    'fails, a page reintroduced .needs-js — restore the load-bearing check above)',
+    atRisk.join(' '));
 
   /* ── POST /api/report — the field-report intake ───────────────────────────
    * Same method as the MCP section above: wrangler is not installed, so the
@@ -2343,8 +2296,8 @@ async function main() {
   }
   console.log('ConnectScore API acceptance OK — ' + checks + ' checks, ' + files.length +
     ' function files syntax-checked.');
-  console.log('  parity: /airlines/qatar/ renders ' + rendered[0] + ' in ' + rendered.length +
-    ' places · API /api/airlines/qatar returns ' + qr.airline.connectScore);
+  console.log('  parity: /api/airlines/qatar returns connectScore ' + qr.airline.connectScore +
+    ' (the /airlines/qatar/ detail page was removed in the 28 Jul cut)');
   console.log('  /api/airlines: ' + all.count + ' airlines, ' + all.airlines[0].name + ' ' +
     all.airlines[0].connectScore + ' → ' + all.airlines[all.airlines.length - 1].name + ' ' +
     all.airlines[all.airlines.length - 1].connectScore);
@@ -2366,9 +2319,10 @@ async function main() {
     'the outbound payload · published:false on every stored row · the cap is ' + RPT.RATE_CAP +
     ' per hashed address per hour · ' + loaded.count + ' published report' +
     (loaded.count === 1 ? '' : 's') + ' committed in assets/reports.json');
-  console.log('  tracker gate: ' + trackerGateChecks + ' checks · a 500 with a valid MCP body, a ' +
-    'wrong-route 200, and null/bool/partial-numeric-string coercion all write zero cache keys · ' +
-    'the valid DEN→SFO control still caches and reads live');
+  console.log('  tracker gate: ' + (trackerGateChecks
+    ? trackerGateChecks + ' checks: 500s, wrong-route 200s and null/bool/partial-numeric '+
+      'coercion all write zero cache keys'
+    : 'retired: the /united/ page and its shipped fetchLive gate left the site in the 28 Jul cut'));
 }
 
 main().catch(function (e) {

@@ -258,14 +258,13 @@ function chipDate(iso) {
  * not a store link: the store surfaces are Google's badge, twice on the
  * homepage, plus United's #plugin block, and the masthead is not one of them. */
 var NAV = [
-  ['/airlines/', 'Airlines'],
-  /* /race/ earns a global slot because it is the one page that is about the whole
-     industry rather than one carrier — it replaced a homepage section that was
-     three views of United. /systems/ deliberately does NOT get one: it is
-     evergreen reference reached from the footer, the homepage teaser and /race/,
-     and a four-item nav plus the CTA is already the mobile limit. */
-  ['/race/', 'The Race'],
-  ['/roadmap/', 'Roadmap']
+  /* The three-page site (28 Jul cut). This shared masthead renders only on
+     /privacy and 404, because /, /methodology/ and /technology/ are
+     whole-document templates carrying their own nav. It lists the two content
+     pages; Extension is appended just below, so nav, homepage footer and the
+     sitemap all agree on what the site is. */
+  ['/methodology/', 'Methodology'],
+  ['/technology/', 'Technology']
 ];
 
 /* Airline sections. Key = section id passed as page({section:…}); the active tab
@@ -296,7 +295,7 @@ function subnav(section, here, label) {
   if (!s) {
     /* single-page airline — no tabs to offer, just the way back */
     return '<nav class="subnav lone" aria-label="Airline">' +
-      '<a class="sn-back" href="/airlines/">← All airlines</a>' +
+      '← All airlines' +
       (label ? '<span class="sn-air">' + esc(label) + '</span>' : '') + '</nav>\n';
   }
   return '<nav class="subnav" aria-label="' + esc(s.label) + ' pages">' +
@@ -305,7 +304,7 @@ function subnav(section, here, label) {
       return '<a class="sn-tab" href="' + t[0] + '"' +
         (t[0] === here ? ' aria-current="page"' : '') + '>' + t[1] + '</a>';
     }).join('') +
-    '<a class="sn-back" href="/airlines/">All airlines →</a></nav>\n';
+    'All airlines →</nav>\n';
 }
 
 /* THE EXTENSION BANNER IS GONE — round seven, 27 Jul 2026. It was a full-width
@@ -452,18 +451,13 @@ function footer(updated, refreshAttemptedOn, wasRetained) {
        pixel target would be trading a fence for a layout. The homepage footer had
        in fact dropped the tracker credit while still printing 484 and 1,807, and
        the fix went in that direction rather than this one. */
-    '  <div class="flinks"><a href="/airlines/">Airlines</a><a href="/race/">The Race</a>' +
-    /* Methodology is linked from the FOOTER and from the leaderboard's caveat, not
-       from the masthead: the global nav stays three items plus the Extension link,
-       and a provenance page is something a reader goes looking for rather than
-       something that needs to compete with "Airlines" on every screen. */
-    '<a href="/methodology/">Methodology</a>' +
-    /* /api/docs/ stays in this row and it is not decoration: `build/apitest.js`
-       asserts the shared footer links it, because the footer is its ONLY inbound
-       link anywhere on the site. Trimming this row to four on 28 Jul dropped it
-       and the gate refused the push, correctly. If the API ever gets a home in
-       the nav or a parent page, that assertion is the thing to update first. */
-    '<a href="/api/docs/">API</a>' +
+    /* Three-page footer (28 Jul cut): Methodology, Technology, Privacy. The old
+       row also carried Airlines, The Race and an /api/docs/ link; all three
+       routes were 301'd to / and their links went with them. /api/docs/ was the
+       API page's only inbound link, so its apitest footer-link assertion was
+       removed in the same change rather than left to fail. */
+    '  <div class="flinks"><a href="/methodology/">Methodology</a>' +
+    '<a href="/technology/">Technology</a>' +
     '<a href="/privacy">Privacy</a></div>\n' +
     '  <div class="frow">Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> ' +
     '· <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> ' +
@@ -490,7 +484,7 @@ function footer(updated, refreshAttemptedOn, wasRetained) {
        rather than denying it. `build/apitest.js` asserts that any page writing
        to storage is named here. */
     '  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension. ' +
-    'Nothing about you is stored in your browser; <a href="/united/">the United route optimiser</a> ' +
+    'Nothing about you is stored in your browser; the United route optimiser ' +
     'caches the route lists it fetches, and that is the only thing this site writes. ' +
     'What the server keeps is on the <a href="/privacy">privacy page</a>.</div>\n' +
     '  <div class="frow">' + THEME_SENTENCE + '</div>\n' +

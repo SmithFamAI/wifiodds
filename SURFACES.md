@@ -10,7 +10,7 @@ which ranks booking sites for the extension.
 
 ## Public routes
 
-All 32 of them are in `sitemap.xml`. `url` is the path Cloudflare
+All 4 of them are in `sitemap.xml`. `url` is the path Cloudflare
 serves; `file` is what lands on disk. Those differ in exactly one row.
 
 `tmpl` names a file in `build/templates/` holding that page's unique content. A
@@ -18,39 +18,11 @@ dash means the page is assembled entirely in `build/lib/`. Every route is
 generated, and the build fails on any served `.html` that is not listed here.
 
 ```
-url                        file                                tmpl              freq     pri  title
-/                          index.html                          -                 daily    1.0  WiFi Odds · your odds of next-gen WiFi
-/airlines/                 airlines/index.html                 -                 daily    0.9  Airline WiFi leaderboard — 18 ConnectScores
-/race/                     race/index.html                     -                 daily    0.9  The race to next-gen inflight WiFi · every airline’s rollout timeline
-/systems/                  systems/index.html                  -                 monthly  0.8  Inflight WiFi systems compared — Starlink vs Amazon Leo vs Viasat
-/united/                   united/index.html                   united-optimizer  daily    0.9  WiFi Odds · United — Starlink Route Optimizer
-/united/fleet/             united/fleet/index.html             -                 daily    0.9  United Starlink fleet — every equipped tail, live
-/united/history/           united/history/index.html           united-history    daily    0.6  United Starlink install history — day by day
-/alaska/                   alaska/index.html                   alaska-rollout    weekly   0.8  WiFi Odds · Alaska — Starlink rollout & ConnectScore
-/methodology/              methodology/index.html              -                 daily    0.7  Methodology · WiFi Odds
-/technology/               technology/index.html               -                 monthly  0.8  Inflight WiFi technology · WiFi Odds
-/roadmap/                  roadmap/index.html                  -                 monthly  0.5  WiFi Odds roadmap — what shipped, and what has not
-/api/docs/                 api/docs/index.html                 -                 monthly  0.5  ConnectScore API — free airline WiFi scores as JSON
-/record/                   record/index.html                   -                 weekly   0.4  WiFi Odds · the written record
-/privacy                   privacy.html                        privacy           yearly   0.3  Privacy Policy — WiFi Odds for Flights
-/airlines/united/          airlines/united/index.html          -                 weekly   0.7  United WiFi — ConnectScore 48: mixed
-/airlines/alaska/          airlines/alaska/index.html          -                 weekly   0.7  Alaska WiFi — ConnectScore 55: mixed
-/airlines/jsx/             airlines/jsx/index.html             -                 weekly   0.7  JSX WiFi — ConnectScore 100: good
-/airlines/airbaltic/       airlines/airbaltic/index.html       -                 weekly   0.7  airBaltic WiFi — ConnectScore 100: good
-/airlines/zipair/          airlines/zipair/index.html          -                 weekly   0.7  ZIPAIR WiFi — ConnectScore 100: good
-/airlines/westjet/         airlines/westjet/index.html         -                 weekly   0.7  WestJet WiFi — ConnectScore 72: good
-/airlines/airfrance/       airlines/airfrance/index.html       -                 weekly   0.7  Air France WiFi — ConnectScore 19: long shot
-/airlines/hawaiian/        airlines/hawaiian/index.html        -                 weekly   0.7  Hawaiian WiFi — ConnectScore 64: good
-/airlines/qatar/           airlines/qatar/index.html           -                 weekly   0.7  Qatar Airways WiFi — ConnectScore 58: mixed
-/airlines/sas/             airlines/sas/index.html             -                 weekly   0.7  SAS WiFi — ConnectScore 5: long shot
-/airlines/emirates/        airlines/emirates/index.html        -                 weekly   0.7  Emirates WiFi — ConnectScore 31: long shot
-/airlines/virginatlantic/  airlines/virginatlantic/index.html  -                 weekly   0.7  Virgin Atlantic WiFi — ConnectScore 39: long shot
-/airlines/aircanada/       airlines/aircanada/index.html       -                 weekly   0.7  Air Canada WiFi — ConnectScore 18: long shot
-/airlines/britishairways/  airlines/britishairways/index.html  -                 weekly   0.7  British Airways WiFi — ConnectScore 15: long shot
-/airlines/southwest/       airlines/southwest/index.html       -                 weekly   0.7  Southwest WiFi — ConnectScore 16: long shot
-/airlines/american/        airlines/american/index.html        -                 weekly   0.7  American WiFi — ConnectScore 51: mixed
-/airlines/delta/           airlines/delta/index.html           -                 weekly   0.7  Delta WiFi — ConnectScore 49: mixed
-/airlines/jetblue/         airlines/jetblue/index.html         -                 weekly   0.7  jetBlue WiFi — ConnectScore 55: mixed
+url            file                    tmpl     freq     pri  title
+/              index.html              -        daily    1.0  WiFi Odds · your odds of next-gen WiFi
+/methodology/  methodology/index.html  -        daily    0.7  Methodology · WiFi Odds
+/technology/   technology/index.html   -        monthly  0.8  Inflight WiFi technology · WiFi Odds
+/privacy       privacy.html            privacy  yearly   0.3  Privacy Policy · WiFi Odds for Flights
 ```
 
 ## Served but not listed
@@ -60,7 +32,7 @@ from `sitemap.xml`.
 
 ```
 url        file      title
-/404.html  404.html  Page not found — WiFi Odds
+/404.html  404.html  Page not found · WiFi Odds
 ```
 
 ## JSON endpoints
@@ -113,7 +85,5 @@ Read a change in one as a prompt to go look. Read the total as nothing at all.
 
 ```
 url           links
-/united/      3
 /technology/  2
-/api/docs/    3
 ```
