@@ -329,7 +329,7 @@ function homeHeadExtra(m) {
     '<meta property="og:image" content="' + ogImg + '">\n' +
     '<meta property="og:image:width" content="1200">\n' +
     '<meta property="og:image:height" content="630">\n' +
-    '<meta property="og:image:alt" content="WiFi Odds · know before you book">\n' +
+    '<meta property="og:image:alt" content="WiFi Odds · what are your odds of next-gen WiFi? Starlink and Amazon Leo odds across 18 airlines.">\n' +
     '<meta name="twitter:card" content="summary_large_image">\n' +
     '<meta name="twitter:title" content="' + esc(title) + '">\n' +
     '<meta name="twitter:description" content="' + esc(desc) + '">\n' +

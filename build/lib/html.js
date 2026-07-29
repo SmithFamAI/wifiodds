@@ -531,7 +531,10 @@ function socialTags(title, desc, url) {
     '<meta property="og:image" content="' + ogImg + '">\n' +
     '<meta property="og:image:width" content="1200">\n' +
     '<meta property="og:image:height" content="630">\n' +
-    '<meta property="og:image:alt" content="WiFi Odds — know before you book">\n' +
+    /* Alt text describes the CARD, and the card was redrawn on 28 Jul 2026. The
+     old line was the pre-pivot framing, and alt text is the one part of a
+     social card a screen reader user gets instead of the image. */
+    '<meta property="og:image:alt" content="WiFi Odds · what are your odds of next-gen WiFi? Starlink and Amazon Leo odds across 18 airlines.">\n' +
     '<meta name="twitter:card" content="summary_large_image">\n' +
     '<meta name="twitter:title" content="' + title + '">\n' +
     '<meta name="twitter:description" content="' + desc + '">\n' +
