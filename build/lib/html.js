@@ -497,23 +497,27 @@ function page(o) {
     '<meta name="twitter:title" content="' + title + '">\n' +
     '<meta name="twitter:description" content="' + desc + '">\n' +
     '<meta name="twitter:image" content="' + ORIGIN + '/assets/og.png?v=' + assetHash('assets/og.png') + '">\n' +
-    /* Source Serif 4, self-hosted, both weights preloaded: the 700 sets the
-     * heading and the 400 sets the say-sentence, and both are on the first screen
-     * of every route. The reporting voice is system-ui and costs no request at
-     * all. `crossorigin` is required even same-origin — a font preload without it
-     * is fetched twice. Nothing here, and nothing in site.css, points at a third
-     * party.
+    /* NO FONT PRELOAD, since 28 Jul 2026. Source Serif 4 was self-hosted and both
+     * weights were preloaded here, because the heading and the say-sentence took
+     * the serif on every route's first screen. The approved interior system
+     * unified the site on one stack (see the --serif / --sans note in
+     * assets/site.css), so nothing rendered by these generators asks for the
+     * serif any more, and preloading a font no rule requests is two wasted
+     * round-trips per cold load plus a browser console warning.
      *
-     * THESE TWO URLS CARRY NO ?v= HASH, AND THAT IS DELIBERATE. A preload only
-     * counts if its URL matches the @font-face `src` byte for byte, and that src
-     * lives in static CSS which cannot interpolate a hash. Hashing here would
-     * preload one URL and then fetch a second one — two downloads of the same
-     * font on every cold load, which is worse than the stale-cache risk it would
-     * be solving. Fonts change about once a redesign; when the bytes change,
-     * change the FILENAME (and the three places that name it: this block,
-     * assets/site.css @font-face, build/routes.js REQUIRED). */
-    '<link rel="preload" href="/assets/serif-400.woff2" as="font" type="font/woff2" crossorigin>\n' +
-    '<link rel="preload" href="/assets/serif-700.woff2" as="font" type="font/woff2" crossorigin>\n' +
+     * assets/serif-{400,700}.woff2 and their two @font-face blocks are still
+     * committed and still listed in build/routes.js REQUIRED. That is deliberate
+     * and it is not dead weight by accident: they are no longer FETCHED, only
+     * present, so restoring a serif voice later is a token change rather than a
+     * font pipeline. If you delete them, delete all three references together
+     * (this block is already clear of them, so: assets/site.css @font-face and
+     * build/routes.js REQUIRED).
+     *
+     * If you ever reinstate a preload here, note that its URL must carry NO ?v=
+     * hash: a preload only counts when it matches the @font-face `src` byte for
+     * byte, and that src lives in static CSS which cannot interpolate a hash.
+     * Hashing would preload one URL and fetch a second. Change the FILENAME when
+     * the bytes change instead. */
     '<link rel="stylesheet" href="/assets/site.css?v=' + assetHash('assets/site.css') + '">\n' +
     (o.extraHead || '') +
     (o.jsonld || []).map(ld).join('\n') + '\n' +

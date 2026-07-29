@@ -87,8 +87,15 @@
 
 :root{
   /* ── the two voices, plus code ── */
-  --serif:"Source Serif 4",Charter,"Bitstream Charter","Iowan Old Style",Georgia,"Times New Roman",serif;
-  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  /* ONE FACE, 28 Jul 2026. The approved interior system (Codex, round 16) sets
+     Inter on <body> and overrides nothing but .mono, and the V5 homepage does the
+     same. Interior routes were still rendering headings in Source Serif 4 while
+     the homepage rendered Inter, so a visitor crossing from / to /united/fleet/
+     changed typeface mid-session. Both tokens now resolve to the same stack.
+     The names are kept because ~40 rules reference them; --serif now means
+     "display" and --sans means "UI", not two different faces. */
+  --serif:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --sans:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --mono:ui-monospace,"SF Mono",Menlo,"DejaVu Sans Mono",Consolas,monospace;
 
   color-scheme:light;
@@ -282,8 +289,15 @@ body{
 a{color:var(--link);text-decoration:underline;text-underline-offset:2px;
   text-decoration-thickness:1px}
 a:hover{text-decoration-thickness:2px}
-h1,h2,h3,h4{font-family:var(--serif);color:var(--ink);font-weight:700;letter-spacing:-.012em;
-  line-height:1.18}
+/* Tracking is per-size, not one value. Inter needs far tighter tracking than
+   Source Serif 4 did at display sizes and roughly the same at body sizes, so a
+   single -.012em would have left every heading looking loose after the face
+   change. The steps below match the approved system: -.055em at 36-60px,
+   -.035em at 22px, -.03em at 19px. */
+h1,h2,h3,h4{font-family:var(--serif);color:var(--ink);font-weight:750;
+  letter-spacing:-.03em;line-height:1.14}
+h1{letter-spacing:-.045em}
+h2{letter-spacing:-.038em}
 /* THE SPEAKING VOICE. Anything that sounds like a colleague talking takes the
    serif; anything that reports takes the sans. Read the block aloud if unsure. */
 .say,.lede,.sec-lede,.callout p,.moves b,dl.loop dt{font-family:var(--serif)}
@@ -507,7 +521,7 @@ html{scroll-padding-top:calc(var(--sticky-header-height) + .5rem)}
 .hero:before{content:"";position:absolute;width:18rem;height:14rem;right:0;top:-4rem;
   background:radial-gradient(circle,rgba(41,216,255,.16),rgba(146,108,255,.08) 46%,transparent 70%);
   filter:blur(10px);pointer-events:none}
-.hero h1{position:relative;font-size:clamp(1.9rem,5.2vw,3rem);line-height:1.12;letter-spacing:-.015em;
+.hero h1{position:relative;font-size:clamp(1.9rem,5.2vw,3rem);line-height:1.02;letter-spacing:-.05em;
   max-width:21ch}
 h1.ph{font-size:clamp(1.7rem,4vw,2.4rem);line-height:1.14;margin:.5rem 0 0}
 /* the second line of the hero, one step down the scale */
