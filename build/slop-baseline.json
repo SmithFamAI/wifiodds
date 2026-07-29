@@ -277,6 +277,14 @@
       "pivotPer1000": 2.93,
       "pivotUnits": 2.25
     },
+    "robots.txt": {
+      "words": 175,
+      "llmPoints": 1,
+      "clichePoints": 0,
+      "unsub": 0,
+      "pivotPer1000": 5.71,
+      "pivotUnits": 1
+    },
     "systems/index.html": {
       "words": 2057,
       "llmPoints": 2,
