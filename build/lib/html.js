@@ -638,5 +638,10 @@ module.exports = {
      essentials, for the whole-document routes that skip page() entirely
      (/methodology/ and /technology/). One copy, so a change to the social card
      reaches every route including the ones page() never sees. */
-  socialTags: socialTags, headEssentials: headEssentials
+  socialTags: socialTags, headEssentials: headEssentials,
+  /* REPO_SITE/REPO_EXT: only the `REPO` alias was exported, so render.js could
+     name one repository and not the other. siteLd() lists both as the
+     Organization's sameAs, and they have to be the same constants the footer
+     links or the structured data would claim a repository the page does not. */
+  REPO_SITE: REPO_SITE, REPO_EXT: REPO_EXT
 };

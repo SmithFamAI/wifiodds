@@ -41,6 +41,38 @@ function datasetLd(m) {
     }]
   };
 }
+/* THE SITE'S IDENTITY, and until 28 Jul 2026 the homepage had none at all.
+ * Organization and WebSite existed in this file only NESTED inside other types
+ * (a Dataset's `creator`, an Article's `author`), never as top-level nodes, and
+ * the V5 homepage does not go through H.page() so it emitted no ld+json
+ * whatsoever — measured on production: zero `application/ld+json` blocks on the
+ * one page that ranks and the one page an answer engine is most likely to cite.
+ * The interior routes had five types; the homepage had none.
+ *
+ * `@id` on both so the nested references elsewhere in this file resolve to the
+ * same node rather than declaring a second, parallel organisation.
+ *
+ * sameAs is the two real repositories and nothing else. There is no company
+ * Twitter, no LinkedIn page and no Crunchbase entry, and listing a profile that
+ * does not exist is the structured-data version of inventing a figure. */
+function siteLd() {
+  return [{
+    '@context': 'https://schema.org', '@type': 'Organization',
+    '@id': ORIGIN + '/#org',
+    name: 'WiFi Odds', url: ORIGIN + '/',
+    logo: ORIGIN + '/assets/og.png',
+    description: 'An independent, unofficial index of inflight WiFi, focused on which aircraft ' +
+      'carry next-generation low-earth-orbit systems.',
+    sameAs: [H.REPO_SITE, H.REPO_EXT]
+  }, {
+    '@context': 'https://schema.org', '@type': 'WebSite',
+    '@id': ORIGIN + '/#site',
+    name: 'WiFi Odds', url: ORIGIN + '/',
+    publisher: { '@id': ORIGIN + '/#org' },
+    inLanguage: 'en'
+  }];
+}
+
 function crumbLd(items) {
   return {
     '@context': 'https://schema.org', '@type': 'BreadcrumbList',
@@ -301,7 +333,9 @@ function homeHeadExtra(m) {
     '<meta name="twitter:card" content="summary_large_image">\n' +
     '<meta name="twitter:title" content="' + esc(title) + '">\n' +
     '<meta name="twitter:description" content="' + esc(desc) + '">\n' +
-    '<meta name="twitter:image" content="' + ogImg + '">\n';
+    '<meta name="twitter:image" content="' + ogImg + '">\n' +
+    /* The homepage's structured data, added 28 Jul 2026. It had none. */
+    siteLd().map(H.ld).join('\n') + '\n';
 }
 
 /* Google's own badge art, cached under assets/cws/ (see pages.js's
@@ -2261,7 +2295,7 @@ function docHead(tpl, canonical, label) {
   function undo(s) { return s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'"); }
   return H.headEssentials({
     title: undo(t[1].trim()), desc: undo(d[1].trim()), canonical: canonical
-  });
+  }) + '\n' + siteLd().map(H.ld).join('\n') + '\n';
 }
 
 /* One landmark of each kind, asserted on the finished bytes. This is the check
