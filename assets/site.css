@@ -163,6 +163,13 @@
   --sky-bright:var(--sky);
   --gold:var(--mixed);  --green:var(--good);  --blue:var(--sky);
   --amber:var(--mixed); --red:var(--long);
+  /* Interior-system-v1 port (28 Jul 2026): the masthead CTA pill and the
+     page-head glow want the same cyan/violet pair the dark palette already
+     carries under --sky. Light mode has no --cyan/--violet of its own, so
+     these are new tokens rather than a --sky retune — the pill still reads
+     as an accent rather than a link in both themes. Dark values are set
+     alongside --sky in :root.dark and its prefers-color-scheme twin. */
+  --cyan:var(--sky); --violet:#5b4a99;
   --field-bg:var(--field);
   --shadow:none;
   --bg-glow-a:transparent; --bg-glow-b:transparent;
@@ -392,7 +399,7 @@ html{scroll-padding-top:calc(var(--sticky-header-height) + .5rem)}
    is exactly why it hid: every narrow width I tested looked correct. */
 .masthead{display:flex;align-items:baseline;gap:.6rem 1.25rem;flex-wrap:wrap;
   padding-top:1rem;padding-bottom:1rem}
-.wordmark{font-family:var(--serif);font-size:1.35rem;font-weight:700;letter-spacing:-.01em;
+.wordmark{font-family:var(--sans);font-size:1.3rem;font-weight:850;letter-spacing:-.03em;
   color:var(--ink);text-decoration:none;white-space:nowrap}
 .wordmark:hover{text-decoration:none}
 /* The orbit mark. Inline SVG drawn in currentColor; this sets the colour, and
@@ -415,6 +422,19 @@ html{scroll-padding-top:calc(var(--sticky-header-height) + .5rem)}
   line-height:2;white-space:nowrap;border-radius:8px}
 .masthead nav a:hover{color:var(--ink);background:var(--bg-inset);text-decoration:none}
 .masthead nav a[aria-current="page"]{color:var(--ink)}
+/* THE CTA PILL — ported from the approved interior system
+   (design-competition/interior-system-v1.html). One filled pill in the nav,
+   gradient cyan → violet, matching the homepage's own `.pill.primary`. It is
+   the only nav item styled as an action; its href always comes from H.EXT,
+   never a literal store URL, so a store-side redirect only has to be fixed
+   in one constant. */
+.masthead nav .pill{display:inline-flex;align-items:center;justify-content:center;
+  min-height:2.2rem;padding:0 1rem;margin-left:.3rem;border-radius:99px;
+  font-size:.78rem;font-weight:800;letter-spacing:.02em;text-transform:none;
+  line-height:1;color:#050505;background:linear-gradient(100deg,var(--cyan),var(--violet));
+  border:0;white-space:nowrap}
+.masthead nav .pill:hover{background:linear-gradient(100deg,#82eaff,#c2b0ff);color:#050505}
+.masthead nav .pill:focus-visible{outline:3px solid var(--sky);outline-offset:3px}
 .datechip{font-size:.78rem;color:var(--muted);letter-spacing:.02em;width:100%;
   padding-bottom:.15rem}
 .datechip b{color:var(--muted-strong);font-weight:600}
@@ -435,6 +455,18 @@ html{scroll-padding-top:calc(var(--sticky-header-height) + .5rem)}
 .crumb a{color:var(--link)}
 .crumb .sep{padding:0 .45rem;color:var(--muted)}
 .crumb [aria-current="page"]{color:var(--muted-strong)}
+/* The `.asof` chip — interior-system-v1.html's page-head date pill, riding
+   beside the breadcrumb rather than inside the masthead's own datechip
+   (which keeps its refresh-vs-retained language; this one is a plain
+   freshness stamp for the page's own content). `.ph-top` is the flex row
+   that holds both; pages that skip H.page({crumb}) simply never render it. */
+.ph-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.6rem}
+.ph-top .crumb{padding-top:1rem}
+.asof{display:inline-flex;align-items:center;gap:.4rem;margin-top:1rem;padding:.35rem .7rem;
+  border:1px solid var(--line);border-radius:99px;background:var(--panel);color:var(--muted-strong);
+  font:700 .68rem var(--mono);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.asof i{width:.4rem;height:.4rem;border-radius:50%;background:var(--good)}
+@media(max-width:600px){.ph-top{align-items:flex-start}}
 
 /* ── airline sub-nav: the SECOND header row ───────────────────────────────
    The masthead nav says where you are on the SITE and is identical on every
@@ -444,16 +476,38 @@ html{scroll-padding-top:calc(var(--sticky-header-height) + .5rem)}
   padding:.7rem 0;border-bottom:1px solid var(--line-soft);font-size:.9rem}
 .subnav .sn-air{font-family:var(--serif);font-weight:700;color:var(--ink);
   white-space:nowrap}
-.subnav a{white-space:nowrap}
-.subnav a[aria-current="page"]{color:var(--ink);text-decoration-thickness:2px}
+.subnav a{white-space:nowrap;padding:.3rem .6rem;border-radius:8px;text-decoration:none}
+.subnav a:hover{background:var(--bg-inset)}
+.subnav a[aria-current="page"]{color:var(--ink);text-decoration:none;background:var(--bg-inset);
+  font-weight:700}
 .subnav .sn-back{margin-left:auto;color:var(--muted)}
 .subnav.lone .sn-back{margin-left:0}
 .subnav.lone .sn-air{margin-left:auto}
 @media(max-width:560px){.subnav .sn-back{margin-left:0}.subnav.lone .sn-air{margin-left:0}}
 
 /* ── type ─────────────────────────────────────────────────────────────── */
-.hero{padding:2.4rem 0 .4rem}
-.hero h1{font-size:clamp(1.9rem,5.2vw,3rem);line-height:1.12;letter-spacing:-.015em;
+/* The page-head glow — ported from interior-system-v1.html's `.page-head`.
+   A quiet radial cyan/violet wash in the top-right corner, the same accent
+   the masthead pill carries, so a reader who scrolls from the nav into a
+   page's own header sees one continuous idea rather than two chrome
+   languages. Purely decorative: pointer-events:none, no content, no data. */
+/* overflow:hidden clips the glow below to the hero's own box. Without it the
+   glow's negative right offset added to its width pokes past `.wrap` on
+   narrow viewports and forces a real horizontal scrollbar — caught by
+   ~/websites/scripts/responsive/check.mjs ("layout N > viewport N" on
+   /united/fleet/ at every width below 1024), not by curl and not by eye on a
+   desktop browser, which is exactly the class of bug that script exists for. */
+.hero{position:relative;padding:2.4rem 0 .4rem;overflow:hidden}
+/* right:0, not a negative offset: `overflow:hidden` above stops this from
+   creating a real scrollbar either way, but a negative right still inflates
+   .hero's OWN scrollWidth (measurable even while clipped from view), which
+   re-triggers the responsive checker's per-element check with no visible
+   fault behind it. Flush to the box's own right edge, it cannot exceed
+   .hero's content width at all, in either measurement. */
+.hero:before{content:"";position:absolute;width:18rem;height:14rem;right:0;top:-4rem;
+  background:radial-gradient(circle,rgba(41,216,255,.16),rgba(146,108,255,.08) 46%,transparent 70%);
+  filter:blur(10px);pointer-events:none}
+.hero h1{position:relative;font-size:clamp(1.9rem,5.2vw,3rem);line-height:1.12;letter-spacing:-.015em;
   max-width:21ch}
 h1.ph{font-size:clamp(1.7rem,4vw,2.4rem);line-height:1.14;margin:.5rem 0 0}
 /* the second line of the hero, one step down the scale */
@@ -923,6 +977,15 @@ html.js table.tbl th[data-k][aria-sort="descending"]:after{content:"\2193";opaci
 /* ── footer ───────────────────────────────────────────────────────────── */
 footer.site{margin-top:2.8rem;border-top:1px solid var(--line);padding:1.6rem 0 2.2rem;
   color:var(--muted);font-size:.875rem}
+/* The footer brand row — interior-system-v1.html's `.footer-top`, the same
+   mark and wordmark as the masthead, linking home. It sits above the existing
+   link row rather than replacing it: every href/label build/apitest.js checks
+   (Site source, Extension source, API, Privacy, …) stays exactly where it was. */
+footer.site .ftop{display:flex;align-items:center;gap:.55rem;margin-bottom:1rem;
+  font-family:var(--sans);font-weight:850;letter-spacing:-.03em;font-size:1.05rem;
+  color:var(--ink);text-decoration:none}
+footer.site .ftop .mk{color:var(--sky)}
+footer.site .ftop:hover{text-decoration:none}
 footer.site .frow{margin-top:.6rem;max-width:52rem}
 footer.site .flinks{display:flex;gap:.5rem 1.1rem;flex-wrap:wrap;margin-bottom:.9rem;
   font-size:.9rem}

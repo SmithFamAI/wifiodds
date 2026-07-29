@@ -112,6 +112,6 @@ Read a change in one as a prompt to go look. Read the total as nothing at all.
 
 ```
 url         links
-/united/    2
-/api/docs/  2
+/united/    3
+/api/docs/  3
 ```

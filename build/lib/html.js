@@ -92,23 +92,67 @@ function ld(obj) {
  * and must survive on both a light and a dark browser chrome. Regenerate the OG
  * image with `python3 build/make-brand.py og`; it draws the same mark from the
  * same tokens. */
+/* THE NEW LOGO (round 15 design handoff, 28 Jul 2026). Satellite + airplane +
+ * odds-ring, replacing the plain orbit-ellipse mark. Source art:
+ * uploads/option-satellite-main-airplane-v4.svg; Codex's nav treatment in
+ * design-competition/interior-system-v1.html is "option (a)" — the artwork
+ * without its 1024px background tile, at a 20px glyph size. The favicon KEEPS
+ * the tile (it needs its own background, having no page to sit on) and is a
+ * static two-colour rendering, because a data-URI favicon has no CSS context
+ * for currentColor or a custom property to resolve against. */
 var FAVICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' " +
-  "viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2322455f'/%3E" +
-  "%3Cellipse cx='16' cy='16' rx='11' ry='4.6' fill='none' stroke='%23fff' " +
-  "stroke-width='2' transform='rotate(-22 16 16)'/%3E" +
-  "%3Ccircle cx='16' cy='16' r='5.2' fill='%23fff'/%3E" +
-  "%3Ccircle cx='26.2' cy='11.9' r='2.3' fill='%23fff'/%3E%3C/svg%3E";
+  "viewBox='128 128 768 768'%3E%3Cdefs%3E%3ClinearGradient id='fnRamp' x1='270' y1='700' " +
+  "x2='754' y2='700' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%2329d8ff'/%3E" +
+  "%3Cstop offset='1' stop-color='%23926cff'/%3E%3C/linearGradient%3E%3C/defs%3E" +
+  "%3Crect x='128' y='128' width='768' height='768' rx='160' fill='%23050505'/%3E" +
+  "%3Cpath d='M292 700A320 320 0 1 1 732 700' fill='none' stroke='url(%23fnRamp)' " +
+  "stroke-width='68' stroke-linecap='round'/%3E" +
+  "%3Cg transform='translate(0 -24)'%3E" +
+  "%3Crect x='267' y='405' width='176' height='134' rx='24' fill='url(%23fnRamp)'/%3E" +
+  "%3Crect x='581' y='405' width='176' height='134' rx='24' fill='url(%23fnRamp)'/%3E" +
+  "%3Cpath d='M443 472h35M546 472h35' stroke='%23f7f7f8' stroke-width='24' stroke-linecap='round'/%3E" +
+  "%3Crect x='466' y='362' width='92' height='220' rx='38' fill='%23f7f7f8'/%3E" +
+  "%3Ccircle cx='512' cy='472' r='31' fill='url(%23fnRamp)'/%3E" +
+  "%3Cpath d='M449 300Q512 341 575 300Q563 251 512 251Q461 251 449 300Z' fill='url(%23fnRamp)'/%3E" +
+  "%3C/g%3E" +
+  "%3Cpath d='M512 612C499 612 492 625 489 645L480 704L410 747C399 754 393 765 393 779L478 754" +
+  "L483 807L457 829V846L512 831L567 846V829L541 807L546 754L631 779C631 765 625 754 614 747" +
+  "L544 704L535 645C532 625 525 612 512 612Z' fill='%23f7f7f8'/%3E%3C/svg%3E";
 
-/* The masthead lockup. Drawn in currentColor and coloured by `.wordmark .mk` in
- * site.css, so it follows --sky in both themes. It is inline SVG in the
- * document, which is why the custom property resolves at all — inside an <img>
- * it would silently fall back to black. */
-var MARK_SVG = '<svg class="mk" viewBox="0 0 32 32" width="17" height="17" ' +
-  'aria-hidden="true" focusable="false">' +
-  '<ellipse cx="16" cy="16" rx="11" ry="4.6" fill="none" stroke="currentColor" ' +
-  'stroke-width="2" transform="rotate(-22 16 16)"/>' +
-  '<circle cx="16" cy="16" r="5.2" fill="currentColor"/>' +
-  '<circle cx="26.2" cy="11.9" r="2.3" fill="currentColor"/></svg>';
+/* The masthead/footer lockup. The ring, solar panels and dish take the brand
+ * gradient (fixed cyan → violet — a brand mark is allowed the colour a chart
+ * line is not, and the V5 pivot already put this exact gradient on the
+ * homepage's own pill and connect-brand chip). The satellite body, its
+ * antenna bar and the airplane silhouette are `currentColor`, so they still
+ * follow `.wordmark .mk{color:var(--sky)}` and stay legible in both themes —
+ * a fixed near-white body was legible on interior-system-v1's permanently
+ * dark ground but would nearly vanish on this site's light paper.
+ *
+ * It is a FUNCTION, not a constant, because the gradient needs an `id` and
+ * the mark is drawn twice per page (masthead, footer); two elements sharing
+ * one `id` is invalid markup, so each call site passes its own suffix. */
+function markSvg(idSuffix, size) {
+  var gid = 'wo-mk-' + idSuffix;
+  var w = size || 17;
+  return '<svg class="mk" viewBox="128 128 768 768" width="' + w + '" height="' + w + '" ' +
+    'aria-hidden="true" focusable="false">' +
+    '<defs><linearGradient id="' + gid + '" x1="270" y1="700" x2="754" y2="700" ' +
+    'gradientUnits="userSpaceOnUse"><stop stop-color="#29d8ff"/>' +
+    '<stop offset="1" stop-color="#926cff"/></linearGradient></defs>' +
+    '<path d="M292 700A320 320 0 1 1 732 700" fill="none" stroke="url(#' + gid + ')" ' +
+    'stroke-width="68" stroke-linecap="round"/>' +
+    '<g transform="translate(0 -24)">' +
+    '<rect x="267" y="405" width="176" height="134" rx="24" fill="url(#' + gid + ')"/>' +
+    '<rect x="581" y="405" width="176" height="134" rx="24" fill="url(#' + gid + ')"/>' +
+    '<path d="M443 472h35M546 472h35" stroke="currentColor" stroke-width="24" stroke-linecap="round"/>' +
+    '<rect x="466" y="362" width="92" height="220" rx="38" fill="currentColor"/>' +
+    '<circle cx="512" cy="472" r="31" fill="url(#' + gid + ')"/>' +
+    '<path d="M449 300Q512 341 575 300Q563 251 512 251Q461 251 449 300Z" fill="url(#' + gid + ')"/>' +
+    '</g>' +
+    '<path d="M512 612C499 612 492 625 489 645L480 704L410 747C399 754 393 765 393 779L478 754' +
+    'L483 807L457 829V846L512 831L567 846V829L541 807L546 754L631 779C631 765 625 754 614 747' +
+    'L544 704L535 645C532 625 525 612 512 612Z" fill="currentColor"/></svg>';
+}
 
 /* ── THE THEME BOOT, AND WHY IT STORES NOTHING ─────────────────────────────
  * Light is the default and dark is a media query, so the FIRST PAINT is already
@@ -264,19 +308,22 @@ function subnav(section, here, label) {
     '<a class="sn-back" href="/airlines/">All airlines →</a></nav>\n';
 }
 
-/* THE EXTENSION BANNER IS GONE — round seven, 27 Jul 2026. The homepage's
- * store surface is Google's badge in the hero and again in the companion half,
- * which is the whole sitewide budget of Chrome Web Store links besides United's
- * #plugin block. A third strip above the masthead put the count over budget and
- * pitched before the page had said anything. Do not bring it back. */
+/* THE EXTENSION BANNER IS GONE — round seven, 27 Jul 2026. It was a full-width
+ * strip above the masthead that pitched before the page had said anything; do
+ * not bring THAT back. The masthead's own `.pill` CTA (added in the round 15
+ * interior port, 28 Jul 2026) is a different thing — a single compact link in
+ * the nav row, the same shape as the homepage's `.pill.primary`, not a strip.
+ * The sitewide store surface is now: the homepage's two badges, United's
+ * #plugin block, and this one masthead pill, present on every page. */
 
 /* THE MASTHEAD, and it is on every page.
  *
- *     ◉ WiFi Odds        Airlines  The Race  Roadmap  Extension   [Dark mode]
+ *     ◉ WiFi Odds    Airlines  The Race  Roadmap  Extension  [Add to Chrome]  [Dark mode]
  *     Inflight WiFi as a forecast · figures checked daily · this build 25 Jul 2026
  *
- * Orbit mark, serif wordmark, nav, the theme switch, then the datechip on its
- * own line. The datechip is what the approach-plate strip used to be, said the
+ * New logo mark, sans wordmark, nav, the CTA pill, the theme switch, then the
+ * datechip on its own line — ported from design-competition/interior-system-v1.html
+ * (round 15). The datechip is what the approach-plate strip used to be, said the
  * way a person says it: what this site is, how often it is checked, and the date
  * of the build in front of you. The date is `updated` from the build data. If
  * you ever find yourself typing a month name in here, stop.
@@ -301,7 +348,7 @@ function datechipText(updated, refreshAttemptedOn, wasRetained) {
 function masthead(here, suffix, updated, refreshAttemptedOn, wasRetained) {
   return '<header class="site">\n' +
     '  <div class="wrap masthead">\n' +
-    '    <a class="wordmark" href="/">' + MARK_SVG + 'WiFi&nbsp;Odds' +
+    '    <a class="wordmark" href="/">' + markSvg('mh') + 'WiFi&nbsp;Odds' +
     (suffix ? ' <em>· ' + esc(suffix) + '</em>' : '') + '</a>\n' +
     /* The phone menu is a checkbox and a label, so it opens with script off.
        The checkbox sits before the nav because the CSS reaches the menu with
@@ -313,10 +360,14 @@ function masthead(here, suffix, updated, refreshAttemptedOn, wasRetained) {
     NAV.map(function (n) {
       return '      <a href="' + n[0] + '"' + (n[0] === here ? ' aria-current="page"' : '') + '>' + n[1] + '</a>\n';
     }).join('') +
-    /* A place on the page, not a store pitch: the store links are Google's own
-       badges, twice on the homepage, and United's #plugin block. That is the
-       whole budget, so the nav points at the section that shows the thing. */
-    '      <a href="/#companion">Extension</a>\n' +
+    /* The Extension link points at the homepage's own #extension section (its
+       id as of the 28 Jul interior port — verified live; the old #companion
+       anchor no longer exists there). The pill beside it is the ONE new store
+       pitch this port adds to the masthead, matching the homepage's own
+       `.pill.primary`; its href is EXT, never a literal store URL, so a
+       store-side path change only has to be fixed in that one constant. */
+    '      <a href="/#extension">Extension</a>\n' +
+    '      <a class="pill" href="' + EXT + '" target="_blank" rel="noopener">Add to Chrome</a>\n' +
     '    </nav>\n' +
     '    <button class="themetoggle" id="themetoggle" type="button" hidden\n' +
     '      title="Dark by default. The switch lasts until you reload; nothing is stored."></button>\n' +
@@ -373,6 +424,10 @@ function footer(updated, refreshAttemptedOn, wasRetained) {
     : 'Checked <b>' + esc(refreshAttemptedOn) + '</b> · data as of <b>' + esc(updated) +
       '</b> (the refresh ran but the count itself was not re-measured that day).';
   return '<footer class="site">\n' +
+    /* The brand row — interior-system-v1.html's `.footer-top`, same mark and
+       wordmark as the masthead, linking home. Added above the existing link
+       row, not in place of it: every href/label below is unchanged. */
+    '  <a class="ftop" href="/">' + markSvg('ft') + 'WiFi&nbsp;Odds</a>\n' +
     '  <div class="flinks"><a href="/airlines/">Airlines</a><a href="/race/">The Race</a>' +
     '<a href="/systems/">Systems</a><a href="/united/">United</a>' +
     '<a href="/united/fleet/">Fleet</a><a href="/alaska/">Alaska</a><a href="/roadmap/">Roadmap</a>' +
@@ -476,7 +531,14 @@ function page(o) {
        banner landmarks. <main> has no default box styling, so this is a
        null visual diff. */
     '<main id="main-content">\n' +
-    (o.crumb ? crumb(o.crumb) : '') +
+    /* .ph-top pairs the breadcrumb with the page-head "as of" date chip
+       (interior-system-v1.html's `.asof`) on one row, generically for every
+       route that passes a crumb — no per-page rewrite needed, since `updated`
+       already reaches page() for the masthead/footer datechips. A route with
+       no crumb (404) gets neither, same as before. */
+    (o.crumb ? '<div class="ph-top">' + crumb(o.crumb) +
+      (o.updated ? '<span class="asof"><i></i>Data effective <b>' +
+        esc(chipDate(o.updated)) + '</b></span>' : '') + '</div>\n' : '') +
     o.body +
     '</main>\n' +
     footer(o.updated, o.refreshAttemptedOn, o.wasRetained) +
@@ -495,7 +557,7 @@ module.exports = {
   topbar: masthead,
   subnav: subnav, crumb: crumb, credit: credit, footer: footer,
   plateDate: plateDate, chipDate: chipDate,
-  MARK_SVG: MARK_SVG, FAVICON: FAVICON,
+  MARK_SVG: markSvg, FAVICON: FAVICON,
   /* THEME_BOOT and assetHash: exported additively for Render.home(), which does
      NOT call page() (see build/lib/render.js) but still has to carry the exact
      same theme-boot script and the same cache-busted asset hashing every other
