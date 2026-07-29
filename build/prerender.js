@@ -1119,6 +1119,7 @@ function main() {
   });
   write('united/fleet/index.html', Render.fleetPage(m));
   write('methodology/index.html', Render.methodologyPage(m));
+  write('technology/index.html', Render.technologyPage(m));
   write('roadmap/index.html', Render.roadmapPage(m));
   write('api/docs/index.html', Render.apiDocs(m));
   write('404.html', Render.notFound(m));

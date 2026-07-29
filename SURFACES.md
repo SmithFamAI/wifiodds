@@ -10,7 +10,7 @@ which ranks booking sites for the extension.
 
 ## Public routes
 
-All 31 of them are in `sitemap.xml`. `url` is the path Cloudflare
+All 32 of them are in `sitemap.xml`. `url` is the path Cloudflare
 serves; `file` is what lands on disk. Those differ in exactly one row.
 
 `tmpl` names a file in `build/templates/` holding that page's unique content. A
@@ -27,7 +27,8 @@ url                        file                                tmpl             
 /united/fleet/             united/fleet/index.html             -                 daily    0.9  United Starlink fleet — every equipped tail, live
 /united/history/           united/history/index.html           united-history    daily    0.6  United Starlink install history — day by day
 /alaska/                   alaska/index.html                   alaska-rollout    weekly   0.8  WiFi Odds · Alaska — Starlink rollout & ConnectScore
-/methodology/              methodology/index.html              -                 daily    0.7  Methodology · how ConnectScore is calculated, and what it cannot see
+/methodology/              methodology/index.html              -                 daily    0.7  Methodology · WiFi Odds
+/technology/               technology/index.html               -                 monthly  0.8  Inflight WiFi technology · WiFi Odds
 /roadmap/                  roadmap/index.html                  -                 monthly  0.5  WiFi Odds roadmap — what shipped, and what has not
 /api/docs/                 api/docs/index.html                 -                 monthly  0.5  ConnectScore API — free airline WiFi scores as JSON
 /record/                   record/index.html                   -                 weekly   0.4  WiFi Odds · the written record
@@ -111,7 +112,8 @@ These are link counts, JSON-LD urls included, so they run higher than three.
 Read a change in one as a prompt to go look. Read the total as nothing at all.
 
 ```
-url         links
-/united/    3
-/api/docs/  3
+url           links
+/united/      3
+/technology/  2
+/api/docs/    3
 ```

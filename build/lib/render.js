@@ -1563,7 +1563,22 @@ function roadmapPage(m) {
   });
 }
 
-/* ═══ /methodology/ ══════════════════════════════════════════════════════
+/* ═══ /methodology/, THE GENERATOR THAT NO LONGER SHIPS ═══════════════════
+ * SUPERSEDED on 28 Jul 2026 by methodologyPage() further down, which pours the
+ * approved Codex document (build/templates/methodology.html) through the same
+ * whole-document path as Render.home(). Nothing writes this one any more.
+ *
+ * It is KEPT, not deleted, and the reason is not sentiment: every figure below
+ * is derived from `m` — the tier split, the worked example, the freshness
+ * stamp — and the new document states its method in prose without those live
+ * numbers. If the next round asks for a baked figure back on that page, this
+ * is where the derivation already exists, correct and dated. Deleting it would
+ * mean rebuilding arithmetic that is already known-good.
+ *
+ * It has NO route and NO caller. Wire it to nothing without saying so out loud.
+ *
+ * The original header follows, unchanged:
+ *
  * The provenance page. It exists because "ConnectScore 27" is a number with no
  * error bars attached, and every serious reader — a redditor, a journalist, an
  * answer engine deciding whether to quote us — asks the same three questions:
@@ -1578,7 +1593,7 @@ function roadmapPage(m) {
  *
  * Every number below comes from m. If you find yourself typing a figure into
  * this page, that is the bug. */
-function methodologyPage(m) {
+function methodologyPageLegacy(m) {
   var crumbs = [['/', 'Home'], ['/methodology/', 'Methodology']];
   var ua = m.A.scoreAirline('united');
   var al = m.A.scoreAirline('alaska');
@@ -2210,6 +2225,94 @@ function methodologyPage(m) {
   });
 }
 
+/* ═══ THE WHOLE-DOCUMENT ROUTES ══════════════════════════════════════════
+ * /methodology/ and /technology/ arrive from Codex as finished documents, the
+ * same way build/templates/home.html did, and they are wired the same way:
+ * the file is loaded as-is and ONLY the <head> essentials are injected.
+ *
+ * NEITHER CALLS H.page(). The templates already carry their own <body>, <nav>,
+ * <main id="main"> and <footer>; page() would wrap a second <main> around them,
+ * emit a second footer, and nest one navigation inside another. That is the
+ * exact fault Render.home()'s header comment records, and it is why the pair of
+ * assertions below count landmarks in the finished string rather than trusting
+ * that nobody adds page() back in later.
+ *
+ * THE TITLE AND DESCRIPTION ARE READ OFF THE TEMPLATE, not retyped here. A
+ * whole-document template ships its own <title> and its own description meta;
+ * copying either into this file would create a second source for one sentence,
+ * and the two would disagree the first time Codex revises the document. So the
+ * head injector parses them back out and feeds the same strings to the og and
+ * twitter tags — one string, three places, one origin. If a template ever
+ * loses either tag, that is a build failure and not a default. */
+function docHead(tpl, canonical, label) {
+  var t = /<title>([\s\S]*?)<\/title>/i.exec(tpl);
+  var d = /<meta\s+name="description"\s+content="([^"]*)"/i.exec(tpl);
+  if (!t || !t[1].trim()) {
+    throw new Error('Render.' + label + ': build/templates/ document has no <title>. The og and ' +
+      'twitter tags are built from it, so there is nothing to default to.');
+  }
+  if (!d || !d[1].trim()) {
+    throw new Error('Render.' + label + ': build/templates/ document has no <meta name="description">. ' +
+      'The social card description is built from it, so there is nothing to default to.');
+  }
+  /* The template's own tags are already HTML-escaped in the document; H.esc()
+     is applied by headEssentials(), so hand it the DECODED text or every
+     ampersand doubles. Only &amp; can appear in a title this build produces. */
+  function undo(s) { return s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'"); }
+  return H.headEssentials({
+    title: undo(t[1].trim()), desc: undo(d[1].trim()), canonical: canonical
+  });
+}
+
+/* One landmark of each kind, asserted on the finished bytes. This is the check
+   that fires if anyone reintroduces H.page() here, or if a template is pasted
+   in with the chrome duplicated. */
+function assertOneDocument(out, label, marker) {
+  if (out.indexOf(marker) !== -1) {
+    throw new Error('Render.' + label + ': the ' + marker + ' marker is still in the output — the ' +
+      'template gained a marker with no matching .replace() here.');
+  }
+  [['<main', 1], ['<footer', 1], ['<body', 1], ['<title>', 1]].forEach(function (pair) {
+    var n = out.split(pair[0]).length - 1;
+    if (n !== pair[1]) {
+      throw new Error('Render.' + label + ': the built page has ' + n + ' `' + pair[0] + '` (expected ' +
+        pair[1] + '). A whole-document template must not also be wrapped by H.page().');
+    }
+  });
+  return out;
+}
+
+function wholeDocument(name, canonical, label, marker) {
+  var tpl = FS.readFileSync(PATH.join(__dirname, '..', 'templates', name + '.html'), 'utf8');
+  var head = docHead(tpl, canonical, label);
+  /* FUNCTION REPLACEMENT, not a string. The injected block carries a data: URI
+     favicon and an inline theme-boot script; a literal `$&` or `$'` anywhere in
+     either would be read as a substitution pattern by String#replace and would
+     silently paste part of the document back into its own <head>. A function
+     return value is never scanned for those. */
+  return assertOneDocument(tpl.replace(marker, function () { return head; }), label, marker);
+}
+
+/* ═══ /methodology/ (V1) ═════════════════════════════════════════════════
+ * The provenance page, rebuilt from ~/wifiodds-exchange/design-competition/
+ * methodology-v1.html. The generator it replaces is methodologyPageLegacy()
+ * above — kept, unrouted, and explained there. */
+function methodologyPage() {
+  return wholeDocument('methodology', '/methodology/', 'methodologyPage',
+    '<!--METHODOLOGY:HEAD_EXTRA-->');
+}
+
+/* ═══ /technology/ (V1) ══════════════════════════════════════════════════
+ * New route, from ~/wifiodds-exchange/design-competition/technology-v1.html.
+ * The evergreen explainer for what the three WiFi eras actually feel like in a
+ * seat. It carries no figure from `m`, which is why it takes no argument: every
+ * claim on it is prose about hardware generations, and a page that interpolates
+ * nothing cannot go stale against data.json. */
+function technologyPage() {
+  return wholeDocument('technology', '/technology/', 'technologyPage',
+    '<!--TECHNOLOGY:HEAD_EXTRA-->');
+}
+
 /* ═══ /api/docs/ ════════════════════════════════════════════════════════
  * The ONE human page in the /api namespace. Everything else under /api is a
  * Cloudflare Pages Function in functions/api/** and has no file on disk, which
@@ -2744,6 +2847,7 @@ function privacyPage(m) {
 module.exports = {
   home: home, airlinesIndex: airlinesIndex, airlinePage: airlinePage,
   fleetPage: fleetPage, roadmapPage: roadmapPage, methodologyPage: methodologyPage,
+  technologyPage: technologyPage,
   racePage: racePage, systemsPage: systemsPage,
   apiDocs: apiDocs, notFound: notFound,
   unitedOptimizer: unitedOptimizer, unitedHistory: unitedHistory,

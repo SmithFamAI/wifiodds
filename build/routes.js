@@ -41,6 +41,13 @@ var ROUTES = [
      examples are re-baked from data.json with everything else, and it is the page
      an answer engine is most likely to re-check before quoting a number. */
   { url: '/methodology/', file: 'methodology/index.html', kind: 'gen', changefreq: 'daily', priority: '0.7' },
+  /* TECHNOLOGY — what the three WiFi eras feel like in a seat, and the page
+     /methodology/ hands the reader on to. Monthly, and that is not laziness:
+     unlike every other route here it interpolates nothing from data.json, so a
+     daily rebuild would republish identical bytes under a fresh lastmod and
+     teach crawlers to ignore the date on all 31 routes. It changes when the
+     hardware story changes. */
+  { url: '/technology/', file: 'technology/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.8' },
   { url: '/roadmap/', file: 'roadmap/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.5' },
   { url: '/api/docs/', file: 'api/docs/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.5' },
   /* The written record: where the homepage's working lives after the 26 Jul

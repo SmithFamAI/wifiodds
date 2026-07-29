@@ -507,6 +507,50 @@ function footer(updated, refreshAttemptedOn, wasRetained) {
  *               load-bearing: /united/ and /united/history/ ship inline app
  *               scripts that must run before the shared shell script, exactly as
  *               they did when those pages were hand-authored. */
+/* ── the og/twitter block, ONE copy ───────────────────────────────────────
+ * Every route's social card is these seventeen lines. They used to exist only
+ * inside page(), so a route that does NOT call page() — the V5 homepage, and
+ * now /methodology/ and /technology/, all three of which arrive as complete
+ * Codex documents — had to retype them, which is how three pages once shipped
+ * og:image?v=1 against a generator emitting ?v=2 (see tmpl.js's header).
+ *
+ * `title` and `desc` arrive ALREADY ESCAPED, because page() escapes them once
+ * for the <title> and the description meta and passes the same strings here.
+ * Extracted verbatim: the output of page() is byte-identical before and after.
+ *
+ * Render.home()'s homeHeadExtra() is deliberately NOT switched over in the same
+ * pass — its og:image:alt uses a middot where this uses an em dash, so folding
+ * it in would change bytes on the one page the go-live checklist froze. */
+function socialTags(title, desc, url) {
+  var ogImg = ORIGIN + '/assets/og.png?v=' + assetHash('assets/og.png');
+  return '<meta property="og:type" content="website">\n' +
+    '<meta property="og:site_name" content="WiFi Odds">\n' +
+    '<meta property="og:title" content="' + title + '">\n' +
+    '<meta property="og:description" content="' + desc + '">\n' +
+    '<meta property="og:url" content="' + url + '">\n' +
+    '<meta property="og:image" content="' + ogImg + '">\n' +
+    '<meta property="og:image:width" content="1200">\n' +
+    '<meta property="og:image:height" content="630">\n' +
+    '<meta property="og:image:alt" content="WiFi Odds — know before you book">\n' +
+    '<meta name="twitter:card" content="summary_large_image">\n' +
+    '<meta name="twitter:title" content="' + title + '">\n' +
+    '<meta name="twitter:description" content="' + desc + '">\n' +
+    '<meta name="twitter:image" content="' + ogImg + '">\n';
+}
+
+/* The <head> essentials a whole-document template cannot get from page():
+ * theme boot, favicon, canonical, and the social block above. NOT the <title>
+ * or the description meta — a Codex document ships its own, and injecting a
+ * second one would put two <title>s in the head. Those two are read back OFF
+ * the template by the caller and passed in here, so the document stays the
+ * single source of its own copy. */
+function headEssentials(o) {
+  return THEME_BOOT + '\n' +
+    '<link rel="icon" href="' + FAVICON + '">\n' +
+    '<link rel="canonical" href="' + ORIGIN + o.canonical + '">\n' +
+    socialTags(esc(o.title), esc(o.desc), ORIGIN + o.canonical);
+}
+
 function page(o) {
   var title = esc(o.title);
   var desc = esc(o.desc);
@@ -519,19 +563,7 @@ function page(o) {
     '<title>' + title + '</title>\n' +
     '<meta name="description" content="' + desc + '">\n' +
     '<link rel="canonical" href="' + url + '">\n' +
-    '<meta property="og:type" content="website">\n' +
-    '<meta property="og:site_name" content="WiFi Odds">\n' +
-    '<meta property="og:title" content="' + title + '">\n' +
-    '<meta property="og:description" content="' + desc + '">\n' +
-    '<meta property="og:url" content="' + url + '">\n' +
-    '<meta property="og:image" content="' + ORIGIN + '/assets/og.png?v=' + assetHash('assets/og.png') + '">\n' +
-    '<meta property="og:image:width" content="1200">\n' +
-    '<meta property="og:image:height" content="630">\n' +
-    '<meta property="og:image:alt" content="WiFi Odds — know before you book">\n' +
-    '<meta name="twitter:card" content="summary_large_image">\n' +
-    '<meta name="twitter:title" content="' + title + '">\n' +
-    '<meta name="twitter:description" content="' + desc + '">\n' +
-    '<meta name="twitter:image" content="' + ORIGIN + '/assets/og.png?v=' + assetHash('assets/og.png') + '">\n' +
+    socialTags(title, desc, url) +
     /* NO FONT PRELOAD, since 28 Jul 2026. Source Serif 4 was self-hosted and both
      * weights were preloaded here, because the heading and the say-sentence took
      * the serif on every route's first screen. The approved interior system
@@ -601,5 +633,10 @@ module.exports = {
      NOT call page() (see build/lib/render.js) but still has to carry the exact
      same theme-boot script and the same cache-busted asset hashing every other
      route gets, copied rather than reimplemented so the two can never drift. */
-  THEME_BOOT: THEME_BOOT, assetHash: assetHash
+  THEME_BOOT: THEME_BOOT, assetHash: assetHash,
+  /* socialTags/headEssentials: the og/twitter block and the four <head>
+     essentials, for the whole-document routes that skip page() entirely
+     (/methodology/ and /technology/). One copy, so a change to the social card
+     reaches every route including the ones page() never sees. */
+  socialTags: socialTags, headEssentials: headEssentials
 };
