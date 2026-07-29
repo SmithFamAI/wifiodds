@@ -1152,7 +1152,7 @@ async function main() {
      the live REST + MCP paths, and the retired /api/score/* (which answers a
      documented 410, not a redirect). A /airlines/, /api/docs/, /race/ etc. is
      absent on purpose — those are the 301s this guard exists to catch. */
-  var LIVE_URL = /^https:\/\/wifiodds\.com(\/?|\/methodology\/|\/technology\/|\/privacy|\/api|\/api\/airlines(\/[a-z]+)?|\/api\/score\/[A-Za-z0-9{}]+|\/mcp|\/united\/data\.json|\/llms\.txt|\/#[a-z0-9-]+|\/api\/airlines\/\{key\})$/;
+  var LIVE_URL = /^https:\/\/wifiodds\.com(\/?|\/methodology\/|\/technology\/|\/privacy|\/api|\/api\/airlines(\/[a-z]+)?|\/api\/score\/[A-Za-z0-9{}]+|\/mcp|\/united\/data\.json|\/llms\.txt|\/sitemap\.xml|\/#[a-z0-9-]+|\/api\/airlines\/\{key\})$/;
   function sweepUrls(label, obj) {
     var text = typeof obj === 'string' ? obj : JSON.stringify(obj);
     (text.match(/https:\/\/wifiodds\.com[^\s"'`)\\]*/g) || []).forEach(function (u) {
@@ -1168,6 +1168,10 @@ async function main() {
     (await rpc({ jsonrpc: '2.0', id: 1, method: 'initialize', params: {} })).j);
   sweepUrls('MCP tools/list',
     (await rpc({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} })).j);
+  /* round 18 re-audit P1-01: the generated llms.txt is the machine surface an
+   * assistant is TOLD to cite, so it is swept too. Injecting any deleted route
+   * into buildLlms() now fails the build here. */
+  sweepUrls('llms.txt', fs.readFileSync(path.join(ROOT, 'llms.txt'), 'utf8'));
   /* ── MCP TEXT MAY NOT NUMBER AN UNPUBLISHED COUNT — ON EVERY REGISTERED TOOL
    * A model usually relays the text block and drops structuredContent, so a
    * numeric zero in the text is a numeric zero a traveller hears, even when
