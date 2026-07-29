@@ -474,18 +474,12 @@ function footer(updated, refreshAttemptedOn, wasRetained) {
     '  <div class="frow">' + updatedLine + ' ConnectScores and per-flight odds are ' +
     'historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and ' +
     'unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</div>\n' +
-    /* "nothing is stored in your browser" was false on /united/, which caches
-       the route list under `usl3:<ORIG>-<DEST>` in localStorage. The privacy
-       page has always disclosed that cache, so the footer contradicted the page
-       it links to. An external audit found it on 27 Jul 2026 alongside the
-       Cloudflare beacon, and the two are the same failure: a global claim about
-       conduct that one surface does not honour.
-       The sentence now says what is true everywhere and points at the exception
-       rather than denying it. `build/apitest.js` asserts that any page writing
-       to storage is named here. */
+    /* The "United route optimiser caches the route list under usl3:<ORIG>-<DEST>"
+       exception was true until the 28 Jul 2026 cut removed the /united/ page. No
+       surviving page writes to storage now, so the sentence is unconditional
+       again — the shape it had before the optimiser existed. */
     '  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension. ' +
-    'Nothing about you is stored in your browser; the United route optimiser ' +
-    'caches the route lists it fetches, and that is the only thing this site writes. ' +
+    'Nothing about you is stored in your browser. ' +
     'What the server keeps is on the <a href="/privacy">privacy page</a>.</div>\n' +
     '  <div class="frow">' + THEME_SENTENCE + '</div>\n' +
     '</footer>\n';

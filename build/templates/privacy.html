@@ -34,7 +34,7 @@
   <span class="kicker">Policy</span>
   <h1 class="ph">Privacy policy</h1>
   <p class="lede">This covers the <b>WiFi Odds for Flights</b> browser extension and the
-  <b>wifiodds.com</b> website. Effective <b>26 Jul 2026</b>. Earlier versions stay in the
+  <b>wifiodds.com</b> website. Effective <b>29 Jul 2026</b>. Earlier versions stay in the
   public git history of the repository linked at the foot of this page.</p>
 </header>
 
@@ -42,18 +42,16 @@
   <div><p class="micro">Accounts</p><span class="v">0</span></div>
   <div><p class="micro">Cookies set</p><span class="v">0</span></div>
   <div><p class="micro">Analytics scripts</p><span class="v">0</span></div>
-  <div><p class="micro">Pages that call another origin</p><span class="v">1<small>of 30</small></span></div>
+  <div><p class="micro">Pages that call another origin</p><span class="v">0<small>of 4</small></span></div>
 </div>
 
 <div class="callout pol" style="margin-top:1.2rem">
   <span class="kicker">The short version</span>
   <p>No accounts, no cookies, no analytics, no advertising, and nothing about you is sold or passed
-  on. Two things do leave your browser and both are named below. The extension asks two public
-  community trackers for odds. One page here, the United route optimizer, asks
-  one of those trackers to plan a route while you are looking at it, and keeps the answer in your
-  browser for six hours so it does not ask twice. That is the script talking: turn JavaScript off
-  and the same page serves prerendered route tables and calls nobody. The other 29 pages are
-  prerendered either way.</p>
+  on. One thing leaves your browser, and it is named below: the extension asks two public community
+  trackers for odds. The website itself asks nobody. Every page is prerendered and arrives holding its
+  numbers, so reading the site calls no other origin and writes nothing to your browser. An earlier
+  version had a live United route optimizer page that did; it was removed on 29 Jul 2026.</p>
 </div>
 
 <section class="blk pol">
@@ -97,64 +95,28 @@
   <p>wifiodds.com is a static site on Cloudflare Pages. It sets no cookies, runs no analytics and
   embeds no third-party script. Fonts are served from this origin. Cloudflare processes standard
   short-lived request logs as the hosting provider, which I neither read nor keep.</p>
-  <p>Almost every page is prerendered, so it arrives holding its numbers and fetches nothing while
-  you read it. The exception is the route optimizer, and it is a real one.</p>
+  <p>Every page is prerendered, so it arrives holding its numbers and fetches nothing while you
+  read it. Nothing on the site calls another origin at read time.</p>
 </section>
 
 <section class="blk pol" id="offorigin">
-  <span class="kicker">§4 · The exception</span>
-  <h2>The United route optimizer calls another site</h2>
-  <p>/united/ ranks the flights on a city pair, and the ranking comes from
-  somebody else's data. With JavaScript running, opening that page makes your browser send three
-  requests to
-  <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a>,
-  and picking a different route sends three more. The requests happen at the moment you look, not at
-  build time, so the tracker sees them.</p>
-  <p><b>With script off, that page now sends nothing.</b> It carries static tables instead: the last
-  answer the tracker gave for each of the <b data-bake="routes.cached">57</b> routes in the cache,
-  prerendered into the page when the site was built, with every flight number, its Starlink draw
-  rate, the count of departures behind that rate and the date the answer was cached.
-  <b data-bake="routes.withFlights">34</b> of those routes have flight rows, holding
-  <b data-bake="routes.rows">174</b> departures between them, and the
-  <b data-bake="routes.empty">23</b> with none are named on the page too. Nothing on that path is
-  fetched, stored or timed while you read it. Until this revision the page rendered no tables at all
-  with script blocked, and this section described the live calls as the whole story.</p>
-  <ul class="rows">
-    <li><b>What is sent.</b> Two three-letter airport codes, and a row limit. That is the whole
-    payload: no date, no name, no flight you booked, no fare, nothing typed anywhere else on the
-    site. The page loads on DEN to SFO by default, so the first pair goes out before you have typed
-    anything.</li>
-    <li><b>What the tracker can see anyway.</b> Your IP address and your browser's user-agent
-    string, as any host sees on any request. What they do with that is their policy, not mine.</li>
-    <li><b>What is kept in your browser.</b> The answer, under a localStorage key of the form
-    <b>usl3:DEN-SFO</b>, one key per route, holding the flight list and routings the tracker
-    returned and the time it answered. It is reused for six hours so the same lookup is not
-    requested twice, and it is ignored after that. Nothing in it describes you. Clearing site data
-    for wifiodds.com removes it.</li>
-    <li><b>The round-trip builder looks up the return leg too</b>, so a page visit usually writes two
-    keys rather than one.</li>
-  </ul>
-  <p style="margin-top:1rem">Blocking scripts on wifiodds.com stops the call and leaves you the
-  static tables, which is the cheapest way to read that page without touching another host. Three
-  more pages carry United material and are prerendered the same way:
-  the hangar floor and full tail registry,
-  the day-by-day install archive, and
-  the United score page with the arithmetic on it. The optimizer
-  says the same thing at the top of itself when script is off.</p>
-  <p class="src"><span class="cls">Reported</span> Read off the page's own source on 26 Jul 2026:
-  one GET to <b>/api/plan-route</b> and two JSON-RPC calls to <b>/mcp</b>, per direction, all of
-  them behind the script. The static tables are baked from <a href="/united/data.json">the same
-  data file</a> the rest of the site is built from.</p>
+  <span class="kicker">§4 · No off-origin calls</span>
+  <h2>The site calls no other origin while you read it</h2>
+  <p>An earlier version of the site carried a live United route optimizer at /united/, which asked a
+  community tracker to plan a route while you looked at it. That page, and the other United pages,
+  were removed on 29 Jul 2026 and now redirect to the home page. Every remaining page is prerendered
+  static HTML that arrives holding its numbers and fetches nothing while you read it.</p>
+  <p>The route-planning feature still lives in the <b>WiFi Odds extension</b>, where its lookups are
+  the odds lookups already described in §2. It is no longer part of the website.</p>
 </section>
 
 <section class="blk pol" id="storage">
   <span class="kicker">§5 · Storage</span>
   <h2>What this site writes to your browser</h2>
-  <p>One thing, and only on the page above, and only when its script runs: the optimizer's route
-  cache described in §4. Read that page with script off and it writes nothing at all, because the
-  route tables are already in the HTML and there is no answer left to keep. No cookie is set on any
-  page, and there is no session storage, no fingerprinting and no advertising identifier anywhere on
-  the site.</p>
+  <p>Nothing. No page on the site writes to your browser. An earlier version wrote one thing, the
+  route optimizer’s six-hour cache, and that page was removed on 29 Jul 2026. No cookie is set on
+  any page, and there is no session storage, no fingerprinting and no advertising identifier anywhere
+  on the site.</p>
   <p>The light and dark switch in the header stores nothing at all. It holds your choice in a class
   on the page until you reload, and then the page goes back to following your operating system. An
   earlier version of this site kept that choice under a localStorage key called <b>woTheme</b>. That
@@ -217,10 +179,12 @@
   <span class="kicker">§9 · Revisions</span>
   <h2>When this policy changes</h2>
   <p>The effective date at the top changes with it, and the version it replaced stays in the public
-  git history of the repository below. This revision rewrote §4 and §5 because the route optimizer
-  changed underneath them: it now prerenders its route tables, so a reader with script off gets the
-  data and sends nothing. The revision before it, on 25 Jul 2026, corrected the storage claim in §5
-  and added the account of the optimizer's outbound calls to §4.</p>
+  git history of the repository below. This revision, on 29 Jul 2026, rewrote §3, §4 and §5 because
+  the United route optimizer page and the other United pages were removed from the site and now
+  redirect to the home page: no page calls another origin or writes to your browser now. The route
+  planning still lives in the extension, where its lookups are the ones described in §2. Earlier
+  revisions rewrote §4 and §5 when that page began prerendering its tables, and on 25 Jul 2026
+  corrected the storage claim in §5.</p>
 </section>
 
 <section class="blk pol">

@@ -2853,16 +2853,10 @@ function alaskaRollout(m) {
 
 /* ═══ /privacy.html ═════════════════════════════════════════════════════ */
 function privacyPage(m) {
-  /* §4 describes what /united/ does with script off, and it does that in
-     figures. Baking them means the description cannot drift away from the page
-     it describes: the same model that builds the tables counts them here. */
-  var nj = NJ.model(m);
-  var t = T.bake(T.load('privacy'), {
-    'routes.cached': String(nj.full.length + nj.empty.length),
-    'routes.withFlights': String(nj.full.length),
-    'routes.empty': String(nj.empty.length),
-    'routes.rows': String(nj.rows)
-  }, 'privacy');
+  /* §4 used to bake live route-cache counts from the /united/ optimizer page.
+     That page was removed on 29 Jul 2026 (301 to /), so §4 now states the
+     absence of any off-origin call and there is nothing left to bake. */
+  var t = T.bake(T.load('privacy'), {}, 'privacy');
   return H.page({
     title: 'Privacy Policy · WiFi Odds for Flights',
     desc: 'Privacy policy for WiFi Odds (wifiodds.com) and the WiFi Odds for Flights browser extension. ' +
