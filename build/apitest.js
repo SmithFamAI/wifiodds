@@ -819,12 +819,36 @@ async function main() {
         [Number(sumLo.toFixed(2)), a.floor]);
       ok(Math.abs(sumHi - a.ceiling) <= 0.5, a.key + ': ledger rows sum to the ceiling',
         [Number(sumHi.toFixed(2)), a.ceiling]);
-      /* next-gen odds are the next-gen rows and nothing else — the relationship
-         the ledger exists to make visible */
+      /* next-gen odds are the confirmed next-gen aircraft over the WHOLE fleet,
+         free-weighted (round 18 P0-02). The ledger row `share` is of `known` and
+         legitimately differs when there are unresolved tails: airBaltic's row is
+         28/28 = 100% of known, but its next-gen ODDS are 28/55 = 51% of the fleet
+         a passenger actually draws from. This checks the odds against the fleet
+         denominator, not the known-share the ledger prints beside it. */
       var ngRows = a.segments.filter(function (s) { return s.nextGen; });
-      var ngSum = ngRows.reduce(function (t, s) { return t + s.share * s.free.factor * 100; }, 0);
-      ok(Math.abs(ngSum - a.nextGenScore) <= 0.5,
-        a.key + ': the next-gen rows sum to nextGenScore', [Number(ngSum.toFixed(2)), a.nextGenScore]);
+      var ngDenom = (a.fleet && a.fleet.total != null) ? a.fleet.total
+        : a.segments.reduce(function (t, s) { return t + s.aircraft; }, 0) +
+          (a.unresolved ? a.unresolved.aircraft : 0);
+      var ngSum = ngDenom
+        ? ngRows.reduce(function (t, s) { return t + s.aircraft * s.free.factor; }, 0) / ngDenom * 100
+        : 0;
+      ok(Math.abs(ngSum - a.nextGenScore) <= 0.6,
+        a.key + ': confirmed next-gen aircraft over the whole fleet equal nextGenScore',
+        [Number(ngSum.toFixed(2)), a.nextGenScore]);
+      /* round 18 P0-02 GUARD: an airline with unresolved tails may not present
+         next-gen as a fleetwide certainty. The odds floor already divides by the
+         whole fleet (checked directly above); this forbids the "next-gen" tier
+         word — it renders as "next-gen fleetwide" — and a bare 100 for any fleet
+         that is not fully accounted. airBaltic (28 confirmed, 27 unresolved of 55)
+         is the case that shipped the bug: 100% "Starlink fleetwide" on a 51% fleet. */
+      if (a.unresolved && a.unresolved.aircraft > 0) {
+        ok(a.serviceTier !== 'next-gen',
+          a.key + ': ' + a.unresolved.aircraft + ' unresolved tails, so serviceTier is not ' +
+          '"next-gen" (which renders "fleetwide")', a.serviceTier);
+        ok(a.nextGenScore < 100,
+          a.key + ': unresolved tails, so next-gen odds cannot be an unconditional 100',
+          a.nextGenScore);
+      }
       /* aircraft, not just points: the rows plus the unresolved pool have to be
          the fleet, or the denominator is quietly wrong */
       if (a.fleet.total !== null) {
@@ -1116,6 +1140,34 @@ async function main() {
     var r = await MCP.mcpRequest(mcpCtx(payload, method));
     return { res: r, j: r.status === 202 ? null : await body(r) };
   }
+
+  /* ── round 18 P1-01: no machine surface may advertise a deleted route ──────
+   * Every absolute wifiodds.com URL the REST index, the airline list, a detail
+   * response, and the MCP initialize + tools/list surfaces put in front of a
+   * client must be a LIVE destination. Before the fix these emitted
+   * /api/docs/ and /airlines/{key}/, both of which now 301 to an unrelated home
+   * page, so a client asking for documentation or an airline silently landed on
+   * the homepage. This fails on any path the 28 Jul cut removed. */
+  /* The allow-list is "does not 301": the bare origin and every survivor page,
+     the live REST + MCP paths, and the retired /api/score/* (which answers a
+     documented 410, not a redirect). A /airlines/, /api/docs/, /race/ etc. is
+     absent on purpose — those are the 301s this guard exists to catch. */
+  var LIVE_URL = /^https:\/\/wifiodds\.com(\/?|\/methodology\/|\/technology\/|\/privacy|\/api|\/api\/airlines(\/[a-z]+)?|\/api\/score\/[A-Za-z0-9{}]+|\/mcp|\/united\/data\.json|\/llms\.txt|\/#[a-z0-9-]+|\/api\/airlines\/\{key\})$/;
+  function sweepUrls(label, obj) {
+    var text = typeof obj === 'string' ? obj : JSON.stringify(obj);
+    (text.match(/https:\/\/wifiodds\.com[^\s"'`)\\]*/g) || []).forEach(function (u) {
+      var clean = u.replace(/[.,);]+$/, '');
+      ok(LIVE_URL.test(clean), label + ' emits a live URL, not a route the cut 301s to /: ' + clean, clean);
+    });
+  }
+  sweepUrls('REST /api', await body(await H.apiIndex(ctx('https://wifiodds.com/api'))));
+  sweepUrls('REST /api/airlines', await body(await H.airlinesAll(ctx('https://wifiodds.com/api/airlines'))));
+  sweepUrls('REST /api/airlines/qatar',
+    await body(await H.airlineOne(ctx('https://wifiodds.com/api/airlines/qatar', { key: 'qatar' }))));
+  sweepUrls('MCP initialize',
+    (await rpc({ jsonrpc: '2.0', id: 1, method: 'initialize', params: {} })).j);
+  sweepUrls('MCP tools/list',
+    (await rpc({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} })).j);
   /* ── MCP TEXT MAY NOT NUMBER AN UNPUBLISHED COUNT — ON EVERY REGISTERED TOOL
    * A model usually relays the text block and drops structuredContent, so a
    * numeric zero in the text is a numeric zero a traveller hears, even when
@@ -1409,8 +1461,8 @@ async function main() {
      assertions below still pin qatar's numbers. */
   
   eq(qr.airline.connectScore, 58, 'PARITY: the API score for qatar is 58');
-  /* next-gen odds move with the same correction: 120/221, not 140/241. */
-  eq(qr.airline.nextGenScore, 54, 'qatar next-gen odds are 54 — the Starlink row alone, corrected denominator');
+  /* next-gen odds are 120 confirmed Starlink over the whole 241-aircraft fleet. */
+  eq(qr.airline.nextGenScore, 50, 'qatar next-gen odds are 50 — 120 Starlink aircraft over the whole 241-aircraft fleet (round 18 P0-02 whole-fleet denominator; was 54 over the 221 resolved)');
 
   /* ── PARITY, second axis: the homepage and the API must agree about every
    * number the page draws. The V5 go-live (28 Jul 2026) replaced the skyline
@@ -1542,8 +1594,71 @@ async function main() {
   var floors = byFloor.map(function (r) { return r.floor; });
   ok(floors.every(function (v, i) { return i === 0 || v <= floors[i - 1]; }),
     'streaming order: sorting the same rows by data-floor is internally consistent (non-increasing)', floors);
-  eq(ranked.slice(0, 3).map(function (r) { return r.key; }).join(','), 'jsx,zipair,airbaltic',
-    'the first three ranked rows are JSX, ZIPAIR, airBaltic, all at 100');
+  eq(ranked.slice(0, 3).map(function (r) { return r.key; }).join(','), 'jsx,zipair,hawaiian',
+    'the first three ranked rows are JSX and ZIPAIR (both fleetwide 100) then Hawaiian at 64 — ' +
+    'airBaltic left the top three when next-gen odds moved to the whole-fleet denominator (round 18 P0-02): ' +
+    'it is 28 of 55, a 51% floor, no longer tied with the two genuinely fleetwide carriers');
+
+  /* round 18 P1-02: the required IA — Methodology · Technology · Extension — must
+     be the PRIMARY nav on EVERY survivor, not only the interiors. The homepage
+     shipped with in-page anchors (United fleet / Big 4 / All 18) as its masthead
+     and no top-level link to either new page. This reads the first <nav> on each
+     survivor and requires all three destinations inside it. */
+  ['index.html', 'methodology/index.html', 'technology/index.html', 'privacy.html', '404.html'].forEach(function (rel) {
+    var f = path.join(ROOT, rel);
+    if (!fs.existsSync(f)) return;
+    var masthead = (/<nav\b[\s\S]*?<\/nav>/.exec(fs.readFileSync(f, 'utf8')) || [''])[0];
+    ok(/href="[^"]*\/methodology\/"/.test(masthead), rel + ': masthead nav links Methodology');
+    ok(/href="[^"]*\/technology\/"/.test(masthead), rel + ': masthead nav links Technology');
+    ok(/href="[^"]*#extension"/.test(masthead), rel + ': masthead nav links Extension');
+  });
+
+  /* round 18 P2-02: the sitemap's privacy lastmod must equal the effective date
+     printed in the privacy body, or a substantive edit ships under a stale date
+     (the lastmod is a hand-bumped constant in routes.js). */
+  var privBody = fs.readFileSync(path.join(ROOT, 'privacy.html'), 'utf8');
+  var effDate = (/Effective <b>([^<]+)<\/b>/.exec(privBody) || [])[1];
+  var smXml = fs.readFileSync(path.join(ROOT, 'sitemap.xml'), 'utf8');
+  var privLoc = /<loc>[^<]*\/privacy<\/loc>\s*<lastmod>([^<]+)<\/lastmod>/.exec(smXml);
+  ok(!!effDate && !!privLoc, 'privacy effective date and sitemap privacy lastmod are both present',
+    [effDate, privLoc && privLoc[1]]);
+  if (effDate && privLoc) {
+    var MON = { Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06',
+      Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12' };
+    var dm = /(\d+)\s+(\w+)\s+(\d+)/.exec(effDate);
+    var effIso = dm ? dm[3] + '-' + MON[dm[2]] + '-' + String(dm[1]).padStart(2, '0') : effDate;
+    eq(privLoc[1], effIso,
+      'sitemap privacy lastmod equals the effective date in the privacy body (round 18 P2-02)');
+  }
+
+  /* round 18 P0-01: the homepage proof block and the OG card must equal
+     united/data.json, not the frozen mockup literals. The baked Big-4 card
+     refreshed on the daily build while the proof block and OG card stayed at
+     484 / 1,807 / 28 Jul — a false headline the morning after any refresh. */
+  var djson = JSON.parse(fs.readFileSync(path.join(ROOT, 'united', 'data.json'), 'utf8'));
+  var idxHtml = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  var commas = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
+  var MONx = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var dp = String(djson.updated).split('-');
+  var human = String(Number(dp[2])) + ' ' + MONx[Number(dp[1]) - 1] + ' ' + dp[0];
+  ok(idxHtml.indexOf('<span class="odds-only">' + commas(djson.fleet.equipped) + ' of ' +
+    commas(djson.fleet.total) + ' aircraft') !== -1,
+    'homepage proof prints equipped/total from data.json (' + djson.fleet.equipped + '/' + djson.fleet.total + ')');
+  ok(new RegExp('odds-only">' + djson.fleet.mainline.equipped + '</span>').test(idxHtml),
+    'homepage proof prints mainline equipped from data.json (' + djson.fleet.mainline.equipped + ')');
+  ok(new RegExp('odds-only">' + djson.fleet.express.equipped + '</span>').test(idxHtml),
+    'homepage proof prints regional equipped from data.json (' + djson.fleet.express.equipped + ')');
+  ok(new RegExp('with ' + djson.fleet.last30 + ' in the last 30 days').test(idxHtml),
+    'homepage callout prints last-30 from data.json (' + djson.fleet.last30 + ')');
+  ok(idxHtml.indexOf('checked ' + human) !== -1,
+    'homepage datestamp equals data.json updated (' + human + ')');
+  ok(idxHtml.indexOf('checked 28 Jul 2026') === -1 && idxHtml.indexOf('484 of 1,807') === -1,
+    'no frozen 28 Jul / 484-of-1,807 mockup literal survives on the homepage');
+  var ogm = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets', 'og.manifest.json'), 'utf8'));
+  eq(ogm.equipped, djson.fleet.equipped,
+    'og.png equipped matches data.json — regenerate with node build/make-og-card.js if this fails');
+  eq(ogm.total, djson.fleet.total, 'og.png total matches data.json');
+  eq(ogm.updated, djson.updated, 'og.png date matches data.json');
 
 /* /race/ was removed in the 28 Jul cut; its render checks go with it. */
 

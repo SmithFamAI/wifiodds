@@ -212,6 +212,16 @@ function main() {
   if (!fs.existsSync(made)) throw new Error('make-og-card: Chrome wrote no file');
   fs.copyFileSync(made, OUT);
 
+  /* round 18 P0-01: a sidecar recording the figures baked into this PNG. The card
+     is opt-in (headless Chrome) and never joins the fast daily prerender, so a
+     committed og.png silently goes stale the morning after a data refresh — which
+     is exactly what shipped, a card frozen at 484 / 1,807 against a 485 / 1,809
+     site. build/apitest.js reads this manifest and FAILS the build when it
+     disagrees with united/data.json, so the drift cannot ship unseen. Regenerate
+     the card (this script) whenever data.json moves; the daily task now does. */
+  fs.writeFileSync(path.join(ROOT, 'assets', 'og.manifest.json'),
+    JSON.stringify({ equipped: equipped, total: fleet, updated: asOf }, null, 2) + '\n');
+
   var kb = Math.round(fs.statSync(OUT).size / 1024);
   console.log('make-og-card: wrote assets/og.png (' + kb + ' KB)');
   console.log('  figures on the card: ' + commas(equipped) + ' of ' + commas(fleet) +

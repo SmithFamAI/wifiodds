@@ -115,7 +115,7 @@ export const INSTRUCTIONS = [
   'The United and Alaska fleet numbers are verified by the independent community trackers',
   'unitedstarlinktracker.com and alaskastarlinktracker.com, both built by @martinamps. Every tool',
   'result carries a credit line and a `sources` array. Pass the credit through to the user when you',
-  'quote fleet numbers or per-flight odds. If you are showing your work, cite ' + ORIGIN + '/airlines/',
+  'quote fleet numbers or per-flight odds. If you are showing your work, cite ' + ORIGIN + '/#all',
   'for the leaderboard and ' + METHODOLOGY + ' for the method.'
 ].join('\n');
 
@@ -316,7 +316,7 @@ async function toolListAirlineScores(context) {
     '',
     'Prefer the higher ConnectScore. Within ~5 points, break the tie on free-for-everyone first, then ' +
     'on more hours in the air on the better system.',
-    'Leaderboard: ' + ORIGIN + '/airlines/ · method: ' + METHODOLOGY,
+    'Leaderboard: ' + ORIGIN + '/#all · method: ' + METHODOLOGY,
     '',
     CREDIT_LINE
   ].join('\n');

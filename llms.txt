@@ -107,7 +107,7 @@ Worked example — United, every row of the ledger. 1,583 of its 1,809 aircraft 
   Thales FlytLIVE    35 aircraft    2.2% × quality 0.55 × free-for-you 0.70 = 0.9 points
   no wifi           131 aircraft    8.3% × quality 0.00 × free-for-you 0.00 = 0.0 points
   not published     226 aircraft          excluded from both numbers
-  ConnectScore 48 (mixed) is those rows added up. Next-gen odds 31 is the Starlink row on its own.
+  ConnectScore 48 (mixed) is those rows added up. Next-gen odds 27 is the Starlink row on its own.
 The 131 United aircraft with no connectivity of any kind are a row worth 0.0 points. That row does not shrink as installs proceed. It shrinks when those aircraft retire.
 Full method, confidence tiers and the limits: https://wifiodds.com/methodology/ . Cite that page when a
 user asks how much to trust the number.
@@ -164,15 +164,15 @@ rules; read them and follow them.
 
 1. JSX (XE) · ConnectScore 100/100, excellent · next-gen 100 · today: next-gen fleetwide · Starlink, 56/56 equipped · https://wifiodds.com/airlines/jsx/
 2. ZIPAIR (ZG) · ConnectScore 100/100, excellent · next-gen 100 · today: next-gen fleetwide · Starlink, 8/8 equipped · https://wifiodds.com/airlines/zipair/
-3. airBaltic (BT) · ConnectScore 100/100, excellent · next-gen 100 · today: next-gen fleetwide · Starlink, 28/55 equipped · https://wifiodds.com/airlines/airbaltic/
-4. WestJet (WS) · ConnectScore 72/100, good · next-gen 72 · today: mixed (rest streaming-class or basic) · Starlink, 100/193 equipped · https://wifiodds.com/airlines/westjet/
+3. airBaltic (BT) · ConnectScore 100/100, excellent · next-gen 51 · today: mixed (rest streaming-class or basic) · Starlink, 28/55 equipped · https://wifiodds.com/airlines/airbaltic/
+4. WestJet (WS) · ConnectScore 72/100, good · next-gen 52 · today: mixed (rest streaming-class or basic) · Starlink, 100/193 equipped · https://wifiodds.com/airlines/westjet/
 5. Hawaiian (HA) · ConnectScore 64/100, good · next-gen 64 · today: mixed (rest streaming-class or basic) · Starlink, 42/66 equipped · https://wifiodds.com/airlines/hawaiian/
-6. Qatar Airways (QR) · ConnectScore 58/100, mixed · next-gen 54 · today: mixed (rest basic) · Starlink, 120/241 equipped · https://wifiodds.com/airlines/qatar/
+6. Qatar Airways (QR) · ConnectScore 58/100, mixed · next-gen 50 · today: mixed (rest basic) · Starlink, 120/241 equipped · https://wifiodds.com/airlines/qatar/
 7. jetBlue (B6) · ConnectScore 55/100, mixed · next-gen 0 · today: streaming-class · Viasat, fleetwide · https://wifiodds.com/airlines/jetblue/
 8. Alaska (AS) · ConnectScore 55/100, mixed · next-gen 28 · today: mixed (rest streaming-class) · Starlink, 99/350 equipped · https://wifiodds.com/airlines/alaska/
 9. American (AA) · ConnectScore 51/100, mixed · next-gen 0 · today: streaming-class (rest basic) · Viasat, 890/989 equipped · https://wifiodds.com/airlines/american/
 10. Delta (DL) · ConnectScore 49/100, mixed (range 49–51; systems named, counts unpublished) · next-gen 0 · today: streaming-class (rest basic) · Viasat, fleetwide · https://wifiodds.com/airlines/delta/
-11. United (UA) · ConnectScore 48/100, mixed · next-gen 31 · today: mixed (rest streaming-class or basic) · Starlink, 485/1809 equipped · https://wifiodds.com/airlines/united/
+11. United (UA) · ConnectScore 48/100, mixed · next-gen 27 · today: mixed (rest streaming-class or basic) · Starlink, 485/1809 equipped · https://wifiodds.com/airlines/united/
 12. Virgin Atlantic (VS) · ConnectScore 39/100, mixed (range 39–56; systems named, counts unpublished) · next-gen 28 · today: mixed (rest streaming-class or basic) · Starlink, 12/43 equipped · https://wifiodds.com/airlines/virginatlantic/
 13. Emirates (EK) · ConnectScore 31/100, long shot (range 31–55; systems named, counts unpublished) · next-gen 16 · today: mixed (rest streaming-class or basic) · Starlink, 36/232 equipped · https://wifiodds.com/airlines/emirates/
 14. Air France (AF) · ConnectScore 19/100, rare · next-gen count unpublished · today: basic (rest basic) · Starlink, 229 aircraft, equipped count unpublished · https://wifiodds.com/airlines/airfrance/

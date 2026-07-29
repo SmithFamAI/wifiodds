@@ -122,18 +122,18 @@ function crumbLd(items) {
  * different, always-published question).
  *
  * THE STREAMING FLOOR is a metric this codebase did not previously compute:
- * the share of the KNOWN fleet (unresolved aircraft excluded from the
- * denominator, never assumed into it — the same "publish the floor" rule as
- * everywhere else on this site) sitting on a system whose quality meets or
- * beats STREAMING_MIN_Q (assets/airlines.js). A segment whose quality straddles
- * that threshold (an unpublished split inside one named system, e.g.
- * Southwest's Anuvu-or-Viasat bucket) cannot be counted either way, so it
- * counts toward neither the numerator nor a false certainty — it flips
- * floorUncertain on instead, same as a genuinely unresolved aircraft count.
- * Once the floor is already 100 there is no headroom left for any remainder
- * to raise, so the uncertainty flag is forced off there (a bare 100%, never
- * a nonsensical "≥100%") — this is why JSX/ZIPAIR/airBaltic show plain 100%
- * despite airBaltic alone carrying 27 unresolved aircraft. */
+ * the share of the WHOLE fleet (unresolved tails IN the denominator since the
+ * round-18 P0-02 fix, because this is a per-flight probability and any tail can
+ * be the one you draw) sitting on a system whose quality meets or beats
+ * STREAMING_MIN_Q (assets/airlines.js). A segment whose quality straddles that
+ * threshold (an unpublished split inside one named system, e.g. Southwest's
+ * Anuvu-or-Viasat bucket) cannot be counted either way, so it counts toward
+ * neither the numerator nor a false certainty — it flips floorUncertain on
+ * instead, same as a genuinely unresolved aircraft count. A floor of 100 now
+ * requires unresolved to be 0, so there is genuinely no headroom for a
+ * remainder and the uncertainty flag is forced off there (a bare 100%, never a
+ * nonsensical "≥100%"): JSX/ZIPAIR show a plain 100%, while airBaltic, with 27
+ * unresolved of 55, now shows ≥51% rather than a false fleetwide 100%. */
 
 var FS = require('fs');
 var PATH = require('path');
@@ -141,11 +141,12 @@ var PATH = require('path');
 /* The exact board order the approved mockup ships with. It also happens to be
  * non-increasing in today's nextGenScore, so it doubles as a valid initial
  * sort — the client script re-sorts on load regardless, and Array#sort's
- * required stability means ties (JSX/ZIPAIR/airBaltic, all 100/100 today)
- * keep this relative order after the client re-sorts, never a random one. */
+ * required stability means ties (JSX/ZIPAIR, both 100/100 today; airBaltic is
+ * 51 since the round-18 P0-02 fleet-denominator fix) keep this relative order
+ * after the client re-sorts, never a random one. */
 var HOME_BOARD_ORDER = [
-  'jsx', 'zipair', 'airbaltic', 'westjet', 'hawaiian', 'qatar', 'united', 'alaska',
-  'virginatlantic', 'emirates', 'aircanada', 'britishairways', 'jetblue', 'american',
+  'jsx', 'zipair', 'hawaiian', 'westjet', 'airbaltic', 'qatar', 'alaska', 'virginatlantic',
+  'united', 'emirates', 'aircanada', 'britishairways', 'jetblue', 'american',
   'delta', 'southwest'
 ];
 var HOME_UNPUBLISHED_ORDER = ['airfrance', 'sas'];
@@ -195,7 +196,15 @@ function homeStreamingFloor(m, a) {
     if (s.qMin >= thresh) certain += s.n;
     else if (s.qMax >= thresh) ambiguous = true;
   });
-  var pct = (certain / known) * 100;
+  /* WHOLE-FLEET DENOMINATOR, same round-18 P0-02 fix as next-gen odds: the
+     streaming floor is also a "chance of drawing an aircraft that streams"
+     number, so unresolved tails belong in the denominator. Dividing by `known`
+     let airBaltic (28 of 28 known on Starlink, 27 unresolved) print a bare 100%
+     streaming floor with the uncertainty flag forced off — an unconditional
+     fleet claim on a fleet that is 51% confirmed. Over the whole fleet it is
+     28/55 = 51% with the flag ON. When unresolved is 0 this is unchanged. */
+  var total = known + (a.unresolved || 0);
+  var pct = (certain / total) * 100;
   var uncertain = ((a.unresolved || 0) > 0 || ambiguous) && pct < 100 - 1e-9;
   return { pct: pct, uncertain: uncertain };
 }
@@ -371,6 +380,30 @@ function home(m) {
     .replace('<!--HOME:BIG4_CARDS-->', homeBig4Cards(m))
     .replace('<!--HOME:BOARD_ROWS-->', homeBoardRows(m))
     .replace('<!--HOME:CWS_BADGE-->', homeCwsBadge());
+
+  /* round 18 P0-01: the proof block + united-callout figures were hard-coded
+     literals in the approved mockup, so the daily refresh updated the baked Big-4
+     card and left "484 of 1,807 · checked 28 Jul" frozen — a false headline the
+     morning after any data change, which is exactly what shipped. They are baked
+     from the model now, the same source as every other number on the page. */
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var dparts = String(m.updated || '').split('-');
+  if (dparts.length !== 3) throw new Error('Render.home: bad m.updated date "' + m.updated + '"');
+  var proofFig = {
+    P_DATE: String(Number(dparts[2])) + ' ' + MON[Number(dparts[1]) - 1] + ' ' + dparts[0],
+    P_EQUIPPED: num(homeNum(m.fleet.equipped, 'fleet.equipped')),
+    P_TOTAL: num(homeNum(m.fleet.total, 'fleet.total')),
+    P_INSTALLDAYS: num(homeNum(m.archiveDays, 'archiveDays')),
+    P_MAINLINE: num(homeNum(m.fleet.mainline.equipped, 'fleet.mainline.equipped')),
+    P_REGIONAL: num(homeNum(m.fleet.express.equipped, 'fleet.express.equipped')),
+    P_LAST30: num(homeNum(m.fleet.last30, 'fleet.last30')),
+    P_PACE: String(homeNum(m.fleet.mainlinePacePerWeek, 'fleet.mainlinePacePerWeek'))
+  };
+  Object.keys(proofFig).forEach(function (k) { out = out.split('{{' + k + '}}').join(proofFig[k]); });
+  if (/\{\{P_[A-Z0-9]+\}\}/.test(out)) {
+    throw new Error('Render.home: an unbaked {{P_...}} proof token remains — a figure was tokenised ' +
+      'in build/templates/home.html without a matching entry in proofFig.');
+  }
 
   if (out.indexOf('<!--HOME:') !== -1) {
     throw new Error('Render.home: an unbaked HOME: marker remains in the output — a new marker was ' +

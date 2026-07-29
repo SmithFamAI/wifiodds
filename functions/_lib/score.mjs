@@ -270,7 +270,10 @@ const WIFI_AIRLINES = {
     nextGenSplit: "no-regional-fleet",
     system: "starlink", equipped: 28, fleet: 55, free: "free",
     resolution: "type",
-    serviceTier: "next-gen", restTier: null,
+    /* mixed, not "next-gen": 28 of 55 aircraft are confirmed Starlink and 27 are
+       unresolved, so next-gen odds are a 51% floor, not a fleetwide certainty
+       (round 18, P0-02). "next-gen" here rendered "next-gen fleetwide". */
+    serviceTier: "mixed", restTier: "unknown",
     /* CORRECTED 2026-07-26. This entry said 55 of 55 and called the fit
        complete. There is no completion announcement and airBaltic says the
        opposite. Its 2025 annual results presentation, 11 Mar 2026, slide 12:
@@ -1150,7 +1153,19 @@ function ledgerFor(entry) {
     const pointsMax = share * q.max * f * 100;
     rawFloor += pointsMin / 100;
     rawCeiling += pointsMax / 100;
-    if (nextGen) { rawNextGen += share * f; nextGenShare += share; }
+    /* NEXT-GEN ODDS DIVIDE BY THE WHOLE FLEET, not by `known`. The headline is
+       "the chance of drawing a next-gen aircraft on a flight with no aircraft
+       assigned yet," so every tail a passenger could be assigned is in the
+       denominator, including the unresolved ones. Dividing by `known` published
+       a conditional ("of the aircraft we can account for") as an unconditional
+       fleet probability: airBaltic read 28/28 = 100% "fleetwide" while 27 of its
+       55 aircraft were unknown, tying the two genuinely-fleetwide carriers (round
+       18, P0-02). ConnectScore keeps the `known` denominator above — it answers
+       a different question (quality of the systems we can see), and the ledger
+       prints both counts so the difference stays visible. When unresolved is 0,
+       known === total and this changes nothing. */
+    const ngShareFleet = (Number(seg.n) || 0) / (known + unresolved);
+    if (nextGen) { rawNextGen += ngShareFleet * f; nextGenShare += ngShareFleet; }
     return {
       systems: systems,
       systemLabel: systems.map(function (s) { return SYSTEM_LABEL[s] || s; }).join(" or "),

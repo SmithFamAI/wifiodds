@@ -27,7 +27,10 @@ import { WIFI_AIRLINES, SCORE_CAVEAT, SCORE_METHOD_LINE, TIER_METHOD_LINE,
 
 export const API_VERSION = 'v0';
 export const ORIGIN = 'https://wifiodds.com';
-export const DOCS = ORIGIN + '/api/docs/';
+/* The dedicated /api/docs/ HTML page was removed in the 28 Jul cut (301 to /).
+   The surviving documentation surface is /methodology/, so every `docs:` field
+   points there now rather than at a redirect (round 18, P1-01). */
+export const DOCS = ORIGIN + '/methodology/';
 
 /* Success is cacheable for an hour (the data changes once a day). Errors get a
  * much shorter TTL on purpose: an unknown flight number today can be a known one
@@ -54,7 +57,7 @@ export const SOURCES = [
   },
   {
     name: 'Public airline announcements (July 2026)',
-    url: ORIGIN + '/airlines/',
+    url: ORIGIN + '/#all',
     covers: 'every airline other than United and Alaska'
   },
   {
@@ -289,8 +292,10 @@ export function airlineJson(key) {
     tracker: a.tracker,
     future: a.future,
     note: a.note,
-    asOf: a.asOf,
-    url: ORIGIN + '/airlines/' + key + '/'
+    asOf: a.asOf
+    /* the per-airline `url` (/airlines/<key>/) was dropped in the 28 Jul cut:
+       those pages are gone, so a machine client would have followed a 301 to an
+       unrelated home page. Their data is this very object (round 18, P1-01). */
   };
 }
 

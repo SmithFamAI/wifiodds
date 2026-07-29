@@ -115,7 +115,7 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
 <div class="wrap">
   <nav class="nav" aria-label="Main navigation">
     <a class="brand" href="https://wifiodds.com/"><svg class="mark" viewBox="128 128 768 768" aria-hidden="true" focusable="false"><defs><linearGradient id="wo-mk-home-nav" x1="270" y1="700" x2="754" y2="700" gradientUnits="userSpaceOnUse"><stop stop-color="#29d8ff"/><stop offset="1" stop-color="#926cff"/></linearGradient></defs><path d="M292 700A320 320 0 1 1 732 700" fill="none" stroke="url(#wo-mk-home-nav)" stroke-width="68" stroke-linecap="round"/><g transform="translate(0 -24)"><rect x="267" y="405" width="176" height="134" rx="24" fill="url(#wo-mk-home-nav)"/><rect x="581" y="405" width="176" height="134" rx="24" fill="url(#wo-mk-home-nav)"/><path d="M443 472h35M546 472h35" stroke="currentColor" stroke-width="24" stroke-linecap="round"/><rect x="466" y="362" width="92" height="220" rx="38" fill="currentColor"/><circle cx="512" cy="472" r="31" fill="url(#wo-mk-home-nav)"/><path d="M449 300Q512 341 575 300Q563 251 512 251Q461 251 449 300Z" fill="url(#wo-mk-home-nav)"/></g><path d="M512 612C499 612 492 625 489 645L480 704L410 747C399 754 393 765 393 779L478 754L483 807L457 829V846L512 831L567 846V829L541 807L546 754L631 779C631 765 625 754 614 747L544 704L535 645C532 625 525 612 512 612Z" fill="currentColor"/></svg>WiFi Odds</a>
-    <div class="navlinks"><a href="#proof">United fleet</a><a href="#big4">Big 4</a><a href="#all">All 18</a><a class="pill" href="#extension">Get Chrome Extension</a></div>
+    <div class="navlinks"><a href="https://wifiodds.com/methodology/">Methodology</a><a href="https://wifiodds.com/technology/">Technology</a><a href="#extension">Extension</a><a class="pill" href="#extension">Get Chrome Extension</a></div>
   </nav>
 </div>
 <!-- THE PERSISTENT VIEW SWITCH. A second .view-switch, not a moved one, and that
@@ -138,7 +138,7 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
 <main id="main">
   <header class="hero hero-v2">
     <div class="wrap hero-inner">
-      <div class="datestamp">Live figures · checked 28 Jul 2026</div>
+      <div class="datestamp">Live figures · checked {{P_DATE}}</div>
       <div class="eyebrow"><i class="pulse"></i>Starlink + Amazon Leo odds</div>
       <h1>What are your odds<br>of <span class="gradient">next-gen WiFi?</span></h1>
       <div class="hero-bottom-v2">
@@ -150,8 +150,8 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
 
   <section class="proof" id="proof">
     <div class="wrap proof-grid">
-      <div class="proof-main"><div class="proof-num"><span class="odds-only">484</span><span class="tier-only">≥66%</span></div><div class="proof-copy"><span class="kicker">United, aircraft by aircraft · updates with this view</span><h2><span class="odds-only">The largest tracked next-gen fleet.</span><span class="tier-only">Most of the published fleet is better than dial-up.</span></h2><p><span class="odds-only">484 of 1,807 aircraft are confirmed next-gen, the largest absolute count among the airlines tracked here.</span><span class="tier-only">Starlink plus confirmed modern streaming systems create a 66% floor. Unpublished systems could only move it higher.</span></p></div></div>
-      <div class="proof-side"><div class="proof-facts"><div class="proof-fact"><b><span class="odds-only">178</span> <span class="tier-only">484</span></b> <span><span class="odds-only">install days recorded</span><span class="tier-only">next-gen aircraft</span></span></div><div class="proof-fact"><b><span class="odds-only">1,807</span> <span class="tier-only">560</span></b> <span><span class="odds-only">aircraft tracked</span><span class="tier-only">modern streaming aircraft</span></span></div><div class="proof-fact"><b><span class="odds-only">143</span> <span class="tier-only">407</span></b> <span><span class="odds-only">mainline equipped</span><span class="tier-only">legacy-system aircraft</span></span></div><div class="proof-fact"><b><span class="odds-only">341</span> <span class="tier-only">131</span></b> <span><span class="odds-only">regional equipped</span><span class="tier-only">no-wifi aircraft</span></span></div></div></div>
+      <div class="proof-main"><div class="proof-num"><span class="odds-only">{{P_EQUIPPED}}</span><span class="tier-only">≥66%</span></div><div class="proof-copy"><span class="kicker">United, aircraft by aircraft · updates with this view</span><h2><span class="odds-only">The largest tracked next-gen fleet.</span><span class="tier-only">Most of the published fleet is better than dial-up.</span></h2><p><span class="odds-only">{{P_EQUIPPED}} of {{P_TOTAL}} aircraft are confirmed next-gen, the largest absolute count among the airlines tracked here.</span><span class="tier-only">Starlink plus confirmed modern streaming systems create a 66% floor. Unpublished systems could only move it higher.</span></p></div></div>
+      <div class="proof-side"><div class="proof-facts"><div class="proof-fact"><b><span class="odds-only">{{P_INSTALLDAYS}}</span> <span class="tier-only">{{P_EQUIPPED}}</span></b> <span><span class="odds-only">install days recorded</span><span class="tier-only">next-gen aircraft</span></span></div><div class="proof-fact"><b><span class="odds-only">{{P_TOTAL}}</span> <span class="tier-only">560</span></b> <span><span class="odds-only">aircraft tracked</span><span class="tier-only">modern streaming aircraft</span></span></div><div class="proof-fact"><b><span class="odds-only">{{P_MAINLINE}}</span> <span class="tier-only">407</span></b> <span><span class="odds-only">mainline equipped</span><span class="tier-only">legacy-system aircraft</span></span></div><div class="proof-fact"><b><span class="odds-only">{{P_REGIONAL}}</span> <span class="tier-only">131</span></b> <span><span class="odds-only">regional equipped</span><span class="tier-only">no-wifi aircraft</span></span></div></div></div>
     </div>
   </section>
 
@@ -163,7 +163,7 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
       </div>
       <div class="context-stack">
       <a class="connect-key" href="https://wifiodds.com/methodology/"><span class="connect-brand">CS</span><p><b>ConnectScore · 0–100</b> rates the WiFi you get today across an airline’s whole fleet, all systems blended. Next-gen odds ask a different question: will you be on Starlink or Amazon Leo?</p><span class="connect-more">Methodology →</span></a>
-      <aside class="united-callout"><span class="asterisk" aria-hidden="true">*</span><div><b>United has the largest next-gen fleet actually flying.</b><p>484 aircraft, and the only airline whose rollout can be checked aircraft by aircraft. Measured pace: about 9.7 installs a week, with 52 in the last 30 days.</p></div></aside>
+      <aside class="united-callout"><span class="asterisk" aria-hidden="true">*</span><div><b>United has the largest next-gen fleet actually flying.</b><p>{{P_EQUIPPED}} aircraft, and the only airline whose rollout can be checked aircraft by aircraft. Measured pace: about {{P_PACE}} installs a week, with {{P_LAST30}} in the last 30 days.</p></div></aside>
       </div>
     </div>
   </section>
