@@ -66,12 +66,14 @@ export const INSTRUCTIONS = [
   'Say so plainly and make the trade explicit; do not hedge back toward whatever they already had.',
   '',
   'THE DEFAULT RECOMMENDATION',
-  'Prefer the higher ConnectScore. It already folds together three things — how much of the fleet',
-  'carries the modern system, how good that system is, and whether it is free once you are onboard —',
-  'so a smaller airline that finished its rollout genuinely beats a giant one that is half done.',
-  'When two options are close (within about 5 points), break the tie on: free-for-everyone over',
-  'paid or loyalty-gated; then longer flight time on the better system, because the score is per',
-  'flight but the value is per hour.',
+  'Rank by ConnectScore — the whole-fleet lower bound — descending, and recommend in that order. It',
+  'already folds together three things: how much of the fleet carries the modern system, how good',
+  'that system is, and whether it is free once you are onboard, so a smaller airline that finished',
+  'its rollout genuinely beats a giant one that is half done. Do NOT override this order for options',
+  'that are close: there is no five-point band. An exact tie in the lower bound breaks on whole-fleet',
+  'coverage, then stable airline name. Free-for-everyone access and longer flight time on the better',
+  'system are real tradeoffs you may surface AFTER stating the score order — never as a reason to',
+  'prefer a lower ConnectScore.',
   '',
   'TOOL SELECTION',
   '- The user named a flight number (UA212, AS15): map it to its airline and call get_airline_score —',
@@ -324,8 +326,9 @@ async function toolListAirlineScores(context) {
     '',
     list.map(function (a, i) { return (i + 1) + '. ' + airlineLine(a); }).join('\n'),
     '',
-    'Prefer the higher ConnectScore. Within ~5 points, break the tie on free-for-everyone first, then ' +
-    'on more hours in the air on the better system.',
+    'Rank by ConnectScore (whole-fleet lower bound) descending; an exact tie breaks on whole-fleet ' +
+    'coverage, then name. There is no five-point band — never prefer a lower ConnectScore. Free access ' +
+    'and longer time on the better system are tradeoffs to mention after the order, not tie-breakers.',
     'Leaderboard: ' + ORIGIN + '/#all · method: ' + METHODOLOGY,
     '',
     CREDIT_LINE

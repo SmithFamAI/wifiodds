@@ -2702,7 +2702,7 @@ function apiDocs(m) {
     'without the path changing to <span class="mono">/api/v1/</span>. Every response carries an ' +
     '<span class="mono">x-connectscore-api</span> header with the version.</p></div>\n' +
     '    <div class="q"><h3>Not a guarantee</h3><p>ConnectScores and per-flight odds are historical ' +
-    'estimates. Aircraft assignments change until departure, and a fleet-wide expected value is not a ' +
+    'estimates. Aircraft assignments change until departure, and a whole-fleet lower bound is not a ' +
     'prediction about the aircraft you are assigned.</p></div>\n' +
     '  </div>\n</section>\n';
 

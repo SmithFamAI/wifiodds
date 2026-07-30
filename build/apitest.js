@@ -1380,7 +1380,7 @@ async function main() {
   eq(init.j.result.serverInfo.name, 'wifiodds', 'MCP serverInfo.name');
   var instr = init.j.result.instructions || '';
   ok(instr.length > 1500, 'MCP instructions are substantial (they are the product)', instr.length);
-  [/HOURS OF WORKING WIFI/, /Prefer the higher ConnectScore/, /browser extension/, /Never/,
+  [/HOURS OF WORKING WIFI/, /Rank by ConnectScore/, /browser extension/, /Never/,
     /martinamps/, /methodology/].forEach(function (re) {
     ok(re.test(instr), 'MCP instructions carry ' + re);
   });
@@ -1437,6 +1437,27 @@ async function main() {
     'list_airline_scores is ordered best-odds-first, like rankAirlines()');
   ok(r2.structuredContent.airlines.every(function (a) { return !!a.confidenceTier; }),
     'every airline in the list is labelled with its confidence tier');
+
+  /* ── round 19 P0-02: the machine recommendation contract ──────────────────
+   * MCP is the surface a model relays verbatim. Its instruction prompt and tool
+   * text must state and obey ONE ranking rule — unrounded whole-fleet lower
+   * bound descending, exact tie by whole-fleet coverage then stable name — and
+   * must NOT authorise a "within ~5 points" alternate ranking nor call the
+   * lower bound an expected value. The regexes match the OFFENDING construction
+   * ("within (about|~) 5/five points", "is an expected value") and not the
+   * corrective negations ("no five-point band", "not an expected value"), so a
+   * mutation restoring either phrase fails here. */
+  var mcpInitJson = JSON.stringify((await rpc({ jsonrpc: '2.0', id: 30, method: 'initialize', params: {} })).j);
+  [['MCP initialize instructions', mcpInitJson],
+   ['MCP get_airline_score text', r1.content[0].text],
+   ['MCP list_airline_scores text', r2.content[0].text]].forEach(function (p) {
+    ok(!/within\s+(about\s+)?~?\s*(5|five)\s+points/i.test(p[1]),
+      p[0] + ' does not authorise a within-5-points alternate ranking (round 19 P0-02)');
+    ok(!/\bis an expected value\b/i.test(p[1]),
+      p[0] + ' does not call ConnectScore an expected value (round 19 P0-02)');
+  });
+  ok(/lower bound/i.test(mcpInitJson) && /lower bound/i.test(r2.content[0].text),
+    'MCP initialize + list_airline_scores state the whole-fleet lower-bound contract (round 19 P0-02)');
 
   /* score_flight retired 2026-07-26 (spec D7): calling it by name must fail the
      same way any unknown tool does, so the tool cannot silently reappear in a

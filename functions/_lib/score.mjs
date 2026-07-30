@@ -987,7 +987,7 @@ const SYSTEM_LABEL = {
 };
 
 const SCORE_CAVEAT =
-  "ConnectScore is an expected value over a whole fleet, not a prediction about one flight: " +
+  "ConnectScore is a conservative whole-fleet lower bound, not an expected value or a prediction about one flight: " +
   "United measured 320, 56 and 15 Mbps on three systems in one livery in one reporting period. " +
   "Aircraft whose system an airline does not publish stay in the denominator and add zero to the " +
   "lower bound rather than being dropped from it. Signed-but-unflown deals (AA Starlink 2027, " +

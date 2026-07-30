@@ -100,7 +100,7 @@ speed figure for it and you should not invent one.
 
 ### "How is the score calculated?"
 ConnectScore = the sum, over every segment of the fleet, of whole-fleet share × system quality × free-for-you. Unresolved aircraft stay in the denominator and add zero, so the published score is a whole-fleet lower bound. Data: unitedstarlinktracker.com · alaskastarlinktracker.com · airline announcements (Jul 2026).
-ConnectScore is an expected value over a whole fleet, not a prediction about one flight: United measured 320, 56 and 15 Mbps on three systems in one livery in one reporting period. Aircraft whose system an airline does not publish stay in the denominator and add zero to the lower bound rather than being dropped from it. Signed-but-unflown deals (AA Starlink 2027, DL/B6 Amazon Leo) score zero until they fly.
+ConnectScore is a conservative whole-fleet lower bound, not an expected value or a prediction about one flight: United measured 320, 56 and 15 Mbps on three systems in one livery in one reporting period. Aircraft whose system an airline does not publish stay in the denominator and add zero to the lower bound rather than being dropped from it. Signed-but-unflown deals (AA Starlink 2027, DL/B6 Amazon Leo) score zero until they fly.
 Worked example — United, every row of the ledger. 1,583 of its 1,810 aircraft have a published system:
   Starlink          485 aircraft   26.8% fleet share × quality 1.00 × free-for-you 1.00 = 26.8 points   ← the next-gen row
   Viasat            525 aircraft   29.0% fleet share × quality 0.55 × free-for-you 0.70 = 11.2 points
