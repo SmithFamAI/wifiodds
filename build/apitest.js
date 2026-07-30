@@ -817,8 +817,13 @@ async function main() {
       var sumHi = a.segments.reduce(function (t, s) { return t + hi(s); }, 0);
       ok(Math.abs(sumLo - a.floor) <= 0.5, a.key + ': ledger rows sum to the floor',
         [Number(sumLo.toFixed(2)), a.floor]);
-      ok(Math.abs(sumHi - a.ceiling) <= 0.5, a.key + ': ledger rows sum to the ceiling',
-        [Number(sumHi.toFixed(2)), a.ceiling]);
+      /* Round-18 P0-02: the ceiling is the rows' upper points PLUS the unresolved
+         pool's whole share (they add their full possible value to the upper
+         bound), capped at 100. */
+      var unresCeil = a.unresolved ? a.unresolved.inUpperBound : 0;
+      ok(Math.abs(Math.min(100, sumHi + unresCeil) - a.ceiling) <= 0.5,
+        a.key + ': ledger rows plus the unresolved pool sum to the ceiling',
+        [Number((sumHi + unresCeil).toFixed(2)), a.ceiling]);
       /* next-gen odds are the confirmed next-gen aircraft over the WHOLE fleet,
          free-weighted (round 18 P0-02). The ledger row `share` is of `known` and
          legitimately differs when there are unresolved tails: airBaltic's row is
@@ -865,8 +870,16 @@ async function main() {
           a.key + ' segment ' + (i + 1) + ': only a multi-system row may be marked unpublished');
       });
       if (a.unresolved) {
-        eq(a.unresolved.inDenominator, false,
-          a.key + ': unresolved aircraft stay out of the denominator');
+        /* Round-18 P0-02: unresolved aircraft are IN the whole-fleet denominator
+           now — they add zero to the lower bound and their whole share to the
+           upper bound, rather than being dropped from the fleet. */
+        eq(a.unresolved.inDenominator, true,
+          a.key + ': unresolved aircraft stay in the whole-fleet denominator');
+        eq(a.unresolved.inLowerBound, 0,
+          a.key + ': unresolved aircraft add zero to the lower bound');
+        ok(a.unresolved.inUpperBound > 0,
+          a.key + ': unresolved aircraft add their whole share to the upper bound',
+          a.unresolved.inUpperBound);
         ok(typeof a.unresolved.why === 'string' && a.unresolved.why.length,
           a.key + ': says why those aircraft are unresolved');
       }
@@ -914,18 +927,18 @@ async function main() {
   var dl = all.airlines.filter(function (a) { return a.key === 'delta'; })[0];
   eq(dl.nextGenScore, 0, 'PARITY: /api/airlines Delta nextGenScore is 0');
   eq(dl.serviceTier, 'streaming', 'PARITY: /api/airlines Delta serviceTier is streaming');
-  /* 60 → 52 → 49. The 52 was 0.86 coverage × 0.6 Viasat × 1.0 free. Under the
-     segmented model Delta is three rows out of 1,330 aircraft: 1,150 on Viasat
-     or Hughes at the corrected modern-GEO weight of 0.55 (47.6 points), the 80
-     Boeing 717s with no wifi at all since May 2026 (0.0), and 100 transpacific
-     widebodies whose system Delta does not publish, scored at the legacy floor
-     (1.4). 47.6 + 0 + 1.4 = 49. */
-  eq(dl.connectScore, 49, 'Delta connectScore is 49 — the floor of a three-segment fleet');
-  eq(dl.floor, 49, 'Delta floor is the published connectScore');
-  /* The ceiling exists because the transpacific row could be 2Ku rather than
-     legacy Ku. Publishing the floor is what makes the score defensible without
-     an assumption; the ceiling rides alongside so the gap is visible. */
-  eq(dl.ceiling, 51, 'Delta ceiling is 51 — the transpacific split is unpublished');
+  /* Round-18 P0-02: Delta is three rows out of 1,330 aircraft, all resolved:
+     1,150 on Viasat or Hughes (modern-GEO 0.55, free) = 47.6 points; the 80
+     Boeing 717s with no wifi (0.0); and 100 transpacific widebodies whose system
+     AND price Delta does not publish. That last row's free is unknown, so at the
+     floor it contributes qMin × 0 = 0 (the ruling forbids an assumed 0.85
+     midpoint in a floor). 47.6 + 0 + 0 = 48. */
+  eq(dl.connectScore, 48, 'Delta connectScore is 48 — the whole-fleet lower bound');
+  eq(dl.floor, 48, 'Delta floor is the published connectScore');
+  /* The ceiling exists because the transpacific row could be a modern-GEO system
+     at full price-free (qMax × fMax=1). Publishing the floor is what makes the
+     score defensible without an assumption; the ceiling rides alongside. */
+  eq(dl.ceiling, 52, 'Delta ceiling is 52 — the transpacific system and price are unpublished');
   eq(dl.resolution, 'systems', 'Delta resolution tier');
   eq(dl.segments.length, 3, 'Delta has three fleet segments');
   eq(dl.segments[1].aircraft, 80, 'Delta still carries the 80 Boeing 717s as a no-wifi segment');
@@ -1024,24 +1037,25 @@ async function main() {
   /* rule 1, at the API boundary: today's floor orders the list, and a projection
      that outranks a floor must not move anybody. American projects 51 against a
      floor of 51; jetBlue projects 25 against a floor of 55. */
-  eq(all.order, 'connectScore desc, ties by fitted coverage then name',
-    '/api/airlines declares it sorts on the score');
-  /* mirrors A.tieCoverage in assets/airlines.js and the independent copy in
-     build/prerender.js's assertProjectionsDoNotSort: airBaltic 100 on 51%
-     fitted must not outrank JSX or ZIPAIR, both 100 fleetwide. */
+  eq(all.order, 'whole-fleet lower-bound ConnectScore desc, ties by whole-fleet coverage then name',
+    '/api/airlines declares it sorts on the whole-fleet lower bound');
+  /* Round-18 P0-02: rank on the UNROUNDED whole-fleet lower bound
+     (connectScoreExact), ties by whole-fleet coverage (known ÷ total), then
+     name. This is the same key rankAirlines() sorts on, re-derived here from the
+     public JSON: American 51.036 sits above airBaltic 50.909 even though both
+     display 51, and jetBlue 55.000 above Alaska 54.950. */
   function tieCoverage(x) {
-    var v = x.fleet && typeof x.fleet.total === 'number' && x.fleet.total > 0
-      ? (x.fleet.equipped || 0) / x.fleet.total : 1;
-    return v >= 0.99 ? 1 : v;
+    return x.wholeFleet && typeof x.wholeFleet.coveragePct === 'number'
+      ? x.wholeFleet.coveragePct / 100 : 1;
   }
   var floorOrder = all.airlines.slice().sort(function (x, y) {
-    if (y.connectScore !== x.connectScore) return y.connectScore - x.connectScore;
+    if (y.connectScoreExact !== x.connectScoreExact) return y.connectScoreExact - x.connectScoreExact;
     var yc = tieCoverage(y), xc = tieCoverage(x);
     if (yc !== xc) return yc - xc;
     return x.name.localeCompare(y.name);
   }).map(function (x) { return x.key; }).join(',');
   eq(all.airlines.map(function (x) { return x.key; }).join(','), floorOrder,
-    'PARITY: /api/airlines is ordered by today\'s floor, never by a projection');
+    'PARITY: /api/airlines is ordered by the unrounded whole-fleet lower bound, never by a projection');
 
   /* ── GET /api/airlines/{key} ── */
   res = await H.airlineOne(ctx('https://wifiodds.com/api/airlines/qatar', { key: 'qatar' }));
@@ -1464,9 +1478,117 @@ async function main() {
      render-vs-API parity that read its bytes is retired with it. The API-side
      assertions below still pin qatar's numbers. */
   
-  eq(qr.airline.connectScore, 58, 'PARITY: the API score for qatar is 58');
+  /* Round-18 P0-02: qatar's whole-fleet lower bound is 53, not the old 58. 221
+     of 241 aircraft are resolved (120 Starlink free + 53 legacy paid + 48 no
+     wifi), and 20 are unresolved, so the resolved-subset 58 is diluted across
+     the whole 241-aircraft fleet: 53 published, ceiling 61. */
+  eq(qr.airline.connectScore, 53, 'PARITY: the API score for qatar is 53 (whole-fleet lower bound)');
+  eq(qr.airline.resolvedSubsetScore.score, 58, 'qatar resolved-subset score is 58, labelled Among resolved aircraft');
+  eq(qr.airline.resolvedSubsetScore.label, 'Among resolved aircraft', 'resolved-subset carries its label');
   /* next-gen odds are 120 confirmed Starlink over the whole 241-aircraft fleet. */
   eq(qr.airline.nextGenScore, 50, 'qatar next-gen odds are 50 — 120 Starlink aircraft over the whole 241-aircraft fleet (round 18 P0-02 whole-fleet denominator; was 54 over the 221 resolved)');
+
+  /* ══════════════════════════════════════════════════════════════════════════
+   * ROUND-18 P0-02 ACCEPTANCE — the eight tests from
+   * for-claude/2026-07-30-round18-p0-02-connectscore-ruling.md.
+   * The public ConnectScore and every ranking use the WHOLE-FLEET lower bound;
+   * the known-subset survives only as resolvedSubsetScore, "Among resolved
+   * aircraft," and never ranks. ══════════════════════════════════════════════ */
+  function p002seg(sys, n, free) {
+    return { system: sys, n: n, free: free, src: 'test-fixture', as: '2026-07' };
+  }
+  var llmsTxt = fs.readFileSync(path.join(ROOT, 'llms.txt'), 'utf8');
+
+  /* #1 — 55 aircraft, 28 known-perfect + 27 unresolved → 28/55*100 = 50.909, not 100. */
+  var t1 = A.scoreEntry({ system: 'starlink', resolution: 'type',
+    segments: [p002seg('starlink', 28, 'free')], unresolved: { n: 27, why: 'fixture' } });
+  ok(Math.abs(t1.scoreExact - 50.9090909) < 0.001,
+    'P0-02 #1: 28 perfect of 55 → lower bound 50.909..., not 100', t1.scoreExact);
+  eq(t1.score, 51, 'P0-02 #1: it displays 51 after rounding');
+  eq(t1.resolvedSubsetScore, 100, 'P0-02 #1: resolved-subset alone is 100, a diagnostic only');
+
+  /* #2 — it does not tie or outrank a fully-resolved 100 airline. */
+  var t2full = A.scoreEntry({ system: 'starlink', resolution: 'type', segments: [p002seg('starlink', 56, 'free')] });
+  eq(t2full.score, 100, 'P0-02 #2: a fully-resolved perfect fleet is 100');
+  ok(t2full.scoreExact > t1.scoreExact,
+    'P0-02 #2: the fleetwide 100 outranks the 28-of-55 partial on the unrounded bound', [t2full.scoreExact, t1.scoreExact]);
+  var jsxIdx = all.airlines.findIndex(function (x) { return x.key === 'jsx'; });
+  var abIdx = all.airlines.findIndex(function (x) { return x.key === 'airbaltic'; });
+  ok(jsxIdx >= 0 && abIdx > jsxIdx, 'P0-02 #2: real airBaltic ranks below fleetwide JSX', [jsxIdx, abIdx]);
+  ok(all.airlines[abIdx].connectScore !== 100, 'P0-02 #2: airBaltic is not 100 in any best result', all.airlines[abIdx].connectScore);
+
+  /* #3 — changing ONLY the unresolved count changes the lower bound and coverage. */
+  var t3a = A.scoreEntry({ system: 'starlink', segments: [p002seg('starlink', 28, 'free')], unresolved: { n: 27, why: 'x' } });
+  var t3b = A.scoreEntry({ system: 'starlink', segments: [p002seg('starlink', 28, 'free')], unresolved: { n: 54, why: 'x' } });
+  ok(t3a.scoreExact > t3b.scoreExact, 'P0-02 #3: more unresolved lowers the whole-fleet lower bound', [t3a.scoreExact, t3b.scoreExact]);
+  ok(t3a.coverage > t3b.coverage, 'P0-02 #3: more unresolved lowers whole-fleet coverage', [t3a.coverage, t3b.coverage]);
+  ok(/27 of 55 unresolved/.test(llmsTxt), 'P0-02 #3: the unresolved count surfaces in llms.txt');
+  eq(qr.airline.wholeFleet.unresolved, 20, 'P0-02 #3: REST exposes qatar unresolved count (20)');
+
+  /* #4 — same input → same unrounded lower bound, order, rounded display, and
+   *      uncertainty wording across page data, REST, MCP and llms.txt. */
+  var pageQatar = A.scoreAirline('qatar');
+  eq(pageQatar.floor, qr.airline.connectScore, 'P0-02 #4: page data and REST agree on qatar lower bound (53)');
+  eq(pageQatar.ceiling, qr.airline.connectScoreUpper, 'P0-02 #4: page data and REST agree on qatar ceiling (61)');
+  var mcpList = await rpc({ jsonrpc: '2.0', id: 'p002', method: 'tools/call',
+    params: { name: 'list_airline_scores', arguments: {} } });
+  var mcpAirlines = mcpList.j.result.structuredContent.airlines;
+  var mcpQatar = mcpAirlines.find(function (x) { return x.key === 'qatar'; });
+  eq(mcpQatar.connectScore, 53, 'P0-02 #4: MCP agrees qatar lower bound is 53');
+  eq(mcpQatar.connectScoreUpper, 61, 'P0-02 #4: MCP agrees qatar ceiling is 61');
+  ok(/whole-fleet lower bound/.test(mcpList.j.result.content[0].text),
+    'P0-02 #4: MCP prose names the whole-fleet lower bound');
+  ok(/ConnectScore 53\/100 \(whole-fleet lower bound\)/.test(llmsTxt),
+    'P0-02 #4: llms.txt prints qatar 53 as the whole-fleet lower bound');
+  ok(mcpAirlines.map(function (x) { return x.key; }).join(',') ===
+     all.airlines.map(function (x) { return x.key; }).join(','),
+    'P0-02 #4: MCP list order matches REST order');
+
+  /* #5 — a mutation restoring known-subset division must fail this gate. Revert
+   *      ledgerFor() to divide by `known` and airBaltic's connectScore becomes
+   *      100 (== its resolvedSubsetScore), which flips both eqs below. */
+  var abTest = all.airlines[abIdx];
+  eq(abTest.connectScore, 51, 'P0-02 #5: airBaltic connectScore is the whole-fleet 51, not the known-subset 100');
+  eq(abTest.resolvedSubsetScore.score, 100, 'P0-02 #5: its resolved-subset is 100, kept separate');
+  ok(abTest.connectScore !== abTest.resolvedSubsetScore.score,
+    'P0-02 #5: connectScore must NOT equal the known-subset score (that is the reverted-bug shape)');
+  ok(Math.abs(abTest.connectScoreExact - 50.909) < 0.01,
+    'P0-02 #5: the unrounded lower bound is 50.909 (28/55), not 100', abTest.connectScoreExact);
+
+  /* #6 — an unknown free-access factor is 0 at the floor and 1 at the ceiling;
+   *      no undocumented 0.85 midpoint enters the floor. */
+  eq(A.freeInterval('unknown').min, 0, 'P0-02 #6: unknown free lower factor is 0');
+  eq(A.freeInterval('unknown').max, 1, 'P0-02 #6: unknown free upper factor is 1');
+  eq(A.freeInterval('mystery-tier').min, 0, 'P0-02 #6: an unrecorded free status is 0 at the floor');
+  eq(A.freeInterval('free').min, 1, 'P0-02 #6: a confirmed free tier is a point value (1)');
+  eq(A.freeInterval('paid').max, 0.7, 'P0-02 #6: a confirmed paid tier is a point value (0.7)');
+  var t6 = A.scoreEntry({ system: 'starlink', segments: [p002seg('starlink', 10, 'unknown')] });
+  eq(t6.floor, 0, 'P0-02 #6: a perfect fleet with unknown price scores 0 at the floor, never 85');
+  eq(t6.ceiling, 100, 'P0-02 #6: and 100 at the ceiling');
+
+  /* #7 — the published rank uses the UNROUNDED lower bound. */
+  var amRow = all.airlines.find(function (x) { return x.key === 'american'; });
+  var abRow = all.airlines.find(function (x) { return x.key === 'airbaltic'; });
+  eq(amRow.connectScore, 51, 'P0-02 #7: American displays 51');
+  eq(abRow.connectScore, 51, 'P0-02 #7: airBaltic displays 51');
+  ok(amRow.connectScoreExact > abRow.connectScoreExact,
+    'P0-02 #7: American ~51.036 outranks airBaltic ~50.909 on the unrounded bound', [amRow.connectScoreExact, abRow.connectScoreExact]);
+  ok(all.airlines.findIndex(function (x) { return x.key === 'american'; }) <
+     all.airlines.findIndex(function (x) { return x.key === 'airbaltic'; }),
+    'P0-02 #7: American ranks above airBaltic even though both display 51');
+
+  /* #8 — every score carries the whole-fleet denominator, unresolved count,
+   *      tier/status, source and as-of date. */
+  all.airlines.forEach(function (a) {
+    ok(typeof a.wholeFleet.total === 'number' && a.wholeFleet.total > 0, a.key + ': whole-fleet total present', a.wholeFleet.total);
+    ok(typeof a.wholeFleet.resolved === 'number', a.key + ': resolved count present');
+    ok(typeof a.wholeFleet.unresolved === 'number', a.key + ': unresolved count present');
+    ok(typeof a.wholeFleet.coveragePct === 'number', a.key + ': coverage percentage present');
+    ok(typeof a.connectScoreLower === 'number' && typeof a.connectScoreUpper === 'number', a.key + ': lower and upper bounds present');
+    ok(['fleetwide', 'mixed', 'limited evidence'].indexOf(a.fleetStatus) >= 0, a.key + ': fleet status is one of the three tiers', a.fleetStatus);
+    ok(typeof a.wholeFleet.source === 'string' && a.wholeFleet.source.length, a.key + ': whole-fleet score carries a source');
+    ok(typeof a.wholeFleet.asOf === 'string' && a.wholeFleet.asOf.length, a.key + ': whole-fleet score carries an as-of date');
+  });
 
   /* ── PARITY, second axis: the homepage and the API must agree about every
    * number the page draws. The V5 go-live (28 Jul 2026) replaced the skyline

@@ -385,6 +385,111 @@ function masthead(here, suffix, updated, refreshAttemptedOn, wasRetained) {
     '  </div>\n</header>\n';
 }
 
+/* ── THE UNIFIED DISCLOSURE MASTHEAD (round 18, P1-02) ─────────────────────
+ * One component contract on all four survivor pages: /, /methodology/,
+ * /technology/, /privacy. Below 880px the primary navigation COLLAPSES behind a
+ * real <button aria-expanded aria-controls aria-label>; it does not merely hide
+ * the three location links the way the old per-page rules did.
+ *
+ * NO-JS FAIL-OPEN. The default compact CSS leaves the navigation OPEN (a
+ * full-width normal-flow stack, not a modal or drawer) and the button HIDDEN.
+ * Only the `is-enhanced` class, added by the script once its listeners attach,
+ * reveals the button and enables the collapse. So a page whose script fails
+ * still reaches Methodology, Technology and Extension by keyboard.
+ *
+ * One store constant (EXT) feeds both the compact and the desktop CTA, so the
+ * two can never point at different URLs. Tokens are read with fallbacks so the
+ * same block works on the dark content pages (--bg/--panel/--line/--cyan) and
+ * on Privacy (--paper/--card) without a second palette. */
+var MASTHEAD_CSS =
+  '.sitebar{background:var(--bg,var(--paper,#050505))}' +
+  '.sitebar .masthead{display:flex;align-items:center;justify-content:space-between;gap:16px;' +
+  'min-height:78px;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);' +
+  'border-bottom:1px solid var(--line,var(--soft,#29292f))}' +
+  '.sitebar .brand{display:flex;align-items:center;gap:10px;min-height:44px;font-weight:850;' +
+  'letter-spacing:-.04em;font-size:20px;color:var(--ink,#fff)}' +
+  '.sitebar .brand svg,.sitebar .brand .mk,.sitebar .brand .mark{width:21px;height:21px;flex:none;color:var(--cyan,#29d8ff)}' +
+  '.sitebar .primary-nav{display:flex;align-items:center;gap:28px;color:var(--nav-muted,#c7c7cc);font-size:14px}' +
+  '.sitebar .primary-nav>a{display:flex;align-items:center;min-height:44px}' +
+  '.sitebar .primary-nav>a:not(.pill):hover,.sitebar .primary-nav>a[aria-current="page"]{color:var(--ink,#fff)}' +
+  '.sitebar .pill{display:inline-flex;align-items:center;justify-content:center;min-height:44px;' +
+  'padding:0 18px;border:0;border-radius:999px;font-weight:750;font-size:14px;color:#050505;' +
+  'background:linear-gradient(105deg,var(--cyan,#29d8ff),#7cc9ff 48%,var(--violet,#926cff))}' +
+  '.sitebar .mobile-actions{display:flex;align-items:center;gap:8px}' +
+  '.sitebar .mobile-cta{display:none}' +
+  '.sitebar .nav-toggle{display:none;width:44px;height:44px;align-items:center;justify-content:center;' +
+  'padding:0;cursor:pointer;color:var(--ink,#fff);background:var(--panel,var(--card,#0d0d0f));' +
+  'border:1px solid var(--field-border,var(--line,var(--soft,#34343b)));border-radius:10px}' +
+  '.sitebar .nav-toggle svg{width:20px;height:20px;pointer-events:none}' +
+  '.sitebar .nav-toggle .ico-close{display:none}' +
+  '.sitebar .nav-toggle:focus-visible,.sitebar .primary-nav a:focus-visible,.sitebar .brand:focus-visible' +
+  '{outline:3px solid var(--cyan,var(--sky,#29d8ff));outline-offset:3px}' +
+  '@media(min-width:881px){.sitebar{position:sticky;top:0;z-index:40}}' +
+  '@media(max-width:880px){' +
+  '.sitebar{position:static}' +
+  '.sitebar .masthead{flex-wrap:wrap;min-height:68px;height:auto;row-gap:0;' +
+  'width:min(var(--max,1240px),calc(100% - 48px))}' +
+  '.sitebar .primary-nav{flex-basis:100%;order:3;flex-direction:column;align-items:stretch;gap:0;' +
+  'border-top:1px solid var(--line-soft,var(--line,var(--soft,#29292f)));padding-top:8px;margin-top:8px}' +
+  '.sitebar .primary-nav>a{min-height:48px;padding:0 12px;border-radius:9px}' +
+  '.sitebar .primary-nav>a:hover,.sitebar .primary-nav>a:focus,.sitebar .primary-nav>a[aria-current="page"]' +
+  '{background:var(--panel,var(--card,#141416));color:var(--ink,#fff)}' +
+  '.sitebar .primary-nav .desktop-cta{margin-top:8px;justify-content:flex-start}' +
+  '.sitebar.is-enhanced .nav-toggle{display:inline-flex}' +
+  '.sitebar.is-enhanced .mobile-cta{display:inline-flex;min-height:44px;padding:0 12px;font-size:12px}' +
+  '.sitebar.is-enhanced .primary-nav{display:none}' +
+  '.sitebar.is-enhanced .primary-nav .desktop-cta{display:none}' +
+  '.sitebar.is-enhanced.nav-open .primary-nav{display:flex}' +
+  '.sitebar.is-enhanced.nav-open .nav-toggle .ico-menu{display:none}' +
+  '.sitebar.is-enhanced.nav-open .nav-toggle .ico-close{display:block}' +
+  '}' +
+  '@media(max-width:768px){.sitebar .masthead{width:min(var(--max,1240px),calc(100% - 48px))}}' +
+  '@media(max-width:440px){.sitebar .masthead{width:calc(100% - 32px)}}' +
+  '@media(max-width:430px){.sitebar.is-enhanced .mobile-cta{font-size:12px;padding:0 12px}}' +
+  '@media(max-width:390px){.sitebar .masthead{width:calc(100% - 32px)}.sitebar .brand{font-size:18px}}';
+
+var MASTHEAD_JS =
+  '(function(){var b=document.querySelector(".sitebar[data-masthead]");if(!b)return;' +
+  'var t=b.querySelector(".nav-toggle"),n=b.querySelector("#primary-nav");if(!t||!n)return;' +
+  'b.classList.add("is-enhanced");' +
+  'function set(o){b.classList.toggle("nav-open",o);t.setAttribute("aria-expanded",o?"true":"false");' +
+  't.setAttribute("aria-label",(o?"Close":"Open")+" main menu");}set(false);' +
+  't.addEventListener("click",function(){set(!b.classList.contains("nav-open"));});' +
+  /* Escape on the document, not only the header, so it closes and returns focus
+     even if focus has drifted out of the masthead. */
+  'document.addEventListener("keydown",function(e){if((e.key==="Escape"||e.key==="Esc")&&b.classList.contains("nav-open")){set(false);t.focus();}});' +
+  'var mq=window.matchMedia("(max-width:880px)");function sync(){if(!mq.matches)set(false);}' +
+  'if(mq.addEventListener)mq.addEventListener("change",sync);else if(mq.addListener)mq.addListener(sync);})();';
+
+/* here = the canonical path of the current page, for aria-current on its own
+ * nav link. Home and Privacy set nothing current: neither is in the three-link
+ * primary navigation. */
+function mastheadV2(here) {
+  function cur(path) { return here === path ? ' aria-current="page"' : ''; }
+  return '<header class="sitebar" data-masthead>\n' +
+    '  <div class="wrap masthead">\n' +
+    '    <a class="brand" href="/" aria-label="WiFi Odds home">' + markSvg('mhv2', 21) + 'WiFi&nbsp;Odds</a>\n' +
+    '    <div class="mobile-actions">\n' +
+    '      <a class="pill primary mobile-cta" href="' + EXT + '" target="_blank" rel="noopener">Add to Chrome</a>\n' +
+    '      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open main menu">\n' +
+    '        <svg class="ico-menu" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" ' +
+    'stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>\n' +
+    '        <svg class="ico-close" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" ' +
+    'stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>\n' +
+    '      </button>\n' +
+    '    </div>\n' +
+    '    <nav id="primary-nav" class="primary-nav" aria-label="Main navigation">\n' +
+    '      <a href="/methodology/"' + cur('/methodology/') + '>Methodology</a>\n' +
+    '      <a href="/technology/"' + cur('/technology/') + '>Technology</a>\n' +
+    '      <a href="/#extension">Extension</a>\n' +
+    '      <a class="pill primary desktop-cta" href="' + EXT + '" target="_blank" rel="noopener">Add to Chrome</a>\n' +
+    '    </nav>\n' +
+    '  </div>\n' +
+    '</header>\n' +
+    '<style>' + MASTHEAD_CSS + '</style>\n' +
+    '<script>' + MASTHEAD_JS + '</script>\n';
+}
+
 function crumb(items) {
   if (!items || !items.length) return '';
   var out = items.map(function (it, i) {
@@ -583,7 +688,12 @@ function page(o) {
     /* First focusable thing on every page, and invisible until it has focus. */
     '<a class="skip" href="#main-content">Skip to content</a>\n' +
     (o.preWrap || '') +
-    masthead(o.here, o.suffix, o.updated, o.refreshAttemptedOn, o.wasRetained) +
+    /* round 18 P1-02: the survivor pages carry the unified disclosure masthead.
+       o.mastheadV2 opts a route into it; otherwise the classic masthead (with
+       its datechip) is unchanged for any route still using page(). */
+    (o.mastheadV2
+      ? mastheadV2(o.here)
+      : masthead(o.here, o.suffix, o.updated, o.refreshAttemptedOn, o.wasRetained)) +
     '<div class="wrap">\n' +
     subnav(o.section, o.canonical, o.suffix) +
     /* <main> starts AFTER the subnav so the skip link actually skips the
@@ -613,7 +723,7 @@ function page(o) {
 module.exports = {
   ORIGIN: ORIGIN, EXT: EXT, EXT_VERSION: EXT_VERSION, REPO: REPO,
   NAV: NAV, SUBNAV: SUBNAV,
-  esc: esc, ld: ld, page: page, masthead: masthead,
+  esc: esc, ld: ld, page: page, masthead: masthead, mastheadV2: mastheadV2,
   /* topbar is the old name for masthead. Kept as an alias so a caller outside
      this file cannot break on the rename; nothing in the build uses it today. */
   topbar: masthead,

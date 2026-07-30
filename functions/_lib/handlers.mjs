@@ -91,7 +91,7 @@ export function airlinesAll(context) {
   return json({
     count: airlines.length,
     asOf: airlines.length ? airlines[0].asOf : null,
-    order: 'connectScore desc, ties by fitted coverage then name',
+    order: 'whole-fleet lower-bound ConnectScore desc, ties by whole-fleet coverage then name',
     airlines: airlines,
     docs: DOCS,
     sources: SOURCES

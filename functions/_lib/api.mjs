@@ -132,6 +132,40 @@ export function airlineJson(key) {
     code: a.code,
     connectScore: a.score,
     band: a.label,
+    /* ── round-18 P0-02: the whole-fleet recommendation contract ──────────
+     *   connectScore / connectScoreLower — the published WHOLE-FLEET lower
+     *     bound. Every ranking and "best" result uses this and only this.
+     *   connectScoreUpper — the whole-fleet upper bound. It communicates
+     *     uncertainty, never expected performance; do not sort on it.
+     *   wholeFleet — total, resolved, unresolved, coverage, and the fleet
+     *     evidence status (fleetwide | mixed | limited evidence).
+     *   resolvedSubsetScore — the known-only diagnostic, "Among resolved
+     *     aircraft". It is NOT a floor, a rank, a band, or a recommendation. A
+     *     partial fleet whose resolved subset is 100 (airBaltic) still has a
+     *     whole-fleet lower bound far below a fleetwide leader. */
+    connectScoreLower: a.connectScoreLower,
+    connectScoreUpper: a.connectScoreUpper,
+    /* The UNROUNDED lower bound, so a consumer can reproduce the rank: American's
+       51.036 sits above airBaltic's 50.909 even though both display 51. */
+    connectScoreExact: round(a.scoreExact, 3),
+    fleetStatus: a.fleetStatus,
+    wholeFleet: {
+      total: a.total,
+      resolved: a.known,
+      unresolved: a.unresolved || 0,
+      coveragePct: a.coveragePct,
+      lower: a.connectScoreLower,
+      upper: a.connectScoreUpper,
+      status: a.fleetStatus,
+      source: 'wifiodds.com ConnectScore, whole-fleet lower bound',
+      asOf: a.asOf
+    },
+    resolvedSubsetScore: {
+      label: 'Among resolved aircraft',
+      score: a.resolvedSubsetScore,
+      ceiling: a.resolvedSubsetCeiling,
+      basis: a.known != null ? a.known + ' resolved aircraft, unresolved excluded' : null
+    },
     /* ── ADDITIVE, v0-safe. Everything above and below keeps its meaning; these
      * two are the headline/today split the site now shows.
      *   nextGenScore — odds of a Starlink or Amazon Leo aircraft × free-for-you.
@@ -186,17 +220,20 @@ export function airlineJson(key) {
       means: a.serviceTierBlurb
     },
     /* ── ADDITIVE, v0-safe: the segmented model (July 2026).
-     *   floor / ceiling — connectScore IS the floor. They differ only where a
-     *                     segment names more than one possible system and the
-     *                     airline publishes no split; quote the floor.
+     *   floor / ceiling — connectScore IS the floor (the whole-fleet lower
+     *                     bound). ceiling rises above it when a segment names
+     *                     more than one possible system with no published split,
+     *                     OR when the fleet has unresolved aircraft (their share
+     *                     is the gap). Quote the floor; it is what we publish.
      *   resolution      — how the segments were sourced: tail | type | systems |
      *                     announced. null for an airline still on the legacy
      *                     single-system path.
      *   segments[]      — the ledger, in the order the site prints it. The rows
      *                     sum to the floor; the build fails if they do not.
      *   unresolved      — aircraft whose system the airline does not publish.
-     *                     They are OUT of the denominator rather than assumed
-     *                     into it, which is why known can be less than total. */
+     *                     They stay IN the whole-fleet denominator and add zero
+     *                     to the lower bound, which is why known is less than
+     *                     total and the score falls as coverage drops. */
     floor: a.floor,
     ceiling: a.ceiling,
     resolution: a.resolution,
@@ -223,7 +260,12 @@ export function airlineJson(key) {
     /* null when there is nothing unresolved, rather than a zero-count object: a
      * consumer should be able to test the field, not the count inside it. */
     unresolved: a.ledger && a.unresolved
-      ? { aircraft: a.unresolved, why: a.unresolvedWhy, inDenominator: false }
+      ? { aircraft: a.unresolved, why: a.unresolvedWhy, inDenominator: true,
+          /* Round-18 P0-02: unresolved aircraft ARE in the whole-fleet
+             denominator. They add zero to the lower bound and their whole share
+             (this fraction of 100) to the upper bound. */
+          share: round((a.unresolved / a.total) || 0, 4),
+          inLowerBound: 0, inUpperBound: round(((a.unresolved / a.total) || 0) * 100, 2) }
       : null,
     /* ── ADDITIVE, v0-safe: the projected score (July 2026).
      * An OBJECT or null, and deliberately NOT a sibling integer next to

@@ -989,12 +989,14 @@ const SYSTEM_LABEL = {
 const SCORE_CAVEAT =
   "ConnectScore is an expected value over a whole fleet, not a prediction about one flight: " +
   "United measured 320, 56 and 15 Mbps on three systems in one livery in one reporting period. " +
-  "Aircraft whose system an airline does not publish are left out of the denominator rather than " +
-  "assumed. Signed-but-unflown deals (AA Starlink 2027, DL/B6 Amazon Leo) score zero until they fly.";
+  "Aircraft whose system an airline does not publish stay in the denominator and add zero to the " +
+  "lower bound rather than being dropped from it. Signed-but-unflown deals (AA Starlink 2027, " +
+  "DL/B6 Amazon Leo) score zero until they fly.";
 
 const SCORE_METHOD_LINE =
-  "ConnectScore = the sum, over every segment of the fleet, of fleet share × system quality × " +
-  "free-for-you. The published score is the floor. " +
+  "ConnectScore = the sum, over every segment of the fleet, of whole-fleet share × system quality × " +
+  "free-for-you. Unresolved aircraft stay in the denominator and add zero, so the published score " +
+  "is a whole-fleet lower bound. " +
   "Data: unitedstarlinktracker.com · alaskastarlinktracker.com · airline announcements (Jul 2026).";
 
 /* The headline line for the two-number reading. Deliberately says what it does
@@ -1039,6 +1041,31 @@ function systemQuality(system) {
 function freeFactor(free) {
   const f = FREE_FACTOR[String(free || "").toLowerCase()];
   return typeof f === "number" ? f : 0.85;
+}
+/* Free-for-you as an INTERVAL, for the ConnectScore lower/upper bounds. A
+ * confirmed tier is a point (min === max). An UNKNOWN or unrecorded free status
+ * is [0, 1]: it contributes zero to the floor and one to the ceiling. It never
+ * enters the floor as an assumed 0.85 midpoint — that midpoint is exactly what
+ * the round-18 P0-02 ruling forbids inside a quantity called a floor. This is
+ * separate from freeFactor() on purpose: the next-gen odds and the projected
+ * score keep the documented point estimate, because every next-gen segment
+ * publishes a real free status; only the ConnectScore bound needs the honest
+ * range. */
+function freeInterval(free) {
+  const k = String(free || "").toLowerCase();
+  if (k === "unknown" || !(k in FREE_FACTOR)) return { min: 0, max: 1 };
+  const f = FREE_FACTOR[k];
+  return { min: f, max: f };
+}
+/* Whole-fleet evidence status for a ledger. fleetwide when nothing is
+ * unresolved; mixed when most of the fleet is resolved; limited evidence when a
+ * large share is unresolved and the lower bound is therefore far below the
+ * ceiling. Thresholds are deliberate and coarse — this is a label, not a
+ * second score. */
+function fleetStatusOf(L) {
+  if (!L || !L.unresolved || L.unresolved <= 0) return "fleetwide";
+  if (L.coverage >= 0.7) return "mixed";
+  return "limited evidence";
 }
 /* True unless the primary system's `equipped` count is a placeholder for
  * "nobody has published this." A segmented entry with unresolved aircraft
@@ -1142,39 +1169,53 @@ function ledgerFor(entry) {
   if (!known) return null;
   const unresolved = unresolvedAircraft(entry);
 
+  /* THE WHOLE-FLEET DENOMINATOR. `T` is every tail a passenger could be
+     assigned, resolved or not. Round-18 P0-02: the published ConnectScore is the
+     whole-fleet LOWER BOUND, so each segment's share is n/T, not n/known.
+     Unresolved aircraft are a real part of the fleet that we cannot vouch for;
+     they contribute zero to the floor and their whole share to the ceiling,
+     rather than being dropped from the denominator. That is why airBaltic reads
+     51 (28 of 55) and not a false fleetwide 100 (28 of 28). */
+  const T = known + unresolved;
   let rawFloor = 0, rawCeiling = 0, rawNextGen = 0, nextGenShare = 0;
+  let resolvedFloor = 0, resolvedCeiling = 0;
   const rows = entry.segments.map(function (seg) {
     const systems = segmentSystems(seg);
     const q = segmentQuality(seg);
-    const share = (Number(seg.n) || 0) / known;
-    const f = freeFactor(seg.free);
+    const n = Number(seg.n) || 0;
+    const share = T > 0 ? n / T : 0;          // whole-fleet share
+    const shareResolved = known > 0 ? n / known : 0;  // resolved-subset share
+    const fi = freeInterval(seg.free);        // [0,1] when free is unknown
     const nextGen = segmentIsNextGen(seg);
-    const pointsMin = share * q.min * f * 100;
-    const pointsMax = share * q.max * f * 100;
+    const pointsMin = share * q.min * fi.min * 100;
+    const pointsMax = share * q.max * fi.max * 100;
     rawFloor += pointsMin / 100;
     rawCeiling += pointsMax / 100;
-    /* NEXT-GEN ODDS DIVIDE BY THE WHOLE FLEET, not by `known`. The headline is
-       "the chance of drawing a next-gen aircraft on a flight with no aircraft
-       assigned yet," so every tail a passenger could be assigned is in the
-       denominator, including the unresolved ones. Dividing by `known` published
-       a conditional ("of the aircraft we can account for") as an unconditional
-       fleet probability: airBaltic read 28/28 = 100% "fleetwide" while 27 of its
-       55 aircraft were unknown, tying the two genuinely-fleetwide carriers (round
-       18, P0-02). ConnectScore keeps the `known` denominator above — it answers
-       a different question (quality of the systems we can see), and the ledger
-       prints both counts so the difference stays visible. When unresolved is 0,
-       known === total and this changes nothing. */
-    const ngShareFleet = (Number(seg.n) || 0) / (known + unresolved);
-    if (nextGen) { rawNextGen += ngShareFleet * f; nextGenShare += ngShareFleet; }
+    /* The resolved-subset bound is the same arithmetic over `known`. It is the
+       `resolvedSubsetScore` diagnostic, labelled "Among resolved aircraft"
+       wherever it appears, and it never sorts, ranks, or stands in for the
+       public ConnectScore. */
+    resolvedFloor += shareResolved * q.min * fi.min;
+    resolvedCeiling += shareResolved * q.max * fi.max;
+    /* NEXT-GEN ODDS already divide by the whole fleet, and keep the documented
+       free POINT estimate (freeFactor): every next-gen segment publishes a real
+       free status, so the [0,1] interval never applies to one. */
+    const fNg = freeFactor(seg.free);
+    const ngShareFleet = share;
+    if (nextGen) { rawNextGen += ngShareFleet * fNg; nextGenShare += ngShareFleet; }
     return {
       systems: systems,
       systemLabel: systems.map(function (s) { return SYSTEM_LABEL[s] || s; }).join(" or "),
       tier: SYSTEM_TIER[systems[0]] || "legacyGeo",
-      n: Number(seg.n) || 0,
+      n: n,
       share: share,
+      shareResolved: shareResolved,
       qMin: q.min, qMax: q.max,
       free: seg.free || "unknown",
-      freeFactor: f,
+      /* A single number when free is confirmed, null when it is a [0,1] range,
+         so a surface never prints an invented midpoint for an unknown price. */
+      freeFactor: fi.min === fi.max ? fi.min : null,
+      freeMin: fi.min, freeMax: fi.max,
       pointsMin: pointsMin,
       pointsMax: pointsMax,
       nextGen: nextGen,
@@ -1186,20 +1227,35 @@ function ledgerFor(entry) {
     };
   });
 
+  /* The unresolved aircraft as one visible ledger line: zero at the floor,
+     their whole share of the fleet at the ceiling. */
+  const unresolvedShare = T > 0 ? unresolved / T : 0;
+  const sumFloor = rows.reduce(function (t, r) { return t + r.pointsMin; }, 0);
+  const sumCeiling = Math.min(100,
+    rows.reduce(function (t, r) { return t + r.pointsMax; }, 0) + unresolvedShare * 100);
+
   return {
     rows: rows,
     known: known,
     unresolved: unresolved,
     unresolvedWhy: (entry.unresolved && entry.unresolved.why) || null,
-    total: known + unresolved,
-    rawFloor: rawFloor,
-    rawCeiling: rawCeiling,
+    unresolvedShare: unresolvedShare,
+    total: T,
+    coverage: T > 0 ? known / T : 1,
+    /* Whole-fleet lower and upper bounds, 0..1. rawFloor is the published
+       ConnectScore; rawCeiling carries the unresolved share and is capped at 1. */
+    rawFloor: sumFloor / 100,
+    rawCeiling: sumCeiling / 100,
+    /* Resolved-subset bounds, 0..1 — the "Among resolved aircraft" diagnostic. */
+    resolvedFloor: clamp01(resolvedFloor),
+    resolvedCeiling: clamp01(resolvedCeiling),
     rawNextGen: rawNextGen,
     nextGenShare: nextGenShare,
     /* Σ over the rows, before rounding. The build asserts these match the
-       published integers to within half a point. */
-    sumFloor: rows.reduce(function (t, r) { return t + r.pointsMin; }, 0),
-    sumCeiling: rows.reduce(function (t, r) { return t + r.pointsMax; }, 0),
+       published integers to within half a point. sumFloor is the whole-fleet
+       floor; sumCeiling adds the unresolved share. */
+    sumFloor: sumFloor,
+    sumCeiling: sumCeiling,
   };
 }
 
@@ -1444,9 +1500,19 @@ function scoreEntry(entry) {
     const floor = Math.round(clamp01(L.rawFloor) * 100);
     const ceiling = Math.round(clamp01(L.rawCeiling) * 100);
     return {
-      score: floor,          // the published ConnectScore IS the floor
+      score: floor,          // the published ConnectScore IS the whole-fleet lower bound
       floor: floor,
       ceiling: ceiling,
+      /* Unrounded lower bound, 0..100 — the ONLY key the leaderboard sorts on,
+         so American's 51.036 outranks airBaltic's 50.909 even though both
+         display 51 (round-18 P0-02, tie rule 1). */
+      scoreExact: clamp01(L.rawFloor) * 100,
+      coverage: L.coverage,
+      total: L.total,
+      /* "Among resolved aircraft" — a diagnostic, never a rank or a headline. */
+      resolvedSubsetScore: Math.round(L.resolvedFloor * 100),
+      resolvedSubsetCeiling: Math.round(L.resolvedCeiling * 100),
+      fleetStatus: fleetStatusOf(L),
       label: labelFor(floor),
       resolution: resolutionOf(entry),
       ledger: L,
@@ -1485,10 +1551,19 @@ function scoreEntry(entry) {
 
   const raw = clamp01(primary + legacy);
   const score = Math.round(raw * 100);
+  const legacyTotal = typeof entry.fleet === "number" ? entry.fleet : null;
   return {
     score: score,
     floor: score,
     ceiling: score,          // no segments, no range
+    /* A legacy entry has no unresolved cohort, so the whole-fleet lower bound IS
+       the score, coverage is full, and the resolved-subset equals it. */
+    scoreExact: raw * 100,
+    coverage: 1,
+    total: legacyTotal,
+    resolvedSubsetScore: score,
+    resolvedSubsetCeiling: score,
+    fleetStatus: "fleetwide",
     label: labelFor(score),
     resolution: resolutionOf(entry),
     ledger: null,
@@ -1549,10 +1624,24 @@ function scoreAirline(key) {
     floor: s.floor,
     ceiling: s.ceiling,
     hasRange: s.ceiling > s.floor,
+    /* ── round-18 P0-02: the whole-fleet recommendation contract. `score`,
+       `floor` and `connectScoreLower` are the same number — the published
+       lower bound — and `scoreExact` is its unrounded form for ranking.
+       `resolvedSubsetScore` is the "Among resolved aircraft" diagnostic and
+       never ranks. Every recommendation surface reads these. ── */
+    connectScoreLower: s.floor,
+    connectScoreUpper: s.ceiling,
+    scoreExact: s.scoreExact,
+    coverage: typeof s.coverage === "number" ? s.coverage : 1,
+    coveragePct: Math.round((typeof s.coverage === "number" ? s.coverage : 1) * 100),
+    total: s.total != null ? s.total : (L ? L.total : (typeof entry.fleet === "number" ? entry.fleet : null)),
+    resolvedSubsetScore: s.resolvedSubsetScore,
+    resolvedSubsetCeiling: s.resolvedSubsetCeiling,
+    fleetStatus: s.fleetStatus,
     ledger: L,
     segments: L ? L.rows : null,
-    known: L ? L.known : null,
-    unresolved: L ? L.unresolved : null,
+    known: L ? L.known : (typeof entry.fleet === "number" ? entry.fleet : null),
+    unresolved: L ? L.unresolved : 0,
     unresolvedWhy: L ? L.unresolvedWhy : null,
     resolution: s.resolution,
     resolutionLabel: s.resolution ? (RESOLUTION_LABEL[s.resolution] || s.resolution) : null,
@@ -1564,30 +1653,27 @@ function scoreAirline(key) {
   };
 }
 
-/* Coverage share used ONLY to break a ConnectScore tie, e.g. airBaltic 100 on
- * 28 of 55 aircraft (51% fitted) versus JSX 100 on 56 of 56 (fleetwide) —
- * those are not the same claim and must not share a rank. This mirrors
- * fitShare() in build/lib/pages.js (same >=0.99-is-effectively-full cutoff,
- * same "no data means treat as full" rule) rather than importing it, because
- * this file also loads as a plain classic script in the browser, which cannot
- * `require()` a CommonJS module. If the badge threshold in pages.js ever
- * moves, move this one with it. */
+/* Whole-fleet coverage, used ONLY to break an exact lower-bound tie: known ÷
+ * (known + unresolved). Round-18 P0-02 tie rule 2 — a genuinely fleetwide
+ * result outranks a partial-fleet one that merely lands on the same number.
+ * airBaltic (28 of 55, coverage 0.51) can never share a rank with a fleetwide
+ * carrier because its unrounded lower bound is lower to begin with; this only
+ * settles an EXACT tie, and then by more-resolved-fleet-first. */
 function tieCoverage(a) {
-  var v = a.parts && typeof a.parts.pctEquipped === "number" ? a.parts.pctEquipped : 1;
-  return v >= 0.99 ? 1 : v;
+  return typeof a.coverage === "number" ? a.coverage : 1;
 }
 
-/* Every airline, best odds first. Ties on ConnectScore break on fitted
- * coverage, most-resolved fleet first (tieCoverage above), then
- * alphabetically so the order is still stable when coverage also ties
- * (three carriers sit at 100: JSX and ZIPAIR both fleetwide, airBaltic at
- * 51% fitted — JSX and ZIPAIR now outrank airBaltic, and land JSX-then-ZIPAIR
- * on name). The formula and every score are unchanged; this only orders. */
+/* Every airline, best odds first. Round-18 P0-02: rank on the UNROUNDED
+ * whole-fleet lower bound (scoreExact), so American's 51.036 sits above
+ * airBaltic's 50.909 even though both display 51. Exact ties break on
+ * whole-fleet coverage (more resolved first), then stable airline name. The
+ * upper bound is never a ranking key — it communicates uncertainty, not
+ * expected performance. Rounding is for display only, after ranking. */
 function rankAirlines() {
   return Object.keys(WIFI_AIRLINES)
     .map(scoreAirline)
     .sort(function (a, b) {
-      if (b.score !== a.score) return b.score - a.score;
+      if (b.scoreExact !== a.scoreExact) return b.scoreExact - a.scoreExact;
       var bc = tieCoverage(b), ac = tieCoverage(a);
       if (bc !== ac) return bc - ac;
       return a.name.localeCompare(b.name);
@@ -1600,15 +1686,16 @@ function rankAirlines() {
 export {
   WIFI_AIRLINES, SYSTEM_QUALITY, FREE_FACTOR, SYSTEM_LABEL,
   SCORE_CAVEAT, SCORE_METHOD_LINE, clamp01, systemQuality,
-  freeFactor, pctEquipped, labelFor, scoreClass,
-  scoreEntry, scoreAirline, rankAirlines, NEXT_GEN_SYSTEMS,
-  NEXT_GEN_DONE, SERVICE_TIER_LABEL, REST_TIER_LABEL, SERVICE_TIER_BLURB,
-  TIER_METHOD_LINE, isNextGen, nextGenShare, nextGenScore,
-  nextGenSplitFor, serviceTierOf, serviceTierExpected, serviceTierLabel,
-  restTierLabel, QUALITY_TIER, SYSTEM_TIER, QUALITY_TIER_LABEL,
-  RESOLUTION_LABEL, RESOLUTION_BLURB, STREAMING_MIN_Q, isSegmented,
-  segmentSystems, segmentQuality, segmentIsNextGen, knownAircraft,
-  unresolvedAircraft, resolutionOf, ledgerFor, fleetQuality,
-  PROJECTION_CONFIDENCE, PROJECTION_STORED, PROJECTION_METHOD_LINE, horizonEnd,
-  projectedInstalled, projectedShare, projectedScore, projectionFor
+  freeFactor, freeInterval, fleetStatusOf, pctEquipped,
+  labelFor, scoreClass, scoreEntry, scoreAirline,
+  rankAirlines, NEXT_GEN_SYSTEMS, NEXT_GEN_DONE, SERVICE_TIER_LABEL,
+  REST_TIER_LABEL, SERVICE_TIER_BLURB, TIER_METHOD_LINE, isNextGen,
+  nextGenShare, nextGenScore, nextGenSplitFor, serviceTierOf,
+  serviceTierExpected, serviceTierLabel, restTierLabel, QUALITY_TIER,
+  SYSTEM_TIER, QUALITY_TIER_LABEL, RESOLUTION_LABEL, RESOLUTION_BLURB,
+  STREAMING_MIN_Q, isSegmented, segmentSystems, segmentQuality,
+  segmentIsNextGen, knownAircraft, unresolvedAircraft, resolutionOf,
+  ledgerFor, fleetQuality, PROJECTION_CONFIDENCE, PROJECTION_STORED,
+  PROJECTION_METHOD_LINE, horizonEnd, projectedInstalled, projectedShare,
+  projectedScore, projectionFor
 };

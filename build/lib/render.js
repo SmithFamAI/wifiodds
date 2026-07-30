@@ -379,7 +379,15 @@ function home(m) {
     .replace('<!--HOME:HEAD_EXTRA-->', homeHeadExtra(m))
     .replace('<!--HOME:BIG4_CARDS-->', homeBig4Cards(m))
     .replace('<!--HOME:BOARD_ROWS-->', homeBoardRows(m))
-    .replace('<!--HOME:CWS_BADGE-->', homeCwsBadge());
+    .replace('<!--HOME:CWS_BADGE-->', homeCwsBadge())
+    /* round 18 P1-02: swap the homepage's own inline masthead for the one
+       unified disclosure component every survivor page shares. A function
+       replacement, so the SVG mark and CTA URL inside it are never scanned as
+       String#replace substitution patterns. */
+    .replace(/<header class="sitebar">[\s\S]*?<\/header>/, function () { return H.mastheadV2('/'); });
+  if (/<header class="sitebar">\s*\n?<div class="wrap">\s*\n?\s*<nav class="nav"/.test(out)) {
+    throw new Error('Render.home: the inline masthead was not replaced by the unified component.');
+  }
 
   /* round 18 P0-01: the proof block + united-callout figures were hard-coded
      literals in the approved mockup, so the daily refresh updated the baked Big-4
@@ -2350,6 +2358,17 @@ function assertOneDocument(out, label, marker) {
 
 function wholeDocument(name, canonical, label, marker) {
   var tpl = FS.readFileSync(PATH.join(__dirname, '..', 'templates', name + '.html'), 'utf8');
+  /* round 18 P1-02: swap the template's own inline masthead (which hid the three
+     location links below 900px) for the shared disclosure component, so all four
+     survivor pages carry one button/ARIA contract. Function replacement keeps
+     the SVG mark and CTA URL out of String#replace's substitution scanner. */
+  var MAST_RE = /<header><div class="wrap"><nav class="nav" aria-label="Main navigation">[\s\S]*?<\/header>/;
+  if (MAST_RE.test(tpl)) {
+    tpl = tpl.replace(MAST_RE, function () { return H.mastheadV2(canonical); });
+  } else {
+    throw new Error('Render.' + label + ': could not find the inline masthead to replace with the ' +
+      'unified component. The template structure changed.');
+  }
   var head = docHead(tpl, canonical, label);
   /* FUNCTION REPLACEMENT, not a string. The injected block carries a data: URI
      favicon and an inline theme-boot script; a literal `$&` or `$'` anywhere in
@@ -2899,6 +2918,10 @@ function privacyPage(m) {
        canonical and the crumb name the URL a reader actually lands on, because
        a canonical pointing at a redirect is a canonical the crawler discards. */
     canonical: '/privacy', here: '/', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained,
+    /* round 18 P1-02: Privacy carries the same unified disclosure masthead as the
+       other three survivor pages (here '/' so nothing is aria-current, since
+       Privacy is not one of the three primary-nav links). */
+    mastheadV2: true,
     extraHead: t.head, body: t.body,
     jsonld: [crumbLd([['/', 'Home'], ['/privacy', 'Privacy']])]
   });

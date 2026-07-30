@@ -244,12 +244,22 @@ function airlineLine(a) {
    * "N of total (Z%)" branch would print "null of 123 aircraft (%)" — the
    * MCP-text version of the false "0 of 123 (0%)" that shipped on the
    * rendered page until 2026-07-26. */
-  return a.name + ' (' + (a.code || '—') + ') — ConnectScore ' + a.connectScore + '/100, ' + a.band +
+  /* Round-18 P0-02: connectScore is the whole-fleet lower bound. When a fleet
+     has unresolved aircraft, say so and give the resolved coverage, so a reader
+     never mistakes a partial-fleet score for a fleetwide one. */
+  var wf = a.wholeFleet || {};
+  var unresolvedText = wf.unresolved
+    ? ' · ' + (wf.status || 'mixed') + ': ' + wf.unresolved + ' of ' + wf.total +
+      ' aircraft unresolved (' + wf.coveragePct + '% resolved), ceiling ' + a.connectScoreUpper
+    : '';
+  return a.name + ' (' + (a.code || '—') + ') — ConnectScore ' + a.connectScore +
+    '/100 (whole-fleet lower bound), ' + a.band +
     ' · ' + a.system.label + ' on ' +
     (!a.fleet.total ? 'the fleet (no tail counts published)'
       : a.fleet.equippedPublished === false
         ? a.fleet.total + ' aircraft, count unpublished'
         : a.fleet.equipped + ' of ' + a.fleet.total + ' aircraft (' + a.fleet.equippedPct + '%)') +
+    unresolvedText +
     ' · ' + freeWord(a) + ' · confidence: ' + tierOf(a);
 }
 
@@ -323,7 +333,7 @@ async function toolListAirlineScores(context) {
   return toolOk(text, {
     count: list.length,
     asOf: out.data.asOf || null,
-    order: out.data.order || 'connectScore desc, ties by fitted coverage then name',
+    order: out.data.order || 'whole-fleet lower-bound ConnectScore desc, ties by whole-fleet coverage then name',
     airlines: list.map(function (a) {
       return Object.assign({ confidenceTier: tierOf(a) }, a);
     }),

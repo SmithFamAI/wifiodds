@@ -84,6 +84,9 @@ These are link counts, JSON-LD urls included, so they run higher than three.
 Read a change in one as a prompt to go look. Read the total as nothing at all.
 
 ```
-url           links
-/technology/  2
+url            links
+/              3
+/methodology/  2
+/technology/   3
+/privacy       2
 ```
