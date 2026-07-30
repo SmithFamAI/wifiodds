@@ -1663,6 +1663,22 @@ async function main() {
     'og.png equipped matches data.json — regenerate with node build/make-og-card.js if this fails');
   eq(ogm.total, djson.fleet.total, 'og.png total matches data.json');
   eq(ogm.updated, djson.updated, 'og.png date matches data.json');
+  /* round 18 P0-01 re-audit: BIND THE BYTES, NOT JUST THE NUMBERS. The three
+   * checks above prove og.manifest.json agrees with data.json, but they never
+   * open assets/og.png, so replacing the PNG with a stale or unrelated image
+   * while leaving the manifest alone passed the whole 1,380-check suite — the
+   * auditor's exact reproduction. make-og-card.js now records the sha256 of the
+   * card it draws; re-hash the on-disk PNG and require it to match. A swapped
+   * card no longer hashes to the recorded value and fails here. Regenerate the
+   * card (node build/make-og-card.js) when this fails, which rewrites both the
+   * PNG and its recorded hash together. */
+  ok(typeof ogm.sha256 === 'string' && /^[0-9a-f]{64}$/.test(ogm.sha256),
+    'og.manifest.json records a sha256 for the card bytes (round 18 P0-01)', ogm.sha256);
+  var ogBytesHash = require('crypto').createHash('sha256')
+    .update(fs.readFileSync(path.join(ROOT, 'assets', 'og.png'))).digest('hex');
+  eq(ogBytesHash, ogm.sha256,
+    'assets/og.png bytes hash to the sha256 in og.manifest.json — a swapped/stale ' +
+    'PNG fails here (round 18 P0-01); regenerate with node build/make-og-card.js');
 
 /* /race/ was removed in the 28 Jul cut; its render checks go with it. */
 

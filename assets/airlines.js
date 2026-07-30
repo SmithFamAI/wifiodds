@@ -149,13 +149,13 @@ const WIFI_AIRLINES = {
   /* ── instrumented: the extension can show real per-flight odds for these ── */
   united: {
     name: "United", code: "UA", asOf: "2026-07",
-    nextGenSplit: { mainline: { n: 144, of: 1140 }, regional: { n: 341, of: 669 } },
+    nextGenSplit: { mainline: { n: 144, of: 1141 }, regional: { n: 341, of: 669 } },
     /* equipped/fleet MUST equal united/data.json fleet.equipped / fleet.total.
        They had drifted to 481/1807 while data.json said 481/1808, so the same
        homepage printed "481 of 1,807 (27%)" on the US card and "of 1,808
        aircraft" in the United section. build/prerender.js reconciles them from
        data.json on every build, and fails if it cannot find them. */
-    system: "starlink", equipped: 485, fleet: 1809, free: "loyalty-free",
+    system: "starlink", equipped: 485, fleet: 1810, free: "loyalty-free",
     instrumented: true, tracker: "unitedstarlinktracker.com",
     resolution: "tail",
     serviceTier: "mixed", restTier: "unknown",
@@ -172,7 +172,7 @@ const WIFI_AIRLINES = {
        creep stale by a handful of aircraft between joins. Re-run the join, do
        not nudge the numbers. */
     segments: [
-      { system: "starlink", n: 485, free: "loyalty-free", as: "2026-07-29",
+      { system: "starlink", n: 485, free: "loyalty-free", as: "2026-07-30",
         src: "united/data.json, the daily pull from unitedstarlinktracker.com",
         note: "Free for MileagePlus members, and joining is free." },
       { system: "viasat", n: 525, free: "paid", as: "2026-07-25",
@@ -192,8 +192,8 @@ const WIFI_AIRLINES = {
           "of them are in the Starlink programme, so this row shrinks when the " +
           "aircraft retire rather than when installs proceed." },
     ],
-    unresolved: { n: 226, why: "the tracker publishes no system for these tails" },
-    note: "485 of 1,809 aircraft, free for MileagePlus members. Odds swing a lot by route and aircraft type.",
+    unresolved: { n: 227, why: "the tracker publishes no system for these tails" },
+    note: "485 of 1,810 aircraft, free for MileagePlus members. Odds swing a lot by route and aircraft type.",
   },
   alaska: {
     name: "Alaska", code: "AS", asOf: "2026-07",

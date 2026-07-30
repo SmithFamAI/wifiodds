@@ -44,6 +44,7 @@
 var fs = require('fs');
 var path = require('path');
 var cp = require('child_process');
+var crypto = require('crypto');
 var A = require('../assets/airlines.js');
 
 var ROOT = path.join(__dirname, '..');
@@ -218,9 +219,20 @@ function main() {
      is exactly what shipped, a card frozen at 484 / 1,807 against a 485 / 1,809
      site. build/apitest.js reads this manifest and FAILS the build when it
      disagrees with united/data.json, so the drift cannot ship unseen. Regenerate
-     the card (this script) whenever data.json moves; the daily task now does. */
+     the card (this script) whenever data.json moves; the daily task now does.
+
+     round 18 P0-01 re-audit: the manifest also records the sha256 of the exact
+     PNG bytes just written. The figure fields above only prove the manifest
+     agrees with data.json; they say nothing about whether assets/og.png IS the
+     card those figures were drawn onto. Swapping in a stale or unrelated PNG
+     while leaving the manifest untouched passed every check, because nothing
+     read the image. Now apitest.js re-hashes the on-disk og.png and fails when
+     it does not match this value, so the bytes are bound to the manifest, not
+     just the numbers. The hash is over the file this run produced, so it can
+     never disagree with the card it ships beside. */
+  var sha256 = crypto.createHash('sha256').update(fs.readFileSync(OUT)).digest('hex');
   fs.writeFileSync(path.join(ROOT, 'assets', 'og.manifest.json'),
-    JSON.stringify({ equipped: equipped, total: fleet, updated: asOf }, null, 2) + '\n');
+    JSON.stringify({ equipped: equipped, total: fleet, updated: asOf, sha256: sha256 }, null, 2) + '\n');
 
   var kb = Math.round(fs.statSync(OUT).size / 1024);
   console.log('make-og-card: wrote assets/og.png (' + kb + ' KB)');
