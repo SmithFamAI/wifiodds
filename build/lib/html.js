@@ -479,6 +479,7 @@ function mastheadV2(here) {
     '      </button>\n' +
     '    </div>\n' +
     '    <nav id="primary-nav" class="primary-nav" aria-label="Main navigation">\n' +
+    '      <a href="/"' + cur('/') + '>Home</a>\n' +
     '      <a href="/methodology/"' + cur('/methodology/') + '>Methodology</a>\n' +
     '      <a href="/technology/"' + cur('/technology/') + '>Technology</a>\n' +
     '      <a href="/#extension">Extension</a>\n' +
