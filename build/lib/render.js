@@ -2917,10 +2917,12 @@ function privacyPage(m) {
        Cloudflare serves it at /privacy and 308s the .html form to it. The
        canonical and the crumb name the URL a reader actually lands on, because
        a canonical pointing at a redirect is a canonical the crawler discards. */
-    canonical: '/privacy', here: '/', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained,
+    canonical: '/privacy', here: '/privacy', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained,
     /* round 18 P1-02: Privacy carries the same unified disclosure masthead as the
-       other three survivor pages (here '/' so nothing is aria-current, since
-       Privacy is not one of the three primary-nav links). */
+       other survivor pages. `here` is '/privacy' — its own path — so NO primary-nav
+       link is aria-current, since Privacy is not one of the nav destinations. (It
+       was '/' before the Home nav link existed; '/' now matches Home and would
+       wrongly mark it current here.) */
     mastheadV2: true,
     extraHead: t.head, body: t.body,
     jsonld: [crumbLd([['/', 'Home'], ['/privacy', 'Privacy']])]
