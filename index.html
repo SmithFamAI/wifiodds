@@ -106,6 +106,28 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
   html{scroll-padding-top:90px}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.pill{transition:none}}
+/* Play level "wink" (approved 1 Aug 2026, from /home-fun-wink/). Three moving
+   parts and no copy change: a drifting starfield, a rocket that bobs, and a
+   headline gradient that shimmers. All three are decoration, all three are
+   aria-hidden or pure CSS, and all three stop dead under reduced motion. */
+.stars{position:absolute;inset:0;opacity:.48;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.8) 0 1px,transparent 1.4px),radial-gradient(circle,rgba(41,216,255,.7) 0 1px,transparent 1.4px);background-size:79px 73px,131px 119px;background-position:0 0,34px 21px;animation:wo-drift 22s linear infinite}
+.rocket{position:absolute;width:58px;height:78px;right:9%;top:125px;transform:rotate(41deg);animation:wo-float 5s ease-in-out infinite;pointer-events:none;z-index:1}
+.rocket svg{width:100%;height:100%;filter:drop-shadow(0 7px 16px rgba(41,216,255,.22))}
+.hero-v2 .gradient{background-size:200% 100%;animation:wo-shimmer 6s ease-in-out infinite}
+@keyframes wo-drift{to{background-position:79px 73px,165px 140px}}
+@keyframes wo-float{50%{transform:translateY(-9px) rotate(43deg)}}
+@keyframes wo-shimmer{50%{background-position:100% 0}}
+/* The rocket is a child of .hero, not .hero-inner. Inside .hero-inner its
+   rotated box grew that element's scrollWidth past its clientWidth (measured:
+   480 vs 468 at 390px) and the responsive sweep flagged it at all 23 widths.
+   .hero already clips, and it is the full-bleed box the rocket is placed
+   against anyway.
+   The 26px mobile inset is not arbitrary: a 42x78 box rotated 41 degrees has an
+   axis-aligned width of 42*cos41 + 78*sin41 = 83, so it overhangs its own box
+   by (83-42)/2 = 21px on each side. At the mockup's 9px the transformed edge
+   lands past the viewport and reads as an overflow even though .hero clips it. */
+@media(max-width:700px){.rocket{right:26px;top:105px;width:42px;opacity:.75}}
+@media(prefers-reduced-motion:reduce){.stars,.rocket,.hero-v2 .gradient{animation:none}}
 </style>
 <script>(function(){var r=document.documentElement;r.classList.add("js");r.classList.add("dark");})();</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='128 128 768 768'%3E%3Cdefs%3E%3ClinearGradient id='fnRamp' x1='270' y1='700' x2='754' y2='700' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%2329d8ff'/%3E%3Cstop offset='1' stop-color='%23926cff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='128' y='128' width='768' height='768' rx='160' fill='%23050505'/%3E%3Cpath d='M292 700A320 320 0 1 1 732 700' fill='none' stroke='url(%23fnRamp)' stroke-width='68' stroke-linecap='round'/%3E%3Cg transform='translate(0 -24)'%3E%3Crect x='267' y='405' width='176' height='134' rx='24' fill='url(%23fnRamp)'/%3E%3Crect x='581' y='405' width='176' height='134' rx='24' fill='url(%23fnRamp)'/%3E%3Cpath d='M443 472h35M546 472h35' stroke='%23f7f7f8' stroke-width='24' stroke-linecap='round'/%3E%3Crect x='466' y='362' width='92' height='220' rx='38' fill='%23f7f7f8'/%3E%3Ccircle cx='512' cy='472' r='31' fill='url(%23fnRamp)'/%3E%3Cpath d='M449 300Q512 341 575 300Q563 251 512 251Q461 251 449 300Z' fill='url(%23fnRamp)'/%3E%3C/g%3E%3Cpath d='M512 612C499 612 492 625 489 645L480 704L410 747C399 754 393 765 393 779L478 754L483 807L457 829V846L512 831L567 846V829L541 807L546 754L631 779C631 765 625 754 614 747L544 704L535 645C532 625 525 612 512 612Z' fill='%23f7f7f8'/%3E%3C/svg%3E">
@@ -154,6 +176,8 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
 
 <main id="main">
   <header class="hero hero-v2">
+    <div class="stars" aria-hidden="true"></div>
+    <div class="rocket" aria-hidden="true"><svg viewBox="0 0 60 84" focusable="false"><defs><linearGradient id="wo-rocket" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#7cc9ff"/></linearGradient></defs><path d="M30 3C19 14 16 31 18 52h24C44 31 41 14 30 3Z" fill="url(#wo-rocket)"/><path d="M18 38 8 56l12-4M42 38l10 18-12-4" fill="#926cff"/><circle cx="30" cy="29" r="5" fill="#050505" stroke="#29d8ff" stroke-width="2"/><path d="m25 56 5 19 5-19" fill="#29d8ff"/></svg></div>
     <div class="wrap hero-inner">
       <div class="datestamp">Live figures · checked 31 Jul 2026</div>
       <div class="eyebrow"><i class="pulse"></i>Starlink + Amazon Leo odds</div>

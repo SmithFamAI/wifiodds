@@ -106,6 +106,28 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
   html{scroll-padding-top:90px}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.pill{transition:none}}
+/* Play level "wink" (approved 1 Aug 2026, from /home-fun-wink/). Three moving
+   parts and no copy change: a drifting starfield, a rocket that bobs, and a
+   headline gradient that shimmers. All three are decoration, all three are
+   aria-hidden or pure CSS, and all three stop dead under reduced motion. */
+.stars{position:absolute;inset:0;opacity:.48;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.8) 0 1px,transparent 1.4px),radial-gradient(circle,rgba(41,216,255,.7) 0 1px,transparent 1.4px);background-size:79px 73px,131px 119px;background-position:0 0,34px 21px;animation:wo-drift 22s linear infinite}
+.rocket{position:absolute;width:58px;height:78px;right:9%;top:125px;transform:rotate(41deg);animation:wo-float 5s ease-in-out infinite;pointer-events:none;z-index:1}
+.rocket svg{width:100%;height:100%;filter:drop-shadow(0 7px 16px rgba(41,216,255,.22))}
+.hero-v2 .gradient{background-size:200% 100%;animation:wo-shimmer 6s ease-in-out infinite}
+@keyframes wo-drift{to{background-position:79px 73px,165px 140px}}
+@keyframes wo-float{50%{transform:translateY(-9px) rotate(43deg)}}
+@keyframes wo-shimmer{50%{background-position:100% 0}}
+/* The rocket is a child of .hero, not .hero-inner. Inside .hero-inner its
+   rotated box grew that element's scrollWidth past its clientWidth (measured:
+   480 vs 468 at 390px) and the responsive sweep flagged it at all 23 widths.
+   .hero already clips, and it is the full-bleed box the rocket is placed
+   against anyway.
+   The 26px mobile inset is not arbitrary: a 42x78 box rotated 41 degrees has an
+   axis-aligned width of 42*cos41 + 78*sin41 = 83, so it overhangs its own box
+   by (83-42)/2 = 21px on each side. At the mockup's 9px the transformed edge
+   lands past the viewport and reads as an overflow even though .hero clips it. */
+@media(max-width:700px){.rocket{right:26px;top:105px;width:42px;opacity:.75}}
+@media(prefers-reduced-motion:reduce){.stars,.rocket,.hero-v2 .gradient{animation:none}}
 </style>
 <!--HOME:HEAD_EXTRA-->
 </head>
@@ -137,6 +159,8 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
 </header>
 <main id="main">
   <header class="hero hero-v2">
+    <div class="stars" aria-hidden="true"></div>
+    <div class="rocket" aria-hidden="true"><svg viewBox="0 0 60 84" focusable="false"><defs><linearGradient id="wo-rocket" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#7cc9ff"/></linearGradient></defs><path d="M30 3C19 14 16 31 18 52h24C44 31 41 14 30 3Z" fill="url(#wo-rocket)"/><path d="M18 38 8 56l12-4M42 38l10 18-12-4" fill="#926cff"/><circle cx="30" cy="29" r="5" fill="#050505" stroke="#29d8ff" stroke-width="2"/><path d="m25 56 5 19 5-19" fill="#29d8ff"/></svg></div>
     <div class="wrap hero-inner">
       <div class="datestamp">Live figures · checked {{P_DATE}}</div>
       <div class="eyebrow"><i class="pulse"></i>Starlink + Amazon Leo odds</div>
