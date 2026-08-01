@@ -209,6 +209,121 @@ function homeStreamingFloor(m, a) {
   return { pct: pct, uncertain: uncertain };
 }
 
+/* The four proof-block buckets for the streaming view, and the floor that sits
+ * beside them. Every one of these was a hard-coded literal until now.
+ *
+ * WHY THIS EXISTS. Round 18 P0-01 baked the proof block's NEXT-GEN figures from
+ * the model and left the STREAMING ones as literals, which nobody noticed
+ * because the two views never render together. By 1 Aug 2026 the literals said
+ * "≥66%" and "a 66% floor across every airline tracked here" while the Big-4
+ * card directly below printed United's real floor of ≥58%. Both numbers were on
+ * one page. Only one had a source.
+ *
+ * The 66 was never an all-airline figure. It is United's streaming share over
+ * the RESOLVED denominator (1,046/1,584), which is the denominator round 18
+ * P0-02 removed as wrong: unresolved tails belong in the denominator, because
+ * this is a "chance of drawing an aircraft that streams" number. Over the whole
+ * fleet the same airline is 1,046/1,813 = 58%. The all-airline figure, had the
+ * sentence meant what it said, is 31%.
+ *
+ * So the literal was stale under a superseded rule AND mis-scoped in prose. It
+ * is computed here now, from the same segments and the same homeStreamingFloor()
+ * the cards read, so the proof block cannot disagree with the card again. */
+function homeProofBuckets(m) {
+  var a = m.A.scoreAirline('united');
+  if (!a) throw new Error('Render.home: scoreAirline("united") returned nothing for the proof block.');
+  var thresh = m.A.STREAMING_MIN_Q;
+  var segs = a.segments || [];
+  if (!segs.length) throw new Error('Render.home: United has no segments, so the proof block cannot be sourced.');
+  var b = { nextGen: 0, streaming: 0, legacy: 0, noWifi: 0 };
+  segs.forEach(function (s) {
+    if (s.nextGen) b.nextGen += s.n;
+    else if (s.qMin >= thresh) b.streaming += s.n;
+    else if (s.qMax > 0) b.legacy += s.n;
+    else b.noWifi += s.n;
+  });
+  b.unresolved = a.unresolved || 0;
+  b.total = homeNum(m.fleet.total, 'fleet.total');
+
+  /* ARITHMETIC GUARD. The four buckets partition the resolved fleet, so with the
+     unresolved remainder they must reconstruct the published total exactly. If a
+     new system tier appears and falls through the branches above, this fires
+     rather than letting a tile quietly under-count. */
+  var sum = b.nextGen + b.streaming + b.legacy + b.noWifi + b.unresolved;
+  if (sum !== b.total) {
+    throw new Error('Render.home: proof buckets do not reconstruct the fleet — ' +
+      b.nextGen + ' next-gen + ' + b.streaming + ' streaming + ' + b.legacy + ' legacy + ' +
+      b.noWifi + ' no-wifi + ' + b.unresolved + ' unresolved = ' + sum + ', but fleet.total is ' +
+      b.total + '. A segment tier is unclassified, or the roster and the fleet count disagree.');
+  }
+  /* The next-gen bucket is the same number {{P_EQUIPPED}} prints two tiles away,
+     from a different path (roster vs segments). They must agree. */
+  var equipped = homeNum(m.fleet.equipped, 'fleet.equipped');
+  if (b.nextGen !== equipped) {
+    throw new Error('Render.home: the proof block\'s next-gen bucket is ' + b.nextGen +
+      ' but fleet.equipped is ' + equipped + '. The segment table and the roster disagree.');
+  }
+
+  var sf = homeStreamingFloor(m, a);
+  b.floorCertain = b.nextGen + b.streaming;
+  b.floorStr = (sf.uncertain ? '≥' : '') + homeStr(homeFmtPct(sf.pct), 'proof.floor') + '%';
+  return b;
+}
+
+/* STALE-VALUE GUARD, run on the RENDERED page rather than on the numbers that
+ * produced it. The proof block and the United Big-4 card reach the streaming
+ * floor by different paths — token substitution into the template, and
+ * homeCard() building markup — so comparing the two inputs proves nothing. This
+ * reads both strings back out of the finished HTML.
+ *
+ * This is the check that would have caught "≥66%" sitting above "≥58%" on the
+ * day it shipped, and it is the check that fires if the template ever goes back
+ * to a literal. */
+function homeAssertProofFloor(out, pb, num) {
+  var floorStr = pb.floorStr;
+  var proof = /<div class="proof-num">[\s\S]*?<span class="tier-only">([^<]*)<\/span>/.exec(out);
+  if (!proof) throw new Error('Render.home: the proof block streaming figure was not found in the output.');
+
+  /* The four tiles, read back out of the finished page. The floor check below
+     cannot see these, and the arithmetic guard in homeProofBuckets() only checks
+     the MODEL, so without this a hard-coded tile would pass every other check —
+     which is exactly how 560/407/131 survived from round 18 to 1 Aug 2026. */
+  var facts = /<div class="proof-facts">([\s\S]*?)<\/div>\s*<\/div>/.exec(out);
+  if (!facts) throw new Error('Render.home: the proof-facts tile block was not found in the output.');
+  var tiles = facts[1].match(/<span class="tier-only">([^<]*)<\/span>/g) || [];
+  var got = tiles.map(function (t) { return t.replace(/<[^>]*>/g, '').trim(); })
+    .filter(function (t) { return /^[\d,]+$/.test(t); });
+  var want = [num(pb.nextGen), num(pb.streaming), num(pb.legacy), num(pb.noWifi)];
+  if (got.length !== want.length || got.join('|') !== want.join('|')) {
+    throw new Error('Render.home: the proof tiles rendered [' + got.join(', ') +
+      '] but the model says [' + want.join(', ') +
+      ']. A tile is hard-coded in build/templates/home.html instead of tokenised.');
+  }
+  /* Anchor on United by name, not on card order: the Big-4 order is a constant
+     someone may reasonably reorder, and a guard that silently starts comparing
+     against American is worse than no guard. */
+  var united = out.split('<article class="aircard"').filter(function (chunk) {
+    return /<span class="airname">United<\/span>/.test(chunk);
+  });
+  if (united.length !== 1) {
+    throw new Error('Render.home: expected exactly one United Big-4 card in the output, found ' +
+      united.length + '.');
+  }
+  var card = /<strong class="tier-value">([^<]*)</.exec(united[0]);
+  if (!card) throw new Error('Render.home: the United card has no streaming figure in the output.');
+  var cardStr = card[1].trim();
+  if (proof[1].trim() !== floorStr) {
+    throw new Error('Render.home: the proof block rendered "' + proof[1].trim() +
+      '" where the model says the streaming floor is "' + floorStr +
+      '". A literal is back in build/templates/home.html.');
+  }
+  if (proof[1].trim() !== cardStr) {
+    throw new Error('Render.home: the proof block streaming floor "' + proof[1].trim() +
+      '" disagrees with the first Big-4 card, which prints "' + cardStr +
+      '". One page may not publish two different floors for the same fleet.');
+  }
+}
+
 function homeRowClass(oddsScore) {
   return oddsScore >= 60 ? 'good' : oddsScore >= 40 ? 'mixed' : 'long';
 }
@@ -363,6 +478,22 @@ function home(m) {
   var tplPath = PATH.join(__dirname, '..', 'templates', 'home.html');
   var tpl = FS.readFileSync(tplPath, 'utf8');
 
+  /* SOURCE-LEVEL TOKEN GUARD for the proof block.
+   *
+   * The rendered-output guards below compare values, so they only fire when a
+   * hard-coded figure is WRONG. A figure re-typed as the literal it happens to
+   * equal today passes every value check and then goes stale silently on the
+   * next daily refresh. That is not hypothetical: 560, 407 and 131 were correct
+   * counts the whole time, and the defect was that nothing would have updated
+   * them. So the template is required to still be asking for the token. */
+  ['P_STREAMFLOOR', 'P_STREAMCERTAIN', 'P_STREAMING', 'P_LEGACY', 'P_NOWIFI'].forEach(function (k) {
+    if (tpl.indexOf('{{' + k + '}}') === -1) {
+      throw new Error('Render.home: build/templates/home.html no longer contains {{' + k + '}}. ' +
+        'A proof-block figure has been replaced by a literal. It may even be the right number ' +
+        'today, which is the problem: nothing will change it tomorrow.');
+    }
+  });
+
   /* Rule 5's fence, enforced twice: here at render time (fails the build the
      moment a key drifts) and again in build/apitest.js against the finished
      document (fails the build if the template's own row markup ever stops
@@ -397,6 +528,7 @@ function home(m) {
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var dparts = String(m.updated || '').split('-');
   if (dparts.length !== 3) throw new Error('Render.home: bad m.updated date "' + m.updated + '"');
+  var pb = homeProofBuckets(m);
   var proofFig = {
     P_DATE: String(Number(dparts[2])) + ' ' + MON[Number(dparts[1]) - 1] + ' ' + dparts[0],
     P_EQUIPPED: num(homeNum(m.fleet.equipped, 'fleet.equipped')),
@@ -405,13 +537,21 @@ function home(m) {
     P_MAINLINE: num(homeNum(m.fleet.mainline.equipped, 'fleet.mainline.equipped')),
     P_REGIONAL: num(homeNum(m.fleet.express.equipped, 'fleet.express.equipped')),
     P_LAST30: num(homeNum(m.fleet.last30, 'fleet.last30')),
-    P_PACE: String(homeNum(m.fleet.mainlinePacePerWeek, 'fleet.mainlinePacePerWeek'))
+    P_PACE: String(homeNum(m.fleet.mainlinePacePerWeek, 'fleet.mainlinePacePerWeek')),
+    /* The streaming view's four tiles and its floor. Literals until 1 Aug 2026;
+       see homeProofBuckets() for what they were saying wrong. */
+    P_STREAMFLOOR: pb.floorStr,
+    P_STREAMCERTAIN: num(pb.floorCertain),
+    P_STREAMING: num(pb.streaming),
+    P_LEGACY: num(pb.legacy),
+    P_NOWIFI: num(pb.noWifi)
   };
   Object.keys(proofFig).forEach(function (k) { out = out.split('{{' + k + '}}').join(proofFig[k]); });
   if (/\{\{P_[A-Z0-9]+\}\}/.test(out)) {
     throw new Error('Render.home: an unbaked {{P_...}} proof token remains — a figure was tokenised ' +
       'in build/templates/home.html without a matching entry in proofFig.');
   }
+  homeAssertProofFloor(out, pb, num);
 
   if (out.indexOf('<!--HOME:') !== -1) {
     throw new Error('Render.home: an unbaked HOME: marker remains in the output — a new marker was ' +
