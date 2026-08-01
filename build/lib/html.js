@@ -444,7 +444,17 @@ var MASTHEAD_CSS =
   '.sitebar.is-enhanced.nav-open .nav-toggle .ico-close{display:block}' +
   '}' +
   '@media(max-width:768px){.sitebar .masthead{width:min(var(--max,1240px),calc(100% - 48px))}}' +
-  '@media(max-width:440px){.sitebar .masthead{width:calc(100% - 32px)}}' +
+  /* ROUND 9, 1 Aug 2026 — 440 -> 700, and the number has to match `.wrap`.
+     Every page's content container (`.wrap`, and `.xw` on /extension/) drops
+     from a 24px side inset to a 16px one at `max-width:700px`. This rule dropped
+     the masthead at 440. So from 441 through 700 the masthead sat 24px in while
+     the content and footer sat 16px in, on EVERY route, in both engines. It is
+     a sitewide defect, not a property of the new /extension/ page: measured on
+     live production at `be3014e`, /methodology/ (untouched for rounds) shows the
+     same 8px step, and 440 and 701 both align. Fixing it in the shared component
+     is the whole point — patching one route would make that route the odd one.
+     The `min()` shape matches `.wrap` exactly rather than a bare calc(). */
+  '@media(max-width:700px){.sitebar .masthead{width:min(var(--max,1240px),calc(100% - 32px))}}' +
   '@media(max-width:430px){.sitebar.is-enhanced .mobile-cta{font-size:12px;padding:0 12px}}' +
   '@media(max-width:390px){.sitebar .masthead{width:calc(100% - 32px)}.sitebar .brand{font-size:18px}}';
 

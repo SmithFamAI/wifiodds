@@ -575,7 +575,7 @@ span.usl-watching:focus-visible{
 .xw .ctl button[aria-pressed=true]{background:linear-gradient(90deg,var(--cyan),var(--violet));color:#05060a;border-color:transparent}
 .xw .ctl button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .xw .note{font-size:13px;color:var(--dim);border-left:2px solid #2a2f3d;padding-left:14px;margin:16px 0 0;max-width:70ch}
-.xw .prov{font-size:12.5px;color:#6f7688;margin-top:52px;border-top:1px solid var(--edge);padding-top:20px;max-width:78ch}
+.xw .prov{font-size:12.5px;color:#7d8497;margin-top:52px;border-top:1px solid var(--edge);padding-top:20px;max-width:78ch}
 .xw code{font-family:ui-monospace,Menlo,monospace;font-size:.92em;color:#c9d4e4}
 @media (prefers-reduced-motion:reduce){.xw .row{transition:none}}
 @media(max-width:900px){.xw .grid{grid-template-columns:minmax(0,1fr)}}
@@ -672,8 +672,8 @@ nobody. Sorting is on by default there. Press the button to watch the page reord
   <div id="sorted-state"></div>
   <div class="demo-host" id="sorthost"><div class="row"><div class="rl"><div class="fn">UA 1812 <span class="mut">· Airbus A321neo</span></div><div class="tm">1:30 PM <span class="mut">→</span> 3:14 PM</div><div class="mrow"><span class="usl-metrics" data-ng-state="prob"><span class="usl-ng usl-ng--prob"><span class="usl-ng__label">NEXT-GEN</span> <span class="usl-ng__value usl-badge usl-hi">64%</span> <span class="usl-ng__sub">12 tracked</span></span> <span class="usl-stream-line"><span class="usl-stream__label">STREAMING</span> <span class="usl-stream__value">42</span> <span class="usl-stream__word">ConnectScore</span></span></span></div></div><div class="fare"><div class="fl">Economy</div><div class="fp">$158</div></div></div><div class="row"><div class="rl"><div class="fn">UA 2265 <span class="mut">· Airbus A321neo</span></div><div class="tm">6:00 AM <span class="mut">→</span> 7:41 AM</div><div class="mrow"><span class="usl-metrics" data-ng-state="prob"><span class="usl-ng usl-ng--prob"><span class="usl-ng__label">NEXT-GEN</span> <span class="usl-ng__value usl-badge usl-hi">53%</span> <span class="usl-ng__sub">12 tracked</span></span> <span class="usl-stream-line"><span class="usl-stream__label">STREAMING</span> <span class="usl-stream__value">42</span> <span class="usl-stream__word">ConnectScore</span></span></span></div></div><div class="fare"><div class="fl">Economy</div><div class="fp">$158</div></div></div><div class="row"><div class="rl"><div class="fn">UA 1561 <span class="mut">· Airbus A321neo</span></div><div class="tm">11:18 AM <span class="mut">→</span> 1:02 PM</div><div class="mrow"><span class="usl-metrics" data-ng-state="prob"><span class="usl-ng usl-ng--prob"><span class="usl-ng__label">NEXT-GEN</span> <span class="usl-ng__value usl-badge usl-hi">52%</span> <span class="usl-ng__sub">19 tracked</span></span> <span class="usl-stream-line"><span class="usl-stream__label">STREAMING</span> <span class="usl-stream__value">42</span> <span class="usl-stream__word">ConnectScore</span></span></span></div></div><div class="fare"><div class="fl">Economy</div><div class="fp">$178</div></div></div><div class="row"><div class="rl"><div class="fn">UA 2123 <span class="mut">· Airbus A321neo</span></div><div class="tm">9:09 PM <span class="mut">→</span> 10:47 PM</div><div class="mrow"><span class="usl-metrics" data-ng-state="prob"><span class="usl-ng usl-ng--prob"><span class="usl-ng__label">NEXT-GEN</span> <span class="usl-ng__value usl-badge usl-hi">51%</span> <span class="usl-ng__sub">23 tracked</span></span> <span class="usl-stream-line"><span class="usl-stream__label">STREAMING</span> <span class="usl-stream__value">42</span> <span class="usl-stream__word">ConnectScore</span></span></span></div></div><div class="fare"><div class="fl">Economy</div><div class="fp">$143</div></div></div><div class="row"><div class="rl"><div class="fn">UA 2367 <span class="mut">· Airbus A321neo</span></div><div class="tm">5:00 AM <span class="mut">→</span> 6:44 AM</div><div class="mrow"><span class="usl-metrics" data-ng-state="prob"><span class="usl-ng usl-ng--prob"><span class="usl-ng__label">NEXT-GEN</span> <span class="usl-ng__value usl-badge usl-mid">48%</span> <span class="usl-ng__sub">7 tracked</span></span> <span class="usl-stream-line"><span class="usl-stream__label">STREAMING</span> <span class="usl-stream__value">42</span> <span class="usl-stream__word">ConnectScore</span></span></span></div></div><div class="fare"><div class="fl">Economy</div><div class="fp">$143</div></div></div></div>
 </div>
-<p class="note">On mixed-carrier sites like Navan and Google Flights this is <strong>off</strong> by
-default. Moving a scored United flight up necessarily moves an unscored airline down, and an airline we have no data for is unknown, not worse. There you get an explicit action and a coverage line instead.</p>
+<p class="note">On Navan, where several carriers share one list, this is <strong>off</strong> by
+default. Moving a scored United flight up necessarily moves an unscored airline down, and an airline we have no data for is unknown, not worse. There you get an explicit action and a coverage line instead. <strong>Google Flights is never reordered at all</strong>, whichever option you pick: its results list is virtualised and Google owns its own ordering, so the extension only adds labelled chips there.</p>
 <div class="panelframe" style="margin-top:18px">
   <div class="usl-panel" style="position:static;width:min(356px,100%);max-height:none"><div class="usl-body">
     <p class="usl-boundary">Coverage: United. Other airlines stay unscored and keep the booking site's order.</p>
@@ -712,10 +712,11 @@ Three honest states, each carrying its reason. An aircraft whose WiFi cannot be 
 </div>
 
 <p class="prov">Components on this page were taken from extension 3.0.0 on 2026-08-01. They
-components inline <code>extension/content.css</code> verbatim and use the class names the content
+inline <code>extension/content.css</code> verbatim and use the class names the content
 script emits, so this page cannot drift from the product without the build changing too. Flight
-percentages were captured from a live united.com DEN→SFO search on 31 Jul 2026; airline scores come
-from the extension's <code>airlines.js</code>, which is byte-generated from the site's model.</p>
+percentages were captured from a live united.com DEN→SFO search on 31 Jul 2026. The extension's
+<code>airlines.js</code> is generated from this site's model on the day a build is cut, and a shipped
+build keeps the copy it was cut with. It can therefore lag this page; it does not track it live.</p>
 
 
 </div>
