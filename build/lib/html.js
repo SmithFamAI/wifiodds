@@ -62,7 +62,7 @@ var REPO = REPO_SITE;
  * a stale value here is a wrong claim on the homepage. build/lib/pages.js also
  * carries this string in its extension section; when the store ships a new
  * build, both move. */
-var EXT_VERSION = '2.1.0'; /* store-published 2026-07-29; verified by the listing body (Version 2.1.0), not the manifest */
+var EXT_VERSION = '2.2.0'; /* store-published 2026-07-31; verified by the listing body (Version 2.2.0), not the manifest */
 
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
