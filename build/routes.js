@@ -25,13 +25,17 @@ var AIRLINE_KEYS = ['united', 'alaska', 'jsx', 'airbaltic', 'zipair', 'westjet',
 var ROUTES = [
   /* THE THREE-PAGE SITE (28 Jul 2026 cut). Down from 31 routes to four: the
      homepage, a rebuilt /methodology/, a new /technology/, and /privacy (kept
-     for the Chrome Web Store listing, out of the nav). The other 28 routes are
-     301'd to / in _redirects. The /united/ DIRECTORY stays on disk because the
-     extension reads united/data.json; only the /united/ PAGE routes are gone.
+     for the Chrome Web Store listing, out of the nav). /extension/ was added on
+     1 Aug 2026, so this is five; it is reachable from /technology/ rather than
+     from the masthead, whose Extension item still points at /#extension. The
+     other 28 routes are 301'd to / in _redirects. The /united/ DIRECTORY stays
+     on disk because the extension reads united/data.json; only the /united/
+     PAGE routes are gone.
      NEVER HAND-EDIT A FILE LISTED HERE. */
   { url: '/', file: 'index.html', kind: 'gen', changefreq: 'daily', priority: '1.0' },
   { url: '/methodology/', file: 'methodology/index.html', kind: 'gen', changefreq: 'daily', priority: '0.7' },
   { url: '/technology/', file: 'technology/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.8' },
+  { url: '/extension/', file: 'extension/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.8' },
   { url: '/privacy', file: 'privacy.html', kind: 'gen', tmpl: 'privacy', changefreq: 'yearly',
     priority: '0.3', lastmod: '2026-07-29' }
 ];

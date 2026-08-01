@@ -10,7 +10,7 @@ which ranks booking sites for the extension.
 
 ## Public routes
 
-All 4 of them are in `sitemap.xml`. `url` is the path Cloudflare
+All 5 of them are in `sitemap.xml`. `url` is the path Cloudflare
 serves; `file` is what lands on disk. Those differ in exactly one row.
 
 `tmpl` names a file in `build/templates/` holding that page's unique content. A
@@ -22,6 +22,7 @@ url            file                    tmpl     freq     pri  title
 /              index.html              -        daily    1.0  WiFi Odds · your odds of next-gen WiFi
 /methodology/  methodology/index.html  -        daily    0.7  Methodology · WiFi Odds
 /technology/   technology/index.html   -        monthly  0.8  Inflight WiFi technology · WiFi Odds
+/extension/    extension/index.html    -        monthly  0.8  The WiFi Odds browser extension · WiFi Odds
 /privacy       privacy.html            privacy  yearly   0.3  Privacy Policy · WiFi Odds for Flights
 ```
 
@@ -88,5 +89,6 @@ url            links
 /              3
 /methodology/  2
 /technology/   3
+/extension/    2
 /privacy       2
 ```

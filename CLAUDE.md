@@ -4,6 +4,24 @@ Read this before touching anything. It encodes bugs that already cost real hours
 
 ---
 
+## ⚠️ ONE DRIVER AT A TIME. CLAIM THE LOCK BEFORE YOU EDIT ANYTHING HERE.
+
+Multiple agents drive this repo. On 1 Aug 2026 two of them collided twice in one night, and the
+second collision **reached production**: one driver's in-progress draft, 35 lines with no caller,
+rode into `render.js` inside the other driver's commit. Owner ruling that morning:
+
+    sh ~/Projects/wifiodds-relay/exchange/driver-lock.sh claim <your-id> "what you are doing"
+
+**Exit non-zero means another driver holds it. Do not work. Say so and stop.** Renew if you are
+still going; release when you stop. Read the exit code bare — piping it into `tail` reports `tail`'s
+status, which is the trap the rest of this file keeps warning about. Mechanics and the two staleness
+fences (wall clock, and pid-not-alive) are in that folder's `README.md`.
+
+This fixes collision, not provenance. The shared git identity still cannot tell you which driver
+authored a commit, and the auditor has said so twice.
+
+---
+
 ## ⚠️ THERE IS AN INDEPENDENT AUDITOR. READ ITS RULES BEFORE CLAIMING ANYTHING IS DONE.
 
 An external adversarial auditor reviews this site. The working relationship is governed by a
@@ -197,7 +215,9 @@ next-gen number, not three independent scores of the same thing.
 
 Two files both claim the job:
 
-- `~/websites/scripts/responsive/check.mjs`, the canonical one, 4,768 bytes. Sweeps 23 widths in
+- `~/websites/scripts/responsive/check.mjs`, the canonical one, **8,630 bytes as of 1 Aug 2026** — it
+  grew with the round-7 multi-view sweep, so the 4,768 figure this section used to quote is stale and
+  a size comparison no longer identifies it. Identify it by path and by what it does. Sweeps 23 widths in
   WebKit and Chromium and checks two failure classes: overflow, and whether landmark left edges agree.
   That second check catches the alignment bug an overflow test can never see. See `WIFIODDS-BOOT.md`'s
   "browser, not curl" section for the incident that wrote this.
@@ -206,6 +226,15 @@ Two files both claim the job:
 
 `~/.wo-respo/` has a populated `node_modules/`. `~/websites/scripts/responsive/` does not, and ESM
 resolution ignores `NODE_PATH`, so running the canonical script in place fails on missing `playwright`.
+**Its alignment pass is blind on a route whose landmarks it does not name.** The check keys on
+`.wordmark`, `.datechip` and `.blk`. On `/extension/`, added 1 Aug 2026, exactly one of those matched,
+so it computed a spread across a single point and reported clean — while the content column sat 84px
+right of the masthead at 1440px. A one-landmark spread is always zero. **When you add a route, either
+give it a landmark the checker names or measure the left edges yourself, and always against an
+untouched page as a control.** `/methodology/` served that purpose here. Untouched, it showed the same
+8px masthead-versus-content gap at 601–700px. That gap is pre-existing and site-wide. The new page did
+not introduce it, and one page quietly correcting it would only make itself the odd one out.
+
 **Copy `~/websites/scripts/responsive/check.mjs` into `~/.wo-respo/` (next to its `node_modules`)
 before running it.** Do not run whichever copy happens to be closer at hand. A session that
 finds `~/.wo-respo/check.mjs` first will get a clean "no overflow" result that says nothing about
@@ -234,8 +263,9 @@ the baseline, even if the rate would look better on paper.
 Separately, and worth checking before assuming a specific fix should have ratcheted anything: commit
 `8c4edf3` removed the em dash from `fitBadge()`'s tooltip `title=""` attribute across several airline
 rows, but `index.html`'s baseline sat at `pivotPer1000: 2.43` / `pivotUnits: 4.25` both before and
-after a full rebuild. Whether `slop-check.js` reads text inside HTML attributes at all, as opposed to
-only visible rendered text, was not confirmed in this pass. If it doesn't, that particular fix was
-real (better markup, unrelated to the linter) but was never going to move the score. The 2.43 ceiling
-would measure something else in that case, not unrepaid debt. Check `build/slop-check.js`'s HTML
-extraction before concluding either way.
+after a full rebuild. **Resolved 1 Aug 2026, and the answer is no.**
+`build/slop-check.js:1236` says so in its own comment: "Counted on the VISIBLE text, not the source:
+HTML attribute quotes and…". Attribute text is never scored. So `8c4edf3` was a real improvement to
+the markup and was never going to move the baseline by any amount. **The 2.43 ceiling on `index.html`
+measures visible prose, not unrepaid attribute debt** — stop looking for the missing repayment, and
+do not try to pay one down through `title=""`.

@@ -2580,6 +2580,34 @@ function technologyPage() {
     '<!--TECHNOLOGY:HEAD_EXTRA-->');
 }
 
+/* ═══ /extension/ ════════════════════════════════════════════════════════
+ * The extension's own components, on a page of ours. Everything inside .xw is
+ * markup the content script really emits, styled by content.css inlined
+ * verbatim, so the walkthrough cannot drift from the product without the build
+ * changing too — which is the whole reason it is not a set of screenshots.
+ *
+ * ONE DELIBERATE DIFFERENCE, and it is a defect report rather than a licence.
+ * The extension writes its metric spans flush, so `NEXT-GEN` `64%` `12 tracked`
+ * have the textContent "NEXT-GEN64%12 tracked" and STREAMING welds onto its own
+ * value. apitest.js fails on that: it is the "37300+" fault the weld check was
+ * written for, reaching a screen reader with the layout looking perfect. The
+ * template puts one space at each of those 34 boundaries. All of them sit inside
+ * .usl-metrics, .usl-ng or .usl-stream-line, every one display:inline-flex, and
+ * a whitespace-only text node between flex items renders no box — so no pixel
+ * moves and the product's own stylesheet still decides every one of them.
+ *
+ * That verbatim stylesheet is also why the template carries two style regimes.
+ * The .usl-* rules are the product's and are untouched; the demo page's own
+ * chrome is scoped under .xw, because it and the site both define .wrap, h1,
+ * h2, .card, .grid, .row and .note, and unscoped they fight in both directions.
+ *
+ * Like technologyPage() it takes no argument: no figure on it comes from `m`.
+ * The percentages are dated captures, labelled as captures on the page. */
+function extensionPage() {
+  return wholeDocument('extension', '/extension/', 'extensionPage',
+    '<!--EXTENSION:HEAD_EXTRA-->');
+}
+
 /* ═══ /api/docs/ ════════════════════════════════════════════════════════
  * The ONE human page in the /api namespace. Everything else under /api is a
  * Cloudflare Pages Function in functions/api/** and has no file on disk, which
@@ -3115,6 +3143,7 @@ module.exports = {
   home: home, airlinesIndex: airlinesIndex, airlinePage: airlinePage,
   fleetPage: fleetPage, roadmapPage: roadmapPage, methodologyPage: methodologyPage,
   technologyPage: technologyPage,
+  extensionPage: extensionPage,
   racePage: racePage, systemsPage: systemsPage,
   apiDocs: apiDocs, notFound: notFound,
   unitedOptimizer: unitedOptimizer, unitedHistory: unitedHistory,

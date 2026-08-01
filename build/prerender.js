@@ -1194,6 +1194,7 @@ function main() {
   write('index.html', Render.home(m));
   write('methodology/index.html', Render.methodologyPage(m));
   write('technology/index.html', Render.technologyPage(m));
+  write('extension/index.html', Render.extensionPage(m));
   /* the two remaining template pages: content from build/templates/, numbers
      baked from data.json at render time. Everything else was 301'd on 28 Jul. */
   write('privacy.html', Render.privacyPage(m));
