@@ -359,13 +359,18 @@ function masthead(here, suffix, updated, refreshAttemptedOn, wasRetained) {
     NAV.map(function (n) {
       return '      <a href="' + n[0] + '"' + (n[0] === here ? ' aria-current="page"' : '') + '>' + n[1] + '</a>\n';
     }).join('') +
-    /* The Extension link points at the homepage's own #extension section (its
-       id as of the 28 Jul interior port — verified live; the old #companion
-       anchor no longer exists there). The pill beside it is the ONE new store
-       pitch this port adds to the masthead, matching the homepage's own
-       `.pill.primary`; its href is EXT, never a literal store URL, so a
-       store-side path change only has to be fixed in that one constant. */
-    '      <a href="/#extension">Extension</a>\n' +
+    /* The Extension link names the /extension/ route. It pointed at the
+       homepage's own #extension section until 1 Aug 2026, which left the route
+       reachable from one page site-wide; see the note on mastheadV2 below.
+       This masthead is NOT dead code — every route that does not set
+       `mastheadV2: true` renders it, which today is 404.html, and a fix applied
+       only to mastheadV2 leaves that page pointing at the old anchor. The
+       apitest IA guard now covers 404.html and will say so.
+       The pill beside it is the ONE new store pitch this port adds to the
+       masthead, matching the homepage's own `.pill.primary`; its href is EXT,
+       never a literal store URL, so a store-side path change only has to be
+       fixed in that one constant. */
+    '      <a href="/extension/"' + (here === '/extension/' ? ' aria-current="page"' : '') + '>Extension</a>\n' +
     '    </nav>\n' +
     /* THE PILL IS OUTSIDE <nav>, AND THAT IS THE WHOLE POINT OF THIS LINE.
      * It lived inside <nav> until 28 Jul 2026, which meant the `@media(max-width:880px)`
@@ -472,8 +477,16 @@ var MASTHEAD_JS =
   'if(mq.addEventListener)mq.addEventListener("change",sync);else if(mq.addListener)mq.addListener(sync);})();';
 
 /* here = the canonical path of the current page, for aria-current on its own
- * nav link. Home and Privacy set nothing current: neither is in the three-link
- * primary navigation. */
+ * nav link. Privacy sets nothing current: it is not one of the four primary
+ * destinations.
+ *
+ * The Extension item pointed at `/#extension` until 1 Aug 2026, a homepage
+ * section, while `/extension/` was a real route with exactly one inbound link
+ * site-wide (from /technology/). The nav therefore sent every reader to the
+ * pitch and left the reference page unreachable, and on /extension/ itself the
+ * item pointed away from the page you were already on. It now names the route,
+ * so the label and the destination agree everywhere and the page can mark
+ * itself current. */
 function mastheadV2(here) {
   function cur(path) { return here === path ? ' aria-current="page"' : ''; }
   return '<header class="sitebar" data-masthead>\n' +
@@ -492,7 +505,7 @@ function mastheadV2(here) {
     '      <a href="/"' + cur('/') + '>Home</a>\n' +
     '      <a href="/methodology/"' + cur('/methodology/') + '>Methodology</a>\n' +
     '      <a href="/technology/"' + cur('/technology/') + '>Technology</a>\n' +
-    '      <a href="/#extension">Extension</a>\n' +
+    '      <a href="/extension/"' + cur('/extension/') + '>Extension</a>\n' +
     '      <a class="pill primary desktop-cta" href="' + EXT + '" target="_blank" rel="noopener">Add to Chrome</a>\n' +
     '    </nav>\n' +
     '  </div>\n' +

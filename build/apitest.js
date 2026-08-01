@@ -1750,14 +1750,24 @@ async function main() {
      be the PRIMARY nav on EVERY survivor, not only the interiors. The homepage
      shipped with in-page anchors (United fleet / Big 4 / All 18) as its masthead
      and no top-level link to either new page. This reads the first <nav> on each
-     survivor and requires all three destinations inside it. */
-  ['index.html', 'methodology/index.html', 'technology/index.html', 'privacy.html', '404.html'].forEach(function (rel) {
+     survivor and requires all three destinations inside it.
+
+     1 Aug 2026: this guard accepted `#extension`, the homepage section, as the
+     Extension destination, and its route list omitted extension/index.html — so
+     the one page whose nav pointed away from itself was the one page unchecked,
+     and /extension/ sat behind a single inbound link site-wide. The destination
+     is now the route, and the negative assertion below is what makes that
+     binding: requiring the route while still permitting the anchor would pass on
+     a nav carrying both. */
+  ['index.html', 'methodology/index.html', 'technology/index.html', 'extension/index.html',
+    'privacy.html', '404.html'].forEach(function (rel) {
     var f = path.join(ROOT, rel);
     if (!fs.existsSync(f)) return;
     var masthead = (/<nav\b[\s\S]*?<\/nav>/.exec(fs.readFileSync(f, 'utf8')) || [''])[0];
     ok(/href="[^"]*\/methodology\/"/.test(masthead), rel + ': masthead nav links Methodology');
     ok(/href="[^"]*\/technology\/"/.test(masthead), rel + ': masthead nav links Technology');
-    ok(/href="[^"]*#extension"/.test(masthead), rel + ': masthead nav links Extension');
+    ok(/href="[^"]*\/extension\/"/.test(masthead), rel + ': masthead nav links Extension');
+    ok(!/href="[^"]*#extension"/.test(masthead), rel + ': masthead Extension is the route, not the homepage anchor');
   });
 
   /* round 18 P2-02: the sitemap's privacy lastmod must equal the effective date

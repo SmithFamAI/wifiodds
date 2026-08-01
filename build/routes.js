@@ -26,8 +26,9 @@ var ROUTES = [
   /* THE THREE-PAGE SITE (28 Jul 2026 cut). Down from 31 routes to four: the
      homepage, a rebuilt /methodology/, a new /technology/, and /privacy (kept
      for the Chrome Web Store listing, out of the nav). /extension/ was added on
-     1 Aug 2026, so this is five; it is reachable from /technology/ rather than
-     from the masthead, whose Extension item still points at /#extension. The
+     1 Aug 2026, so this is five. It shipped with ONE inbound link site-wide, from
+     /technology/, because the masthead's Extension item pointed at the /#extension
+     homepage section instead; the nav names the route as of 1 Aug 2026. The
      other 28 routes are 301'd to / in _redirects. The /united/ DIRECTORY stays
      on disk because the extension reads united/data.json; only the /united/
      PAGE routes are gone.
