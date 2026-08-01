@@ -428,9 +428,28 @@ const WIFI_AIRLINES = {
     nextGenSplit: "no-regional-fleet",
     /* CORRECTED 2026-07-25. Hawaiian NEVER had Viasat — it went from no wifi at
        all straight to Starlink in 2024, and the site used to imply otherwise.
-       fleet is 66, not the 61 that was here: 61 counted the A330s and A321neos
-       and the 717s, and left out the 787-9s. */
-    system: "starlink", equipped: 42, fleet: 66, free: "free",
+       That part stands.
+
+       RE-CORRECTED 2026-08-01, owner ruling. The 25 Jul note also raised fleet
+       61 -> 66 on the reasoning that 61 "left out the 787-9s". That reasoning was
+       BACKWARDS and the 66 came with it. The tracker did not forget those
+       aircraft: they are not Hawaiian's. Alaska Air Group's own type pages list
+       only the A330-200 (24), A321neo (18) and 717-200 (19) under Hawaiian —
+       24+18+19 = 61 — while Alaska's newsroom calls the 787-9s "its" fleet and
+       flies them Alaska-branded from Seattle to Seoul, London and Rome. Trade
+       press reports four transferring from Hawaiian by spring 2026, after which
+       Hawaiian's long-haul fleet is all-Airbus again; that is corroboration for
+       the DATE, not the basis for the attribution.
+
+       Two things stated plainly because this revision FLATTERS our own number
+       (64% -> 69%), which is the direction that deserves the most scrutiny:
+       no publisher-of-record document says in as many words that Hawaiian
+       operates zero 787-9s — the group fleet page is combined and splits nothing
+       by brand — and the 787-9 segment is DELETED here rather than set to zero.
+       A `none` segment asserts "the airline has these and they are unequipped";
+       for aircraft the airline does not operate at all that is a different and
+       wrong claim, the same absent-vs-zero confusion that shipped once before. */
+    system: "starlink", equipped: 42, fleet: 61, free: "free",
     tracker: "airlinestarlinktracker.com",
     resolution: "type",
     serviceTier: "mixed", restTier: "unknown",
@@ -443,11 +462,11 @@ const WIFI_AIRLINES = {
         note: "The Boeing 717 interisland fleet, roughly 150 flights a day. These " +
           "aircraft have never carried connectivity and the group has said twice " +
           "that they never will." },
-      { system: "none", n: 5, free: "none", as: "2026-07",
-        src: "Hawaiian 787 Starlink announcement",
-        note: "787-9s. Nothing today; Starlink from fall 2026." },
+      /* The 5-aircraft 787-9 `none` segment was REMOVED 2026-08-01: those
+         aircraft fly for Alaska, so they were never Hawaiian's to count as
+         unequipped. See the re-correction note above. */
     ],
-    note: "42 of 66. The A330 and A321neo fit is complete; the 19 Boeing 717s have never had wifi at all.",
+    note: "42 of 61. The A330 and A321neo fit is complete; the 19 Boeing 717s have never had wifi at all. The 787-9s fly for Alaska, not Hawaiian, and are counted there.",
   },
   qatar: {
     name: "Qatar Airways", code: "QR", asOf: "2026-01",

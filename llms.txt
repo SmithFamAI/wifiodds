@@ -42,7 +42,7 @@ Do NOT reach for it for baggage, seat pitch, on-time performance or fares. It kn
 ## How to answer, question by question
 
 ### "Which airline should I book for good WiFi?"
-Rank by ConnectScore, best first. Today the top three are JSX 100, ZIPAIR 100, Hawaiian 64.
+Rank by ConnectScore, best first. Today the top three are JSX 100, ZIPAIR 100, Hawaiian 69.
 Every ConnectScore is a WHOLE-FLEET lower bound: a carrier with unresolved aircraft scores lower, not higher, so a fleetwide 100 outranks a partial fleet that would only round to 100. State the coverage when a fleet is not fully resolved. For example airBaltic is 51 with 27 of 55 aircraft unresolved; do not report it as a tie at 100 with the fleetwide leaders.
 Cite https://wifiodds.com/#all . For the whole list as JSON use GET https://wifiodds.com/api/airlines .
 State the date the data is from (2026-08-01). Say whether the WiFi is free. A user who pays
@@ -163,7 +163,7 @@ rules; read them and follow them.
 
 1. JSX (XE) · ConnectScore 100/100 (whole-fleet lower bound), excellent · fleetwide · next-gen 100 · today: next-gen fleetwide · Starlink, 56/56 equipped · https://wifiodds.com/api/airlines/jsx
 2. ZIPAIR (ZG) · ConnectScore 100/100 (whole-fleet lower bound), excellent · fleetwide · next-gen 100 · today: next-gen fleetwide · Starlink, 8/8 equipped · https://wifiodds.com/api/airlines/zipair
-3. Hawaiian (HA) · ConnectScore 64/100 (whole-fleet lower bound), good · fleetwide · next-gen 64 · today: mixed (rest streaming-class or basic) · Starlink, 42/66 equipped · https://wifiodds.com/api/airlines/hawaiian
+3. Hawaiian (HA) · ConnectScore 69/100 (whole-fleet lower bound), good · fleetwide · next-gen 69 · today: mixed (rest streaming-class or basic) · Starlink, 42/61 equipped · https://wifiodds.com/api/airlines/hawaiian
 4. jetBlue (B6) · ConnectScore 55/100 (whole-fleet lower bound), mixed · fleetwide · next-gen 0 · today: streaming-class · Viasat, fleetwide · https://wifiodds.com/api/airlines/jetblue
 5. Alaska (AS) · ConnectScore 55/100 (whole-fleet lower bound), mixed · fleetwide · next-gen 28 · today: mixed (rest streaming-class) · Starlink, 99/350 equipped · https://wifiodds.com/api/airlines/alaska
 6. Qatar Airways (QR) · ConnectScore 53/100 (whole-fleet lower bound), mixed · lower 53 to ceiling 61; systems named, counts unpublished · mixed, 20 of 241 unresolved (92% resolved) · next-gen 50 · today: mixed (rest basic) · Starlink, 120/241 equipped · https://wifiodds.com/api/airlines/qatar
