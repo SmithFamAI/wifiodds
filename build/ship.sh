@@ -42,17 +42,33 @@ done
 
 fail() { echo ""; echo "SHIP ABORTED: $1"; echo "Nothing was committed and nothing was pushed."; echo "The working tree is exactly as the build left it; run 'git status' to see it."; exit "${2:-1}"; }
 
-echo "── 1/4 prerender ─────────────────────────────────────────"
+echo "── 1/5 prerender ─────────────────────────────────────────"
 if ! node build/prerender.js; then
   fail "node build/prerender.js exited non-zero (see its output above)." 91
 fi
 
 echo ""
-echo "── 2/4 api suite ─────────────────────────────────────────"
+echo "── 2/5 api suite ─────────────────────────────────────────"
 if ! node build/apitest.js; then
   fail "node build/apitest.js exited non-zero. THIS IS THE 26 JUL FAULT: a cached
 figure moved and an assertion still held the old value, or the page and the API
 genuinely disagree. Read the failing checks above before doing anything else." 92
+fi
+
+echo ""
+echo "── 3/5 proof-binding controls ────────────────────────────"
+# Round 6, 1 Aug 2026. Steps 1 and 2 are the site's opinion of its own work, and
+# the auditor showed that opinion can be wrong in the one way that matters: the
+# proof-block guard passed a template whose visible figure had been severed from
+# its token, because the token was parked in a comment two lines up. Watching a
+# guard succeed proves nothing about whether it can fail. These controls make it
+# fail on demand, in isolation, and the clean one runs last. Wired here rather
+# than left in a document, because a rule the runtime does not read is a wish.
+if ! sh build/proof-binding-controls.sh; then
+  fail "build/proof-binding-controls.sh exited non-zero. Either a mutation was NOT
+caught — the proof-block binding guard has stopped guarding and a hard-coded
+figure can now ship and go stale silently — or the clean control failed, which
+means the guard is rejecting honest markup. Read which line said FAIL." 98
 fi
 
 if [ -n "$CHECK_ONLY" ]; then
@@ -76,7 +92,7 @@ fi
 [ -n "$MSG" ] || fail "no commit message given. Usage: bash build/ship.sh \"message\"" 93
 
 echo ""
-echo "── 3/4 stage ─────────────────────────────────────────────"
+echo "── 4/5 stage ─────────────────────────────────────────────"
 # Explicit paths only. NEVER `git add .` — this tree holds other people's
 # drafts and that rule has already caught one real staging mistake.
 CHANGED=$(git status --porcelain | awk '{print $2}')
@@ -90,7 +106,7 @@ git add -u
 echo "$CHANGED" | sed 's/^/  /'
 
 echo ""
-echo "── 4/4 commit and push ───────────────────────────────────"
+echo "── 5/5 commit and push ───────────────────────────────────"
 git commit -m "$MSG" || fail "git commit failed (the pre-commit prose ratchet may have blocked it)." 95
 git push origin HEAD || fail "git push failed. The commit exists locally." 96
 

@@ -324,6 +324,41 @@ function homeAssertProofFloor(out, pb, num) {
   }
 }
 
+/* ROUND 6 (relay): STRUCTURAL token binding, replacing the bare tpl.indexOf()
+ * guard. indexOf proved only that each token appeared SOMEWHERE in the file.
+ * The auditor severed a binding while keeping that guard green: the visible
+ * {{P_STREAMING}} replaced by today's correct literal, the token parked in a
+ * detached HTML comment inside #proof. Presence passed, the value guards
+ * passed because the literal equalled the model, and the full gate exited 0
+ * with a figure nothing would ever update again.
+ *
+ * So two rules now. Comments are stripped first — a token inside an HTML
+ * comment binds nothing. And each token must sit inside the exact markup of
+ * the field that prints it: the floor figure's proof-num span, the copy
+ * sentence, or the tile whose label names it. A token anywhere else in the
+ * file fails, even though string substitution would still have replaced it.
+ * The negative controls for this guard are committed in build/apitest.js
+ * (search "relay round 6"), including the auditor's two exact mutations. */
+var HOME_PROOF_BINDINGS = {
+  P_STREAMFLOOR: /<div class="proof-num">(?:(?!<\/div>)[\s\S])*?<span class="tier-only">\{\{P_STREAMFLOOR\}\}<\/span>/,
+  P_STREAMCERTAIN: /<span class="tier-only">[^<]*?\bcover \{\{P_STREAMCERTAIN\}\} of \{\{P_TOTAL\}\} aircraft/,
+  P_STREAMING: /<span class="tier-only">\{\{P_STREAMING\}\}<\/span>(?:(?!<\/div>)[\s\S])*?>modern streaming aircraft</,
+  P_LEGACY: /<span class="tier-only">\{\{P_LEGACY\}\}<\/span>(?:(?!<\/div>)[\s\S])*?>legacy-system aircraft</,
+  P_NOWIFI: /<span class="tier-only">\{\{P_NOWIFI\}\}<\/span>(?:(?!<\/div>)[\s\S])*?>no-wifi aircraft</
+};
+function homeAssertProofTokens(tpl) {
+  var visible = tpl.replace(/<!--[\s\S]*?-->/g, '');
+  Object.keys(HOME_PROOF_BINDINGS).forEach(function (k) {
+    if (!HOME_PROOF_BINDINGS[k].test(visible)) {
+      throw new Error('Render.home: {{' + k + '}} is not bound to its proof field in ' +
+        'build/templates/home.html. The token must appear inside the element that prints it ' +
+        '(its own tile, the floor figure, or the copy sentence); the same token anywhere else ' +
+        'in the file, including inside an HTML comment, binds nothing. The visible figure may ' +
+        'even be right today, which is the problem: nothing will change it tomorrow.');
+    }
+  });
+}
+
 function homeRowClass(oddsScore) {
   return oddsScore >= 60 ? 'good' : oddsScore >= 40 ? 'mixed' : 'long';
 }
@@ -485,12 +520,54 @@ function home(m) {
    * equal today passes every value check and then goes stale silently on the
    * next daily refresh. That is not hypothetical: 560, 407 and 131 were correct
    * counts the whole time, and the defect was that nothing would have updated
-   * them. So the template is required to still be asking for the token. */
-  ['P_STREAMFLOOR', 'P_STREAMCERTAIN', 'P_STREAMING', 'P_LEGACY', 'P_NOWIFI'].forEach(function (k) {
-    if (tpl.indexOf('{{' + k + '}}') === -1) {
-      throw new Error('Render.home: build/templates/home.html no longer contains {{' + k + '}}. ' +
-        'A proof-block figure has been replaced by a literal. It may even be the right number ' +
-        'today, which is the problem: nothing will change it tomorrow.');
+   * them. So the template is required to still be asking for the token.
+   *
+   * ROUND 6, auditor, 1 Aug 2026: the first version of this guard asked only
+   * whether tpl.indexOf('{{P_X}}') found anything, which proves the token exists
+   * SOMEWHERE in the file and nothing else. The auditor severed a visible field
+   * from its token — rendered {{P_STREAMING}} replaced by today's correct 560,
+   * with {{P_STREAMING}} parked in a detached comment elsewhere inside #proof —
+   * and the whole gate still exited 0. Same for {{P_STREAMFLOOR}}. Reproduced
+   * here before fixing: bare `ship.sh --check-only` exit 0 on both. Presence is
+   * not binding, so this now checks two stronger things.
+   *
+   * 1. Comments are stripped before anything is examined, and a proof token
+   *    found inside a comment is itself the error, named as such. A token in a
+   *    comment renders nothing, so the only thing it can do is satisfy a
+   *    presence check on behalf of a field that no longer asks for it.
+   * 2. Each field is associated with the markup that renders IT. The token has
+   *    to be the content of its own element, not merely somewhere in the file.
+   *    These fragments are deliberately brittle: restyling the proof block
+   *    should require saying so here, because that is the moment the binding
+   *    could be dropped by accident. */
+  var PROOF_FIELD_BINDING = {
+    P_STREAMFLOOR: '<span class="tier-only">{{P_STREAMFLOOR}}</span></div>',
+    P_STREAMCERTAIN: 'cover {{P_STREAMCERTAIN}} of United’s',
+    P_STREAMING: '<span class="tier-only">{{P_STREAMING}}</span></b>',
+    P_LEGACY: '<span class="tier-only">{{P_LEGACY}}</span></b>',
+    P_NOWIFI: '<span class="tier-only">{{P_NOWIFI}}</span></b>'
+  };
+  var tplNoComments = tpl.replace(/<!--[\s\S]*?-->/g, '');
+  var parkedTokens = (tpl.match(/<!--[\s\S]*?-->/g) || []).join('\n').match(/\{\{P_[A-Z0-9_]+\}\}/g);
+  if (parkedTokens) {
+    throw new Error('Render.home: proof token(s) ' + parkedTokens.join(', ') + ' sit inside an HTML ' +
+      'comment in build/templates/home.html. A commented token renders nothing, so it cannot be ' +
+      'the field; the only work it can do is satisfy a presence check while the visible figure is ' +
+      'a hard-coded literal.');
+  }
+  Object.keys(PROOF_FIELD_BINDING).forEach(function (k) {
+    var frag = PROOF_FIELD_BINDING[k];
+    if (tplNoComments.indexOf(frag) === -1) {
+      throw new Error('Render.home: the proof field that renders {{' + k + '}} is no longer bound ' +
+        'to it. build/templates/home.html must contain, outside any comment, exactly:\n  ' + frag +
+        '\nA figure re-typed as the literal it happens to equal today passes every value check on ' +
+        'the day it is written and goes stale the next morning.');
+    }
+    var seen = tplNoComments.split('{{' + k + '}}').length - 1;
+    if (seen !== 1) {
+      throw new Error('Render.home: {{' + k + '}} occurs ' + seen + ' times outside comments in ' +
+        'build/templates/home.html; exactly one visible binding is expected. A second copy makes ' +
+        'the binding check ambiguous about which field it cleared.');
     }
   });
 
