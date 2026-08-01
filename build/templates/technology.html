@@ -7,7 +7,7 @@
 <title>Inflight WiFi technology · WiFi Odds</title>
 <meta name="description" content="One booking-page label, three passenger experiences: next-gen low-orbit, streaming-class geostationary, and Gen 1 inflight WiFi.">
 <style>
-:root{--bg:#050505;--panel:#0d0d0f;--panel2:#121216;--ink:#fff;--muted:#c6c6ce;--dim:#adadb6;--line:#6f6f78;--soft:#3b3b43;--cyan:#29d8ff;--violet:#926cff;--good:#54f09b;--mixed:#ffd45a;--long:#ff7e9c;--src:#9f9fa9;--max:1240px}
+:root{--bg:#050505;--panel:#0d0d0f;--panel2:#121216;--ink:#fff;--muted:#c6c6ce;--dim:#adadb6;--line:#6f6f78;--soft:#3b3b43;--cyan:#29d8ff;--violet:#926cff;--good:#54f09b;--mixed:#ffd45a;--long:#ff7e9c;--src:#9f9fa9;--split:0%;--space:radial-gradient(1.6px 1.6px at 20% 30%,#fff,transparent),radial-gradient(1.2px 1.2px at 41% 66%,rgba(255,255,255,.85),transparent),radial-gradient(1.6px 1.6px at 60% 36%,#fff,transparent),radial-gradient(1.2px 1.2px at 79% 62%,rgba(255,255,255,.8),transparent),radial-gradient(1.4px 1.4px at 91% 44%,#fff,transparent),radial-gradient(130% 160% at 8% 50%,#190f45 0%,#34209a 30%,#3f5cff 64%,#29d8ff 100%);--max:1240px}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}.wrap{width:min(var(--max),calc(100% - 48px));margin:auto}.skip{position:absolute;left:-999px;top:8px;background:#fff;color:#000;padding:10px 14px;min-height:44px;z-index:30}.skip:focus{left:8px}.nav{height:78px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--soft)}.brand{display:flex;align-items:center;gap:10px;min-height:44px;font-weight:850;letter-spacing:-.04em;font-size:20px}.mark{width:20px;height:20px;flex:none}.navlinks{display:flex;align-items:center;gap:28px;color:#d6d6db;font-size:14px}.navlinks a{display:flex;align-items:center;min-height:44px}.navlinks a:hover{color:#fff}.navlinks a[aria-current="page"]{color:#fff}.pill{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border:1px solid var(--line);border-radius:999px;font-weight:800;font-size:14px}.pill.primary{color:#050505;border:0;background:linear-gradient(100deg,var(--cyan),#b399ff)}.pill:hover{background:#fff;color:#050505}.pill.primary:hover{background:linear-gradient(100deg,#82eaff,#c2b0ff)}
 .hero{position:relative;overflow:hidden;min-height:660px;display:grid;align-items:center;border-bottom:1px solid var(--soft)}.hero:before{content:"";position:absolute;width:750px;height:750px;right:-150px;top:-80px;background:radial-gradient(circle,rgba(146,108,255,.2),rgba(41,216,255,.1) 43%,transparent 70%);filter:blur(12px);pointer-events:none}.hero:after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:72px 72px;mask-image:linear-gradient(to right,transparent 3%,#000 60%,transparent);pointer-events:none}.hero-inner{position:relative;z-index:1;padding:88px 0 80px}.eyebrow,.kicker{display:flex;align-items:center;gap:9px;color:var(--cyan);font:800 12px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase}.eyebrow i{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 18px var(--cyan)}h1{max-width:1100px;margin:29px 0 32px;font-size:clamp(64px,7.6vw,112px);line-height:.9;letter-spacing:-.07em}.gradient{color:transparent;background:linear-gradient(100deg,#fff 8%,#8beaff 54%,#a88cff 88%);background-clip:text;-webkit-background-clip:text}.hero-bottom{display:grid;grid-template-columns:minmax(0,720px) auto;gap:50px;align-items:end}.lede{margin:0;color:#d0d0d6;font-size:clamp(19px,2vw,25px);line-height:1.45}.asof{justify-self:end;display:inline-flex;align-items:center;gap:9px;padding:10px 13px;border:1px solid var(--line);border-radius:999px;background:rgba(13,13,15,.82);color:#d0d0d6;font:700 11px ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}.asof i{width:6px;height:6px;border-radius:50%;background:var(--good)}
 .section{padding:92px 0;border-bottom:1px solid var(--soft)}.section-head{display:grid;grid-template-columns:minmax(0,780px) 1fr;gap:60px;align-items:end;margin-bottom:40px}.kicker{margin-bottom:15px}.section h2{margin:0;font-size:clamp(40px,4.6vw,64px);line-height:1;letter-spacing:-.052em}.intro{margin:0;color:var(--muted);font-size:17px;line-height:1.58}
@@ -22,6 +22,117 @@
 .next{padding:76px 0;border-bottom:1px solid var(--soft)}.next-box{display:flex;align-items:center;justify-content:space-between;gap:32px;padding:34px;border:1px solid var(--line);border-radius:18px;background:var(--panel)}.next-box h2{font-size:clamp(30px,3.6vw,46px);letter-spacing:-.04em}.next-box p{margin:9px 0 0;color:var(--muted);font-size:15px}.footer{padding:44px 0 54px}.footer-top{display:flex;align-items:center;justify-content:space-between;gap:20px}.footlinks{display:flex;gap:14px;color:#b4b4bc;font-size:13px}.footlinks a{display:flex;align-items:center;min-width:44px;min-height:44px;padding:0 4px}.fine{margin:32px 0 0;padding-top:24px;border-top:1px solid var(--soft);display:flex;justify-content:space-between;gap:30px;color:#9a9aa4;font-size:12px;line-height:1.6}.fine p{margin:0;max-width:800px}
 @media(max-width:900px){.navlinks a:not(.primary){display:none}.hero-bottom,.section-head{grid-template-columns:1fr}.asof{justify-self:start}.tier{grid-template-columns:84px 1fr}.demo{grid-column:1/-1;border-left:0;border-top:1px solid var(--soft);padding-left:0;padding-right:0;margin-top:6px}.orbit{grid-template-columns:1fr}.gaps{grid-template-columns:1fr}}
 @media(max-width:700px){.wrap{width:min(var(--max),calc(100% - 32px))}.nav{height:68px}.brand{font-size:18px}.pill.primary{padding:0 14px}.hero{min-height:680px}.hero-inner{padding:70px 0 58px}h1{font-size:clamp(50px,14vw,68px)}.lede{font-size:18px}.section{padding:68px 0}.section-head{gap:22px}.section h2{font-size:40px}.tier{grid-template-columns:1fr;padding:24px}.tier-num{font-size:60px;margin-bottom:14px}.demo{grid-column:auto}.demo-row{grid-template-columns:104px 1fr 92px;gap:10px}.gap-stage{grid-template-columns:1fr}.versus{min-height:64px;border:0;border-top:1px solid var(--soft);border-bottom:1px solid var(--soft);writing-mode:horizontal-tb}.booking{min-height:340px;padding:24px}.matrix{overflow:auto}.matrix-row{min-width:660px}.orbit-viz{min-height:400px}.arc.low{width:440px}.arc.high{width:720px}.sat.low{left:14%}.sat.high{right:5%}.unknown-row{grid-template-columns:1fr;gap:7px}.next-box,.footer-top,.fine{align-items:flex-start;flex-direction:column}.footlinks{flex-wrap:wrap}}
+/* section 02 curtain + section 03 experience map (merged from approved mockup) */
+#p-curtain .stage{border:1px solid var(--line);border-radius:20px;overflow:hidden;background:var(--panel);margin-top:8px}
+#p-curtain .gut{pointer-events:none}
+#p-curtain .booking-row{display:grid;grid-template-columns:54px repeat(3,1fr) 54px;background:#09090b;border-bottom:1px solid var(--line)}
+#p-curtain .bcell{min-width:0;padding:20px 22px;border-right:1px solid var(--line)}
+#p-curtain .bcell:nth-of-type(4){border-right:0}
+#p-curtain .small{display:block;color:var(--dim);font:800 9.5px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase}
+#p-curtain .bcell strong{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:clamp(17px,2.1vw,23px);letter-spacing:-.03em}
+#p-curtain .wifi{width:9px;height:9px;border:2px solid var(--muted);border-radius:50%;flex:none}
+#p-curtain .reveal{position:relative;min-height:400px;touch-action:none}
+#p-curtain .truth{display:grid;grid-template-columns:54px repeat(3,1fr) 54px;min-height:400px}
+#p-curtain .truth-card{display:flex;flex-direction:column;gap:13px;padding:26px 24px;border-right:1px solid var(--line)}
+#p-curtain .truth-card.g1{border-right:0}
+#p-curtain .truth-card.ng{background:linear-gradient(160deg,rgba(41,216,255,.16),rgba(146,108,255,.09) 55%,var(--panel))}
+#p-curtain .truth-card.st{background:linear-gradient(160deg,rgba(84,240,155,.14),rgba(84,240,155,.03) 55%,var(--panel))}
+#p-curtain .truth-card.g1{background:linear-gradient(160deg,rgba(255,126,156,.15),rgba(255,126,156,.03) 55%,var(--panel))}
+#p-curtain .tchip{display:flex;align-items:center;gap:8px;font:900 10.5px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.09em;text-transform:uppercase}
+#p-curtain .ng .tchip{color:var(--cyan)}#p-curtain .st .tchip{color:var(--good)}#p-curtain .g1 .tchip{color:var(--long)}
+#p-curtain .tchip i{width:9px;height:9px;border-radius:50%;flex:none}
+#p-curtain .ng .tchip i{background:linear-gradient(120deg,var(--cyan),var(--violet));box-shadow:0 0 16px rgba(41,216,255,.7)}
+#p-curtain .st .tchip i{background:var(--good);box-shadow:0 0 16px var(--good)}
+#p-curtain .g1 .tchip i{background:var(--long);box-shadow:0 0 16px var(--long)}
+#p-curtain .truth h3{margin:0;font-size:clamp(21px,2.5vw,30px);line-height:1.04;letter-spacing:-.04em}
+#p-curtain .truth p{margin:0;color:#d3d3da;line-height:1.5;font-size:13.5px}
+#p-curtain .truth .today{margin:0;color:var(--good);font-weight:700;font-size:12.5px;line-height:1.45}
+#p-curtain .task{margin-top:auto;padding:15px;border:1px solid currentColor;border-radius:13px;background:#09090b}
+#p-curtain .ng .task{color:var(--cyan)}#p-curtain .st .task{color:var(--good)}#p-curtain .g1 .task{color:var(--long)}
+#p-curtain .task-top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+#p-curtain .task-name{color:#fff;font-weight:850;font-size:13.5px}#p-curtain .task-state{font-size:12px;font-weight:850;text-align:right}
+#p-curtain .track{height:12px;margin-top:12px;border-radius:999px;background:#26262c;overflow:hidden}
+#p-curtain .fill{display:block;height:100%;border-radius:inherit}
+#p-curtain .ng .fill{width:97%;background:var(--space)}
+#p-curtain .st .fill{width:64%;background:var(--good)}
+#p-curtain .g1 .fill{width:15%;background:var(--long)}
+#p-curtain .task-note{display:block;margin-top:9px;color:var(--muted);font-size:12px}
+#p-curtain .cover{display:none}
+.js #p-curtain .cover{display:grid;position:absolute;inset:0;grid-template-columns:54px repeat(3,1fr) 54px;clip-path:inset(0 0 0 var(--split));background:#0b0b0d;z-index:2;pointer-events:none}
+#p-curtain .cover-card{display:grid;place-items:center;padding:24px;text-align:center;background:linear-gradient(155deg,#15151a,#0b0b0d);border-right:1px solid var(--line)}
+#p-curtain .cover-card:nth-of-type(4){border-right:0}
+#p-curtain .cover-card b{font-size:clamp(18px,2.2vw,26px);letter-spacing:-.035em}
+#p-curtain .cover-card span{display:block;margin-top:8px;color:var(--muted);font-size:12px}
+#p-curtain .handle{display:none}
+.js #p-curtain .handle{display:block;position:absolute;z-index:3;left:clamp(28px,var(--split),calc(100% - 28px));top:0;bottom:0;width:0;pointer-events:none}
+#p-curtain .handle:before{content:"";position:absolute;left:-2px;top:0;bottom:0;width:4px;background:var(--cyan);box-shadow:0 0 20px rgba(41,216,255,.6)}
+#p-curtain .handle b{position:absolute;top:50%;left:0;transform:translate(-50%,-50%);display:grid;place-items:center;width:46px;height:60px;border:2px solid var(--cyan);border-radius:999px;background:#050505;color:var(--cyan);font-weight:900;font-size:20px;cursor:ew-resize;pointer-events:auto;touch-action:none;box-shadow:0 6px 22px rgba(0,0,0,.55)}
+#p-curtain .handle b:focus-visible{outline:3px solid #fff;outline-offset:3px}
+#p-curtain .pullme{display:none}
+.js #p-curtain .pullme{display:flex;align-items:center;gap:7px;position:absolute;z-index:4;left:64px;top:50%;transform:translateY(-50%);padding:9px 14px;border:1px solid var(--cyan);border-radius:999px;background:rgba(5,10,22,.92);color:#eaf7ff;font-weight:800;font-size:13px;white-space:nowrap;box-shadow:0 6px 22px rgba(0,0,0,.5);animation:nudge 1.6s ease-in-out infinite;transition:opacity .3s ease}
+#p-curtain .pullme.hide{opacity:0;pointer-events:none}
+@keyframes nudge{0%,100%{transform:translate(0,-50%)}50%{transform:translate(9px,-50%)}}
+#p-curtain .grab-hint{display:none}
+.js #p-curtain .grab-hint{display:block;text-align:center;margin:14px 0 0;color:var(--dim);font-size:12.5px}
+#p-curtain .controls{display:none}
+.js #p-curtain .controls{display:block;padding:16px 26px 20px;border-top:1px solid var(--line);background:var(--panel2)}
+#p-curtain .control-label{display:flex;justify-content:space-between;gap:16px;margin-bottom:10px;font-weight:800}
+#p-curtain .control-label span{color:var(--muted);font-weight:650;font-size:13px}
+#p-curtain .range{width:100%;height:40px;margin:0;accent-color:var(--cyan);cursor:ew-resize}
+#p-curtain .range:focus-visible{outline:3px solid var(--cyan);outline-offset:4px;border-radius:8px}
+#p-curtain .hint{margin:6px 0 0;color:var(--dim);font-size:12px}
+#p-curtain .source,#p-map .source{margin:22px 0 0;color:var(--src);font:11px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}
+#p-curtain .source b,#p-map .source b{color:var(--good);text-transform:uppercase;letter-spacing:.07em}
+#p-map .axis{display:grid;grid-template-columns:150px 1fr 150px;gap:18px;align-items:end;padding:0 4px 12px;margin-top:8px}
+#p-map .axis-track{position:relative;display:grid;grid-template-columns:1fr 1fr 1fr}
+#p-map .zone{font:800 10.5px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+#p-map .zone.mid{text-align:center}
+#p-map .zone.hi{text-align:right;color:transparent;background:linear-gradient(90deg,var(--cyan),#b399ff);-webkit-background-clip:text;background-clip:text;padding-right:.08em}
+#p-map .activity{border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:22px 22px 24px;margin-bottom:14px}
+#p-map .act-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+#p-map .act-ico{display:grid;place-items:center;width:42px;height:42px;flex:none;border:1.5px solid var(--line);border-radius:12px;color:#dfe3ea}
+#p-map .act-head h3{margin:0;font-size:21px;letter-spacing:-.03em}
+#p-map .act-head .sub{margin:2px 0 0;color:var(--dim);font-size:12.5px}
+#p-map .mbar{display:grid;grid-template-columns:150px 1fr 150px;gap:18px;align-items:center;padding:10px 0}
+#p-map .mtier{font:900 11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em}
+#p-map .mtier.ng{color:transparent;background:linear-gradient(90deg,var(--cyan),#b399ff);-webkit-background-clip:text;background-clip:text;padding-right:.08em}
+#p-map .mtier.st{color:var(--good)}#p-map .mtier.g1{color:var(--long)}
+#p-map .mtrack{position:relative;height:24px;border-radius:999px;background:#1c1c22;overflow:visible}
+#p-map .mtrack:before,#p-map .mtrack:after{content:"";position:absolute;top:-4px;bottom:-4px;width:1px;background:var(--soft)}
+#p-map .mtrack:before{left:33.33%}#p-map .mtrack:after{left:66.66%}
+#p-map .mfill{position:relative;height:100%;border-radius:999px;width:var(--to)}
+#p-map .mbar.ng .mfill{background:var(--space)}
+#p-map .mbar.st .mfill{background:linear-gradient(90deg,rgba(84,240,155,.35),var(--good))}
+#p-map .mbar.g1 .mfill{background:linear-gradient(90deg,rgba(255,126,156,.35),var(--long))}
+#p-map .mrocket{display:none}
+#p-map .mbar.ng .mrocket{display:block;position:absolute;right:-34px;top:50%;transform:translateY(-50%);width:62px;height:32px;pointer-events:none;filter:drop-shadow(0 0 9px rgba(41,216,255,.5))}
+#p-map .flame{transform-origin:right center;animation:flick .16s steps(2) infinite}
+#p-map .mverdict{font-size:13px;font-weight:750;color:#e7e9ee;text-align:right}
+#p-map .mbar.g1 .mverdict{color:#f2c0cc}
+.js #p-map .mfill{width:0;transition:width var(--d,1s) cubic-bezier(.2,.7,.3,1) var(--dl,.5s)}
+#p-map .mbar.ng{--d:.85s;--dl:.5s}#p-map .mbar.st{--d:1.4s;--dl:.6s}#p-map .mbar.g1{--d:2s;--dl:.7s}
+.js #p-map .activity.go .mfill{width:var(--to)}
+@keyframes flick{0%{opacity:.85;transform:scaleX(.88)}100%{opacity:1;transform:scaleX(1.14)}}
+@media(prefers-reduced-motion:reduce){
+  #p-map .flame{animation:none!important}
+  .js #p-map .mfill{width:var(--to);transition:none!important}
+  .js #p-curtain .pullme{animation:none!important}
+}
+@media(max-width:900px){
+  #p-curtain .gut{display:none}
+  #p-curtain .booking-row,#p-curtain .truth{grid-template-columns:1fr}
+  .js #p-curtain .cover{grid-template-columns:1fr 1fr 1fr}
+  #p-curtain .truth-card{border-right:0;border-bottom:1px solid var(--line)}
+  #p-curtain .reveal,#p-curtain .truth{min-height:0}
+  #p-curtain .bcell{padding:14px 12px}#p-curtain .bcell strong{font-size:16px}
+  #p-curtain .bcell:nth-of-type(4){border-right:1px solid var(--line)}
+  #p-curtain .cover-card{padding:14px 8px}#p-curtain .cover-card b{font-size:15px}#p-curtain .cover-card span{font-size:10px}
+  .js #p-curtain .pullme{left:20px;font-size:12px;padding:7px 11px}
+  #p-map .mbar.ng .mrocket{width:46px;height:24px;right:-24px}
+  #p-map .axis{grid-template-columns:1fr 1fr 1fr;gap:6px}
+  #p-map .mbar{grid-template-columns:92px 1fr;grid-template-areas:"tier track" "verdict verdict";gap:6px 12px}
+  #p-map .mtier{grid-area:tier}#p-map .mtrack{grid-area:track}#p-map .mverdict{grid-area:verdict;text-align:left;font-size:12px}
+}
 </style>
 <!--TECHNOLOGY:HEAD_EXTRA-->
 </head>
@@ -41,11 +152,66 @@
 
   </div></div></section>
 
-  <section class="section"><div class="wrap"><div class="section-head"><div><span class="kicker">02 / The gap that matters</span><h2>Tier two and tier three look identical while booking.</h2></div><p class="intro">Both show up as “WiFi available.” One is a capable modern connection. The other may only keep a chat thread alive. That hidden gap decides which flight is worth taking.</p></div><div class="gap-stage"><article class="booking streaming"><span class="badge">Booking page</span><h3>WiFi available</h3><div class="fake-booking"><span>System behind the label</span>
-<b>Modern GEO · streaming-class</b></div><p>You can plan around a working connection. The delay is real, but the service does far more than keep a message queue alive.</p></article><div class="versus">Same label</div><article class="booking legacy"><span class="badge">Booking page</span><h3>WiFi available</h3><div class="fake-booking"><span>System behind the label</span>
-<b>Legacy ATG or early satellite · Gen 1</b></div><p>You board expecting to work and find the basic connection is the work. This is the outcome the second WiFi Odds view helps a traveler avoid.</p></article></div><p class="gap-note"><b>Classification</b> · WiFi Odds service-tier model · effective 28 Jul 2026 · a single flight can run above or below its tier</p></div></section>
+  <section class="section" id="p-curtain"><div class="wrap"><div class="section-head"><div><span class="kicker">02 / The gap that matters</span><h2>Pull back the booking label.</h2></div><p class="intro">At booking, every flight makes the same promise. Grab the divider and drag it across to expose the three systems that one label can hide.</p></div>
+    <div class="stage">
+      <div class="booking-row">
+        <div class="gut"></div>
+        <div class="bcell"><span class="small">Booking page</span><strong><i class="wifi" aria-hidden="true"></i>WiFi available</strong></div>
+        <div class="bcell"><span class="small">Booking page</span><strong><i class="wifi" aria-hidden="true"></i>WiFi available</strong></div>
+        <div class="bcell"><span class="small">Booking page</span><strong><i class="wifi" aria-hidden="true"></i>WiFi available</strong></div>
+        <div class="gut"></div>
+      </div>
+      <div class="reveal" id="c-reveal">
+        <div class="truth">
+          <div class="gut"></div>
+          <article class="truth-card ng"><span class="tchip"><i></i>Next-gen · low-orbit</span><h3>Starlink &amp; Amazon Leo</h3><p>Low-orbit satellite. Internet that happens to be on a plane, so streaming, big downloads, and interactive work feel close to what they do on the ground.</p><div class="task"><div class="task-top"><span class="task-name">Stream a movie</span> <span class="task-state">Plays right away</span></div><div class="track" role="img" aria-label="First-class relative experience"><span class="fill"></span></div><span class="task-note">No wait for the story.</span></div></article>
+          <article class="truth-card st"><span class="tchip"><i></i>Streaming-class · satellite</span><h3>Modern satellite</h3><p>A working connection with a real, noticeable lag. Streaming settles in and file movement stays steady; anything interactive feels the delay.</p><p class="today">The best WiFi on most planes flying today. A step below next-gen Starlink, and not the coming Amazon Leo.</p><div class="task"><div class="task-top"><span class="task-name">Stream a movie</span> <span class="task-state">Buffers, then plays</span></div><div class="track" role="img" aria-label="Workable relative experience"><span class="fill"></span></div><span class="task-note">The task keeps moving.</span></div></article>
+          <article class="truth-card g1"><span class="tchip"><i></i>Legacy · older hardware</span><h3>Older air-to-ground or early satellite</h3><p>The badge says WiFi. In a full cabin, even keeping a message thread moving can become the task.</p><div class="task"><div class="task-top"><span class="task-name">Stream a movie</span> <span class="task-state">Struggles to start</span></div><div class="track" role="img" aria-label="Very limited relative experience"><span class="fill"></span></div><span class="task-note">The task stalls before the story does.</span></div></article>
+          <div class="gut"></div>
+        </div>
+        <div class="cover" aria-hidden="true"><div class="gut"></div><div class="cover-card"><div><b>WiFi available</b> <span>What the booking page shows</span></div></div><div class="cover-card"><div><b>WiFi available</b> <span>What the booking page shows</span></div></div><div class="cover-card"><div><b>WiFi available</b> <span>What the booking page shows</span></div></div><div class="gut"></div></div>
+        <div class="handle" aria-hidden="true"><b tabindex="0" role="slider" aria-label="Reveal the systems" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">↔</b></div>
+        <div class="pullme" id="pullme">Grab &amp; drag <span aria-hidden="true">→</span></div>
+      </div>
+      <div class="controls"><label class="control-label" for="curtain">Reveal the systems <span id="amount">Booking label</span></label><input class="range" id="curtain" type="range" min="0" max="100" value="0" aria-describedby="range-help"><p class="hint" id="range-help">Drag the divider, or use this slider and the arrow keys. The full comparison is readable without any of it.</p></div>
+    </div>
+    <p class="grab-hint">Tip: the ↔ handle is grabbable. Drag it left and right.</p>
+    <p class="source"><b>Reported classification</b> · system capabilities and carrier service descriptions compiled Jul 2026 · no row is a per-flight promise</p>
+  </div></section>
 
-  <section class="section"><div class="wrap"><div class="section-head"><div><span class="kicker">03 / Experience map</span><h2>Pick the tier for the thing you need to do.</h2></div><p class="intro">This map is the normal product intent of each tier. It is not a service guarantee for a particular flight, device, route, or cabin load.</p></div><div class="matrix" role="table" aria-label="Typical passenger experience by inflight WiFi tier"><div class="matrix-row head" role="row"><div role="columnheader">What you need</div><div role="columnheader">Next-gen</div><div role="columnheader">Streaming-class</div><div role="columnheader">Gen 1</div></div><div class="matrix-row" role="row"><div role="rowheader">Messages and email</div><div><span class="status high"><i></i>Expected</span></div><div><span class="status mid"><i></i>Expected</span></div><div><span class="status low"><i></i>Best use case</span></div></div><div class="matrix-row" role="row"><div role="rowheader">Stream a movie</div><div><span class="status high"><i></i>Built for it</span></div><div><span class="status mid"><i></i>Often workable</span></div><div><span class="status low"><i></i>Fragile</span></div></div><div class="matrix-row" role="row"><div role="rowheader">Online game</div><div><span class="status high"><i></i>Responsive tier</span></div><div><span class="status mid"><i></i>Delay is noticeable</span></div><div><span class="status low"><i></i>Poor fit</span></div></div><div class="matrix-row" role="row"><div role="rowheader">Move a large file</div><div><span class="status high"><i></i>Practical</span></div><div><span class="status mid"><i></i>Can be practical</span></div><div><span class="status low"><i></i>Do not plan on it</span></div></div><div class="matrix-source"><b>Reported classification</b> · system capabilities and carrier service descriptions compiled Jul 2026 · no row is a per-flight promise</div></div></div></section>
+  <section class="section" id="p-map"><div class="wrap"><div class="section-head"><div><span class="kicker">03 / Experience map</span><h2>Pick the tier for the thing you need to do.</h2></div><p class="intro">Each bar shows how far a task gets on each system, from not practical, through often workable, to a first-class experience. The scale is relative, not a measured speed.</p></div>
+    <div class="axis" aria-hidden="true"><div></div><div class="axis-track"><span class="zone">Not practical</span> <span class="zone mid">Often workable</span> <span class="zone hi">First class experience</span></div><div></div></div>
+
+    <div class="activity" data-act>
+      <div class="act-head"><span class="act-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-4 3v-3H4z" stroke-linejoin="round"/></svg></span><div><h3>Messages and email</h3><p class="sub">The lightest everyday task</p></div></div>
+      <div class="mbar ng" style="--to:96%"><span class="mtier ng">Next-gen</span><div class="mtrack"><div class="mfill"><span class="mrocket" aria-hidden="true"></span></div></div><span class="mverdict">Instant</span></div>
+      <div class="mbar st" style="--to:88%"><span class="mtier st">Streaming-class</span><div class="mtrack"><div class="mfill"></div></div><span class="mverdict">Instant</span></div>
+      <div class="mbar g1" style="--to:60%"><span class="mtier g1">Legacy</span><div class="mtrack"><div class="mfill"></div></div><span class="mverdict">Its best use</span></div>
+    </div>
+
+    <div class="activity" data-act>
+      <div class="act-head"><span class="act-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M11 9.5l4 2.5-4 2.5z" fill="currentColor" stroke="none"/></svg></span><div><h3>Stream a movie</h3><p class="sub">Needs a sustained connection</p></div></div>
+      <div class="mbar ng" style="--to:98%"><span class="mtier ng">Next-gen</span><div class="mtrack"><div class="mfill"><span class="mrocket" aria-hidden="true"></span></div></div><span class="mverdict">Plays right away</span></div>
+      <div class="mbar st" style="--to:64%"><span class="mtier st">Streaming-class</span><div class="mtrack"><div class="mfill"></div></div><span class="mverdict">Buffers, then plays</span></div>
+      <div class="mbar g1" style="--to:15%"><span class="mtier g1">Legacy</span><div class="mtrack"><div class="mfill"></div></div><span class="mverdict">Will not hold up</span></div>
+    </div>
+
+    <div class="activity" data-act>
+      <div class="act-head"><span class="act-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="8" width="18" height="9" rx="4.5"/><path d="M8 12.5h-2M7 11v3M15.5 12h.01M18 13.5h.01" stroke-linecap="round"/></svg></span><div><h3>Online game</h3><p class="sub">Every round trip is felt</p></div></div>
+      <div class="mbar ng" style="--to:90%"><span class="mtier ng">Next-gen</span><div class="mtrack"><div class="mfill"><span class="mrocket" aria-hidden="true"></span></div></div><span class="mverdict">Feels first class</span></div>
+      <div class="mbar st" style="--to:42%"><span class="mtier st">Streaming-class</span><div class="mtrack"><div class="mfill"></div></div><span class="mverdict">Lag you will notice</span></div>
+      <div class="mbar g1" style="--to:9%"><span class="mtier g1">Legacy</span><div class="mtrack"><div class="mfill"></div></div><span class="mverdict">Not practical</span></div>
+    </div>
+
+    <div class="activity" data-act>
+      <div class="act-head"><span class="act-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3h7l4 4v14H7z" stroke-linejoin="round"/><path d="M14 3v4h4M12 11v6M9.5 13.5L12 11l2.5 2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><h3>Move a large file</h3><p class="sub">Progress has to stay steady</p></div></div>
+      <div class="mbar ng" style="--to:86%"><span class="mtier ng">Next-gen</span><div class="mtrack"><div class="mfill"><span class="mrocket" aria-hidden="true"></span></div></div><span class="mverdict">Fast</span></div>
+      <div class="mbar st" style="--to:52%"><span class="mtier st">Streaming-class</span><div class="mtrack"><div class="mfill"></div></div><span class="mverdict">Slow but steady</span></div>
+      <div class="mbar g1" style="--to:13%"><span class="mtier g1">Legacy</span><div class="mtrack"><div class="mfill"></div></div><span class="mverdict">Do not count on it</span></div>
+    </div>
+
+    <p class="source"><b>Reported classification</b> · system capabilities and carrier service descriptions compiled Jul 2026 · no row is a per-flight promise</p>
+  </div></section>
 
   <section class="section"><div class="wrap orbit"><div class="orbit-viz" role="img" aria-label="Conceptual comparison of a low-orbit satellite path and a distant geostationary path"><div class="arc low"></div><div class="arc high"></div><div class="earth"></div><span class="sat low">LOW ORBIT</span>
 <span class="sat high">GEOSTATIONARY</span>
@@ -61,5 +227,32 @@
   <section class="next"><div class="wrap"><div class="next-box"><div><span class="kicker">Use it while booking</span><h2>See the system before you pick the flight.</h2><p>The Chrome extension brings WiFi Odds into supported booking pages, and never touches checkout or payment.</p></div><a class="pill primary" href="https://chromewebstore.google.com/detail/wifi-odds-for-flights/ojpladpffbibebedfbcgbhckajbnijec">Add to Chrome →</a></div></div></section>
 </main>
 <footer class="footer"><div class="wrap"><div class="footer-top"><a class="brand" href="https://wifiodds.com/">WiFi Odds</a><div class="footlinks"><a href="https://wifiodds.com/methodology/">Methodology</a><a href="https://wifiodds.com/technology/">Technology</a><a href="https://wifiodds.com/#extension">Extension</a><a href="https://wifiodds.com/privacy">Privacy</a></div></div><div class="fine"><p>Technology map reviewed 2026-07-28. Tier descriptions compile dated carrier system disclosures and provider records. They describe product classes, not a guarantee for a flight. WiFi Odds is unofficial and unaffiliated with any airline or connectivity provider. System names are examples of each tier, not endorsements.</p><span>No accounts · no analytics · no tracking</span></div></div></footer>
+<script>
+document.documentElement.className='js';
+var ROCKET='<svg viewBox="0 0 46 24" width="62" height="32" fill="none"><g class="flame"><path d="M1 12l11-4.5v9z" fill="#ff8a2a"/><path d="M5 12l7-2.6v5.2z" fill="#ffd76a"/></g><rect x="12" y="7.5" width="20" height="9" rx="4.5" fill="#eef1f6"/><path d="M32 7.5c6.5 1.7 6.5 6.8 0 9z" fill="#dfe4ec"/><circle cx="20" cy="12" r="2.1" fill="#29d8ff"/><path d="M14.5 7.5l-4-3.6 5 3.6zM14.5 16.5l-4 3.6 5-3.6z" fill="#c7cdd8"/></svg>';
+document.querySelectorAll('#p-map .mrocket').forEach(function(r){r.innerHTML=ROCKET});
+(function(){
+  var reveal=document.getElementById('c-reveal'),input=document.getElementById('curtain'),amount=document.getElementById('amount'),knob=document.querySelector('#p-curtain .handle b'),pull=document.getElementById('pullme'),moved=false;
+  if(!reveal||!input)return;
+  function label(v){return v<12?'Booking label':v<40?'Peeking through':v>=97?'Systems revealed':v>66?'Systems mostly revealed':'Half revealed';}
+  function set(v){v=Math.max(0,Math.min(100,Math.round(v)));document.documentElement.style.setProperty('--split',v+'%');input.value=v;amount.textContent=label(v);if(knob)knob.setAttribute('aria-valuenow',v);if(!moved&&v>1){moved=true;if(pull)pull.classList.add('hide');}}
+  input.addEventListener('input',function(){set(+input.value)});
+  var drag=false;
+  function fromX(e){var r=reveal.getBoundingClientRect();var cx=(e.touches?e.touches[0].clientX:e.clientX)-r.left;set(cx/r.width*100);}
+  reveal.addEventListener('pointerdown',function(e){drag=true;try{reveal.setPointerCapture(e.pointerId)}catch(_){}fromX(e);e.preventDefault();});
+  window.addEventListener('pointermove',function(e){if(drag)fromX(e);});
+  window.addEventListener('pointerup',function(){drag=false;});
+  if(knob)knob.addEventListener('keydown',function(e){var v=+input.value;if(e.key==='ArrowRight'||e.key==='ArrowUp'){set(v+4);e.preventDefault();}if(e.key==='ArrowLeft'||e.key==='ArrowDown'){set(v-4);e.preventDefault();}});
+  set(0);
+})();
+(function(){
+  var acts=[].slice.call(document.querySelectorAll('#p-map .activity'));
+  if(!acts.length)return;
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce||!('IntersectionObserver'in window)){acts.forEach(function(a){a.classList.add('go')});return;}
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('go');io.unobserve(e.target);}});},{threshold:.35});
+  acts.forEach(function(a){io.observe(a)});
+})();
+</script>
 </body>
 </html>

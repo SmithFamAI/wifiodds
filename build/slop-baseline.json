@@ -19,10 +19,10 @@
     "Tolerances are in build/slop-gate.js, deliberately not in this file."
   ],
   "wordlist": "2026-07-25",
-  "recorded": "2026-07-29",
+  "recorded": "2026-08-01",
   "pages": {
     "404.html": {
-      "words": 195,
+      "words": 171,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -222,7 +222,7 @@
       "pivotUnits": 1.75
     },
     "index.html": {
-      "words": 1020,
+      "words": 1008,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -230,15 +230,15 @@
       "pivotUnits": 0
     },
     "llms.txt": {
-      "words": 2428,
+      "words": 2687,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
       "pivotPer1000": 4.3,
-      "pivotUnits": 11.5
+      "pivotUnits": 11.75
     },
     "methodology/index.html": {
-      "words": 816,
+      "words": 820,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -246,12 +246,12 @@
       "pivotUnits": 1.5
     },
     "privacy.html": {
-      "words": 1895,
+      "words": 1495,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
       "pivotPer1000": 1.68,
-      "pivotUnits": 4
+      "pivotUnits": 3.25
     },
     "race/index.html": {
       "words": 2853,
@@ -294,12 +294,12 @@
       "pivotUnits": 2.75
     },
     "technology/index.html": {
-      "words": 892,
+      "words": 1189,
       "llmPoints": 0,
-      "clichePoints": 1,
+      "clichePoints": 0,
       "unsub": 0,
       "pivotPer1000": 1.4,
-      "pivotUnits": 1.25
+      "pivotUnits": 2.25
     },
     "united/fleet/index.html": {
       "words": 4482,
