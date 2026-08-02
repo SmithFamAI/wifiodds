@@ -583,6 +583,64 @@ span.usl-watching:focus-visible{
    have to turn at the same width or the left edges disagree on phones only. */
 @media(max-width:700px){.xw{width:min(var(--max),calc(100% - 32px))}}
 @media(max-width:600px){.xw{padding:0 0 72px}.xw .panelframe{display:block;max-width:100%;padding:12px}.xw .fare{display:none}}
+
+/* ── Section map + animated demo, added 1 Aug 2026 ────────────────────────────
+   The demo composes states the product already renders, using the extension's
+   own class names, so it cannot drift from the product without the build
+   changing too. Stage is driven by data-stage on #demo; every visual change is
+   a CSS rule keyed off it, so the JS only counts. Under
+   prefers-reduced-motion the sequence does not run: the final stage is shown
+   statically and the ordered step list below carries the same information in
+   text, which is why that list is not decorative and must not be removed. */
+.secmap{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px;margin:0 0 40px}
+.secmap-card{display:block;padding:15px 16px 17px;border:1px solid var(--edge);border-radius:14px;background:var(--card);color:var(--muted);text-decoration:none;transition:border-color .18s,background .18s,transform .18s}
+.secmap-card:hover,.secmap-card:focus-visible{border-color:var(--cyan);background:#12141d;transform:translateY(-2px)}
+.secmap-n{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;border:1px solid var(--soft);color:var(--cyan);font:700 11px ui-monospace,SFMono-Regular,Menlo,monospace;margin-bottom:10px}
+.secmap-card b{display:block;color:#fff;font-size:15px;letter-spacing:-.02em;margin-bottom:5px}
+.secmap-card span:not(.secmap-n){display:block;font-size:12.5px;line-height:1.5;color:var(--dim)}
+.demo{margin:0 0 52px}
+.demo-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.demo-h{margin:0 0 6px}
+.demo-sub{margin-bottom:18px}
+.demo-btn{flex:0 0 auto;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--soft);background:transparent;color:var(--muted);font:600 13px inherit;cursor:pointer}
+.demo-btn:hover,.demo-btn:focus-visible{border-color:var(--cyan);color:#fff}
+.demo-wrap{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:start}
+.demo-screen{border:1px solid var(--edge);border-radius:16px;overflow:hidden;background:#fff}
+.demo-chrome{display:flex;align-items:center;gap:7px;padding:9px 13px;background:#f1f3f7;border-bottom:1px solid #e4e8ee}
+.demo-chrome i{width:9px;height:9px;border-radius:999px;background:#d3d8e0}
+.demo-chrome span{margin-left:8px;font-size:11px;color:#6b7280}
+.demo-body{padding:13px}
+.demo-rows{position:relative}
+.demo-rows .row{--rh:70px;margin-bottom:8px;min-height:56px;transition:transform .62s cubic-bezier(.22,1,.36,1)}
+/* metrics are hidden until the odds arrive */
+.demo-rows .usl-metrics{opacity:0;transition:opacity .34s ease}
+.demo[data-stage="2"] .demo-rows .usl-metrics,.demo[data-stage="3"] .demo-rows .usl-metrics,.demo[data-stage="4"] .demo-rows .usl-metrics{opacity:1}
+.demo-rows .row:nth-child(2) .usl-metrics{transition-delay:.1s}
+.demo-rows .row:nth-child(3) .usl-metrics{transition-delay:.2s}
+.demo-rows .row:nth-child(4) .usl-metrics{transition-delay:.3s}
+/* the sort. --rh is row height plus its margin, so the offsets stay whole rows */
+.demo[data-stage="4"] .demo-rows .row[data-to="0"]{transform:translateY(calc(var(--rh) * -2))}
+.demo[data-stage="4"] .demo-rows .row[data-to="1"]{transform:translateY(var(--rh))}
+.demo[data-stage="4"] .demo-rows .row[data-to="2"]{transform:translateY(var(--rh))}
+.demo[data-stage="4"] .demo-rows .row.demo-win{box-shadow:0 0 0 2px var(--cyan)}
+.demo-sorted{margin:12px 2px 0;font-size:11.5px;color:#4b5563;opacity:0;transition:opacity .3s ease}
+.demo-sorted span{color:#1d4ed8;text-decoration:underline;margin-left:2px}
+.demo[data-stage="4"] .demo-sorted{opacity:1}
+.demo-side{min-width:0}
+.demo-panelframe{padding:14px}
+.demo[data-stage="0"] .demo-panelframe{opacity:0;transition:opacity .3s ease}
+.demo-steps{counter-reset:d;list-style:none;margin:22px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:10px}
+.demo-steps li{counter-increment:d;position:relative;padding:12px 13px 13px 13px;border:1px solid var(--edge);border-radius:11px;background:#0b0c11;color:var(--dim);font-size:12.5px;line-height:1.5;opacity:.5;transition:opacity .25s,border-color .25s}
+.demo-steps li:before{content:counter(d);display:block;color:var(--cyan);font:700 10px ui-monospace,SFMono-Regular,Menlo,monospace;margin-bottom:6px}
+.demo-steps li b{color:#fff;font-weight:700}
+.demo-steps li[data-on]{opacity:1;border-color:var(--cyan)}
+@media(max-width:900px){.demo-wrap{grid-template-columns:1fr}.demo-panelframe{width:100%}}
+@media(prefers-reduced-motion:reduce){
+  .demo-rows .row,.demo-rows .usl-metrics,.demo-sorted,.demo-steps li,.secmap-card{transition:none}
+  .demo-rows .row{transform:none !important}
+  .demo-rows .usl-metrics,.demo-sorted,.demo-panelframe{opacity:1 !important}
+  .demo-steps li{opacity:1}
+}
 </style>
 <script>(function(){var r=document.documentElement;r.classList.add("js");r.classList.add("dark");})();</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='128 128 768 768'%3E%3Cdefs%3E%3ClinearGradient id='fnRamp' x1='270' y1='700' x2='754' y2='700' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%2329d8ff'/%3E%3Cstop offset='1' stop-color='%23926cff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='128' y='128' width='768' height='768' rx='160' fill='%23050505'/%3E%3Cpath d='M292 700A320 320 0 1 1 732 700' fill='none' stroke='url(%23fnRamp)' stroke-width='68' stroke-linecap='round'/%3E%3Cg transform='translate(0 -24)'%3E%3Crect x='267' y='405' width='176' height='134' rx='24' fill='url(%23fnRamp)'/%3E%3Crect x='581' y='405' width='176' height='134' rx='24' fill='url(%23fnRamp)'/%3E%3Cpath d='M443 472h35M546 472h35' stroke='%23f7f7f8' stroke-width='24' stroke-linecap='round'/%3E%3Crect x='466' y='362' width='92' height='220' rx='38' fill='%23f7f7f8'/%3E%3Ccircle cx='512' cy='472' r='31' fill='url(%23fnRamp)'/%3E%3Cpath d='M449 300Q512 341 575 300Q563 251 512 251Q461 251 449 300Z' fill='url(%23fnRamp)'/%3E%3C/g%3E%3Cpath d='M512 612C499 612 492 625 489 645L480 704L410 747C399 754 393 765 393 779L478 754L483 807L457 829V846L512 831L567 846V829L541 807L546 754L631 779C631 765 625 754 614 747L544 704L535 645C532 625 525 612 512 612Z' fill='%23f7f7f8'/%3E%3C/svg%3E">
@@ -641,7 +699,69 @@ span.usl-watching:focus-visible{
   published fleet data. Nothing here is a drawing of the product.</p>
 </header>
 
-<h2>1 · The decision card</h2>
+<nav class="secmap" aria-label="What is on this page">
+  <a class="secmap-card" href="#s1"><span class="secmap-n">1</span>
+    <b>The decision card</b>
+    <span>Eight states. It names one flight only when the data earns it, and says why when it will not.</span></a>
+  <a class="secmap-card" href="#s2"><span class="secmap-n">2</span>
+    <b>The flight row</b>
+    <span>Two labelled metrics, and eight row states. None of them prints a zero for something unknown.</span></a>
+  <a class="secmap-card" href="#s3"><span class="secmap-n">3</span>
+    <b>Sorting and undo</b>
+    <span>On by default where every flight is one airline. Keep site order restores what the site sent.</span></a>
+  <a class="secmap-card" href="#s4"><span class="secmap-n">4</span>
+    <b>Trip guard</b>
+    <span>After you book. Three honest alert states, each carrying its own reason.</span></a>
+  <a class="secmap-card" href="#s5"><span class="secmap-n">5</span>
+    <b>What the numbers mean</b>
+    <span>Next-gen odds against streaming ConnectScore, and why one cannot stand in for the other.</span></a>
+</nav>
+
+<section class="demo" id="demo" data-stage="0">
+  <div class="demo-top">
+    <div>
+      <h2 class="demo-h">What it does, in the order it does it.</h2>
+      <p class="sub demo-sub">A united.com result list, from the moment it loads to the moment it is sorted.</p>
+    </div>
+    <button type="button" class="demo-btn" id="demoToggle" aria-pressed="false">Pause</button>
+  </div>
+
+  <div class="demo-wrap">
+    <div class="demo-screen" aria-hidden="true">
+      <div class="demo-chrome"><i></i><i></i><i></i><span>united.com · DEN → SFO</span></div>
+      <div class="demo-body">
+        <div class="demo-rows">
+          <div class="row" data-from="0" data-to="1"><div class="rl"><div class="fn">UA 2265 <span class="mut">· 737-900</span></div><div class="mrow"><span class="usl-metrics" data-ng-state="prob"><span class="usl-ng usl-ng--prob"><span class="usl-ng__label">NEXT-GEN</span> <span class="usl-ng__value usl-badge usl-hi">53%</span></span></span></div></div><div class="fare"><div class="fl">Economy</div><div class="fp">$158</div></div></div>
+          <div class="row" data-from="1" data-to="2"><div class="rl"><div class="fn">UA 700 <span class="mut">· 737-800</span></div><div class="mrow"><span class="usl-metrics" data-ng-state="prob"><span class="usl-ng usl-ng--prob"><span class="usl-ng__label">NEXT-GEN</span> <span class="usl-ng__value usl-badge usl-mid">41%</span></span></span></div></div><div class="fare"><div class="fl">Economy</div><div class="fp">$172</div></div></div>
+          <div class="row demo-win" data-from="2" data-to="0"><div class="rl"><div class="fn">UA 1812 <span class="mut">· A321neo</span></div><div class="mrow"><span class="usl-metrics" data-ng-state="prob"><span class="usl-ng usl-ng--prob"><span class="usl-ng__label">NEXT-GEN</span> <span class="usl-ng__value usl-badge usl-hi">64%</span> <span class="usl-ng__sub">12 tracked</span></span></span></div></div><div class="fare"><div class="fl">Economy</div><div class="fp">$164</div></div></div>
+          <div class="row" data-from="3" data-to="3"><div class="rl"><div class="fn">UA 701 <span class="mut">· 737-800</span></div><div class="mrow"><span class="usl-metrics" data-ng-state="prob"><span class="usl-ng usl-ng--prob"><span class="usl-ng__label">NEXT-GEN</span> <span class="usl-ng__value usl-badge usl-mid">36%</span></span></span></div></div><div class="fare"><div class="fl">Economy</div><div class="fp">$181</div></div></div>
+        </div>
+        <p class="demo-sorted">Sorted by historical next-gen odds · <span>Keep site order</span></p>
+      </div>
+    </div>
+
+    <div class="demo-side">
+      <div class="panelframe demo-panelframe"><div class="usl-panel" style="position:static;width:min(320px,100%);max-height:none">
+        <div class="usl-body" id="demoSlot"></div>
+      </div></div>
+    </div>
+  </div>
+
+  <ol class="demo-steps" id="demoSteps">
+    <li><b>You search.</b> The booking site renders its own list, in its own order.</li>
+    <li><b>It notices.</b> The panel opens and announces that it is checking, once.</li>
+    <li><b>Odds appear.</b> Each row gets a labelled figure, or a named reason it has none.</li>
+    <li><b>It decides.</b> Two scored flights, an 8-point lead, medium confidence: it names one.</li>
+    <li><b>It sorts, and you can undo.</b> Rows move, the panel says so, and one control puts them back.</li>
+  </ol>
+
+  <p class="note">Every figure above already appears elsewhere on this page and comes from the same
+  captured united.com data. UA 2265 at 53% is the arithmetic of the decision card's own sentence,
+  “11 points higher historical odds than UA2265”, against UA 1812 at 64%. This is a composition of
+  states the product renders, not a new capture, and the fares are illustrative.</p>
+</section>
+
+<h2 id="s1">1 · The decision card</h2>
 <p class="sub">The whole point of the release. It names one flight only when the data earns it, and
 otherwise tells you exactly why it declined. Click through all eight states.</p>
 <div class="ctl" id="dctl"><button data-d="winner" aria-pressed="true">Winner</button><button data-d="confirmed" aria-pressed="false">Winner + confirmed tail</button><button data-d="close" aria-pressed="false">Too close</button><button data-d="lowgrade" aria-pressed="false">Thin history</button><button data-d="single" aria-pressed="false">Only one scored</button><button data-d="loading" aria-pressed="false">Checking</button><button data-d="unavailable" aria-pressed="false">Tracker unreachable</button><button data-d="nodata" aria-pressed="false">No history</button></div>
@@ -650,7 +770,7 @@ otherwise tells you exactly why it declined. Click through all eight states.</p>
 </div></div>
 <p class="note" id="dnote">Two or more scored flights, an 8-point-or-better lead, and the tracker grades the leader high or medium confidence. Rare and earned.</p>
 
-<h2>2 · The flight row: two labelled metrics</h2>
+<h2 id="s2">2 · The flight row: two labelled metrics</h2>
 <p class="sub">Next-gen odds lead, streaming-class ConnectScore follows, and both say their own name.
 The old build showed a bare <code>🛰 48%</code> that meant per-flight odds on one site and an airline-wide score on another. Eight row states, and not one of them prints a zero for something
 unknown.</p>
@@ -704,7 +824,7 @@ unknown.</p>
   </div><div class="fare"><div class="fl">Economy</div><div class="fp">$158</div></div></div></div>
   <p>The airline is not in the data set. This is unknown, which is not the same as absent.</p></div></div>
 
-<h2>3 · Automatic sorting, and a real undo</h2>
+<h2 id="s3">3 · Automatic sorting, and a real undo</h2>
 <p class="sub">On single-carrier sites every row is the same airline, so ordering by odds displaces
 nobody. Sorting is on by default there. Press the button to watch the page reorder, then take it back. "Keep site order" restores the booking site's own sequence exactly.</p>
 <div class="ctl"><button id="sortbtn" aria-pressed="false">Sort by next-gen odds</button></div>
@@ -721,7 +841,7 @@ default. Moving a scored United flight up necessarily moves an unscored airline 
   </div></div>
 </div>
 
-<h2>4 · Trip guard</h2>
+<h2 id="s4">4 · Trip guard</h2>
 <p class="sub">Star a flight and the extension re-checks its tail assignment from booking to boarding.
 Three honest states, each carrying its reason. An aircraft whose WiFi cannot be determined says so, and never gets downgraded to "No Starlink".</p>
 <div class="grid">
@@ -739,7 +859,7 @@ Three honest states, each carrying its reason. An aircraft whose WiFi cannot be 
     <p>This differs from "Update unavailable" (an outage) and "Flight not found" (a bad number).</p></div>
 </div>
 
-<h2>5 · What the numbers mean</h2>
+<h2 id="s5">5 · What the numbers mean</h2>
 <p class="sub">These are two different questions, never merged into one leaderboard.</p>
 <div class="grid">
   <div class="card"><h3>Next-gen odds</h3>
@@ -787,6 +907,58 @@ function setSorted(on) {
   if (on) document.getElementById("undo").addEventListener("click", () => setSorted(false));
 }
 SB.addEventListener("click", () => setSorted(SB.getAttribute("aria-pressed") !== "true"));
+
+/* The demo's step driver. It ONLY counts: every visual change is a CSS rule
+   keyed off data-stage, so the sequence and the styling cannot disagree.
+   Reuses DH, the same decision-card markup the eight-state switcher above uses,
+   so the card in the demo is the product's markup and not a second copy.
+   prefers-reduced-motion: the timer never starts, the final stage is shown, and
+   the ordered list carries the sequence in text. The control still works, so a
+   reader who wants the motion can start it. */
+(function () {
+  var demo = document.getElementById("demo");
+  var slot = document.getElementById("demoSlot");
+  var steps = document.getElementById("demoSteps");
+  var btn = document.getElementById("demoToggle");
+  if (!demo || !slot || !steps || !btn) return;
+  var items = steps.querySelectorAll("li");
+  var CARD = { 1: DH.loading, 2: DH.loading, 3: DH.winner, 4: DH.winner };
+  var STAGES = 5, at = 0, timer = null;
+
+  function paint() {
+    demo.setAttribute("data-stage", String(at));
+    slot.innerHTML = at === 0 ? "" : CARD[at];
+    for (var i = 0; i < items.length; i++) {
+      if (i === at) items[i].setAttribute("data-on", "");
+      else items[i].removeAttribute("data-on");
+    }
+  }
+  function advance() { at = (at + 1) % STAGES; paint(); }
+
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)");
+  function running() { return timer !== null; }
+  function start() { if (!running()) { timer = setInterval(advance, 2300); } sync(); }
+  function stop() { if (running()) { clearInterval(timer); timer = null; } sync(); }
+  function sync() {
+    btn.textContent = running() ? "Pause" : "Play";
+    btn.setAttribute("aria-pressed", running() ? "false" : "true");
+  }
+
+  btn.addEventListener("click", function () { running() ? stop() : start(); });
+
+  /* Stop when it scrolls away: an animation nobody is looking at is a battery
+     drain and a distraction in another tab. */
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(function (es) {
+      if (!es[0].isIntersecting) { if (running()) { clearInterval(timer); timer = null; sync(); } }
+      else if (!running() && !demo.hasAttribute("data-held") && !(reduce && reduce.matches)) { start(); }
+    }, { threshold: 0.25 }).observe(demo);
+  }
+  btn.addEventListener("click", function () { demo.setAttribute("data-held", ""); });
+
+  if (reduce && reduce.matches) { at = STAGES - 1; paint(); sync(); }
+  else { at = 0; paint(); start(); }
+})();
 </script>
 </body>
 </html>
