@@ -496,6 +496,15 @@ function homeReleaseMeta() {
     esc(releaseDate(RELEASE.storePublishedOn)) + '</p>';
 }
 
+function homeReleaseWhatsNew() {
+  var summary = RELEASE.highlights.map(function (highlight) {
+    return '<span data-release-highlight="' + esc(highlight.id) + '">' + esc(highlight.home) + '</span>';
+  }).join(' · ');
+  return '<a class="whatsnew-ticker" href="/extension/#whats-new">' +
+    '<b>What’s new · v' + esc(RELEASE.version) + '</b><span>' + summary + '</span>' +
+    '<em>Click here to read more about the latest updates</em></a>';
+}
+
 function home(m) {
   var tplPath = PATH.join(__dirname, '..', 'templates', 'home.html');
   var tpl = FS.readFileSync(tplPath, 'utf8');
@@ -575,6 +584,7 @@ function home(m) {
     .replace('<!--HOME:HEAD_EXTRA-->', homeHeadExtra(m))
     .replace('<!--HOME:BIG4_CARDS-->', homeBig4Cards(m))
     .replace('<!--HOME:BOARD_ROWS-->', homeBoardRows(m))
+    .replace('<!--HOME:WHATSNEW-->', homeReleaseWhatsNew())
     .replace('<!--HOME:CWS_BADGE-->', homeCwsBadge())
     .replace('<!--HOME:RELEASE_META-->', homeReleaseMeta())
     /* round 18 P1-02: swap the homepage's own inline masthead for the one

@@ -1657,6 +1657,16 @@ async function main() {
   eq((extensionBuilt.match(new RegExp('extension v' + RELEASE.version.replace(/\./g, '\\.') +
     ' released ' + releaseDate, 'g')) || []).length, 1,
     'release ledger: extension page renders exactly one ledger version/date provenance line');
+  eq((home.match(/class="whatsnew-ticker" href="\/extension\/#whats-new"/g) || []).length, 1,
+    'release ledger: homepage renders exactly one What’s New ticker linked to the full release');
+  eq((home.match(/Click here to read more about the latest updates/g) || []).length, 1,
+    'release ledger: homepage ticker ends with the owner-approved call to action');
+  RELEASE.highlights.forEach(function (highlight) {
+    eq((home.match(new RegExp('data-release-highlight="' + highlight.id + '"', 'g')) || []).length, 1,
+      'release ledger: homepage projects highlight ' + highlight.id + ' exactly once');
+    eq((home.match(new RegExp(highlight.home.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length, 1,
+      'release ledger: homepage highlight ' + highlight.id + ' is rendered from ledger copy');
+  });
   [homeTemplate, extensionTemplate].forEach(function (src, i) {
     var label = i ? 'extension template' : 'homepage template';
     ok(src.indexOf(RELEASE.version) === -1, 'release ledger: ' + label + ' has no version literal');
