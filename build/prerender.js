@@ -69,10 +69,10 @@ function exists(p) { try { return fs.statSync(abs(p)).isFile(); } catch (e) { re
  * list again, an entry here must be a genuine embed, not a page you did not want
  * to register. */
 var EMBEDS = [];
-/* Dirs the walker skips. These are NOT hidden from the public: the deploy has an
-   empty output directory, so Pages serves the repo root and build/ is fetchable.
-   This list only keeps the drift guard from scanning them. */
-var SKIP_DIRS = { '.git': 1, 'build': 1, 'node_modules': 1, '.claude': 1 };
+/* Dirs the source-tree walker skips. Cloudflare publishes dist/, assembled from
+   build/public-manifest.txt; dist is the generated copy of these same routes,
+   not a second set of source pages. */
+var SKIP_DIRS = { '.git': 1, 'build': 1, 'dist': 1, 'node_modules': 1, '.claude': 1 };
 
 function walkHtml(dir, rel, out) {
   fs.readdirSync(path.join(ROOT, dir || '.'), { withFileTypes: true }).forEach(function (e) {

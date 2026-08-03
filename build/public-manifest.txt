@@ -1,0 +1,26 @@
+# Intentionally public static paths, one exact repo-relative file per line.
+# Cloudflare publishes dist/, which build/assemble.sh creates only from this list.
+404.html
+_redirects
+assets/SourceSerif4-OFL.txt
+assets/airlines.js
+assets/cws/badge-border-large.png
+assets/cws/badge-border-medium.png
+assets/cws/badge-plain-large.png
+assets/og.png
+assets/selectors.json
+assets/serif-400.woff2
+assets/serif-700.woff2
+assets/shot-navan-1280x800.png
+assets/shot-united-1280x800.png
+assets/site.css
+assets/site.js
+extension/index.html
+index.html
+llms.txt
+methodology/index.html
+privacy.html
+robots.txt
+sitemap.xml
+technology/index.html
+united/data.json

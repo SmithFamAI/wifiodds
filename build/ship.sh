@@ -48,6 +48,13 @@ if ! node build/prerender.js; then
 fi
 
 echo ""
+echo "── publication allow-list ────────────────────────────────"
+if ! bash build/assemble.sh; then
+  fail "build/assemble.sh exited non-zero. The default-deny publication manifest
+does not match a safe, complete dist/ tree. Read the named path above." 99
+fi
+
+echo ""
 echo "── 2/5 api suite ─────────────────────────────────────────"
 if ! node build/apitest.js; then
   fail "node build/apitest.js exited non-zero. THIS IS THE 26 JUL FAULT: a cached
