@@ -15,6 +15,7 @@ var MK = require('./market.js');
 var RP = require('./reports.js');
 /* the static route tables /united/ shows when script is off */
 var NJ = require('./nojsroutes.js');
+var Demo = require('./demo-fixture.js');
 var esc = H.esc, num = DL.num;
 var ORIGIN = H.ORIGIN;
 
@@ -553,6 +554,7 @@ function home(m) {
     .replace('<!--HOME:BIG4_CARDS-->', homeBig4Cards(m))
     .replace('<!--HOME:BOARD_ROWS-->', homeBoardRows(m))
     .replace('<!--HOME:CWS_BADGE-->', homeCwsBadge())
+    .replace('<!--HOME:DEMO_FIXTURE-->', Demo.homeMarkup())
     /* round 18 P1-02: swap the homepage's own inline masthead for the one
        unified disclosure component every survivor page shares. A function
        replacement, so the SVG mark and CTA URL inside it are never scanned as
@@ -2538,8 +2540,9 @@ function assertOneDocument(out, label, marker) {
   return out;
 }
 
-function wholeDocument(name, canonical, label, marker) {
+function wholeDocument(name, canonical, label, marker, bake) {
   var tpl = FS.readFileSync(PATH.join(__dirname, '..', 'templates', name + '.html'), 'utf8');
+  if (bake) tpl = bake(tpl);
   /* round 18 P1-02: swap the template's own inline masthead (which hid the three
      location links below 900px) for the shared disclosure component, so all four
      survivor pages carry one button/ARIA contract. Function replacement keeps
@@ -2605,7 +2608,15 @@ function technologyPage() {
  * The percentages are dated captures, labelled as captures on the page. */
 function extensionPage() {
   return wholeDocument('extension', '/extension/', 'extensionPage',
-    '<!--EXTENSION:HEAD_EXTRA-->');
+    '<!--EXTENSION:HEAD_EXTRA-->', function (tpl) {
+      if (tpl.indexOf('<!--EXTENSION:DEMO_ROWS-->') === -1) {
+        throw new Error('Render.extensionPage: missing EXTENSION:DEMO_ROWS marker');
+      }
+      tpl = tpl.replace('<!--EXTENSION:DEMO_ROWS-->', Demo.extensionRowsMarkup());
+      var dh = /^const DH = .*;$/m;
+      if (!dh.test(tpl)) throw new Error('Render.extensionPage: legacy DH payload not found');
+      return tpl.replace(dh, Demo.extensionScriptMarkup());
+    });
 }
 
 /* ═══ /api/docs/ ════════════════════════════════════════════════════════
