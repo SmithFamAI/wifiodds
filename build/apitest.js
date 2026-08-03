@@ -37,6 +37,18 @@ var ROOT = path.join(__dirname, '..');
 var FN = path.join(ROOT, 'functions');
 var fails = [];
 var checks = 0;
+var EXPECTED_CONTROLS = [
+  'function-syntax',
+  'fetch-allowlist',
+  'api-page-parity',
+  'report-intake-privacy'
+];
+var observedControls = new Set();
+
+function control(name) {
+  if (process.env.APITEST_DISABLE_CONTROL === name) return;
+  observedControls.add(name);
+}
 
 function ok(cond, label, detail) {
   checks++;
@@ -58,6 +70,7 @@ function walk(dir, out) {
 
 /* ── 1. syntax ───────────────────────────────────────────────────────────── */
 function checkSyntax() {
+  control('function-syntax');
   var files = walk(FN, []);
   ok(files.length >= 7, 'expected at least 7 files under functions/', files.length);
   var tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'wifiodds-api-'));
@@ -84,6 +97,7 @@ function checkSyntax() {
    * If a handler ever starts calling a tracker, an analytics endpoint or a
    * captcha vendor, this fails before it ships. */
   var MAY_FETCH = { '_lib/api.mjs': 1, '_lib/reports.mjs': 1 };
+  control('fetch-allowlist');
   files.forEach(function (f) {
     var rel = path.relative(FN, f);
     var src = fs.readFileSync(f, 'utf8');
@@ -2577,6 +2591,18 @@ async function main() {
     'every committed download figure is physically possible', seedDowns);
 
   /* ── report ── */
+  control('report-intake-privacy');
+  control('api-page-parity');
+  var missingControls = EXPECTED_CONTROLS.filter(function (name) { return !observedControls.has(name); });
+  var extraControls = Array.from(observedControls).filter(function (name) {
+    return EXPECTED_CONTROLS.indexOf(name) < 0;
+  });
+  if (missingControls.length || extraControls.length) {
+    fails.push('control registry mismatch: expected ' + EXPECTED_CONTROLS.length +
+      ', observed ' + observedControls.size +
+      (missingControls.length ? '; missing ' + missingControls.join(', ') : '') +
+      (extraControls.length ? '; unexpected ' + extraControls.join(', ') : ''));
+  }
   if (fails.length) {
     console.error('API acceptance FAILED — ' + fails.length + ' of ' + checks + ' checks:');
     fails.forEach(function (f) { console.error('  ✗ ' + f); });
@@ -2584,6 +2610,7 @@ async function main() {
   }
   console.log('ConnectScore API acceptance OK — ' + checks + ' checks, ' + files.length +
     ' function files syntax-checked.');
+  console.log('  controls: expected ' + EXPECTED_CONTROLS.length + ', observed ' + observedControls.size);
   console.log('  parity: /api/airlines/qatar returns connectScore ' + qr.airline.connectScore +
     ' (the /airlines/qatar/ detail page was removed in the 28 Jul cut)');
   console.log('  /api/airlines: ' + all.count + ' airlines, ' + all.airlines[0].name + ' ' +

@@ -189,6 +189,7 @@ var METRICS = [
   { key: 'unsub', label: 'Unsubstantiated claims', dp: 0 },
   { key: 'pivotPer1000', label: 'pivot punctuation / 1000w', dp: 2 }
 ];
+var EXPECTED_CONTROLS = METRICS.map(function (m) { return m.key; });
 
 function round(n, d) { var p = Math.pow(10, d); return Math.round(n * p) / p; }
 
@@ -500,6 +501,10 @@ function run(opts) {
   }
 
   var results = [], ratcheted = [], added = [], blessed = [], fails = [];
+  var observedControls = {};
+  EXPECTED_CONTROLS.forEach(function (name) {
+    if (process.env.SLOP_DISABLE_CONTROL !== name) observedControls[name] = 1;
+  });
 
   input.surfaces.forEach(function (s) {
     var now = measure(s.name, s.source, s.kind);
@@ -545,6 +550,16 @@ function run(opts) {
     }
   });
 
+  var missingControls = EXPECTED_CONTROLS.filter(function (name) { return !observedControls[name]; });
+  if (missingControls.length) {
+    fails.push({
+      name: 'control registry', isNew: false, now: { _worst: [] }, was: null,
+      fails: [{ metric: 'controls', msg: 'expected ' + EXPECTED_CONTROLS.length +
+        ' controls, observed ' + Object.keys(observedControls).length + '; missing ' + missingControls.join(', '),
+        fix: 'restore the missing control before trusting this run' }], improved: []
+    });
+  }
+
   var changed = ratcheted.length || added.length || blessed.length;
   if (write && changed && !fails.length) saveBaseline(baseline);
 
@@ -553,7 +568,9 @@ function run(opts) {
     ratcheted: ratcheted, added: added, blessed: blessed,
     skipped: input.skipped || [], wordlistDrift: wordlistDrift,
     baselineFile: path.relative(ROOT, baselinePath()),
-    ms: Date.now() - t0
+    ms: Date.now() - t0,
+    expectedControls: EXPECTED_CONTROLS.length,
+    observedControls: Object.keys(observedControls).length
   };
 }
 
@@ -639,6 +656,7 @@ function reportBuildOK(res) {
   var n = res.results.length;
   L.push('  slop ratchet OK — ' + n + ' surface' + (n === 1 ? '' : 's') + ' at or below baseline in ' +
     res.ms + ' ms (' + res.baselineFile + ')');
+  L.push('    controls: expected ' + res.expectedControls + ', observed ' + res.observedControls);
   res.ratcheted.forEach(function (c) {
     L.push('    ratcheted DOWN ' + c.name + ': ' +
       c.improved.map(function (i) { return i.metric + ' ' + i.from + ' → ' + i.to; }).join(', ') +

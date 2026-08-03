@@ -4,6 +4,11 @@ const { chromium } = require("playwright");
 const FILE = "file:///Users/jeremysmith/Projects/wifiodds/extension/index.html";
 let fail = 0;
 const ok = (c, m, extra) => { console.log(`  ${c ? "ok  " : "FAIL"}  ${m}${extra !== undefined ? "  → " + extra : ""}`); if (!c) fail++; };
+const EXPECTED_CONTROLS = ["autoplay-advances", "offscreen-pauses", "reduced-motion-settles"];
+const observedControls = new Set();
+const control = (name) => {
+  if (process.env.DEMO_DISABLE_CONTROL !== name) observedControls.add(name);
+};
 
 const b = await chromium.launch({ headless: true, channel: "chromium" });
 
@@ -41,6 +46,7 @@ const b = await chromium.launch({ headless: true, channel: "chromium" });
     await p.waitForTimeout(600);
   }
   ok(seen.size >= 4, "the demo advances through its stages unattended", [...seen].sort().join(","));
+  control("autoplay-advances");
 
   // the pause is a feature, so assert it rather than trusting it
   await p.evaluate(() => window.scrollTo(0, 0));
@@ -48,6 +54,7 @@ const b = await chromium.launch({ headless: true, channel: "chromium" });
   const parked = await p.getAttribute("#demo", "data-stage");
   await p.waitForTimeout(2600);
   ok(parked === await p.getAttribute("#demo", "data-stage"), "it pauses when scrolled out of view", "stage held at " + parked);
+  control("offscreen-pauses");
   await p.evaluate(() => document.getElementById("demo").scrollIntoView({ block: "center" }));
   await p.waitForTimeout(2600);
   ok(parked !== await p.getAttribute("#demo", "data-stage"), "and resumes when scrolled back");
@@ -98,6 +105,7 @@ const b = await chromium.launch({ headless: true, channel: "chromium" });
   const later = await p.getAttribute("#demo", "data-stage");
   ok(first === later, "reduced motion: the sequence does not run on its own", `${first} → ${later}`);
   ok(later === "4", "reduced motion: the finished state is shown, not a blank one", later);
+  control("reduced-motion-settles");
 
   const stepsVisible = await p.$$eval(".demo-steps li", ls => ls.map(l => Number(getComputedStyle(l).opacity)));
   ok(stepsVisible.every(v => v > 0.9), "reduced motion: every written step is legible", JSON.stringify(stepsVisible));
@@ -107,5 +115,9 @@ const b = await chromium.launch({ headless: true, channel: "chromium" });
 }
 
 await b.close();
+const missingControls = EXPECTED_CONTROLS.filter(name => !observedControls.has(name));
+ok(missingControls.length === 0 && observedControls.size === EXPECTED_CONTROLS.length,
+  `controls: expected ${EXPECTED_CONTROLS.length}, observed ${observedControls.size}`,
+  missingControls.length ? `missing ${missingControls.join(", ")}` : "complete");
 console.log(fail === 0 ? "\nDEMO VERIFY: PASS" : `\nDEMO VERIFY: FAIL — ${fail} check(s)`);
 process.exit(fail === 0 ? 0 : 1);
