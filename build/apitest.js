@@ -2606,6 +2606,7 @@ async function main() {
   if (fails.length) {
     console.error('API acceptance FAILED — ' + fails.length + ' of ' + checks + ' checks:');
     fails.forEach(function (f) { console.error('  ✗ ' + f); });
+    console.error('A surprising result is a claim about the instrument until proven otherwise. Before filing a defect, prove the instrument is sound — with a control that is known-good, not with a second run.');
     process.exit(1);
   }
   console.log('ConnectScore API acceptance OK — ' + checks + ' checks, ' + files.length +
@@ -2642,5 +2643,6 @@ async function main() {
 
 main().catch(function (e) {
   console.error('API acceptance CRASHED: ' + (e && e.stack || e));
+  console.error('A surprising result is a claim about the instrument until proven otherwise. Before filing a defect, prove the instrument is sound — with a control that is known-good, not with a second run.');
   process.exit(1);
 });

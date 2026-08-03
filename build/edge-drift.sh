@@ -126,6 +126,7 @@ else
   echo "RESULT: DRIFT above. Not necessarily a fault — some of it may be a"
   echo "        deliberate Cloudflare setting. It is always something a human"
   echo "        should have decided rather than discovered."
+  echo "A surprising result is a claim about the instrument until proven otherwise. Before filing a defect, prove the instrument is sound — with a control that is known-good, not with a second run."
 fi
 
 [ "$STRICT" = "1" ] && [ "$DRIFT" = "1" ] && exit 1

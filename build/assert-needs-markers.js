@@ -52,6 +52,7 @@ function run() {
   if (observed !== EXPECTED_CONTROL_FAILURES) {
     console.error('NEEDS guard CONTROL FAILED: expected ' + EXPECTED_CONTROL_FAILURES +
       ' control failure, observed ' + observed + '. The instrument is void.');
+    console.error('A surprising result is a claim about the instrument until proven otherwise. Before filing a defect, prove the instrument is sound — with a control that is known-good, not with a second run.');
     process.exit(1);
   }
 
@@ -62,6 +63,7 @@ function run() {
       console.error('  ' + hit.file + ':' + hit.line + '  ' + hit.text);
     });
     console.error('Replace each hole with sourced copy or write "no source found"; never invent the fact.');
+    console.error('A surprising result is a claim about the instrument until proven otherwise. Before filing a defect, prove the instrument is sound — with a control that is known-good, not with a second run.');
     process.exit(1);
   }
   console.log('  needs-marker guard OK — controls: expected ' + EXPECTED_CONTROL_FAILURES +

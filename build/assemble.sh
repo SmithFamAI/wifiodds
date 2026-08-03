@@ -11,7 +11,11 @@ MANIFEST="${PUBLIC_MANIFEST:-$ROOT/build/public-manifest.txt}"
 DIST="${PUBLIC_DIST:-$ROOT/dist}"
 cd "$ROOT"
 
-fail() { echo "ASSEMBLE FAILED: $1" >&2; exit 1; }
+fail() {
+  echo "ASSEMBLE FAILED: $1" >&2
+  echo "A surprising result is a claim about the instrument until proven otherwise. Before filing a defect, prove the instrument is sound — with a control that is known-good, not with a second run." >&2
+  exit 1
+}
 [ -f "$MANIFEST" ] || fail "manifest not found: $MANIFEST"
 
 TMP="$(mktemp -d)"

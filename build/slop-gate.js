@@ -607,6 +607,7 @@ function reportFailure(res) {
   L.push(staged
     ? '  Genuine emergency: git commit --no-verify'
     : '  Emergency only, one run: SLOP_GATE=warn node build/prerender.js');
+  L.push('  A surprising result is a claim about the instrument until proven otherwise. Before filing a defect, prove the instrument is sound — with a control that is known-good, not with a second run.');
   return L.join('\n');
 }
 

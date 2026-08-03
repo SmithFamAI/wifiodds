@@ -58,7 +58,7 @@ for a in "$@"; do
   esac
 done
 
-fail() { echo ""; echo "SHIP ABORTED: $1"; echo "Nothing was committed and nothing was pushed."; echo "The working tree is exactly as the build left it; run 'git status' to see it."; exit "${2:-1}"; }
+fail() { echo ""; echo "SHIP ABORTED: $1"; echo "Nothing was committed and nothing was pushed."; echo "The working tree is exactly as the build left it; run 'git status' to see it."; echo "A surprising result is a claim about the instrument until proven otherwise. Before filing a defect, prove the instrument is sound — with a control that is known-good, not with a second run."; exit "${2:-1}"; }
 
 echo "── 1/5 prerender ─────────────────────────────────────────"
 if ! node build/prerender.js; then

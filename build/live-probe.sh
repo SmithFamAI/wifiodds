@@ -17,6 +17,7 @@ live_probe_fetch() {
 live_probe_void() {
   echo "VOID: live-site control ${LIVE_PROBE_CONTROL_PATH} did not return distinct known-good content." >&2
   echo "The site, network or probe may be broken. This is neither PASS nor FAIL." >&2
+  echo "A surprising result is a claim about the instrument until proven otherwise. Before filing a defect, prove the instrument is sound — with a control that is known-good, not with a second run." >&2
   return 2
 }
 

@@ -120,4 +120,5 @@ ok(missingControls.length === 0 && observedControls.size === EXPECTED_CONTROLS.l
   `controls: expected ${EXPECTED_CONTROLS.length}, observed ${observedControls.size}`,
   missingControls.length ? `missing ${missingControls.join(", ")}` : "complete");
 console.log(fail === 0 ? "\nDEMO VERIFY: PASS" : `\nDEMO VERIFY: FAIL — ${fail} check(s)`);
+if (fail) console.error("A surprising result is a claim about the instrument until proven otherwise. Before filing a defect, prove the instrument is sound — with a control that is known-good, not with a second run.");
 process.exit(fail === 0 ? 0 : 1);

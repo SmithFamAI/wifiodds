@@ -54,6 +54,7 @@ if [ "$FOUND" = "0" ]; then
   exit 0
 fi
 echo "$FOUND internal file(s) publicly served."
+echo "A surprising result is a claim about the instrument until proven otherwise. Before filing a defect, prove the instrument is sound — with a control that is known-good, not with a second run."
 echo "Expected while the Pages build output directory is empty: that publishes the"
 echo "repo root. See README > Stack. Escalate only if a file here is sensitive —"
 echo "the repo is public, so build scripts being readable discloses nothing new."
