@@ -13,6 +13,7 @@ var T = require('./tmpl.js');
 var MK = require('./market.js');
 /* published reader field reports, off the committed assets/reports.json */
 var RP = require('./reports.js');
+var RELEASE = require('./release.js');
 /* the static route tables /united/ shows when script is off */
 var NJ = require('./nojsroutes.js');
 var esc = H.esc, num = DL.num;
@@ -474,9 +475,31 @@ function homeCwsBadge() {
     'src="/assets/cws/badge-border-large.png"></a>';
 }
 
+function releaseDate(iso) {
+  var p = iso.split('-');
+  var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return String(Number(p[2])) + ' ' + months[Number(p[1]) - 1] + ' ' + p[0];
+}
+
+function assertReleaseTemplateSource(tpl, label) {
+  var forbidden = [RELEASE.version, RELEASE.storePublishedOn, releaseDate(RELEASE.storePublishedOn)];
+  forbidden.forEach(function (literal) {
+    if (tpl.indexOf(literal) !== -1) {
+      throw new Error('Render.' + label + ': build/templates source hard-codes release literal "' +
+        literal + '". Render release version and store date from build/extension-release.json.');
+    }
+  });
+}
+
+function homeReleaseMeta() {
+  return '<p class="badge-meta">v' + esc(RELEASE.version) + ' · free · cleared review ' +
+    esc(releaseDate(RELEASE.storePublishedOn)) + '</p>';
+}
+
 function home(m) {
   var tplPath = PATH.join(__dirname, '..', 'templates', 'home.html');
   var tpl = FS.readFileSync(tplPath, 'utf8');
+  assertReleaseTemplateSource(tpl, 'home');
 
   /* SOURCE-LEVEL TOKEN GUARD for the proof block.
    *
@@ -553,6 +576,7 @@ function home(m) {
     .replace('<!--HOME:BIG4_CARDS-->', homeBig4Cards(m))
     .replace('<!--HOME:BOARD_ROWS-->', homeBoardRows(m))
     .replace('<!--HOME:CWS_BADGE-->', homeCwsBadge())
+    .replace('<!--HOME:RELEASE_META-->', homeReleaseMeta())
     /* round 18 P1-02: swap the homepage's own inline masthead for the one
        unified disclosure component every survivor page shares. A function
        replacement, so the SVG mark and CTA URL inside it are never scanned as
@@ -2538,8 +2562,9 @@ function assertOneDocument(out, label, marker) {
   return out;
 }
 
-function wholeDocument(name, canonical, label, marker) {
+function wholeDocument(name, canonical, label, marker, transform) {
   var tpl = FS.readFileSync(PATH.join(__dirname, '..', 'templates', name + '.html'), 'utf8');
+  if (transform) tpl = transform(tpl);
   /* round 18 P1-02: swap the template's own inline masthead (which hid the three
      location links below 900px) for the shared disclosure component, so all four
      survivor pages carry one button/ARIA contract. Function replacement keeps
@@ -2605,7 +2630,15 @@ function technologyPage() {
  * The percentages are dated captures, labelled as captures on the page. */
 function extensionPage() {
   return wholeDocument('extension', '/extension/', 'extensionPage',
-    '<!--EXTENSION:HEAD_EXTRA-->');
+    '<!--EXTENSION:HEAD_EXTRA-->', function (tpl) {
+      assertReleaseTemplateSource(tpl, 'extensionPage');
+      var marker = '<!--EXTENSION:RELEASE_META-->';
+      if (tpl.split(marker).length !== 2) {
+        throw new Error('Render.extensionPage: expected exactly one ' + marker + ' marker.');
+      }
+      return tpl.replace(marker, 'extension v' + esc(RELEASE.version) + ' released ' +
+        esc(releaseDate(RELEASE.storePublishedOn)));
+    });
 }
 
 /* ═══ /api/docs/ ════════════════════════════════════════════════════════

@@ -32,6 +32,8 @@ var os = require('os');
 var path = require('path');
 var cp = require('child_process');
 var vm = require('vm');
+var RELEASE = require('./lib/release.js');
+var HTML = require('./lib/html.js');
 
 var ROOT = path.join(__dirname, '..');
 var FN = path.join(ROOT, 'functions');
@@ -1636,6 +1638,31 @@ async function main() {
    * board row ranks next-gen at a real 0 on a fleet with a mixed-band
    * connectScore, and the API must agree about both numbers. */
   var home = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+
+  /* The store listing, not the extension manifest, decides what public site
+   * copy may call current. One ledger feeds the shared HTML constant and both
+   * rendered templates; source-level guards in render.js reject a literal that
+   * could drift. These assertions bind the finished bytes too. */
+  var releaseParts = RELEASE.storePublishedOn.split('-');
+  var releaseMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var releaseDate = String(Number(releaseParts[2])) + ' ' + releaseMonths[Number(releaseParts[1]) - 1] +
+    ' ' + releaseParts[0];
+  var extensionBuilt = fs.readFileSync(path.join(ROOT, 'extension/index.html'), 'utf8');
+  var homeTemplate = fs.readFileSync(path.join(ROOT, 'build/templates/home.html'), 'utf8');
+  var extensionTemplate = fs.readFileSync(path.join(ROOT, 'build/templates/extension.html'), 'utf8');
+  eq(HTML.EXT_VERSION, RELEASE.version, 'release ledger: shared EXT_VERSION is derived from the ledger');
+  eq((home.match(new RegExp('v' + RELEASE.version.replace(/\./g, '\\.') +
+    ' · free · cleared review ' + releaseDate, 'g')) || []).length, 1,
+    'release ledger: homepage renders exactly one ledger version/date line');
+  eq((extensionBuilt.match(new RegExp('extension v' + RELEASE.version.replace(/\./g, '\\.') +
+    ' released ' + releaseDate, 'g')) || []).length, 1,
+    'release ledger: extension page renders exactly one ledger version/date provenance line');
+  [homeTemplate, extensionTemplate].forEach(function (src, i) {
+    var label = i ? 'extension template' : 'homepage template';
+    ok(src.indexOf(RELEASE.version) === -1, 'release ledger: ' + label + ' has no version literal');
+    ok(src.indexOf(RELEASE.storePublishedOn) === -1 && src.indexOf(releaseDate) === -1,
+      'release ledger: ' + label + ' has no cleared-date literal');
+  });
 
   /* ── structural fence: exactly one masthead, one <main>, one <footer>.
    * Render.home() does not call H.page() (it would duplicate all three and

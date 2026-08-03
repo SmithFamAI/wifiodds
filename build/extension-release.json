@@ -1,0 +1,23 @@
+{
+  "version": "3.0.0",
+  "storePublishedOn": "2026-08-02",
+  "extensionCommit": "63576edd7c4a961b5111415627fb5b14c3997884",
+  "submissionEvidence": "store-assets/v3.0/SUBMIT-3.0.0.md at extension commit 63576edd7c4a961b5111415627fb5b14c3997884; owner verified the live Chrome Web Store listing body on 2026-08-02",
+  "highlights": [
+    {
+      "id": "choice",
+      "home": "Evidence-gated Best WiFi choice",
+      "full": "Recommends a flight only when the odds gap and confidence justify it; otherwise it explains why no winner is named."
+    },
+    {
+      "id": "metrics",
+      "home": "Labelled next-gen and streaming metrics",
+      "full": "Labels every row as flight-specific next-gen odds or an airline-level streaming score so two different measurements cannot look interchangeable."
+    },
+    {
+      "id": "sorting",
+      "home": "Automatic single-airline sorting with a real undo",
+      "full": "Automatically sorts supported single-airline result pages by next-gen odds and provides a real undo, while preserving host order where automatic sorting is not offered."
+    }
+  ]
+}
