@@ -31,6 +31,24 @@
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 90
 
+TREE_SNAPSHOT_FILES=""
+cleanup_tree_snapshots() {
+  [ -z "$TREE_SNAPSHOT_FILES" ] || rm -f $TREE_SNAPSHOT_FILES
+}
+trap cleanup_tree_snapshots EXIT
+
+snapshot_tracked_tree() {
+  out="$1"
+  : > "$out"
+  git ls-files -z | while IFS= read -r -d '' path; do
+    if [ -f "$path" ]; then
+      shasum -a 256 "$path"
+    else
+      printf '%064d  %s\n' 0 "$path"
+    fi
+  done > "$out"
+}
+
 CHECK_ONLY=""
 MSG=""
 for a in "$@"; do
@@ -78,6 +96,13 @@ figure can now ship and go stale silently — or the clean control failed, which
 means the guard is rejecting honest markup. Read which line said FAIL." 98
 fi
 
+# Bind the bytes just verified to the bytes about to be committed. A scheduled
+# refresh or overlapping driver can otherwise write into the tree after the
+# green suite and ride into this commit without ever being checked.
+VERIFIED_TREE="$(mktemp)"
+TREE_SNAPSHOT_FILES="$TREE_SNAPSHOT_FILES $VERIFIED_TREE"
+snapshot_tracked_tree "$VERIFIED_TREE"
+
 if [ -n "$CHECK_ONLY" ]; then
   echo ""
   # Truthful, not reassuring: a clean clone made on the other side of a UTC-day
@@ -114,6 +139,21 @@ echo "$CHANGED" | sed 's/^/  /'
 
 echo ""
 echo "── 5/5 commit and push ───────────────────────────────────"
+CURRENT_TREE="$(mktemp)"
+TREE_SNAPSHOT_FILES="$TREE_SNAPSHOT_FILES $CURRENT_TREE"
+snapshot_tracked_tree "$CURRENT_TREE"
+# Negative-control only: exercises the same compare/diagnostic path without
+# touching a product byte. A real ship never sets this environment variable.
+if [ "${SHIP_TREE_GUARD_CONTROL:-}" = "1" ]; then
+  printf '%064d  %s\n' 1 '<deliberate-tree-guard-control>' >> "$CURRENT_TREE"
+fi
+if ! cmp -s "$VERIFIED_TREE" "$CURRENT_TREE"; then
+  echo "Verified tree changed after the suite passed:" >&2
+  diff -u "$VERIFIED_TREE" "$CURRENT_TREE" >&2 || true
+  fail "tracked bytes changed between verification and commit. Re-run the suite
+against the tree that would actually ship." 99
+fi
+echo "verified-tree guard OK: commit bytes match the post-suite snapshot"
 git commit -m "$MSG" || fail "git commit failed (the pre-commit prose ratchet may have blocked it)." 95
 git push origin HEAD || fail "git push failed. The commit exists locally." 96
 
