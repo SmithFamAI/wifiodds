@@ -27,43 +27,30 @@
 set -u
 SITE="${1:-https://wifiodds.com}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 cd "$ROOT" || exit 2
+. build/live-probe.sh
+trap '[ -z "${LIVE_PROBE_TMP:-}" ] || rm -rf "$LIVE_PROBE_TMP"' EXIT
 
 # Paths that SHOULD be public. Anything served and not matching this is a finding.
 PUBLIC='^(index\.html|404\.html|privacy\.html|sitemap\.xml|robots\.txt|llms\.txt|assets/|airlines/|united/|record/|alaska/|race/|systems/|methodology/|roadmap/|api/)'
 
-# Always truncate the body file first: on a dead host curl writes nothing and a
-# stale or missing file would make BYTES empty, which compares equal to nothing
-# and silently poisons every later comparison.
-fetch() {
-  : > "$TMP/b"
-  CODE=$(curl -sS --compressed --max-time 20 "$SITE/$1?cb=$RANDOM$RANDOM" \
-    -o "$TMP/b" -w '%{http_code}' 2>/dev/null) || CODE=000
-  BYTES=$(wc -c < "$TMP/b" 2>/dev/null | tr -d ' ')
-  [ -z "$BYTES" ] && BYTES=0
-}
-
-fetch "__absent_probe_$RANDOM$RANDOM"; MISS=$BYTES
-fetch "robots.txt"; CTL=$BYTES; CTLC=$CODE
-if [ "$CTLC" != "200" ] || [ "$CTL" = "$MISS" ] || [ "$CTL" = "0" ]; then
-  echo "VOID: control /robots.txt returned $CTLC/$CTL b against absent $MISS b."
-  echo "The site may be down or the fetch failed. This is not a pass."
-  exit 2
-fi
+live_probe_init "$SITE" /robots.txt
+init_exit=$?
+[ "$init_exit" = 0 ] || exit 2
+MISS="$LIVE_PROBE_ABSENT_BYTES"
 
 FOUND=0
 for f in $(git ls-files | grep -v '\[' ); do
   echo "$f" | grep -qE "$PUBLIC" && continue
-  fetch "$f"
-  [ "$BYTES" = "$MISS" ] && continue
-  [ "$BYTES" = "0" ] && continue          # 308/redirect with no body is not a leak
-  FOUND=$((FOUND+1)); printf 'SERVED  %-46s %s  %s b\n' "$f" "$CODE" "$BYTES"
+  live_probe_classify "$f"
+  [ "$LIVE_PROBE_STATE" = BLOCKED ] && continue
+  [ "$LIVE_PROBE_STATE" = VOID ] && { live_probe_void; exit 2; }
+  FOUND=$((FOUND+1)); printf 'SERVED  %-46s %s  %s b\n' "$f" "$LIVE_PROBE_CODE" "$LIVE_PROBE_BYTES"
 done
 
 echo "---"
 if [ "$FOUND" = "0" ]; then
-  echo "clean: no internal tracked file is publicly served (control ok, absent=$MISS b)"
+  echo "clean: no internal tracked file is publicly served (control distinct, absent=$MISS b)"
   exit 0
 fi
 echo "$FOUND internal file(s) publicly served."

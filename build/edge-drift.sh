@@ -38,16 +38,17 @@
 
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
+. build/live-probe.sh
 
 ORIGIN="https://wifiodds.com"
 STRICT=0
 [ "${1:-}" = "--strict" ] && STRICT=1
 DRIFT=0
 
-# Cache-buster on every fetch. Three separate failures in this project were
-# masked by a cached response; a stale 200 is the most convincing wrong answer
-# there is.
-fetch() { curl -sS --compressed "$ORIGIN$1?cb=$RANDOM$$"; }
+trap '[ -z "${LIVE_PROBE_TMP:-}" ] || rm -rf "$LIVE_PROBE_TMP"' EXIT
+live_probe_init "$ORIGIN" /robots.txt
+probe_exit=$?
+[ "$probe_exit" = 0 ] || exit 2
 
 echo "edge-drift · $ORIGIN · $(date -u '+%Y-%m-%d %H:%M UTC')"
 echo
@@ -55,7 +56,7 @@ echo
 # ── robots.txt ───────────────────────────────────────────────────────────────
 # Byte counts first, because that is the cheap signal that something upstream is
 # rewriting the file at all.
-LIVE_ROBOTS="$(fetch /robots.txt)"
+LIVE_ROBOTS="$(cat "$LIVE_PROBE_CONTROL")"
 DISK_BYTES=$(wc -c < robots.txt | tr -d ' ')
 LIVE_BYTES=$(printf '%s' "$LIVE_ROBOTS" | wc -c | tr -d ' ')
 
@@ -92,7 +93,7 @@ fi
 # them serving a zero-byte body that passed every check for the life of the
 # deployment.
 echo
-HOME_LIVE="$(fetch /)"
+HOME_LIVE="$(cat "$LIVE_PROBE_ROOT")"
 for marker in "What are your odds" "sitebar" "application/ld+json"; do
   if printf '%s' "$HOME_LIVE" | grep -q "$marker"; then
     echo "homepage     ok: $marker"
