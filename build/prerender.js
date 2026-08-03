@@ -39,6 +39,7 @@ var SlopGate = require('./slop-gate.js');
 var Surfaces = require('./surfaces.js');
 var Provenance = require('./assert-provenance.js');
 var MeasuredZero = require('./assert-measured-zero.js');
+var NeedsMarkers = require('./assert-needs-markers.js');
 
 var ORIGIN = H.ORIGIN;
 var t0 = Date.now();
@@ -1265,6 +1266,11 @@ function main() {
    *
    * Turn it on when that list is empty and not before. */
   var prov = Provenance.run(false, true);
+
+  /* Explicit factual holes are allowed while drafting and forbidden in every
+   * generated/public string. The guard includes a live control that proves the
+   * same detector still catches a deliberate marker on every build. */
+  var needs = NeedsMarkers.run();
 
   /* every route must actually be generated now — no `kind: 'hand'` left */
   var hand = R.ROUTES.concat(R.UNLISTED).filter(function (r) { return r.kind !== 'gen'; });
