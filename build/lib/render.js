@@ -16,6 +16,7 @@ var RP = require('./reports.js');
 var RELEASE = require('./release.js');
 /* the static route tables /united/ shows when script is off */
 var NJ = require('./nojsroutes.js');
+var Demo = require('./demo-fixture.js');
 var esc = H.esc, num = DL.num;
 var ORIGIN = H.ORIGIN;
 
@@ -587,6 +588,7 @@ function home(m) {
     .replace('<!--HOME:WHATSNEW-->', homeReleaseWhatsNew())
     .replace('<!--HOME:CWS_BADGE-->', homeCwsBadge())
     .replace('<!--HOME:RELEASE_META-->', homeReleaseMeta())
+    .replace('<!--HOME:DEMO_FIXTURE-->', Demo.homeMarkup())
     /* round 18 P1-02: swap the homepage's own inline masthead for the one
        unified disclosure component every survivor page shares. A function
        replacement, so the SVG mark and CTA URL inside it are never scanned as
@@ -2646,8 +2648,15 @@ function extensionPage() {
       if (tpl.split(marker).length !== 2) {
         throw new Error('Render.extensionPage: expected exactly one ' + marker + ' marker.');
       }
-      return tpl.replace(marker, 'extension v' + esc(RELEASE.version) + ' released ' +
+      tpl = tpl.replace(marker, 'extension v' + esc(RELEASE.version) + ' released ' +
         esc(releaseDate(RELEASE.storePublishedOn)));
+      if (tpl.indexOf('<!--EXTENSION:DEMO_ROWS-->') === -1) {
+        throw new Error('Render.extensionPage: missing EXTENSION:DEMO_ROWS marker');
+      }
+      tpl = tpl.replace('<!--EXTENSION:DEMO_ROWS-->', Demo.extensionRowsMarkup());
+      var dh = /^const DH = .*;$/m;
+      if (!dh.test(tpl)) throw new Error('Render.extensionPage: legacy DH payload not found');
+      return tpl.replace(dh, Demo.extensionScriptMarkup());
     });
 }
 
