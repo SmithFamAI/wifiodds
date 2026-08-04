@@ -294,12 +294,12 @@
       "pivotUnits": 2.25
     },
     "robots.txt": {
-      "words": 175,
-      "llmPoints": 1,
+      "words": 136,
+      "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
-      "pivotPer1000": 5.71,
-      "pivotUnits": 1
+      "pivotPer1000": 0,
+      "pivotUnits": 0
     },
     "systems/index.html": {
       "words": 2057,
