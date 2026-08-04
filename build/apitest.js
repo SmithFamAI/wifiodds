@@ -1689,6 +1689,33 @@ async function main() {
   ].forEach(function (copy) {
     ok(home.indexOf(copy) === -1, 'homepage stale slogan is absent', copy);
   });
+  var methodology = fs.readFileSync(path.join(ROOT, 'methodology/index.html'), 'utf8');
+  [
+    'How the numbers work',
+    'Next-gen odds and ConnectScore answer different questions.',
+    'Keep unpublished counts unknown. Do not record them as 0%.',
+    'We publish confirmed minimums for incomplete fleet data.',
+    'Each figure carries a source label.',
+    'How we calculate each score.',
+    'Aircraft-level data sources'
+  ].forEach(function (copy) {
+    ok(methodology.indexOf(copy) !== -1, 'methodology plain-English copy is present', copy);
+  });
+  [
+    'The trust layer',
+    'A number should show its work.',
+    'Do not make one number do two jobs.',
+    'Unknown is a state. It is not zero.',
+    'Publish what is known. Stop there.',
+    'Every claim says what kind of evidence it is.',
+    'Somebody observed it.',
+    'Simple formulas. Strict inputs.',
+    'The tracker work gets named.',
+    'Credit travels with the data.',
+    '@martinamps built the aircraft-level proof.'
+  ].forEach(function (copy) {
+    ok(methodology.indexOf(copy) === -1, 'methodology stale slogan is absent', copy);
+  });
   var whatsNewAt = home.indexOf('class="whatsnew-ticker"');
   var extensionSectionAt = home.indexOf('<section class="section extension" id="extension">');
   var sharedDemoAt = home.indexOf('data-demo-fact-id="UA1812"');
