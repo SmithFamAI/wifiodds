@@ -83,7 +83,7 @@
   <span class="kicker">Policy</span>
   <h1 class="ph">Privacy policy</h1>
   <p class="lede">This covers the <b>WiFi Odds for Flights</b> browser extension and the
-  <b>wifiodds.com</b> website. Effective <b>29 Jul 2026</b>. Earlier versions stay in the
+  <b>wifiodds.com</b> website. Effective <b>4 Aug 2026</b>. Earlier versions stay in the
   public git history of the repository linked at the foot of this page.</p>
 </header>
 
@@ -175,23 +175,22 @@
 
 <section class="blk pol" id="intake">
   <span class="kicker">§6 · Intake</span>
-  <h2>Field reports you send me</h2>
-  <p>The report form at the foot of the airline pages posts to <b>/api/report</b>. It asks what you
-  flew, when you flew it, which system was onboard and what it did. The longer version on the
-  <a href="/methodology/#field">methodology page</a> also takes a speed and a latency reading. There
-  is no account step and no email field on either, so the report is the only thing that arrives.</p>
-  <p>Something has to stop one connection filing a thousand rows, and a captcha cannot do it here:
-  Turnstile, reCAPTCHA and hCaptcha are all third-party scripts, which this site does not load. The
-  cap is server-side instead. Your network address goes into a SHA-256 digest along with a secret
-  salt and the current UTC hour, and the digest is what gets stored beside the report. The address
-  itself is hashed in memory. It is never written down, never logged and never sent back to you.</p>
-  <p>Because the hour is part of the input, the digest changes on the hour, and a stored one stops
-  matching anything about an hour after it was written. Two hours of submissions from one connection
-  cannot be joined to each other. Five reports per digest per hour is the limit. No cookie is set,
-  no captcha is served, and nothing is measured about your browser.</p>
-  <p>Every submission lands unpublished and a person reads it before it appears on the site. The
-  only thing about you that can ever be published is the name or handle you type into the credit
-  box, and that box can be left empty.</p>
+  <h2>How field reports are handled</h2>
+  <p>The report form at the foot of each airline page sends your report to <b>/api/report</b>. It asks
+  for the flight date, airline, flight number, onboard system, and your observations. The longer form
+  on the <a href="/methodology/#field">methodology page</a> also accepts speed and latency readings.
+  Neither form has an account step or email field.</p>
+  <p>The server accepts up to five reports from one network address in each UTC hour. To enforce that
+  limit, the intake Worker makes a SHA-256 digest from the address, a secret salt, and the current UTC
+  hour. It holds the raw address in memory long enough to make the digest, then
+  sends only the digest and report to storage. WiFi Odds does not write the raw address to its report store or application
+  logs.</p>
+  <p>The digest changes at the start of each UTC hour. Reports from different hour buckets cannot be
+  linked using it. The site sets no cookie, loads no captcha, and records no browser measurements.
+  This avoids loading Turnstile, reCAPTCHA, or hCaptcha as third-party scripts.</p>
+  <p>The server marks each new report unpublished. A person reviews it before any publication. If a
+  report is published, the site can display the optional name or handle from the credit box. You can
+  leave that box empty.</p>
 </section>
 
 <section class="blk pol">
@@ -228,7 +227,9 @@
   <span class="kicker">§9 · Revisions</span>
   <h2>When this policy changes</h2>
   <p>The effective date at the top changes with it, and the version it replaced stays in the public
-  git history of the repository below. This revision, on 29 Jul 2026, rewrote §3, §4 and §5 because
+  git history of the repository below. This revision, on 4 Aug 2026, rewrote §6 in plain language
+  without changing how reports or network addresses are handled. The 29 Jul 2026 revision rewrote
+  §3, §4 and §5 because
   the United route optimizer page and the other United pages were removed from the site and now
   redirect to the home page: no page calls another origin or writes to your browser now. The route
   planning still lives in the extension, where its lookups are the ones described in §2. Earlier
@@ -246,7 +247,6 @@
   <p>Questions go on the
   <a href="https://github.com/jeremyinthebay/united-starlink-companion/issues" target="_blank" rel="noopener">issue tracker</a>.</p>
 </section>
-
 </main>
 <footer class="site">
   <a class="ftop" href="/"><svg class="mk" viewBox="128 128 768 768" width="17" height="17" aria-hidden="true" focusable="false"><defs><linearGradient id="wo-mk-ft" x1="270" y1="700" x2="754" y2="700" gradientUnits="userSpaceOnUse"><stop stop-color="#29d8ff"/><stop offset="1" stop-color="#926cff"/></linearGradient></defs><path d="M292 700A320 320 0 1 1 732 700" fill="none" stroke="url(#wo-mk-ft)" stroke-width="68" stroke-linecap="round"/><g transform="translate(0 -24)"><rect x="267" y="405" width="176" height="134" rx="24" fill="url(#wo-mk-ft)"/><rect x="581" y="405" width="176" height="134" rx="24" fill="url(#wo-mk-ft)"/><path d="M443 472h35M546 472h35" stroke="currentColor" stroke-width="24" stroke-linecap="round"/><rect x="466" y="362" width="92" height="220" rx="38" fill="currentColor"/><circle cx="512" cy="472" r="31" fill="url(#wo-mk-ft)"/><path d="M449 300Q512 341 575 300Q563 251 512 251Q461 251 449 300Z" fill="url(#wo-mk-ft)"/></g><path d="M512 612C499 612 492 625 489 645L480 704L410 747C399 754 393 765 393 779L478 754L483 807L457 829V846L512 831L567 846V829L541 807L546 754L631 779C631 765 625 754 614 747L544 704L535 645C532 625 525 612 512 612Z" fill="currentColor"/></svg>WiFi&nbsp;Odds</a>

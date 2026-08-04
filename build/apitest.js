@@ -1741,6 +1741,32 @@ async function main() {
   ].forEach(function (copy) {
     ok(technology.indexOf(copy) === -1, 'technology stale slogan is absent', copy);
   });
+  var privacy = fs.readFileSync(path.join(ROOT, 'privacy.html'), 'utf8');
+  [
+    'How field reports are handled',
+    'accepts up to five reports from one network address in each UTC hour',
+    'makes a SHA-256 digest from the address, a secret salt, and the current UTC',
+    'sends only the digest and report to storage',
+    'marks each new report unpublished',
+    'A person reviews it before any publication.'
+  ].forEach(function (copy) {
+    ok(privacy.indexOf(copy) !== -1, 'privacy cleanup: direct intake explanation is present', copy);
+  });
+  [
+    'Something has to stop one connection filing a thousand rows',
+    'a captcha cannot do it here',
+    'Every submission lands unpublished',
+    'the only thing about you that can ever be published'
+  ].forEach(function (copy) {
+    ok(privacy.indexOf(copy) === -1, 'privacy cleanup: stale intake framing is absent', copy);
+  });
+  var notFoundPage = fs.readFileSync(path.join(ROOT, '404.html'), 'utf8');
+  ['Page not found', 'The address may have changed, or the page may no longer exist.'].forEach(function (copy) {
+    ok(notFoundPage.indexOf(copy) !== -1, '404 cleanup: direct copy is present', copy);
+  });
+  ['No page at this address', 'Unlike the WiFi, that one is a certainty.'].forEach(function (copy) {
+    ok(notFoundPage.indexOf(copy) === -1, '404 cleanup: decorative copy is absent', copy);
+  });
   var whatsNewAt = home.indexOf('class="whatsnew-ticker"');
   var extensionSectionAt = home.indexOf('<section class="section extension" id="extension">');
   var sharedDemoAt = home.indexOf('data-demo-fact-id="UA1812"');
