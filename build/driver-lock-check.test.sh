@@ -157,7 +157,7 @@ printf 'after\n' > "$SHIP_REPO/tracked.txt"
 before_head=$(git -C "$SHIP_REPO" rev-parse HEAD)
 rm -f "$LOCK"
 if (cd "$SHIP_REPO" && PATH="$SHIP_REPO/bin:$PATH" WIFIODDS_DRIVER_LOCK_FILE="$LOCK" \
-    bash build/ship.sh "missing identity control" >"$TMP/no-id.out" 2>&1); then
+    WIFIODDS_DRIVER_ID= bash build/ship.sh "missing identity control" >"$TMP/no-id.out" 2>&1); then
   bad "ship allowed an unset WIFIODDS_DRIVER_ID"
 elif [ "$(git -C "$SHIP_REPO" rev-parse HEAD)" = "$before_head" ] \
     && grep -q 'WIFIODDS_DRIVER_ID is unset' "$TMP/no-id.out"; then
