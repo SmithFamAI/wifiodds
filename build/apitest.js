@@ -1761,10 +1761,12 @@ async function main() {
     ok(privacy.indexOf(copy) === -1, 'privacy cleanup: stale intake framing is absent', copy);
   });
   var notFoundPage = fs.readFileSync(path.join(ROOT, '404.html'), 'utf8');
-  ['Page not found', 'The address may have changed, or the page may no longer exist.'].forEach(function (copy) {
+  ['Page not found', 'The address may have changed, or the page may no longer exist.',
+    'How WiFi Odds calculates scores'].forEach(function (copy) {
     ok(notFoundPage.indexOf(copy) !== -1, '404 cleanup: direct copy is present', copy);
   });
-  ['No page at this address', 'Unlike the WiFi, that one is a certainty.'].forEach(function (copy) {
+  ['No page at this address', 'Unlike the WiFi, that one is a certainty.',
+    'How every number is derived'].forEach(function (copy) {
     ok(notFoundPage.indexOf(copy) === -1, '404 cleanup: decorative copy is absent', copy);
   });
   var whatsNewAt = home.indexOf('class="whatsnew-ticker"');
