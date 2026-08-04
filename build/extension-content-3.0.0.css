@@ -1,0 +1,525 @@
+/* content.css — styles for United ✕ Starlink Odds injected UI on united.com */
+
+.usl-badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: "SF Mono", ui-monospace, Menlo, monospace;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+  margin-left: 6px;
+  vertical-align: middle;
+  background: rgba(148, 178, 255, 0.08);
+  border: 1px solid rgba(148, 178, 255, 0.3);
+  color: #e8eefb;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.usl-badge.usl-hi {
+  color: #ffd166;
+  border-color: rgba(255, 209, 102, 0.55);
+  background: rgba(255, 209, 102, 0.12);
+}
+
+.usl-badge.usl-mid {
+  color: #35d07f;
+  border-color: rgba(53, 208, 127, 0.55);
+  background: rgba(53, 208, 127, 0.12);
+}
+
+.usl-badge.usl-low {
+  color: #4da6ff;
+  border-color: rgba(77, 166, 255, 0.55);
+  background: rgba(77, 166, 255, 0.12);
+}
+
+.usl-badge.usl-no {
+  color: #ff5a6e;
+  border-color: rgba(255, 90, 110, 0.55);
+  background: rgba(255, 90, 110, 0.12);
+}
+
+.usl-panel {
+  position: fixed;
+  bottom: 18px;
+  right: 18px;
+  z-index: 2147483000;
+  width: 320px;
+  max-height: 70vh;
+  overflow: auto;
+  background: #040816f2;
+  border: 1px solid rgba(148, 178, 255, 0.3);
+  border-radius: 16px;
+  color: #e8eefb;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+}
+
+.usl-panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-family: "SF Mono", ui-monospace, Menlo, monospace;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(148, 178, 255, 0.14);
+}
+
+.usl-panel .usl-body {
+  padding: 12px 16px;
+}
+
+.usl-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: "SF Mono", ui-monospace, Menlo, monospace;
+  font-size: 13px;
+  padding: 5px 0;
+}
+
+.usl-collapsed .usl-body {
+  display: none;
+}
+
+.usl-x {
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.usl-x:hover {
+  opacity: 1;
+}
+
+@media (max-width: 600px) {
+  .usl-panel {
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+}
+
+/* v1.1 */
+.usl-jump{cursor:pointer;border-radius:8px;margin:0 -6px;padding-left:6px;padding-right:6px}
+.usl-jump:hover{background:rgba(148,178,255,.1)}
+.usl-time{color:#93a1c0;font-size:11px}
+.usl-sortbtn{
+  width:100%;margin-top:8px;padding:8px 10px;border-radius:10px;cursor:pointer;
+  background:linear-gradient(105deg,#006a80,#5940ac);color:#fff;border:none;font-weight:700;font-size:12.5px;
+  font-family:-apple-system,sans-serif;
+}
+.usl-sortbtn:hover{background:linear-gradient(105deg,#00566a,#4a3596)}
+
+/* v1.1.1 */
+.usl-na{color:#93a1c0;border-color:rgba(147,161,192,.4);background:rgba(147,161,192,.08)}
+.usl-ghost{cursor:default}
+.usl-ghost:hover{background:transparent}
+/* Ghost = a panel flight not currently on the page. Recede the row's surface and
+   dim only the "· not in results" metadata — the flight number and the odds pill
+   stay at full contrast (≥4.5:1), never faded with the whole row (Codex P1-03). */
+.usl-panel .usl-ghost{opacity:1;background:#101119;border-color:#1e1f28}
+.usl-panel .usl-ghost .usl-time{opacity:.6}
+
+/* v1.4 trip monitor — unfilled state restyled in 1.6 (see below).
+ * The original was pale gold at opacity .55: a hairline yellow outline on a
+ * white united.com row, which a human tester called "INCREDIBLY hard to see".
+ * Unfilled is now DARK with a white halo, so the glyph carries its own contrast
+ * on light rows (dark ink) and on dark ones (the halo). The watched ★ gold is
+ * unchanged — it just opts out of the halo and the hover animation. */
+.usl-watch{
+  cursor:pointer;
+  margin-left:6px;
+  display:inline-block;
+  font-size:1.15em;
+  line-height:1;
+  vertical-align:middle;
+  color:#1F2937;                 /* slate-800 outline star */
+  opacity:1;                     /* no fading — dimming is what hid it before */
+  text-shadow:0 0 2px #fff, 0 0 4px rgba(255,255,255,.9), 0 1px 0 rgba(255,255,255,.7);
+  transition:color .12s ease, transform .12s ease, text-shadow .12s ease;
+}
+/* Clickability hint: it warms toward the gold "watched" colour and grows. */
+.usl-watch:hover,
+.usl-watch:focus-visible{
+  color:#B45309;                 /* amber-700 */
+  transform:scale(1.2);
+  text-shadow:0 0 2px #fff, 0 0 7px rgba(255,209,102,.95);
+}
+/* Watched: the v1.4 gold, kept as-is. */
+.usl-watch.usl-watching,
+.usl-watch.usl-watching:hover{
+  color:#ffd166;
+  opacity:1;
+  transform:none;
+  text-shadow:none;
+}
+.usl-watching{opacity:1}
+
+/* v1.6 — read-only "you're guarding this" marker inside the panel's ranked rows.
+ * Separate class from .usl-watch on purpose: no cursor, no hover scale, no click
+ * handler. The panel background is always dark, so no halo is needed. Sized down
+ * (.95em) so it reads as an annotation next to the fn rather than a second
+ * best-flight badge — the i===0 "⭐ " prefix stays the bigger glyph. */
+.usl-guarded{
+  margin-left:5px;
+  display:inline-block;
+  font-size:.95em;
+  line-height:1;
+  vertical-align:middle;
+  color:#ffd166;
+  cursor:default;
+}
+
+/* v2.1 — WiFi Odds palette, tuned for LIGHT host pages.
+ *
+ * These badges render inside united.com, Navan, alaskaair.com and Google
+ * Flights, all of which are white. The site's own cyan (#29d8ff) and violet
+ * (#926cff) are chosen for a #050505 ground and are far too light to carry
+ * white text here, so this block uses the dark-host-page variants of the same
+ * ramp: cyan #006a80, violet #5940ac. Every pair below is white-on-colour and
+ * clears 4.5:1 against white surroundings.
+ *
+ * The ordering is the product's own ramp, not a traffic light: better odds sit
+ * further along cyan → violet. Green is reserved for CONFIRMED equipment,
+ * which is a fact rather than a probability, and grey is reserved for unknown,
+ * which is never a zero. */
+/* v2.2 — ONE consistent odds ramp, high → low likelihood, used identically
+ * on-page (white host rows) AND in the dark panel. Light fills + near-black text
+ * read on both. The ramp is monotonic: green (likely) → lime → amber → coral
+ * (unlikely). Grey is reserved for UNKNOWN, never a zero; "best" is a RING
+ * modifier that keeps the flight's true ramp colour. Every band clears 4.5:1
+ * (dark text/light fill). cls() in content.js maps ≥50→hi, 35–49→mid, 20–34→low,
+ * <20→no — the ONE shared threshold contract used by every surface. */
+.usl-badge{font-size:13px;font-weight:800;padding:3px 11px;color:#0a0a12;background:#9aa8bb;border:none;box-shadow:0 1px 3px rgba(16,24,40,.24);letter-spacing:.2px;line-height:1.5}
+.usl-badge.usl-hi{background:#33cf80;color:#04140c}    /* likely  */
+.usl-badge.usl-mid{background:#b6d04f;color:#14170a}   /*  ↕      */
+.usl-badge.usl-low{background:#efb84d;color:#1c1305}   /*  ↕      */
+.usl-badge.usl-no{background:#ef8168;color:#210a06}    /* unlikely*/
+.usl-badge.usl-na{background:#656b76;color:#fff}       /* unknown, never zero */
+/* "best" is a ring only — the ramp band (usl-hi/mid/low/no) still sets the fill
+   and text colour, so the best flight keeps its true likelihood colour. */
+.usl-badge.usl-best{box-shadow:0 0 0 2.5px rgba(41,216,255,.55),0 1px 4px rgba(16,24,40,.3)}
+.usl-panel .usl-badge{font-size:12px;padding:2px 9px}
+
+/* v2.0 — Google Flights chips.
+   Compact, and NEVER position/float/display-block: GF result rows are tight
+   flex/grid cells and a chip that changes layout is how you break someone's
+   search page. inline-flex + a small font is the whole design. */
+.usl-gf-chip{font-size:11px;padding:2px 7px;margin-left:6px;vertical-align:middle;flex:0 0 auto;letter-spacing:.02em;font-weight:800}
+.usl-gf-chip.usl-gf-live{box-shadow:0 0 0 2px rgba(0,106,128,.38),0 1px 3px rgba(16,24,40,.28)}
+/* The STREAMING chip is the airline's ConnectScore, a different kind of fact
+   from a per-flight next-gen probability, so it takes a neutral outline rather
+   than the odds ramp's filled pill (Codex round 26). */
+.usl-gf-chip.usl-gf-cs{
+  background:transparent;color:#3f4a5a;border:1px solid #b6bec9;box-shadow:none;font-weight:700;
+}
+
+/* v1.6 fix — star spacing + watched gold. LAST BLOCK IN THE FILE ON PURPOSE.
+ *
+ * Two things the tester screenshot caught, and one trap:
+ *
+ * 1. The ★ is appended straight after the odds pill, so it needs its own
+ *    horizontal margin or it reads as part of the badge. 6px, same rhythm as
+ *    .usl-badge / .usl-gf-chip.
+ * 2. Watched must be GOLD (#ffd166 — the v1.4 value, see git 1b99bd9→e1e198e
+ *    where the gold lived on the base .usl-watch rule), and it has to beat the
+ *    v1.6 slate outline colour (#1F2937) set on .usl-watch above. A single-class
+ *    rule like `.usl-watching{...}` does NOT: it ties on specificity with
+ *    .usl-watch and only wins by source order, which is fragile. So the gold is
+ *    spelled with two classes (0,2,0) AND with a `span.usl-watching` fallback
+ *    (0,1,1 + element) for the case where only the state class is present.
+ * 3. The trap: content.js has shipped the state class WITHOUT the base
+ *    .usl-watch class before (regression in 24af7c2), which silently killed both
+ *    the margin and the gold — a classless <span>★</span> just inherits
+ *    united.com's near-black row colour. Hence every rule here matches the
+ *    state class on its own too. Do not "simplify" these to one selector.
+ *
+ * Keeps the v1.4 opt-outs: no white halo and no hover scale on the watched star
+ * (the halo exists to rescue the dark unfilled glyph; gold doesn't need it, and
+ * a filled star that grows on hover looks like it's mid-toggle). */
+.usl-watch,
+.usl-watching{margin-left:6px}
+.usl-watch.usl-watching,
+.usl-watch.usl-watching:hover,
+.usl-watch.usl-watching:focus-visible,
+span.usl-watching,
+span.usl-watching:hover,
+span.usl-watching:focus-visible{
+  color:#ffd166;                 /* v1.4 gold — unchanged */
+  opacity:1;
+  transform:none;                /* opt out of the .usl-watch:hover scale */
+  text-shadow:none;              /* opt out of the white halo */
+}
+
+/* ══ v2.2 — injected-panel visual uplift to the approved WiFi Odds mockup ══════
+ * Everything here is SCOPED to .usl-panel, so the on-page badges (carefully
+ * tuned white-on-colour for white united.com/Navan/GF rows above) are untouched.
+ * Matches smithfamai.com/wifiodds-cta-mockups: dark card, ESTIMATES chip (not
+ * "LIVE" — these are historical), card-style rows, brighter odds pills with
+ * near-black text where the fill is light (Codex: the violet's white text was
+ * ~3.3:1), and a gradient sort action in the brand cyan→violet ramp. */
+.usl-panel{
+  background:#0b0d14;
+  border:1px solid #23232e;
+  border-radius:18px;
+  box-shadow:0 24px 64px rgba(0,0,0,.6);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+}
+.usl-panel header{
+  font-family:inherit;font-weight:700;font-size:13.5px;letter-spacing:-.01em;
+  padding:13px 15px;border-bottom:1px solid #1c1c26;color:#f3f4f7;
+}
+.usl-panel header .usl-rt{display:flex;align-items:center;gap:2px}
+.usl-rhs{display:flex;align-items:center;gap:9px}
+.usl-est{
+  font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:9px;font-weight:700;
+  letter-spacing:.1em;color:#c7cbd6;border:1px solid #3a3a48;border-radius:20px;padding:2px 8px;
+  cursor:default;
+}
+.usl-panel .usl-refresh,.usl-panel .usl-x{font-size:13px;color:#7b8190}
+.usl-panel .usl-body{padding:11px 12px 13px}
+.usl-panel .usl-row.usl-jump{
+  background:#15161f;border:1px solid #23242f;border-radius:11px;
+  padding:10px 12px;margin:0 0 8px;font-family:inherit;font-size:13px;font-weight:600;color:#dfe2ea;
+}
+.usl-panel .usl-row.usl-jump:hover{background:#1b1c27;border-color:#343540}
+.usl-panel .usl-time{color:#868c9c;font-size:11px;font-weight:400}
+/* Panel pills take only SHAPE here — the colours come from the one shared ramp
+   above, so on-page and panel badges are always the same scale. */
+.usl-panel .usl-badge{font-size:12.5px;font-weight:800;padding:4px 11px;border-radius:9px;box-shadow:none;letter-spacing:0}
+.usl-panel .usl-sortbtn{
+  background:linear-gradient(90deg,#29d8ff,#7b8cff 55%,#926cff);color:#05060a;
+  font-weight:800;border-radius:11px;padding:11px;font-size:13px;box-shadow:0 8px 22px rgba(64,140,255,.28);
+}
+.usl-panel .usl-sortbtn:hover{filter:brightness(1.07);background:linear-gradient(90deg,#29d8ff,#7b8cff 55%,#926cff)}
+.usl-panel a{color:#8ecdff}
+
+/* v2.2 accessibility (Codex P2-01): the header controls are real <button>s and
+   the flight rows are role=button/tabindex — reset the button chrome and give
+   every interactive control a visible keyboard focus ring. */
+.usl-panel .usl-refresh,.usl-panel .usl-x{
+  background:none;border:none;padding:2px 5px;margin:0;cursor:pointer;color:#7b8190;
+  font:inherit;font-size:14px;line-height:1;border-radius:6px;
+}
+.usl-panel .usl-refresh:hover,.usl-panel .usl-x:hover{color:#cfd3dc}
+.usl-panel .usl-jump{outline:none}
+.usl-panel .usl-refresh:focus-visible,.usl-panel .usl-x:focus-visible,
+.usl-panel .usl-jump:focus-visible,.usl-panel .usl-sortbtn:focus-visible,
+.usl-panel .usl-prioritize:focus-visible{
+  outline:2px solid #29d8ff;outline-offset:2px;
+}
+/* The explicit "Prioritize United flights" action, in its pressed/active look. */
+.usl-panel .usl-prioritize[aria-pressed="true"]{
+  background:linear-gradient(90deg,#0a8a4d,#29d8ff 130%);color:#04120a;
+}
+
+/* ══ v2.3 (PROTOTYPE) — confidence sample size + "Best WiFi choice" strip ══════
+ * Scoped to .usl-panel so the on-page badges (white-on-colour, tuned for white
+ * host rows) are untouched. The sample-size tag reuses the muted metadata tone
+ * already used by .usl-time; the strip matches the dark card and the brand
+ * cyan→violet CTA ramp already used by .usl-sortbtn. */
+.usl-panel .usl-obs{color:#868c9c;font-size:11px;font-weight:400}
+.usl-panel .usl-strip{
+  border:1px solid #26405f;border-radius:12px;padding:10px 12px;margin:0 0 10px;
+  background:linear-gradient(90deg,#12233a,#131a2e);
+}
+.usl-panel .usl-strip-win{
+  border-color:#2f5c46;background:linear-gradient(90deg,#0f2a1e,#122a2f);
+}
+.usl-panel .usl-strip-close,
+.usl-panel .usl-strip-single{border-color:#3a3a48;background:#15161f}
+.usl-panel .usl-strip-t{font-size:13px;font-weight:800;color:#f3f4f7;letter-spacing:-.01em;line-height:1.3}
+.usl-panel .usl-strip-s{font-size:11.5px;color:#aeb4c2;margin-top:3px;line-height:1.4}
+.usl-panel .usl-strip-cta{
+  margin-top:9px;width:100%;padding:8px 10px;border:none;border-radius:9px;cursor:pointer;
+  font-family:inherit;font-weight:800;font-size:12px;color:#05060a;
+  background:linear-gradient(90deg,#29d8ff,#7b8cff 55%,#926cff);
+}
+.usl-panel .usl-strip-cta:hover{filter:brightness(1.07)}
+.usl-panel .usl-strip-cta:focus-visible{outline:2px solid #29d8ff;outline-offset:2px}
+
+/* ══ v3.0 — structured decision component (Codex spec §4/§8) ═══════════════════
+ * ONE component, explicit state modifiers. Winner uses the brand cyan→violet
+ * wash (NEVER green — green is the odds ramp); refusal states use a neutral
+ * raised surface and carry no CTA. Tokens from spec §2; all text ≥4.5:1 on the
+ * card grounds, the CTA ink is near-black on the cyan→violet fill. Scoped to
+ * .usl-panel so on-page host badges are untouched. */
+/* spec §4: 356px desktop panel. Media-scoped so it cannot override the ≤600px
+ * gutter layout (left:12/right:12/width:auto) — an unscoped .usl-panel rule
+ * here would win on source order and break the 12px right gutter at 390. */
+@media (min-width:601px){.usl-panel{width:356px}}
+.usl-panel .usl-decision{
+  border:1px solid #5b6474;border-radius:14px;padding:14px;margin:0 0 12px;
+  background:#0d0f16;font-family:inherit;
+}
+.usl-panel .usl-decision__top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.usl-panel .usl-decision__kicker{
+  margin:0;font-size:10px;line-height:14px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.12em;color:#b8bfcc;
+}
+.usl-panel .usl-decision__title{
+  margin:6px 0 0;font-size:18px;line-height:22px;font-weight:800;color:#f7f8fb;
+  font-variant-numeric:tabular-nums;
+}
+.usl-panel .usl-decision__comparison{
+  margin:4px 0 0;font-size:13px;line-height:18px;font-weight:650;color:#f7f8fb;
+  font-variant-numeric:tabular-nums;
+}
+.usl-panel .usl-decision__evidence{
+  margin:3px 0 0;font-size:12px;line-height:18px;font-weight:500;color:#b8bfcc;
+  font-variant-numeric:tabular-nums;
+}
+.usl-panel .usl-decision__note{margin:5px 0 0;font-size:11px;line-height:16px;color:#929aa8}
+.usl-panel .usl-decision__confirm{
+  margin:5px 0 0;font-size:11px;line-height:16px;font-weight:700;color:#f7f8fb;
+}
+.usl-panel .usl-decision__cta{
+  margin-top:12px;width:100%;min-height:44px;padding:0 12px;border:none;border-radius:11px;
+  cursor:pointer;font-family:inherit;font-weight:800;font-size:13px;line-height:18px;color:#05060a;
+  background:linear-gradient(90deg,#29d8ff,#7b8cff 55%,#926cff);
+}
+.usl-panel .usl-decision__cta:hover{filter:brightness(1.07)}
+.usl-panel .usl-decision__cta:focus-visible{outline:2px solid #29d8ff;outline-offset:2px}
+/* Activated CTA: static dark surface with a cyan meaningful border — never a
+ * second green state (green stays the odds ramp). */
+.usl-panel .usl-decision__cta[aria-pressed="true"]{
+  background:#10131c;color:#e8eefb;box-shadow:inset 0 0 0 1.5px #29d8ff;
+}
+/* WINNER — cyan border + subtle brand wash over the ground. Never green. */
+.usl-panel .usl-decision--winner{
+  border-color:#29d8ff;
+  background:linear-gradient(135deg,rgba(41,216,255,.10),rgba(146,108,255,.08)),#0d0f16;
+}
+.usl-panel .usl-decision--winner .usl-decision__kicker{color:#29d8ff}
+/* REFUSAL states (close / single) — neutral raised surface, no gradient, no CTA. */
+.usl-panel .usl-decision--close,
+.usl-panel .usl-decision--single{background:#151821;border-color:#5b6474}
+
+/* ══ v3.0 — three-layer on-page badge (Codex spec §3) ════════════════════════
+ * On white host rows (united.com / Navan). The odds PILL (.usl-badge, styled
+ * above) carries only 🛰 + %. The EVIDENCE label sits OUTSIDE the pill in
+ * neutral ink; the CONFIRMED token is a separate near-black/slate fact, never
+ * folded into the coloured pill and never green. */
+.usl-badge-grp{display:inline-flex;align-items:center;gap:6px;vertical-align:middle;margin-left:6px}
+.usl-badge-grp .usl-badge{margin-left:0}         /* the group owns the left margin */
+.usl-ev{font-size:11px;line-height:16px;font-weight:600;color:#4b5565;white-space:nowrap}
+.usl-confirm{
+  display:inline-flex;align-items:center;font-size:11px;line-height:16px;font-weight:700;
+  color:#fff;background:#20242f;border:1px solid #5b6474;border-radius:999px;padding:1px 7px;white-space:nowrap;
+}
+/* ≤600px: hide the visible evidence label and shorten "✓ Confirmed" to "✓";
+ * the full text stays in each element's accessible name / the group aria-label. */
+@media (max-width:600px){
+  .usl-ev{display:none}
+  .usl-confirm-w{display:none}
+}
+
+/* ══ v3.0 — the labelled dual-metric row group (Codex round 26) ═══════════════
+ * Two stacked labelled lines on a WHITE host row: NEXT-GEN primary, STREAMING
+ * secondary. inline-flex column so the group grows the metadata block only and
+ * never joins the host's price/action flex row — the geometry contract is that
+ * price and booking-action boxes must not shift, wrap or overlap at 340, 390,
+ * 600, 601 and desktop. Metric identity is NEVER hidden at any width; only the
+ * evidence words and the "ConnectScore" word drop. */
+.usl-metrics{
+  display:inline-flex;flex-direction:column;align-items:flex-start;gap:2px;
+  vertical-align:middle;margin-left:8px;flex:0 0 auto;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+}
+.usl-ng,.usl-stream-line{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;line-height:16px}
+.usl-ng__label{
+  font-size:9.5px;font-weight:800;letter-spacing:.08em;color:#3f4a5a;
+}
+.usl-ng__value{font-size:12.5px;font-weight:800;color:#14181f;font-variant-numeric:tabular-nums}
+/* A real per-flight probability ALSO carries .usl-badge, so it takes the shared
+   odds ramp from the block far above. Fleet share and every absence state stay
+   outline/neutral here so the two kinds of fact never look alike. */
+.usl-ng--fleet .usl-ng__value{
+  font-weight:700;color:#3f4a5a;border:1px solid #98a2b3;border-radius:6px;padding:0 5px;background:transparent;
+}
+.usl-ng--none .usl-ng__value{color:#5b6474;font-weight:700}
+.usl-ng__sub{font-size:11px;line-height:16px;font-weight:600;color:#4b5565;white-space:nowrap}
+.usl-stream__label{font-size:9px;font-weight:800;letter-spacing:.08em;color:#6b7280}
+.usl-stream__value{
+  font-size:11.5px;font-weight:700;color:#3f4a5a;font-variant-numeric:tabular-nums;
+  border:1px solid #b6bec9;border-radius:6px;padding:0 5px;
+}
+.usl-stream__value--none{border-style:dashed;font-weight:600}
+.usl-stream__word{font-size:10.5px;color:#6b7280;font-weight:600}
+.usl-metrics .usl-confirm{margin-top:2px}
+
+/* ≤600px — drop the evidence words and the "ConnectScore" word. The LABELS
+ * stay: an unlabelled percentage is the exact defect this group replaced. */
+@media (max-width:600px){
+  .usl-ng__sub{display:none}
+  .usl-stream__word{display:none}
+}
+/* ≤390px — the narrow edge. "STREAMING" abbreviates to "STREAM" via CSS
+ * content so the accessible name (which spells out "Streaming-class
+ * ConnectScore") is untouched. Nothing drops below 11px. */
+@media (max-width:390px){
+  .usl-stream__label{font-size:0}
+  .usl-stream__label::after{content:"STREAM";font-size:9px;letter-spacing:.08em}
+  .usl-ng__label{font-size:9px}
+  .usl-ng__value{font-size:12px}
+}
+
+/* ══ v3.0 — system states + coverage boundary (spec §5) ══════════════════════
+ * LOADING: neutral card, two STATIC skeleton blocks — no shimmer or animated
+ * gradient anywhere, so prefers-reduced-motion needs no override.
+ * UNAVAILABLE: coral MEANINGFUL border (≥3:1 on the card ground), no CTA.
+ * NO-DATA: neutral refusal surface, same as close/single.
+ * BOUNDARY: information, not warning — muted ink, hairline separators. */
+.usl-panel .usl-decision--loading{background:#151821;border-color:#5b6474}
+.usl-panel .usl-decision__skel{
+  height:10px;border-radius:5px;margin-top:8px;background:#262b38;
+}
+.usl-panel .usl-decision__skel--short{width:62%}
+.usl-panel .usl-decision--unavailable{background:#151821;border-color:#ef8168}
+.usl-panel .usl-decision--unavailable .usl-decision__kicker{color:#f4a58f}
+.usl-panel .usl-decision--no-data{background:#151821;border-color:#5b6474}
+.usl-panel .usl-boundary{
+  margin:0 0 10px;padding:8px 0;font-size:11px;line-height:16px;color:#b8bfcc;
+  border-bottom:1px solid #23242f;
+}
+
+/* ══ v3.0 — next-gen-first split sections (Jeremy, 31 Jul) ════════════════════
+ * Section labels: NEXT-GEN ODDS above the ranked flights (the product's
+ * primary number), STREAMING-CLASS · CONNECTSCORE below (today's systems,
+ * secondary). Streaming rows are quieter than flight rows on purpose. */
+.usl-panel .usl-sect{
+  margin:2px 0 7px;font-size:10px;line-height:14px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.1em;color:#8b93a4;
+}
+.usl-panel .usl-sect--stream{margin-top:12px;border-top:1px solid #1c1c26;padding-top:9px}
+.usl-panel .usl-row.usl-stream{
+  padding:4px 0;font-family:inherit;font-size:12.5px;font-weight:500;color:#c6cbd7;
+}
+.usl-panel .usl-stream .usl-badge.usl-cs{font-size:11.5px;padding:2px 8px;border-radius:8px}
+
+/* ≤360px: nothing in the decision component may drop below the 11px floor
+ * (spec §6) — the 10px kicker steps up on narrow screens. */
+@media (max-width:360px){
+  .usl-panel .usl-decision__kicker{font-size:11px;letter-spacing:.09em}
+}
+
+/* ══ v3.0 — sorted-state disclosure + real undo (Codex round 26) ══════════════
+ * The label NAMES the metric. "Best", "Smart sort" and "WiFi order" are all
+ * forbidden: they hide which number moved the rows. The Undo button is a real
+ * <button> (keyboard-operable, focus-ringed) and only renders while rows are
+ * actually moved, so the strip can never claim a sort that did not happen. */
+.usl-panel .usl-sorted{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin:0 0 10px;padding:7px 9px;border:1px solid #5b6474;border-radius:9px;background:#151821;
+}
+.usl-panel .usl-sorted__t{font-size:11px;line-height:16px;font-weight:700;color:#dfe2ea}
+.usl-panel .usl-undo{
+  flex:0 0 auto;font-family:inherit;font-size:11px;font-weight:700;line-height:16px;
+  color:#29d8ff;background:none;border:1px solid #29d8ff;border-radius:7px;
+  padding:4px 8px;cursor:pointer;min-height:28px;
+}
+.usl-panel .usl-undo:hover{background:rgba(41,216,255,.12)}
+.usl-panel .usl-undo:focus-visible{outline:2px solid #29d8ff;outline-offset:2px}

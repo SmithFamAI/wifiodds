@@ -22,6 +22,11 @@ function validate(release) {
   if (typeof release.submissionEvidence !== 'string' || !release.submissionEvidence.trim()) {
     fail('submissionEvidence must name the owner-verified record');
   }
+  if (!release.contentCss || typeof release.contentCss !== 'object' ||
+      !/^[a-z0-9.-]+\.css$/.test(release.contentCss.path || '') ||
+      !/^[0-9a-f]{64}$/.test(release.contentCss.sha256 || '')) {
+    fail('contentCss must name a build-local CSS snapshot and its SHA-256');
+  }
   if (!Array.isArray(release.highlights) || !release.highlights.length) {
     fail('highlights must be a non-empty ordered array');
   }

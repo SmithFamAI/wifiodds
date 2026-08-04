@@ -8,7 +8,6 @@
 var H = require('./html.js');
 var V = require('./viz.js');
 var DL = require('./data.js');
-var C = require('./reel.js');
 /* the rollout phase words. market.js requires nothing, so this cannot cycle. */
 var MK = require('./market.js');
 var esc = H.esc, num = DL.num;
@@ -1411,9 +1410,9 @@ var AHEAD = [
     'that is the difference between tier A and tier B, and it is the whole reason Alaska stops at ' +
     'the sub-fleet.']
 ];
-/* Extension v2.0.0 and the tail-swap Guardian both moved OUT of this array on
- * 28 Jul 2026: v2.0.0 cleared review and Guardian shipped inside it (see
- * the WHAT THIS SECTION MAY CLAIM comment above extensionSection()). Leaving
+/* The public extension release and the tail-swap Guardian both moved OUT of this array
+ * after the store listing cleared them (see the live doctrine beside the homepage
+ * extension markup and build/extension-release.json). Leaving
  * either here after the fact would have said "still ahead" next to a SHIPPED
  * entry claiming the same thing, which is its own kind of false claim.
  *
@@ -1461,103 +1460,6 @@ function roadmapSteps(limit) {
  * The hero answers with the skyline and the boards now. The check's client
  * script is deleted from assets/ with it; nothing may load that path. */
 
-/* ── the full extension section ───────────────────────────────────────────
- * The demo is built by build/lib/reel.js: ONE sequence over the TWO REAL
- * screenshots in assets/, with four captions — search → odds → sort → guard. It
- * replaced 883 lines of hand-drawn fake united.com/Navan UI, two scenes of which
- * demonstrated the same sort twice. Read the header of reel.js before touching
- * it; the short version is that we already owned photographs of the product and
- * were shipping a drawing of them instead.
- *
- * This function only supplies the surround: a dark stage (the reel declares its
- * own light-on-dark palette, so it needs one in both themes) plus feature detail.
- *
- * ═══ WHAT THIS SECTION MAY CLAIM — READ BEFORE ADDING A FEATURE ═══════════
- * 2.0.0 CLEARED REVIEW 2026-07-28, verified by the listing body on approval
- * day, never by the manifest:
- *
- *     $ curl -sL https://chromewebstore.google.com/detail/ojpladpffbibebedfbcgbhckajbnijec
- *     → 3 hits for "2.0.0", slug wifi-odds-for-flights, name "WiFi Odds for Flights"
- *
- * So the store build NOW ships: united.com + app.navan.com automatically;
- * alaskaair.com + Google Flights behind an optional permission granted in the
- * popup and off until granted; the 18-airline odds popup; AND the tail-swap
- * Guardian. That last one is a correction, not a re-statement: this file used
- * to say Guardian was "built, unreleased" and "in no store build yet." It is
- * not. extension/bg.js carries the full state machine (swap-lost/swap-gained
- * transitions), manifest.json already declares alarms + notifications, and
- * popup.js renders the guarded-trips UI, all landed in the "1.6 bridge"
- * commits BEFORE 2.0.0 cleared review on 28 Jul 2026 — so it shipped with
- * 2.0.0, not after it. What is still true: its own source calls it a v1.6
- * prototype, and nobody has checked it end to end against a real swap. Say
- * that it ships and that it is unproven. Do not say it does not exist.
- *
- * The reel's screenshots are v1.5.1 captures and its badge says so; the
- * surfaces they show (united.com badges, sort, panel) are unchanged in 2.0.0,
- * so the pictures stay honest. Replace them with 2.0.0 captures when new ones
- * exist, and move the badge label then, not before.
- *
- * The doctrine that governed the old two-way split stands: a visitor who
- * clicks "Add to Chrome" gets exactly what the listing body serves TODAY.
- * Promising more is the same failure as a 200 with an empty body: technically
- * sourced, factually false. Any future version flip re-runs the curl above
- * first. */
-/* ── GOOGLE'S BADGE, THE ONLY INSTALL CONTROL ─────────────────────────────
- * assets/cws/ holds Google's own "Available in the Chrome Web Store" art,
- * byte-identical to the originals. The branding rules this markup honours:
- * resized only (the 496:150 ratio is held by width:auto in site.css), never
- * redrawn, always a link to the listing, never the biggest thing on the
- * screen. Bordered art on the dark ground, plain on the light one, switched
- * exactly the way the themes switch, so it is right with script off too.
- * DO NOT edit the PNGs and do not draw a Chrome mark of your own. */
-function cwsBadge() {
-  return '<div class="cwswrap">' +
-    '<a class="cwsbadge" href="' + H.EXT + '" target="_blank" rel="noopener">' +
-    '<img class="cws-l" src="/assets/cws/badge-plain-large.png" width="496" height="150" ' +
-    'alt="Available in the Chrome Web Store">' +
-    '<img class="cws-d" src="/assets/cws/badge-border-large.png" width="496" height="150" ' +
-    'alt="Available in the Chrome Web Store">' +
-    '</a>' +
-    /* The version may not sit inside the badge (Google's rule), so it sits on
-       its own quiet line beneath. */
-    '<span class="cws-ver">v' + esc(H.EXT_VERSION) + ' · free · no account</span></div>';
-}
-function extensionSection(m) {
-  return '<section class="blk extblk" id="companion">\n' +
-    '  <span class="kicker">The companion · the one pitch on this site</span>\n' +
-    '  <h2>A badge on every flight in the results</h2>\n' +
-    '  <p class="sec-lede">On a united.com or app.navan.com results page every flight picks up an ' +
-    'odds badge, one click re-sorts the page by odds while prices and times stay put, and a panel ' +
-    'ranks the route’s departures the same way.</p>\n' +
-    '  <div class="extdemo">\n' + C.section() + '\n  </div>\n' +
-    '  <p class="prov"><b>Reported</b> · departure histories from unitedstarlinktracker.com, ' +
-    esc(H.plateDate(m.updated)) + '</p>\n' +
-    /* State grammar, three states, no promises — a labelled grid now, not
-       three paragraphs behind an inline-block label (round seven, note 16).
-       The horizons live on /roadmap/, dated and fenced, because that is the
-       page that owns what has not shipped. */
-    '  <ul class="vstate">\n' +
-    '    <li><span class="st live">In the store</span><p><b>v' + esc(H.EXT_VERSION) + '</b> ' +
-    'covers united.com and app.navan.com out of the box. A badge carries a tick once the assigned ' +
-    'tail is confirmed equipped, and the percentage until then. alaskaair.com and Google Flights ' +
-    'ride behind a permission you grant in the popup and stay off until you do, and the popup ' +
-    'ranks all ' + m.airlineCount + ' airlines. Cleared review 28 Jul 2026.</p></li>\n' +
-    '    <li><span class="st live">In the store build</span><p><b>Tail-swap Guardian</b> watches a ' +
-    'booked flight for an equipment swap between booking and boarding. It shipped inside v' +
-    esc(H.EXT_VERSION) + ', not after it; its own source still calls it a v1.6 prototype and it ' +
-    'has not been checked end to end against a real swap yet. ' +
-    '<a class="btn ghost mini" href="/roadmap/">More on the roadmap →</a></p></li>\n' +
-    '  </ul>\n' +
-    '  <div class="cta-row">' + cwsBadge() + '</div>\n' +
-    '  <p class="note extfine"><b>No accounts, no analytics, no tracking.</b> It keeps your ' +
-    'settings on your own machine and phones nothing home. Unofficial, and not affiliated with any ' +
-    'airline, Navan, SpaceX/Starlink or the trackers.</p>\n' +
-    '  <p class="src">' + cls('reported') + ' Store version and coverage read off the Chrome Web ' +
-    'Store listing body, 28 Jul 2026, the day 2.0.0 cleared review, rather than off the ' +
-    'repository manifest.</p>\n' +
-    '</section>\n\n';
-}
-
 module.exports = {
   band: band, bandWord: bandWord, bandChip: bandChip, BAND_LEGEND: BAND_LEGEND,
   tierLetter: tierLetter,
@@ -1571,7 +1473,6 @@ module.exports = {
   nextGenLine: nextGenLine, todayLine: todayLine, pctText: pctText, eqPhrase: eqPhrase,
   roadmapSteps: roadmapSteps, roadmapLists: roadmapLists, ROADMAP: ROADMAP,
   SHIPPED: SHIPPED, AHEAD: AHEAD,
-  extensionSection: extensionSection, cwsBadge: cwsBadge,
   cls: cls, srcLine: srcLine, projected: projected, projCell: projCell, tape: tape,
   fieldTable: fieldTable, tierRows: tierRows, tierTable: tierTable,
   reportTable: reportTable, reportForm: reportForm, REPORT_SYSTEMS: REPORT_SYSTEMS,

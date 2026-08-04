@@ -3,6 +3,10 @@
   "storePublishedOn": "2026-08-02",
   "extensionCommit": "63576edd7c4a961b5111415627fb5b14c3997884",
   "submissionEvidence": "store-assets/v3.0/SUBMIT-3.0.0.md at extension commit 63576edd7c4a961b5111415627fb5b14c3997884; owner verified the live Chrome Web Store listing body on 2026-08-02",
+  "contentCss": {
+    "path": "extension-content-3.0.0.css",
+    "sha256": "e972f1cbc43d44f540ef95fa296d5a9194a77b3705e8f4f7d5fbcde9715213a1"
+  },
   "highlights": [
     {
       "id": "choice",

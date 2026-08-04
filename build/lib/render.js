@@ -140,6 +140,7 @@ function crumbLd(items) {
 
 var FS = require('fs');
 var PATH = require('path');
+var CRYPTO = require('crypto');
 
 /* The exact board order the approved mockup ships with. It also happens to be
  * non-increasing in today's nextGenScore, so it doubles as a valid initial
@@ -464,9 +465,10 @@ function homeHeadExtra(m) {
     siteLd().map(H.ld).join('\n') + '\n';
 }
 
-/* Google's own badge art, cached under assets/cws/ (see pages.js's
- * cwsBadge() header comment on the branding rule), replacing the mockup's
- * embedded base64 PNG. This page is permanently dark (fixed --bg:#050505, no
+/* Google's own badge art, cached under assets/cws/. The branding rules are:
+ * resize only, preserve the 496:150 ratio, never redraw, always link to the
+ * listing, and never make the badge the largest thing on screen. This page is
+ * permanently dark (fixed --bg:#050505, no
  * theme switch of its own), so it always wants the bordered art meant for a
  * dark ground, never the plain one. Kept in the template's OWN .badge-link /
  * .badge-meta markup and CSS rather than pages.js's cwswrap/cwsbadge classes,
@@ -589,7 +591,6 @@ function home(m) {
     .replace('<!--HOME:WHATSNEW-->', homeReleaseWhatsNew())
     .replace('<!--HOME:CWS_BADGE-->', homeCwsBadge())
     .replace('<!--HOME:RELEASE_META-->', homeReleaseMeta())
-    .replace('<!--HOME:DEMO_FIXTURE-->', Demo.homeMarkup())
     /* round 18 P1-02: swap the homepage's own inline masthead for the one
        unified disclosure component every survivor page shares. A function
        replacement, so the SVG mark and CTA URL inside it are never scanned as
@@ -2655,6 +2656,18 @@ function extensionPage() {
         throw new Error('Render.extensionPage: missing EXTENSION:DEMO_ROWS marker');
       }
       tpl = tpl.replace('<!--EXTENSION:DEMO_ROWS-->', Demo.extensionRowsMarkup());
+      var cssMarker = '<!--EXTENSION:PRODUCT_CSS-->';
+      var cssPath = PATH.join(__dirname, '..', RELEASE.contentCss.path);
+      var productCss = FS.readFileSync(cssPath, 'utf8');
+      var productCssHash = CRYPTO.createHash('sha256').update(productCss).digest('hex');
+      if (productCssHash !== RELEASE.contentCss.sha256) {
+        throw new Error('Render.extensionPage: release-pinned product CSS hash mismatch. expected ' +
+          RELEASE.contentCss.sha256 + ', got ' + productCssHash);
+      }
+      if (tpl.split(cssMarker).length !== 2) {
+        throw new Error('Render.extensionPage: expected exactly one ' + cssMarker + ' marker.');
+      }
+      tpl = tpl.replace(cssMarker, function () { return productCss; });
       var replacements = {
         '<!--EXTENSION:HOST_MATRIX-->': ExtensionPage.hostMatrix(),
         '<!--EXTENSION:WHATS_NEW-->': ExtensionPage.whatsNew(),

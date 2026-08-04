@@ -1663,8 +1663,8 @@ async function main() {
     'release ledger: homepage ticker ends with the owner-approved call to action');
   var whatsNewAt = home.indexOf('class="whatsnew-ticker"');
   var sharedDemoAt = home.indexOf('data-demo-fact-id="UA1812"');
-  ok(whatsNewAt >= 0 && sharedDemoAt > whatsNewAt,
-    'homepage integration: What’s New and the shared demo survive in their intended order');
+  ok(whatsNewAt >= 0 && sharedDemoAt === -1 && home.indexOf('Sort page by next-gen odds') === -1,
+    'homepage integration: What’s New survives and the obsolete hand-drawn flight demo is absent');
   RELEASE.highlights.forEach(function (highlight) {
     eq((home.match(new RegExp('data-release-highlight="' + highlight.id + '"', 'g')) || []).length, 1,
       'release ledger: homepage projects highlight ' + highlight.id + ' exactly once');

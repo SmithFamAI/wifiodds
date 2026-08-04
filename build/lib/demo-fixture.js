@@ -54,24 +54,6 @@ function rowById(id) {
   return row;
 }
 
-function homeMarkup() {
-  var rows = ['UA1812', 'UA2265'].map(rowById);
-  return '<div class="browser" aria-label="Example extension results for DEN to SFO">' +
-    '<div class="chrome"><i></i><i></i><i></i><span>united.com · DEN → SFO</span></div>' +
-    '<div class="route"><div class="extension-brand"><span class="mini-mark">WO</span>' +
-    '<span><b>WiFi Odds</b> <small>Next-gen mode</small></span><span class="extension-live">LIVE</span></div>' +
-    '<div class="route-head"><b>Best next-gen odds on this route</b> <span>2 flights shown</span></div>' +
-    rows.map(function (r, i) {
-      return '<div class="flight"><div><div class="times"><b>' + r.departure + '</b><i></i><b>' +
-        r.arrival + '</b></div><small>United · ' + displayId(r.id) + ' · nonstop</small>\n' + fact(r) +
-        '</div><span class="odds' + (i ? ' alt' : '') + '">' + r.odds + '%</span></div>';
-    }).join('') +
-    '<button class="sort-btn" type="button">Sort page by next-gen odds</button>' +
-    '<div class="privacy"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" ' +
-    'stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' +
-    'Your booking and payment pages are never touched.</div></div></div>';
-}
-
 function extensionRow(r) {
   return '<div class="row' + (r.winner ? ' demo-win' : '') + '" data-from="' + r.from +
     '" data-to="' + r.to + '"><div class="rl"><div class="fn">' + displayId(r.id) +
@@ -83,10 +65,6 @@ function extensionRow(r) {
     '<div class="fp">$' + r.fare + '</div></div></div>';
 }
 function extensionRowsMarkup() { return FIXTURE.rows.map(extensionRow).join('\n          '); }
-function extensionScriptMarkup() {
-  return 'const DEMO_FIXTURE = ' + JSON.stringify(FIXTURE) + ';\nconst DH = DEMO_FIXTURE.decisions;';
-}
-
 function collectFacts(html, label) {
   var found = {};
   var re = /<span class="demo-fact" data-demo-fact-id="([^"]+)"[^>]*>([^<]+)<\/span>/g;
@@ -97,33 +75,33 @@ function collectFacts(html, label) {
   }
   return found;
 }
-function assertRenderedParity(homeHtml, extensionHtml) {
+function assertRenderedFixture(homeHtml, extensionHtml) {
   var home = collectFacts(homeHtml, 'homepage');
   var extension = collectFacts(extensionHtml, 'extension page');
-  var expected = ['UA1812', 'UA2265'];
+  var expected = FIXTURE.rows.map(function (row) { return row.id; });
+  if (Object.keys(home).length) {
+    throw new Error('DemoFixture guard: homepage reintroduced flight figures: ' + Object.keys(home).join(', '));
+  }
   expected.forEach(function (id) {
     var want = esc(factText(rowById(id)));
-    if (!home[id] || !extension[id]) {
-      throw new Error('DemoFixture guard: shared flight ' + id + ' is missing from ' +
-        (!home[id] ? 'homepage' : 'extension page'));
+    if (!extension[id]) {
+      throw new Error('DemoFixture guard: extension flight ' + id + ' is missing');
     }
-    if (home[id] !== extension[id] || home[id] !== want) {
-      throw new Error('DemoFixture guard: shared flight ' + id + ' diverged.\n  home:      ' + home[id] +
-        '\n  extension: ' + extension[id] + '\n  fixture:   ' + want);
+    if (extension[id] !== want) {
+      throw new Error('DemoFixture guard: extension flight ' + id + ' diverged.\n  extension: ' +
+        extension[id] + '\n  fixture:   ' + want);
     }
   });
-  if (Object.keys(home).sort().join(',') !== expected.sort().join(',')) {
-    throw new Error('DemoFixture guard: homepage shared-flight set drifted: ' + Object.keys(home).join(', '));
+  if (Object.keys(extension).sort().join(',') !== expected.slice().sort().join(',')) {
+    throw new Error('DemoFixture guard: extension flight set drifted: ' + Object.keys(extension).join(', '));
   }
   return expected.length;
 }
 
 module.exports = {
   FIXTURE: FIXTURE,
-  homeMarkup: homeMarkup,
   extensionRowsMarkup: extensionRowsMarkup,
-  extensionScriptMarkup: extensionScriptMarkup,
-  assertRenderedParity: assertRenderedParity
+  assertRenderedFixture: assertRenderedFixture
 };
 
 if (require.main === module) {
@@ -133,6 +111,7 @@ if (require.main === module) {
   if (process.argv.indexOf('--control') !== -1) {
     extension = extension.replace('UA1812 · 64% · Tier A', 'UA1812 · 63% · Tier A');
   }
-  var checked = assertRenderedParity(home, extension);
-  console.log('demo-fixture guard OK: ' + checked + ' shared flights carry byte-identical figure, tier, source and date');
+  var checked = assertRenderedFixture(home, extension);
+  console.log('demo-fixture guard OK: homepage has no hand-drawn flight claims; ' + checked +
+    ' extension rows match the dated fixture');
 }

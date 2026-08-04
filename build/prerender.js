@@ -1197,7 +1197,7 @@ function main() {
   write('methodology/index.html', Render.methodologyPage(m));
   write('technology/index.html', Render.technologyPage(m));
   write('extension/index.html', Render.extensionPage(m));
-  var demoFacts = DemoFixture.assertRenderedParity(
+  var demoFacts = DemoFixture.assertRenderedFixture(
     fs.readFileSync(abs('index.html'), 'utf8'),
     fs.readFileSync(abs('extension/index.html'), 'utf8'));
   /* the two remaining template pages: content from build/templates/, numbers
@@ -1298,8 +1298,8 @@ function main() {
     'no stray HTML (' + knownHtml + ' known .html files, incl. ' + EMBEDS.length + ' embed).');
   console.log('  projected: ' + projections + ' airlines carry one · ' + projUnits +
     ' fenced unit' + (projUnits === 1 ? '' : 's') + ' rendered · all five fencing rules hold.');
-  console.log('  demo fixture: ' + demoFacts +
-    ' shared flights carry byte-identical figure, tier, source and date.');
+  console.log('  demo fixture: homepage has no hand-drawn flight claims; ' + demoFacts +
+    ' extension rows match the dated fixture.');
   console.log(slop.summary);
 }
 
