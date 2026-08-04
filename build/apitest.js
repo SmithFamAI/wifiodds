@@ -1657,20 +1657,18 @@ async function main() {
   eq((extensionBuilt.match(new RegExp('extension v' + RELEASE.version.replace(/\./g, '\\.') +
     ' released ' + releaseDate, 'g')) || []).length, 2,
     'release ledger: extension hero and provenance render the same ledger version/date');
-  eq((home.match(/class="whatsnew-ticker" href="\/extension\/#whats-new"/g) || []).length, 1,
-    'release ledger: homepage renders exactly one What’s New ticker linked to the full release');
-  eq((home.match(/Click here to read more about the latest updates/g) || []).length, 1,
-    'release ledger: homepage ticker ends with the owner-approved call to action');
+  eq((home.match(/<aside class="whatsnew-ticker"/g) || []).length, 1,
+    'release ledger: homepage renders exactly one compact What’s New callout');
+  eq((home.match(/<a class="whatsnew-readmore" href="\/extension\/#whats-new">Read More<\/a>/g) || []).length, 1,
+    'release ledger: homepage callout has one separate Read More button linked to the full release');
+  ok(/<aside class="whatsnew-ticker"[^>]*><b>[^<]+<\/b>\s+<span>[^<]+<\/span>\s+<a class="whatsnew-readmore"/.test(home),
+    'homepage integration: Option B stays a one-line callout instead of the old stacked release card');
   var whatsNewAt = home.indexOf('class="whatsnew-ticker"');
+  var extensionSectionAt = home.indexOf('<section class="section extension" id="extension">');
   var sharedDemoAt = home.indexOf('data-demo-fact-id="UA1812"');
-  ok(whatsNewAt >= 0 && sharedDemoAt === -1 && home.indexOf('Sort page by next-gen odds') === -1,
-    'homepage integration: What’s New survives and the obsolete hand-drawn flight demo is absent');
-  RELEASE.highlights.forEach(function (highlight) {
-    eq((home.match(new RegExp('data-release-highlight="' + highlight.id + '"', 'g')) || []).length, 1,
-      'release ledger: homepage projects highlight ' + highlight.id + ' exactly once');
-    eq((home.match(new RegExp(highlight.home.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length, 1,
-      'release ledger: homepage highlight ' + highlight.id + ' is rendered from ledger copy');
-  });
+  ok(whatsNewAt >= 0 && whatsNewAt < extensionSectionAt && sharedDemoAt === -1 &&
+    home.indexOf('Sort page by next-gen odds') === -1,
+    'homepage integration: What’s New sits above the full extension section and the obsolete demo is absent');
   var extensionSectionIds = Array.from(extensionBuilt.matchAll(/<section\b[^>]*\bid="([^"]+)"/g))
     .map(function (match) { return match[1]; }).filter(function (id) {
       return ['hero', 'how', 'hosts', 'whats-new', 'features', 'demos', 'silent', 'install'].indexOf(id) >= 0;

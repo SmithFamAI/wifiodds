@@ -501,12 +501,12 @@ function homeReleaseMeta() {
 }
 
 function homeReleaseWhatsNew() {
-  var summary = RELEASE.highlights.map(function (highlight) {
-    return '<span data-release-highlight="' + esc(highlight.id) + '">' + esc(highlight.home) + '</span>';
-  }).join(' · ');
-  return '<a class="whatsnew-ticker" href="/extension/#whats-new">' +
-    '<b>What’s new · v' + esc(RELEASE.version) + '</b><span>' + summary + '</span>' +
-    '<em>Click here to read more about the latest updates</em></a>';
+  return '<aside class="whatsnew-ticker" aria-label="What’s new in WiFi Odds version ' +
+    esc(RELEASE.version) + '"><b>What’s New · v' + esc(RELEASE.version) + ' · ' +
+    esc(releaseDate(RELEASE.storePublishedOn)) + '</b> ' +
+    '<span>Clearer flight recommendations, automatic sorting with undo, and Trip Guardian ' +
+    'updates that say when an aircraft is still unknown.</span> ' +
+    '<a class="whatsnew-readmore" href="/extension/#whats-new">Read More</a></aside>';
 }
 
 function home(m) {
