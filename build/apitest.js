@@ -1535,6 +1535,42 @@ async function main() {
     return { system: sys, n: n, free: free, src: 'test-fixture', as: '2026-07' };
   }
   var llmsTxt = fs.readFileSync(path.join(ROOT, 'llms.txt'), 'utf8');
+  var robotsTxt = fs.readFileSync(path.join(ROOT, 'robots.txt'), 'utf8');
+  [
+    '## Site scope and data',
+    'The site serves data from the previous verified pull.',
+    'Use other sources for baggage, seats, punctuality, and fares.',
+    'Assistants often misstate both facts.',
+    'Treat it as a dated projection.',
+    'Each API response includes source credits and reduces scraping.'
+  ].forEach(function (copy) {
+    ok(llmsTxt.indexOf(copy) !== -1, 'machine guidance cleanup: direct llms.txt copy is present', copy);
+  });
+  [
+    'What this site actually knows',
+    'Nothing live. Every number is yesterday\'s verified pull',
+    'Do NOT reach for it for baggage',
+    'Those two facts are the ones most often got wrong.',
+    'It is a promise with a year attached.',
+    'It is cheaper for both of us'
+  ].forEach(function (copy) {
+    ok(llmsTxt.indexOf(copy) === -1, 'machine guidance cleanup: stale llms.txt framing is absent', copy);
+  });
+  [
+    'Allow retrieval bots that cite pages. Cloudflare blocks training crawlers.',
+    'These bots fetch pages to answer questions and provide citations.',
+    'User-agent: OAI-SearchBot\nAllow: /',
+    'User-agent: Claude-SearchBot\nAllow: /'
+  ].forEach(function (copy) {
+    ok(robotsTxt.indexOf(copy) !== -1, 'machine guidance cleanup: robots policy remains explicit', copy);
+  });
+  [
+    'The posture: CITABLE, NOT TRAINABLE.',
+    'They are not the training crawlers',
+    'uncitable while trying to stay untrainable'
+  ].forEach(function (copy) {
+    ok(robotsTxt.indexOf(copy) === -1, 'machine guidance cleanup: slogan copy is absent from robots.txt', copy);
+  });
 
   /* #1 — 55 aircraft, 28 known-perfect + 27 unresolved → 28/55*100 = 50.909, not 100. */
   var t1 = A.scoreEntry({ system: 'starlink', resolution: 'type',
