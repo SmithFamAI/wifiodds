@@ -1661,6 +1661,10 @@ async function main() {
     'release ledger: homepage renders exactly one What’s New ticker linked to the full release');
   eq((home.match(/Click here to read more about the latest updates/g) || []).length, 1,
     'release ledger: homepage ticker ends with the owner-approved call to action');
+  var whatsNewAt = home.indexOf('class="whatsnew-ticker"');
+  var sharedDemoAt = home.indexOf('data-demo-fact-id="UA1812"');
+  ok(whatsNewAt >= 0 && sharedDemoAt > whatsNewAt,
+    'homepage integration: What’s New and the shared demo survive in their intended order');
   RELEASE.highlights.forEach(function (highlight) {
     eq((home.match(new RegExp('data-release-highlight="' + highlight.id + '"', 'g')) || []).length, 1,
       'release ledger: homepage projects highlight ' + highlight.id + ' exactly once');
