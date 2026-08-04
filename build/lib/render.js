@@ -3030,8 +3030,8 @@ function apiDocs(m) {
 function notFound(m) {
   var body =
     '<header class="hero">\n  <span class="kicker">404</span>\n' +
-    '  <h1 class="ph" style="margin-top:.6rem">No page at this address</h1>\n' +
-    '  <p class="lede">Unlike the WiFi, that one is a certainty.</p>\n' +
+    '  <h1 class="ph" style="margin-top:.6rem">Page not found</h1>\n' +
+    '  <p class="lede">The address may have changed, or the page may no longer exist.</p>\n' +
     '  <div class="btnrow" style="margin-top:1.2rem">' +
     '<a class="btn ghost mini" href="/methodology/">How every number is derived →</a>' +
     '<a class="btn ghost mini" href="/technology/">The three tiers of inflight WiFi →</a>' +
