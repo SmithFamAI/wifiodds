@@ -31,6 +31,23 @@
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 90
 
+# This is deliberately inside the sanctioned ship path as well as the git
+# hooks. Hooks are not versioned and may be missing in a fresh clone. Check at
+# entry and again before commit so a claim that changes during the build cannot
+# slip through a clone whose hooks were never installed.
+check_driver_lock() {
+  if [ -f build/driver-lock-check.sh ]; then
+    sh build/driver-lock-check.sh || {
+      echo ""
+      echo "SHIP ABORTED: another live driver holds the repository lock."
+      echo "Nothing was committed and nothing was pushed."
+      return 1
+    }
+  else
+    echo "driver-lock: ALLOW (could not verify contention: build/driver-lock-check.sh is missing)" >&2
+  fi
+}
+
 TREE_SNAPSHOT_FILES=""
 cleanup_tree_snapshots() {
   [ -z "$TREE_SNAPSHOT_FILES" ] || rm -f $TREE_SNAPSHOT_FILES
@@ -59,6 +76,12 @@ for a in "$@"; do
 done
 
 fail() { echo ""; echo "SHIP ABORTED: $1"; echo "Nothing was committed and nothing was pushed."; echo "The working tree is exactly as the build left it; run 'git status' to see it."; echo "A surprising result is a claim about the instrument until proven otherwise. Before filing a defect, prove the instrument is sound — with a control that is known-good, not with a second run."; exit "${2:-1}"; }
+
+if [ -z "$CHECK_ONLY" ] && [ -z "${WIFIODDS_DRIVER_ID:-}" ]; then
+  fail "WIFIODDS_DRIVER_ID is unset. Export the id used to claim the driver lock; every shipped commit requires a Driver trailer." 88
+fi
+
+check_driver_lock || exit 89
 
 echo "── 1/5 prerender ─────────────────────────────────────────"
 if ! node build/prerender.js; then
@@ -139,6 +162,7 @@ echo "$CHANGED" | sed 's/^/  /'
 
 echo ""
 echo "── 5/5 commit and push ───────────────────────────────────"
+check_driver_lock || fail "another live driver claimed the repository while this build was running." 89
 CURRENT_TREE="$(mktemp)"
 TREE_SNAPSHOT_FILES="$TREE_SNAPSHOT_FILES $CURRENT_TREE"
 snapshot_tracked_tree "$CURRENT_TREE"
@@ -154,7 +178,8 @@ if ! cmp -s "$VERIFIED_TREE" "$CURRENT_TREE"; then
 against the tree that would actually ship." 99
 fi
 echo "verified-tree guard OK: commit bytes match the post-suite snapshot"
-git commit -m "$MSG" || fail "git commit failed (the pre-commit prose ratchet may have blocked it)." 95
+git commit -m "$MSG" -m "Driver: $WIFIODDS_DRIVER_ID" \
+  || fail "git commit failed (a pre-commit gate may have blocked it)." 95
 git push origin HEAD || fail "git push failed. The commit exists locally." 96
 
 BR=$(git rev-parse --abbrev-ref HEAD)

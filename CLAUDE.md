@@ -12,13 +12,20 @@ rode into `render.js` inside the other driver's commit. Owner ruling that mornin
 
     sh ~/Projects/wifiodds-relay/exchange/driver-lock.sh claim <your-id> "what you are doing"
 
+Use the same id for attribution:
+
+    export WIFIODDS_DRIVER_ID=<your-id>
+
 **Exit non-zero means another driver holds it. Do not work. Say so and stop.** Renew if you are
 still going; release when you stop. Read the exit code bare — piping it into `tail` reports `tail`'s
 status, which is the trap the rest of this file keeps warning about. Mechanics and the two staleness
 fences (wall clock, and pid-not-alive) are in that folder's `README.md`.
 
-This fixes collision, not provenance. The shared git identity still cannot tell you which driver
-authored a commit, and the auditor has said so twice.
+The pre-commit and pre-push hooks enforce the lock even when a writer skipped this instruction;
+run `sh build/install-ship-hook.sh` once per clone. `build/ship.sh` repeats the check and adds
+`Driver: <your-id>` to its commit message. A missing, empty, corrupt or stale lock fails open with a
+loud warning so the unattended refresh is not wedged. A different live holder fails closed. A
+missing `Driver:` trailer remains visible as an unattributed write instead of being guessed.
 
 ---
 
@@ -96,8 +103,9 @@ to keep files off the deploy and did nothing. A model doctrine was enforced in o
 had been paused for eight days. And a verification rule sat in a prompt nobody executed.
 **A rule that lives somewhere the runtime does not read is not a rule.**
 
-`ship.sh` puts the gate in code, so any caller gets it whether or not they read this file. There is
-also a pre-push hook for the case that actually bit us, a push that never went through `ship.sh`:
+`ship.sh` puts the gate in code, so any caller gets it whether or not they read this file. There are
+also pre-commit and pre-push hooks for the case that actually bit us, a write that never went
+through `ship.sh`:
 
     sh build/install-ship-hook.sh     # once per clone; hooks are not versioned
 
