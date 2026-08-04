@@ -1716,6 +1716,31 @@ async function main() {
   ].forEach(function (copy) {
     ok(methodology.indexOf(copy) === -1, 'methodology stale slogan is absent', copy);
   });
+  var technology = fs.readFileSync(path.join(ROOT, 'technology/index.html'), 'utf8');
+  [
+    'Inflight WiFi equipment',
+    'Compare equipment, <span class="gradient">throughput, and latency.</span>',
+    'Compare passenger tasks across three equipment tiers.',
+    'One booking label covers three equipment tiers.',
+    'Low-orbit satellite links have less delay.',
+    'Published evidence does not support one speed for each tier.',
+    'Four limits remain unpublished or unmeasured.'
+  ].forEach(function (copy) {
+    ok(technology.indexOf(copy) !== -1, 'technology plain-English copy is present', copy);
+  });
+  [
+    'What the booking page hides',
+    'Three eras. <span class="gradient">One WiFi label.</span>',
+    'What it feels like in the seat.',
+    'Internet that happens to be on a plane.',
+    'Working WiFi, with the lag.',
+    'Dial-up in the air.',
+    'Pull back the booking label.',
+    'Distance shows up as delay.',
+    'The missing facts are part of the answer.'
+  ].forEach(function (copy) {
+    ok(technology.indexOf(copy) === -1, 'technology stale slogan is absent', copy);
+  });
   var whatsNewAt = home.indexOf('class="whatsnew-ticker"');
   var extensionSectionAt = home.indexOf('<section class="section extension" id="extension">');
   var sharedDemoAt = home.indexOf('data-demo-fact-id="UA1812"');
