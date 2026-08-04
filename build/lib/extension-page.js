@@ -10,15 +10,15 @@ function esc(value) {
 
 function hostMatrix() {
   var columns = [
-    ['perFlight', 'Per-flight odds'],
-    ['carrierFallback', 'Carrier fallback'],
-    ['autoSort', 'Auto-sort'],
-    ['prioritize', 'Prioritize'],
-    ['routePanel', 'Route panel'],
-    ['guardian', 'Guardian']
+    ['perFlight', 'Flight odds'],
+    ['carrierFallback', 'Airline score'],
+    ['autoSort', 'Automatic sorting'],
+    ['prioritize', 'Move best flight'],
+    ['routePanel', 'Route summary'],
+    ['guardian', 'Trip Guardian']
   ];
   return '<div class="host-matrix" role="region" aria-label="Booking-site feature coverage" tabindex="0">' +
-    '<table><caption class="visually-hidden">What WiFi Odds can do on each supported booking site</caption>' +
+    '<table><caption class="visually-hidden">WiFi Odds features on each supported booking site</caption>' +
     '<thead><tr><th scope="col">Booking site</th>' +
     columns.map(function (column) { return '<th scope="col">' + esc(column[1]) + '</th>'; }).join('') +
     '</tr></thead><tbody>' + RELEASE.hosts.map(function (host) {
@@ -32,45 +32,52 @@ function hostMatrix() {
 }
 
 function whatsNew() {
-  return '<div class="release-grid">' + RELEASE.highlights.map(function (highlight, i) {
-    return '<article class="release-card" data-release-highlight="' + esc(highlight.id) + '">' +
-      '<span class="chapter-n">0' + (i + 1) + '</span><h3>' + esc(highlight.home) + '</h3><p>' +
-      esc(highlight.full) + '</p><p class="release-where">Shipped in Chrome Web Store v' +
-      esc(RELEASE.version) + '</p></article>';
-  }).join('') + '</div><p class="quiet-note"><b>Behaviour change:</b> a supported single-airline ' +
-    'page can now sort automatically. The page always says when it moved rows and offers ' +
-    '<em>Keep site order</em>.</p>';
+  return '<p class="release-version">Chrome Web Store version ' + esc(RELEASE.version) +
+    ' · released ' + esc(RELEASE.storePublishedOn) + '</p><div class="release-list">' +
+    RELEASE.highlights.map(function (highlight) {
+      return '<article class="release-row" data-release-highlight="' + esc(highlight.id) + '">' +
+        '<div><span class="release-label">New feature</span><h3>' + esc(highlight.home) + '</h3></div>' +
+        '<div><span class="release-label">What it does</span><p>' + esc(highlight.full) +
+        '</p></div></article>';
+    }).join('') + '</div>';
 }
 
 function featureIndex() {
+  var descriptions = {
+    rows: 'Adds a flight-level next-gen estimate when the booking page shows a supported flight number.',
+    decision: 'Names one flight when the available history gives it a clear lead.',
+    sort: 'Moves higher-odds United or Alaska flights up and provides an undo button.',
+    route: 'Summarises scored and unscored flights on supported result pages.',
+    guardian: 'Checks a saved flight for an aircraft assignment change before departure.',
+    popup: 'Shows site access, airline coverage, and manual lookup from the toolbar.'
+  };
   return '<nav class="feature-index" aria-label="Extension feature index">' +
     RELEASE.allowedFeatureClaims.map(function (feature, i) {
       return '<a class="feature-index-card" data-feature-link="' + esc(feature.id) + '" href="#f-' +
         esc(feature.id) + '"><span class="chapter-n">' + String(i + 1).padStart(2, '0') +
-        '</span><b>' + esc(feature.title) + '</b><span>' + esc(feature.question) + '</span><small>' +
-        esc(feature.ceiling) + '</small></a>';
+        '</span><b>' + esc(feature.title) + '</b><span>' + esc(descriptions[feature.id]) + '</span></a>';
     }).join('') + '</nav>';
 }
 
 function demoScene(feature) {
   var visuals = {
     rows: ['Flight row', 'NEXT-GEN and STREAMING labels'],
-    decision: ['Decision panel', 'Winner or grounded refusal'],
-    sort: ['Captured site order', 'Move, disclose, and undo'],
-    route: ['DEN → SFO route panel', 'Supported rows and coverage boundary'],
-    guardian: ['Trip Guardian', 'Assignment state and grounded update'],
-    popup: ['Extension popup', 'Host access and manual lookup']
+    decision: ['Best WiFi choice', 'Recommendation or a “not enough data” message'],
+    sort: ['Flight results', 'New order with Keep site order'],
+    route: ['DEN → SFO route summary', 'Flights with scores and flights without them'],
+    guardian: ['Trip Guardian', 'Aircraft assignment and update'],
+    popup: ['Extension popup', 'Site access and airline lookup']
   };
   var visual = visuals[feature.id];
   var labels = feature.steps.map(function (step, i) {
-    return '<div class="frame-state" data-frame-stage="' + i + '"><span>Stage ' + (i + 1) +
+    return '<div class="frame-state" data-frame-stage="' + i + '"><span>Step ' + (i + 1) +
       ' of 5</span><strong>' + esc(step) + '</strong></div>';
   }).join('');
   return '<div class="feature-frame" data-demo data-demo-frame="' + esc(feature.id) + '" ' +
     'data-feature="' + esc(feature.id) + '" data-stage="0" data-host="united" data-offered="true">' +
     '<div class="frame-chrome"><i></i><i></i><i></i><span data-frame-host>united.com</span></div>' +
     '<div class="frame-body"><div class="replica-row"><div><b>' + esc(visual[0]) + '</b><span>' +
-    esc(visual[1]) + '</span></div><span class="replica-metric">Live</span></div>' +
+    esc(visual[1]) + '</span></div><span class="replica-metric">Example</span></div>' +
     '<div class="limit-state" data-limit-state><b>Not offered here</b><span></span></div>' +
     labels + '</div></div>';
 }
@@ -86,13 +93,13 @@ function featureDemos() {
         (hostIndex === 0 ? 'true' : 'false') + '">' + esc(host.name) + '</button>';
     }).join('');
     return '<article class="feature-chapter" id="f-' + esc(feature.id) + '" data-feature-section="' +
-      esc(feature.id) + '"><header><div><span class="eyebrow">Demo ' + (i + 1) + ' of ' +
+      esc(feature.id) + '"><header><div><span class="eyebrow">Example ' + (i + 1) + ' of ' +
       RELEASE.allowedFeatureClaims.length + '</span><h3>' + esc(feature.title) + '</h3><p>' +
       esc(feature.question) + '</p></div><button class="demo-play" type="button" data-demo-play ' +
       'aria-pressed="false">Pause demo</button></header><div class="host-tabs" role="group" ' +
       'aria-label="Show ' + esc(feature.title) + ' by booking site">' + buttons + '</div><div class="demo-grid">' +
       demoScene(feature) + '<div class="demo-copy"><p class="host-behavior" data-host-behavior>' +
-      esc(feature.behaviors.united) + '</p><p class="evidence-ceiling"><b>Evidence ceiling</b>' +
+      esc(feature.behaviors.united) + '</p><p class="evidence-ceiling"><b>What it can tell you</b>' +
       esc(feature.ceiling) + '</p><ol class="demo-steps" data-demo-fallback>' +
       feature.steps.map(function (step) { return '<li>' + esc(step) + '</li>'; }).join('') +
       '</ol></div></div><div class="host-coverage-row" data-feature-coverage="' + esc(feature.id) + '">' +
@@ -110,34 +117,34 @@ function scriptData() {
 
 function referenceMarkup() {
   var rowStates = [
-    ['row-probability', 'Per-flight probability', 'A dated UA or AS flight history is available. It may enter a comparison when the sample and confidence gates also pass.'],
-    ['row-fleet', 'Carrier fleet fallback', 'No supported flight-level history is exposed. The row may show a labelled carrier measure, but it may not masquerade as this flight’s odds.'],
-    ['row-partial', 'Partial fleet coverage', 'The published fleet measure covers only a named part of the fleet. The coverage boundary stays visible and unknown aircraft remain unknown.'],
-    ['row-no-history', 'No usable history', 'The tracker answered without a usable sample. The extension says unknown, never 0%, and the row cannot rank.'],
-    ['row-loading', 'Lookup in progress', 'A temporary loading state appears while the request is genuinely pending. It cannot sit beside a terminal claim.'],
-    ['row-error', 'Lookup unavailable', 'The request failed. That is not the same as the tracker reporting no history, so the page order stays unchanged.'],
-    ['row-not-flight', 'No operating flight number', 'No flight-specific value is invented. A clearly labelled carrier measure may appear, but it cannot rank this row as a known flight.']
+    ['row-probability', 'Per-flight odds', 'The tracker has dated history for this United or Alaska flight. WiFi Odds can compare it after the sample and confidence checks pass.'],
+    ['row-fleet', 'Airline-wide score', 'The booking page does not provide supported flight history. WiFi Odds labels the airline-wide ConnectScore so you do not mistake it for this flight’s odds.'],
+    ['row-partial', 'Part of the fleet has data', 'The published score covers a named part of the fleet. WiFi Odds shows that limit and leaves the remaining aircraft unknown.'],
+    ['row-no-history', 'No usable history', 'The tracker did not return enough history. WiFi Odds shows unknown, does not use 0%, and leaves the row out of the ranking.'],
+    ['row-loading', 'Lookup in progress', 'WiFi Odds shows a loading message while it waits for the tracker.'],
+    ['row-error', 'Lookup unavailable', 'The tracker request failed. WiFi Odds keeps the booking site’s order and identifies the lookup error.'],
+    ['row-not-flight', 'No flight number', 'The booking page did not provide an operating flight number. WiFi Odds can show an airline-wide score, but it cannot rank the row as a known flight.']
   ];
   var decisionStates = [
-    ['decision-winner', 'Best WiFi choice', 'At least two scored flights, a lead of eight points or more, and high or medium tracker confidence clear the recommendation gate.'],
-    ['decision-confirmed', 'Winner with confirmed aircraft', 'The airline’s exact-date aircraft assignment appears as a separate grounded fact and can override historical route odds.'],
-    ['decision-close', 'No clear winner: close gap', 'The leading flights sit inside the decision floor, so both values remain visible and nobody is crowned.'],
-    ['decision-low-confidence', 'No clear winner: limited history', 'A numerical lead exists but its evidence is not decision-grade, so the extension refuses to recommend.'],
-    ['decision-single', 'Not enough to compare', 'Only one supported flight has a usable score. Other flights stay unscored and in the booking site’s order.'],
-    ['decision-loading', 'Comparison in progress', 'The decision panel is waiting on real lookups and exposes no terminal claim.'],
-    ['decision-unavailable', 'Comparison unavailable', 'A request failed. The panel distinguishes that outage from a real no-history answer and leaves order unchanged.'],
-    ['decision-no-data', 'No comparison available', 'The tracker answered with no direct-flight history for the route. Unknown is not converted to zero.']
+    ['decision-winner', 'Best WiFi choice', 'WiFi Odds recommends a flight after it finds at least two scored options, an eight-point lead, and medium or high tracker confidence.'],
+    ['decision-confirmed', 'Aircraft confirmed', 'The airline has published the aircraft assignment for the travel date. WiFi Odds shows that assignment next to the historical estimate.'],
+    ['decision-close', 'No clear winner: close scores', 'The leading flights are less than eight points apart. WiFi Odds shows both estimates without recommending one.'],
+    ['decision-low-confidence', 'No clear winner: limited history', 'One flight leads, but the tracker confidence is too low for a recommendation.'],
+    ['decision-single', 'Not enough flights to compare', 'One supported flight has a usable score. WiFi Odds leaves the other flights unscored and keeps their order.'],
+    ['decision-loading', 'Comparison in progress', 'WiFi Odds waits for the tracker before it shows a recommendation or a no-data message.'],
+    ['decision-unavailable', 'Comparison unavailable', 'A tracker request failed. WiFi Odds identifies the error and leaves the page order unchanged.'],
+    ['decision-no-data', 'No comparison available', 'The tracker returned no direct-flight history for the route. WiFi Odds keeps the flights unscored.']
   ];
   function group(title, states) {
     return '<h3>' + esc(title) + '</h3>' + states.map(function (state) {
       return '<details id="' + esc(state[0]) + '"><summary>' + esc(state[1]) + '</summary><p>' +
-        esc(state[2]) + '</p><p class="reference-meta">Tier: measured product behaviour · source: ' +
-        'extension release commit ' + esc(RELEASE.extensionCommit.slice(0, 8)) + ' · source date: ' +
+        esc(state[2]) + '</p><p class="reference-meta">Verified product behavior · source: ' +
+        'extension release commit ' + esc(RELEASE.extensionCommit.slice(0, 8)) + ' · checked ' +
         esc(RELEASE.storePublishedOn) + '</p></details>';
     }).join('');
   }
-  return '<div class="reference-shell">' + group('Seven flight-row states', rowStates) +
-    group('Eight decision outcomes', decisionStates) + '</div>';
+  return '<div class="reference-shell">' + group('Messages shown on flight rows', rowStates) +
+    group('Messages shown in the Best WiFi choice panel', decisionStates) + '</div>';
 }
 
 module.exports = {

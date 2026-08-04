@@ -230,15 +230,15 @@
       "pivotUnits": 0
     },
     "extension/index.html": {
-      "words": 2417,
+      "words": 2493,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
-      "pivotPer1000": 0.83,
-      "pivotUnits": 2
+      "pivotPer1000": 0.5,
+      "pivotUnits": 1.25
     },
     "index.html": {
-      "words": 1097,
+      "words": 1054,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,

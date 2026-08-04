@@ -10,18 +10,18 @@
   "highlights": [
     {
       "id": "choice",
-      "home": "Evidence-gated Best WiFi choice",
-      "full": "Recommends a flight only when the odds gap and confidence justify it; otherwise it explains why no winner is named."
+      "home": "Best WiFi choice",
+      "full": "Shows a recommendation when at least two flights have usable data, the leader is ahead by eight points or more, and the tracker has medium or high confidence. If those checks fail, WiFi Odds says it cannot pick a winner."
     },
     {
       "id": "metrics",
-      "home": "Labelled next-gen and streaming metrics",
-      "full": "Labels every row as flight-specific next-gen odds or an airline-level streaming score so two different measurements cannot look interchangeable."
+      "home": "Separate flight and airline labels",
+      "full": "Marks per-flight next-gen odds and airline-wide ConnectScore as different numbers, so you can tell whether the estimate describes your flight or the airline."
     },
     {
       "id": "sorting",
-      "home": "Automatic single-airline sorting with a real undo",
-      "full": "Automatically sorts supported single-airline result pages by next-gen odds and provides a real undo, while preserving host order where automatic sorting is not offered."
+      "home": "Automatic sorting with undo",
+      "full": "On supported United and Alaska result pages, moves flights with better next-gen odds higher. Keep site order puts the rows back where the booking site placed them."
     }
   ],
   "hosts": [
@@ -29,10 +29,10 @@
       "id": "united",
       "name": "United",
       "hostname": "united.com",
-      "perFlight": "UA odds",
-      "carrierFallback": "Yes",
-      "autoSort": "On by default",
-      "prioritize": "Not offered",
+      "perFlight": "United flight odds",
+      "carrierFallback": "Recognised airlines",
+      "autoSort": "Yes, with undo",
+      "prioritize": "No",
       "routePanel": "No",
       "guardian": "Yes"
     },
@@ -40,10 +40,10 @@
       "id": "alaska",
       "name": "Alaska",
       "hostname": "alaskaair.com",
-      "perFlight": "AS odds",
-      "carrierFallback": "Yes",
-      "autoSort": "On by default",
-      "prioritize": "Not offered",
+      "perFlight": "Alaska flight odds",
+      "carrierFallback": "Recognised airlines",
+      "autoSort": "Yes, with undo",
+      "prioritize": "No",
       "routePanel": "Yes",
       "guardian": "Yes"
     },
@@ -51,10 +51,10 @@
       "id": "navan",
       "name": "Navan",
       "hostname": "app.navan.com",
-      "perFlight": "UA only",
-      "carrierFallback": "Yes",
-      "autoSort": "Host order",
-      "prioritize": "United only",
+      "perFlight": "United flights",
+      "carrierFallback": "Recognised airlines",
+      "autoSort": "No",
+      "prioritize": "United flights",
       "routePanel": "Yes",
       "guardian": "Yes"
     },
@@ -62,10 +62,10 @@
       "id": "google",
       "name": "Google Flights",
       "hostname": "google.com/travel/flights",
-      "perFlight": "UA/AS when exposed",
-      "carrierFallback": "Recognised carriers",
-      "autoSort": "Never",
-      "prioritize": "Never",
+      "perFlight": "United or Alaska when shown",
+      "carrierFallback": "Recognised airlines",
+      "autoSort": "No",
+      "prioritize": "No",
       "routePanel": "Yes",
       "guardian": "Yes"
     }
@@ -73,80 +73,80 @@
   "allowedFeatureClaims": [
     {
       "id": "rows",
-      "title": "Flight-row metrics",
-      "question": "What does this number measure?",
-      "ceiling": "Per-flight odds only for an exposed UA or AS flight number; otherwise a labelled carrier-level ConnectScore.",
-      "steps": ["Read the flight number", "Look up dated history", "Label NEXT-GEN odds", "Label STREAMING score", "Keep unknown flights unknown"],
+      "title": "Flight labels",
+      "question": "Does this number describe the flight or the airline?",
+      "ceiling": "WiFi Odds shows per-flight odds for a United or Alaska flight number when the booking site provides one. Other recognised airlines get an airline-wide ConnectScore label.",
+      "steps": ["Read the flight number", "Check dated tracker history", "Add the NEXT-GEN label", "Add the CONNECTSCORE label when needed", "Leave flights without data unscored"],
       "behaviors": {
-        "united": "Labels UA rows with per-flight next-gen odds and the carrier streaming score.",
-        "alaska": "Labels AS rows with per-flight next-gen odds after optional access is granted.",
-        "navan": "Labels United rows only; other carriers remain carrier-level or unknown.",
-        "google": "Adds carrier scores, upgrading to per-flight UA or AS odds only when Google exposes a flight number."
+        "united": "Shows per-flight next-gen odds on United rows and the airline-wide ConnectScore.",
+        "alaska": "Shows per-flight next-gen odds on Alaska rows after you grant site access.",
+        "navan": "Shows per-flight odds on United rows. Other airlines get an airline-wide score or stay unknown.",
+        "google": "Shows airline-wide scores. United and Alaska rows can get per-flight odds when Google shows the flight number."
       }
     },
     {
       "id": "decision",
       "title": "Best WiFi choice",
-      "question": "Is one flight clearly better supported?",
-      "ceiling": "Names a winner only with at least two scored flights, an eight-point lead, and high or medium tracker confidence.",
-      "steps": ["Capture comparable flights", "Load their history", "Check confidence", "Apply the eight-point gate", "Name a winner or explain refusal"],
+      "question": "Does one flight have enough support for a recommendation?",
+      "ceiling": "WiFi Odds recommends a flight after it finds at least two scored options, an eight-point lead, and medium or high tracker confidence.",
+      "steps": ["Find flights that can be compared", "Load their history", "Check tracker confidence", "Check for an eight-point lead", "Recommend one flight or explain why it cannot"],
       "behaviors": {
-        "united": "Shows a decision card but does not offer the carrier-framed Prioritize control.",
-        "alaska": "Shows a decision card when enough AS evidence clears the gate.",
-        "navan": "Can explicitly prioritize supported United rows while unscored rows follow.",
-        "google": "Shows labelled evidence only; Google owns the result order and no prioritization is offered."
+        "united": "Shows a Best WiFi choice when enough United flights pass the recommendation checks.",
+        "alaska": "Shows a Best WiFi choice when enough Alaska flights pass the recommendation checks.",
+        "navan": "Can move a supported United flight higher while keeping unscored rows in their original order.",
+        "google": "Shows labels without moving Google’s results or adding a Best WiFi choice button."
       }
     },
     {
       "id": "sort",
-      "title": "Sorting and undo",
-      "question": "Can the best-supported flight move up safely?",
-      "ceiling": "Automatic sorting is limited to supported single-airline result lists and always preserves a real undo.",
-      "steps": ["Capture site order", "Score supported rows", "Move ranked rows", "Disclose the sort", "Restore site order on undo"],
+      "title": "Automatic sorting",
+      "question": "Can WiFi Odds move higher-odds flights and put the page back?",
+      "ceiling": "United and Alaska single-airline result pages can sort by next-gen odds. Keep site order restores the booking site’s order.",
+      "steps": ["Save the booking site’s order", "Score supported flights", "Move higher-odds flights up", "Show that the order changed", "Restore the saved order on undo"],
       "behaviors": {
-        "united": "Sorts supported United result lists automatically and offers Keep site order.",
-        "alaska": "Sorts supported Alaska result lists automatically and offers Keep site order.",
-        "navan": "Preserves host order by default because unscored airlines are unknown, not worse.",
-        "google": "Not offered here. Google Flights virtualises its result list and owns its ordering."
+        "united": "Sorts supported United result lists and offers Keep site order.",
+        "alaska": "Sorts supported Alaska result lists and offers Keep site order.",
+        "navan": "Keeps Navan’s order because some airlines do not have per-flight scores.",
+        "google": "Not offered here. Google Flights controls the result order."
       }
     },
     {
       "id": "route",
-      "title": "Route panel",
-      "question": "What is the evidence across this result page?",
-      "ceiling": "Summarises only rows the current host exposes and states the coverage boundary beside the action.",
-      "steps": ["Find visible rows", "Separate scored and unscored", "Summarise the route", "State host coverage", "Keep unscored rows in place"],
+      "title": "Route summary",
+      "question": "Does this page have enough flight data for a route summary?",
+      "ceiling": "The summary uses flights shown on the page and says which ones have scores. Flights without scores stay in place.",
+      "steps": ["Read the flights on the page", "Separate scored and unscored flights", "Build the route summary", "Name which flights have data", "Keep unscored flights in place"],
       "behaviors": {
-        "united": "Summarises the visible United route and its per-flight evidence.",
-        "alaska": "Summarises the visible Alaska route after optional access is granted.",
-        "navan": "Summarises United rows and says other airlines remain unscored.",
-        "google": "Not offered here. The extension adds row labels without a separate route panel."
+        "united": "United pages use the flight labels and Best WiFi choice instead of a separate route summary.",
+        "alaska": "Shows a route summary after you grant Alaska site access.",
+        "navan": "Summarises United rows and marks other airlines as unscored.",
+        "google": "Not offered here. Google Flights gets labels on each row instead."
       }
     },
     {
       "id": "guardian",
       "title": "Trip Guardian",
-      "question": "Did the assigned aircraft change before boarding?",
-      "ceiling": "Reports the latest grounded assignment state; an unknown aircraft is never rewritten as a negative.",
-      "steps": ["Add the flight to Guard", "Wait for an assignment", "Read the published tail", "Check grounded equipment data", "Report the update with its reason"],
+      "question": "Has the airline assigned a different aircraft?",
+      "ceiling": "Trip Guardian reports the latest aircraft assignment it can verify. If the airline has not published an aircraft, it says the assignment is unknown.",
+      "steps": ["Add the flight to Trip Guardian", "Wait for an aircraft assignment", "Read the airline’s published tail number", "Check the equipment record", "Show the update and its source"],
       "behaviors": {
-        "united": "Watches a saved United flight for a grounded assignment update.",
-        "alaska": "Watches a saved Alaska flight after optional host access is granted.",
+        "united": "Checks a saved United flight for an aircraft assignment update.",
+        "alaska": "Checks a saved Alaska flight after you grant Alaska site access.",
         "navan": "Watches a supported United flight saved from Navan.",
-        "google": "Watches a supported flight saved from Google Flights without changing Google's page order."
+        "google": "Checks a supported flight saved from Google Flights without changing Google’s order."
       }
     },
     {
       "id": "popup",
-      "title": "Popup coverage and lookup",
-      "question": "Where is the extension active, and what can I look up?",
-      "ceiling": "Shows access state and carrier-level coverage for the shipped release; optional hosts stay off until the user grants them.",
-      "steps": ["Open the popup", "Show current host access", "Request optional access", "Confirm the user grant", "Expose coverage and lookup"],
+      "title": "Extension popup",
+      "question": "Does the extension have access to this booking site?",
+      "ceiling": "The popup shows which booking sites you have enabled and lets you look up airline-wide WiFi scores.",
+      "steps": ["Open the popup", "Show current site access", "Offer access for optional sites", "Confirm your choice", "Show airline coverage and lookup"],
       "behaviors": {
-        "united": "Built-in access; the popup exposes current coverage and lookup.",
-        "alaska": "Access off becomes a user grant, then Alaska coverage turns on.",
-        "navan": "Built-in access; the popup explains United-only per-flight coverage.",
-        "google": "Access off becomes a user grant; carrier scores appear after permission is granted."
+        "united": "United access comes with the extension. The popup shows current coverage and lookup.",
+        "alaska": "The popup lets you turn Alaska access on, then shows Alaska coverage.",
+        "navan": "Navan access comes with the extension. The popup explains that per-flight odds cover United rows.",
+        "google": "The popup lets you turn Google Flights access on, then shows airline-wide scores."
       }
     }
   ]
