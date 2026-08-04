@@ -399,8 +399,8 @@ function homeBoardRows(m) {
   var ranked = HOME_BOARD_ORDER.map(function (k, i) { return homeRow(m, k, i + 1); }).join('');
   var unranked = HOME_UNPUBLISHED_ORDER.map(function (k) { return homeRow(m, k, 0); }).join('');
   return ranked +
-    '        <div class="unpublished-break"><b>Count unpublished · not ranked as zero</b>' +
-    '<span>separate group by design</span></div>\n' + unranked;
+    '        <div class="unpublished-break"><b>Count unpublished · not ranked as zero</b> ' +
+    '<span>Airlines without published counts</span></div>\n' + unranked;
 }
 
 function homeCard(m, key) {
@@ -504,8 +504,8 @@ function homeReleaseWhatsNew() {
   return '<aside class="whatsnew-ticker" aria-label="What’s new in WiFi Odds version ' +
     esc(RELEASE.version) + '"><b>What’s New · v' + esc(RELEASE.version) + ' · ' +
     esc(releaseDate(RELEASE.storePublishedOn)) + '</b> ' +
-    '<span>Clearer flight recommendations, automatic sorting with undo, and Trip Guardian ' +
-    'updates that say when an aircraft is still unknown.</span> ' +
+    '<span>Best WiFi choice now explains when no flight wins. You can undo automatic sorting, ' +
+    'and Trip Guardian keeps unconfirmed aircraft marked as unknown.</span> ' +
     '<a class="whatsnew-readmore" href="/extension/#whats-new">Read More</a></aside>';
 }
 

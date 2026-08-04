@@ -1663,6 +1663,32 @@ async function main() {
     'release ledger: homepage callout has one separate Read More button linked to the full release');
   ok(/<aside class="whatsnew-ticker"[^>]*><b>[^<]+<\/b>\s+<span>[^<]+<\/span>\s+<a class="whatsnew-readmore"/.test(home),
     'homepage integration: Option B stays a one-line callout instead of the old stacked release card');
+  [
+    'See WiFi odds in your flight results.',
+    'How WiFi Odds works on booking pages',
+    'Choose which figures to compare.',
+    'United has next-gen aircraft flying. American, Delta, and Southwest are at 0% today.',
+    'Compare all 18 tracked airlines.',
+    'Choose the number that answers your question.',
+    'Airlines without published counts',
+    'Best WiFi choice now explains when no flight wins.'
+  ].forEach(function (copy) {
+    ok(home.indexOf(copy) !== -1, 'homepage plain-English copy is present', copy);
+  });
+  [
+    'The odds, right on the flight.',
+    'How the extension moves from a booking page to a grounded answer',
+    'Label the evidence and its ceiling',
+    'Switches every airline signal below',
+    'One has real next-gen odds. Three are effectively zero.',
+    'United has the largest next-gen fleet actually flying.',
+    'Ranking all 18 airlines we currently track.',
+    'Two views. Two honest answers.',
+    'separate group by design',
+    'the rest of the fleet is genuinely unknown'
+  ].forEach(function (copy) {
+    ok(home.indexOf(copy) === -1, 'homepage stale slogan is absent', copy);
+  });
   var whatsNewAt = home.indexOf('class="whatsnew-ticker"');
   var extensionSectionAt = home.indexOf('<section class="section extension" id="extension">');
   var sharedDemoAt = home.indexOf('data-demo-fact-id="UA1812"');
