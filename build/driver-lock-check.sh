@@ -47,6 +47,11 @@ if [ "$pid" != 0 ] && ! kill -0 "$pid" 2>/dev/null; then
 fi
 
 if [ -n "$ME" ] && [ "$holder" = "$ME" ]; then
+  ISOLATOR="$HOME/Projects/wifiodds-relay/exchange/driver-worktree.sh"
+  if [ -x "$ISOLATOR" ]; then
+    ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)
+    sh "$ISOLATOR" verify "$ME" site "$ROOT" || exit $?
+  fi
   exit 0
 fi
 

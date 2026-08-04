@@ -184,8 +184,15 @@ git push origin HEAD || fail "git push failed. The commit exists locally." 96
 
 BR=$(git rev-parse --abbrev-ref HEAD)
 if [ "$BR" != "main" ]; then
-  git checkout -q main && git merge -q --ff-only "$BR" && git push -q origin main \
-    && git checkout -q "$BR" \
+  MAIN_TREE=$(git worktree list --porcelain | awk '
+    /^worktree / { tree=substr($0,10) }
+    /^branch refs\/heads\/main$/ { print tree; exit }
+  ')
+  [ -n "$MAIN_TREE" ] || fail "could not find the dedicated main integration worktree." 97
+  [ -z "$(git -C "$MAIN_TREE" status --porcelain --untracked-files=normal)" ] \
+    || fail "main integration worktree is dirty: $MAIN_TREE" 97
+  git -C "$MAIN_TREE" merge -q --ff-only "$BR" \
+    && git push -q origin HEAD:main \
     || fail "fast-forward of main from $BR failed; branch is pushed, main is not." 97
 fi
 echo ""
