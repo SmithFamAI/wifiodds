@@ -14,6 +14,7 @@ var MK = require('./market.js');
 /* published reader field reports, off the committed assets/reports.json */
 var RP = require('./reports.js');
 var RELEASE = require('./release.js');
+var ExtensionPage = require('./extension-page.js');
 /* the static route tables /united/ shows when script is off */
 var NJ = require('./nojsroutes.js');
 var Demo = require('./demo-fixture.js');
@@ -2641,22 +2642,44 @@ function technologyPage() {
  * Like technologyPage() it takes no argument: no figure on it comes from `m`.
  * The percentages are dated captures, labelled as captures on the page. */
 function extensionPage() {
-  return wholeDocument('extension', '/extension/', 'extensionPage',
+  return wholeDocument('extension-v3', '/extension/', 'extensionPage',
     '<!--EXTENSION:HEAD_EXTRA-->', function (tpl) {
       assertReleaseTemplateSource(tpl, 'extensionPage');
       var marker = '<!--EXTENSION:RELEASE_META-->';
-      if (tpl.split(marker).length !== 2) {
-        throw new Error('Render.extensionPage: expected exactly one ' + marker + ' marker.');
+      if (tpl.split(marker).length !== 3) {
+        throw new Error('Render.extensionPage: expected exactly two ' + marker + ' markers.');
       }
-      tpl = tpl.replace(marker, 'extension v' + esc(RELEASE.version) + ' released ' +
+      tpl = tpl.split(marker).join('extension v' + esc(RELEASE.version) + ' released ' +
         esc(releaseDate(RELEASE.storePublishedOn)));
       if (tpl.indexOf('<!--EXTENSION:DEMO_ROWS-->') === -1) {
         throw new Error('Render.extensionPage: missing EXTENSION:DEMO_ROWS marker');
       }
       tpl = tpl.replace('<!--EXTENSION:DEMO_ROWS-->', Demo.extensionRowsMarkup());
-      var dh = /^const DH = .*;$/m;
-      if (!dh.test(tpl)) throw new Error('Render.extensionPage: legacy DH payload not found');
-      return tpl.replace(dh, Demo.extensionScriptMarkup());
+      var replacements = {
+        '<!--EXTENSION:HOST_MATRIX-->': ExtensionPage.hostMatrix(),
+        '<!--EXTENSION:WHATS_NEW-->': ExtensionPage.whatsNew(),
+        '<!--EXTENSION:FEATURE_INDEX-->': ExtensionPage.featureIndex(),
+        '<!--EXTENSION:FEATURE_DEMOS-->': ExtensionPage.featureDemos(),
+        '<!--EXTENSION:REFERENCE-->': ExtensionPage.referenceMarkup(),
+        '<!--EXTENSION:SCRIPT_DATA-->': ExtensionPage.scriptData()
+      };
+      Object.keys(replacements).forEach(function (releaseMarker) {
+        if (tpl.split(releaseMarker).length !== 2) {
+          throw new Error('Render.extensionPage: expected exactly one ' + releaseMarker + ' marker.');
+        }
+        tpl = tpl.replace(releaseMarker, function () { return replacements[releaseMarker]; });
+      });
+      var leftovers = (tpl.match(/<!--EXTENSION:[A-Z_]+-->/g) || []).filter(function (name) {
+        return name !== '<!--EXTENSION:HEAD_EXTRA-->';
+      });
+      if (leftovers.length) {
+        throw new Error('Render.extensionPage: unmatched extension marker remains: ' + leftovers.join(', '));
+      }
+      /* Inline elements share one spoken/textContent phrase. Keep a literal
+         separator at every generated boundary so `01` + `Flight row` cannot
+         become `01Flight row` for screen readers or copied text. */
+      return tpl.replace(/<\/(span|b|i|em|strong|small|code|abbr|sup|sub)><(span|b|i|em|strong|small|code|abbr|sup|sub)(\s|>)/g,
+        '</$1> <$2$3');
     });
 }
 

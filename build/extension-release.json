@@ -19,5 +19,131 @@
       "home": "Automatic single-airline sorting with a real undo",
       "full": "Automatically sorts supported single-airline result pages by next-gen odds and provides a real undo, while preserving host order where automatic sorting is not offered."
     }
+  ],
+  "hosts": [
+    {
+      "id": "united",
+      "name": "United",
+      "hostname": "united.com",
+      "perFlight": "UA odds",
+      "carrierFallback": "Yes",
+      "autoSort": "On by default",
+      "prioritize": "Not offered",
+      "routePanel": "No",
+      "guardian": "Yes"
+    },
+    {
+      "id": "alaska",
+      "name": "Alaska",
+      "hostname": "alaskaair.com",
+      "perFlight": "AS odds",
+      "carrierFallback": "Yes",
+      "autoSort": "On by default",
+      "prioritize": "Not offered",
+      "routePanel": "Yes",
+      "guardian": "Yes"
+    },
+    {
+      "id": "navan",
+      "name": "Navan",
+      "hostname": "app.navan.com",
+      "perFlight": "UA only",
+      "carrierFallback": "Yes",
+      "autoSort": "Host order",
+      "prioritize": "United only",
+      "routePanel": "Yes",
+      "guardian": "Yes"
+    },
+    {
+      "id": "google",
+      "name": "Google Flights",
+      "hostname": "google.com/travel/flights",
+      "perFlight": "UA/AS when exposed",
+      "carrierFallback": "Recognised carriers",
+      "autoSort": "Never",
+      "prioritize": "Never",
+      "routePanel": "Yes",
+      "guardian": "Yes"
+    }
+  ],
+  "allowedFeatureClaims": [
+    {
+      "id": "rows",
+      "title": "Flight-row metrics",
+      "question": "What does this number measure?",
+      "ceiling": "Per-flight odds only for an exposed UA or AS flight number; otherwise a labelled carrier-level ConnectScore.",
+      "steps": ["Read the flight number", "Look up dated history", "Label NEXT-GEN odds", "Label STREAMING score", "Keep unknown flights unknown"],
+      "behaviors": {
+        "united": "Labels UA rows with per-flight next-gen odds and the carrier streaming score.",
+        "alaska": "Labels AS rows with per-flight next-gen odds after optional access is granted.",
+        "navan": "Labels United rows only; other carriers remain carrier-level or unknown.",
+        "google": "Adds carrier scores, upgrading to per-flight UA or AS odds only when Google exposes a flight number."
+      }
+    },
+    {
+      "id": "decision",
+      "title": "Best WiFi choice",
+      "question": "Is one flight clearly better supported?",
+      "ceiling": "Names a winner only with at least two scored flights, an eight-point lead, and high or medium tracker confidence.",
+      "steps": ["Capture comparable flights", "Load their history", "Check confidence", "Apply the eight-point gate", "Name a winner or explain refusal"],
+      "behaviors": {
+        "united": "Shows a decision card but does not offer the carrier-framed Prioritize control.",
+        "alaska": "Shows a decision card when enough AS evidence clears the gate.",
+        "navan": "Can explicitly prioritize supported United rows while unscored rows follow.",
+        "google": "Shows labelled evidence only; Google owns the result order and no prioritization is offered."
+      }
+    },
+    {
+      "id": "sort",
+      "title": "Sorting and undo",
+      "question": "Can the best-supported flight move up safely?",
+      "ceiling": "Automatic sorting is limited to supported single-airline result lists and always preserves a real undo.",
+      "steps": ["Capture site order", "Score supported rows", "Move ranked rows", "Disclose the sort", "Restore site order on undo"],
+      "behaviors": {
+        "united": "Sorts supported United result lists automatically and offers Keep site order.",
+        "alaska": "Sorts supported Alaska result lists automatically and offers Keep site order.",
+        "navan": "Preserves host order by default because unscored airlines are unknown, not worse.",
+        "google": "Not offered here. Google Flights virtualises its result list and owns its ordering."
+      }
+    },
+    {
+      "id": "route",
+      "title": "Route panel",
+      "question": "What is the evidence across this result page?",
+      "ceiling": "Summarises only rows the current host exposes and states the coverage boundary beside the action.",
+      "steps": ["Find visible rows", "Separate scored and unscored", "Summarise the route", "State host coverage", "Keep unscored rows in place"],
+      "behaviors": {
+        "united": "Summarises the visible United route and its per-flight evidence.",
+        "alaska": "Summarises the visible Alaska route after optional access is granted.",
+        "navan": "Summarises United rows and says other airlines remain unscored.",
+        "google": "Not offered here. The extension adds row labels without a separate route panel."
+      }
+    },
+    {
+      "id": "guardian",
+      "title": "Trip Guardian",
+      "question": "Did the assigned aircraft change before boarding?",
+      "ceiling": "Reports the latest grounded assignment state; an unknown aircraft is never rewritten as a negative.",
+      "steps": ["Add the flight to Guard", "Wait for an assignment", "Read the published tail", "Check grounded equipment data", "Report the update with its reason"],
+      "behaviors": {
+        "united": "Watches a saved United flight for a grounded assignment update.",
+        "alaska": "Watches a saved Alaska flight after optional host access is granted.",
+        "navan": "Watches a supported United flight saved from Navan.",
+        "google": "Watches a supported flight saved from Google Flights without changing Google's page order."
+      }
+    },
+    {
+      "id": "popup",
+      "title": "Popup coverage and lookup",
+      "question": "Where is the extension active, and what can I look up?",
+      "ceiling": "Shows access state and carrier-level coverage for the shipped release; optional hosts stay off until the user grants them.",
+      "steps": ["Open the popup", "Show current host access", "Request optional access", "Confirm the user grant", "Expose coverage and lookup"],
+      "behaviors": {
+        "united": "Built-in access; the popup exposes current coverage and lookup.",
+        "alaska": "Access off becomes a user grant, then Alaska coverage turns on.",
+        "navan": "Built-in access; the popup explains United-only per-flight coverage.",
+        "google": "Access off becomes a user grant; carrier scores appear after permission is granted."
+      }
+    }
   ]
 }

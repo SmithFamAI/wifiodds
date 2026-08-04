@@ -1649,14 +1649,14 @@ async function main() {
     ' ' + releaseParts[0];
   var extensionBuilt = fs.readFileSync(path.join(ROOT, 'extension/index.html'), 'utf8');
   var homeTemplate = fs.readFileSync(path.join(ROOT, 'build/templates/home.html'), 'utf8');
-  var extensionTemplate = fs.readFileSync(path.join(ROOT, 'build/templates/extension.html'), 'utf8');
+  var extensionTemplate = fs.readFileSync(path.join(ROOT, 'build/templates/extension-v3.html'), 'utf8');
   eq(HTML.EXT_VERSION, RELEASE.version, 'release ledger: shared EXT_VERSION is derived from the ledger');
   eq((home.match(new RegExp('v' + RELEASE.version.replace(/\./g, '\\.') +
     ' · free · cleared review ' + releaseDate, 'g')) || []).length, 1,
     'release ledger: homepage renders exactly one ledger version/date line');
   eq((extensionBuilt.match(new RegExp('extension v' + RELEASE.version.replace(/\./g, '\\.') +
-    ' released ' + releaseDate, 'g')) || []).length, 1,
-    'release ledger: extension page renders exactly one ledger version/date provenance line');
+    ' released ' + releaseDate, 'g')) || []).length, 2,
+    'release ledger: extension hero and provenance render the same ledger version/date');
   eq((home.match(/class="whatsnew-ticker" href="\/extension\/#whats-new"/g) || []).length, 1,
     'release ledger: homepage renders exactly one What’s New ticker linked to the full release');
   eq((home.match(/Click here to read more about the latest updates/g) || []).length, 1,
@@ -1670,6 +1670,22 @@ async function main() {
       'release ledger: homepage projects highlight ' + highlight.id + ' exactly once');
     eq((home.match(new RegExp(highlight.home.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length, 1,
       'release ledger: homepage highlight ' + highlight.id + ' is rendered from ledger copy');
+  });
+  var extensionSectionIds = Array.from(extensionBuilt.matchAll(/<section\b[^>]*\bid="([^"]+)"/g))
+    .map(function (match) { return match[1]; }).filter(function (id) {
+      return ['hero', 'how', 'hosts', 'whats-new', 'features', 'demos', 'silent', 'install'].indexOf(id) >= 0;
+    });
+  eq(extensionSectionIds.join(','), 'hero,how,hosts,whats-new,features,demos,silent,install',
+    'extension redesign: all eight sections render in the approved order');
+  RELEASE.allowedFeatureClaims.forEach(function (feature) {
+    eq((extensionBuilt.match(new RegExp('data-feature-link="' + feature.id + '"', 'g')) || []).length, 1,
+      'extension manifest: ' + feature.id + ' has one index link');
+    eq((extensionBuilt.match(new RegExp('data-feature-section="' + feature.id + '"', 'g')) || []).length, 1,
+      'extension manifest: ' + feature.id + ' has one chapter');
+    eq((extensionBuilt.match(new RegExp('data-demo-frame="' + feature.id + '"', 'g')) || []).length, 1,
+      'extension manifest: ' + feature.id + ' has one demo frame');
+    eq((extensionBuilt.match(new RegExp('data-feature-coverage="' + feature.id + '"', 'g')) || []).length, 1,
+      'extension manifest: ' + feature.id + ' has one host-coverage row');
   });
   [homeTemplate, extensionTemplate].forEach(function (src, i) {
     var label = i ? 'extension template' : 'homepage template';

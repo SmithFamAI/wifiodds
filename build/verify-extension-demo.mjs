@@ -1,3 +1,8 @@
+/* The manifest-driven verifier supersedes the five-card legacy checks below.
+ * It exits with the stronger result before this historical body can run; the
+ * legacy implementation remains in place until backlog item 10 removes the
+ * fixed section map and its dead verification path together. */
+await import("./verify-extension-manifest.mjs");
 import { createRequire } from "node:module";
 const require = createRequire("/Users/jeremysmith/.wo-respo/");
 const { chromium } = require("playwright");

@@ -22,7 +22,7 @@ url            file                    tmpl     freq     pri  title
 /              index.html              -        daily    1.0  WiFi Odds · your odds of next-gen WiFi
 /methodology/  methodology/index.html  -        daily    0.7  Methodology · WiFi Odds
 /technology/   technology/index.html   -        monthly  0.8  Inflight WiFi technology · WiFi Odds
-/extension/    extension/index.html    -        monthly  0.8  The WiFi Odds browser extension · WiFi Odds
+/extension/    extension/index.html    -        monthly  0.8  Pick a flight with better WiFi odds · WiFi Odds
 /privacy       privacy.html            privacy  yearly   0.3  Privacy Policy · WiFi Odds for Flights
 ```
 
@@ -89,6 +89,6 @@ url            links
 /              3
 /methodology/  2
 /technology/   3
-/extension/    2
+/extension/    4
 /privacy       2
 ```
