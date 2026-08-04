@@ -230,15 +230,15 @@
       "pivotUnits": 0
     },
     "extension/index.html": {
-      "words": 2493,
+      "words": 2423,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
-      "pivotPer1000": 0.5,
-      "pivotUnits": 1.25
+      "pivotPer1000": 0.41,
+      "pivotUnits": 1
     },
     "index.html": {
-      "words": 1054,
+      "words": 1079,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -254,12 +254,12 @@
       "pivotUnits": 11.75
     },
     "methodology/index.html": {
-      "words": 820,
+      "words": 773,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
       "pivotPer1000": 1.25,
-      "pivotUnits": 1.5
+      "pivotUnits": 1.25
     },
     "privacy.html": {
       "words": 1495,
@@ -310,12 +310,12 @@
       "pivotUnits": 2.75
     },
     "technology/index.html": {
-      "words": 1200,
+      "words": 1083,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
       "pivotPer1000": 1.4,
-      "pivotUnits": 2.25
+      "pivotUnits": 1.75
     },
     "united/fleet/index.html": {
       "words": 4482,

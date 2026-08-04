@@ -1762,6 +1762,36 @@ async function main() {
       'extension manifest: ' + feature.id + ' has one demo frame');
     eq((extensionBuilt.match(new RegExp('data-feature-coverage="' + feature.id + '"', 'g')) || []).length, 1,
       'extension manifest: ' + feature.id + ' has one host-coverage row');
+    ok(extensionBuilt.indexOf(feature.question) === -1,
+      'extension density: ' + feature.id + ' question prompt is absent');
+  });
+  [
+    'How the extension labels and sorts flights.',
+    'Features available on each booking site.',
+    'Changes in the current extension release.',
+    'Six extension features.',
+    'Booking-page examples for each feature.',
+    'Messages for missing data and errors.',
+    'Install and site-access requirements.'
+  ].forEach(function (copy) {
+    ok(extensionBuilt.indexOf(copy) !== -1, 'extension density: direct section heading is present', copy);
+  });
+  [
+    'After you install it.',
+    'Support by booking site.',
+    'New in the current version.',
+    'Features at a glance.',
+    'See each feature on a booking page.',
+    'Unknown stays unknown.',
+    'Install it without creating an account.',
+    'Adds a flight-level next-gen estimate when the booking page shows a supported flight number.',
+    'Names one flight when the available history gives it a clear lead.',
+    'Moves higher-odds United or Alaska flights up and provides an undo button.',
+    'Summarises scored and unscored flights on supported result pages.',
+    'Checks a saved flight for an aircraft assignment change before departure.',
+    'Shows site access, airline coverage, and manual lookup from the toolbar.'
+  ].forEach(function (copy) {
+    ok(extensionBuilt.indexOf(copy) === -1, 'extension density: repeated or slogan copy is absent', copy);
   });
   [homeTemplate, extensionTemplate].forEach(function (src, i) {
     var label = i ? 'extension template' : 'homepage template';

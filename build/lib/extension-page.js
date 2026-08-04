@@ -43,19 +43,11 @@ function whatsNew() {
 }
 
 function featureIndex() {
-  var descriptions = {
-    rows: 'Adds a flight-level next-gen estimate when the booking page shows a supported flight number.',
-    decision: 'Names one flight when the available history gives it a clear lead.',
-    sort: 'Moves higher-odds United or Alaska flights up and provides an undo button.',
-    route: 'Summarises scored and unscored flights on supported result pages.',
-    guardian: 'Checks a saved flight for an aircraft assignment change before departure.',
-    popup: 'Shows site access, airline coverage, and manual lookup from the toolbar.'
-  };
   return '<nav class="feature-index" aria-label="Extension feature index">' +
     RELEASE.allowedFeatureClaims.map(function (feature, i) {
       return '<a class="feature-index-card" data-feature-link="' + esc(feature.id) + '" href="#f-' +
         esc(feature.id) + '"><span class="chapter-n">' + String(i + 1).padStart(2, '0') +
-        '</span><b>' + esc(feature.title) + '</b><span>' + esc(descriptions[feature.id]) + '</span></a>';
+        '</span><b>' + esc(feature.title) + '</b></a>';
     }).join('') + '</nav>';
 }
 
@@ -94,8 +86,8 @@ function featureDemos() {
     }).join('');
     return '<article class="feature-chapter" id="f-' + esc(feature.id) + '" data-feature-section="' +
       esc(feature.id) + '"><header><div><span class="eyebrow">Example ' + (i + 1) + ' of ' +
-      RELEASE.allowedFeatureClaims.length + '</span><h3>' + esc(feature.title) + '</h3><p>' +
-      esc(feature.question) + '</p></div><button class="demo-play" type="button" data-demo-play ' +
+      RELEASE.allowedFeatureClaims.length + '</span><h3>' + esc(feature.title) + '</h3></div>' +
+      '<button class="demo-play" type="button" data-demo-play ' +
       'aria-pressed="false">Pause demo</button></header><div class="host-tabs" role="group" ' +
       'aria-label="Show ' + esc(feature.title) + ' by booking site">' + buttons + '</div><div class="demo-grid">' +
       demoScene(feature) + '<div class="demo-copy"><p class="host-behavior" data-host-behavior>' +
