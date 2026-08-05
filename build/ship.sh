@@ -159,7 +159,31 @@ echo "── 4/5 stage ───────────────────
 # Explicit paths only. NEVER `git add .` — this tree holds other people's
 # drafts and that rule has already caught one real staging mistake.
 CHANGED=$(git status --porcelain | awk '{print $2}')
-if [ -z "$CHANGED" ]; then echo "nothing changed; not committing."; exit 0; fi
+if [ -z "$CHANGED" ]; then
+  AHEAD=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)
+  if [ "$AHEAD" -gt 0 ]; then
+    echo "no new file changes; resuming push of $AHEAD verified local commit(s)"
+    check_driver_lock || fail "another live driver claimed the repository before the resumed push." 89
+    git push origin HEAD || fail "resumed branch push failed. The verified commit remains local." 96
+    BR=$(git rev-parse --abbrev-ref HEAD)
+    if [ "$BR" != "main" ]; then
+      MAIN_TREE=$(git worktree list --porcelain | awk '
+        /^worktree / { tree=substr($0,10) }
+        /^branch refs\/heads\/main$/ { print tree; exit }
+      ')
+      [ -n "$MAIN_TREE" ] || fail "could not find the dedicated main integration worktree." 97
+      [ -z "$(git -C "$MAIN_TREE" status --porcelain --untracked-files=normal)" ] \
+        || fail "main integration worktree is dirty: $MAIN_TREE" 97
+      git -C "$MAIN_TREE" merge -q --ff-only "$BR" \
+        && git -C "$MAIN_TREE" push -q origin HEAD:main \
+        || fail "fast-forward of main from $BR failed; branch is pushed, main is not." 97
+    fi
+    echo "shipped resumed commit: $(git rev-parse --short HEAD) on main"
+    exit 0
+  fi
+  echo "nothing changed; not committing."
+  exit 0
+fi
 if git status --porcelain | grep -q '^??'; then
   echo "Untracked files present:"; git status --porcelain | grep '^??'
   fail "untracked files in the tree. Stage them deliberately, then re-run. This
