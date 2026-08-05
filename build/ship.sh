@@ -172,7 +172,8 @@ if [ -z "$CHANGED" ]; then
         /^branch refs\/heads\/main$/ { print tree; exit }
       ')
       [ -n "$MAIN_TREE" ] || fail "could not find the dedicated main integration worktree." 97
-      [ -z "$(git -C "$MAIN_TREE" status --porcelain --untracked-files=normal)" ] \
+      [ -z "$(git -C "$MAIN_TREE" status --porcelain --untracked-files=normal -- . \
+        ':(exclude).playwright-mcp/**')" ] \
         || fail "main integration worktree is dirty: $MAIN_TREE" 97
       git -C "$MAIN_TREE" merge -q --ff-only "$BR" \
         && git -C "$MAIN_TREE" push -q origin HEAD:main \
@@ -221,7 +222,8 @@ if [ "$BR" != "main" ]; then
     /^branch refs\/heads\/main$/ { print tree; exit }
   ')
   [ -n "$MAIN_TREE" ] || fail "could not find the dedicated main integration worktree." 97
-  [ -z "$(git -C "$MAIN_TREE" status --porcelain --untracked-files=normal)" ] \
+  [ -z "$(git -C "$MAIN_TREE" status --porcelain --untracked-files=normal -- . \
+    ':(exclude).playwright-mcp/**')" ] \
     || fail "main integration worktree is dirty: $MAIN_TREE" 97
   git -C "$MAIN_TREE" merge -q --ff-only "$BR" \
     && git push -q origin HEAD:main \
