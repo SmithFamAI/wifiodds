@@ -83,6 +83,14 @@ fi
 
 check_driver_lock || exit 89
 
+echo "── refresh ordering controls ─────────────────────────────"
+if ! node build/home-order.test.js; then
+  fail "build/home-order.test.js exited non-zero. The server-rendered homepage may no longer follow the published score order." 98
+fi
+if ! node build/refresh-airline-counts.test.js; then
+  fail "build/refresh-airline-counts.test.js exited non-zero. Tracker parsing or count reconciliation is unsafe." 98
+fi
+
 echo "── 1/5 prerender ─────────────────────────────────────────"
 if ! node build/prerender.js; then
   fail "node build/prerender.js exited non-zero (see its output above)." 91

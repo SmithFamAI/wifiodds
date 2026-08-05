@@ -18,6 +18,7 @@ var ExtensionPage = require('./extension-page.js');
 /* the static route tables /united/ shows when script is off */
 var NJ = require('./nojsroutes.js');
 var Demo = require('./demo-fixture.js');
+var HomeOrder = require('./home-order.js');
 var esc = H.esc, num = DL.num;
 var ORIGIN = H.ORIGIN;
 
@@ -148,7 +149,7 @@ var CRYPTO = require('crypto');
  * required stability means ties (JSX/ZIPAIR, both 100/100 today; airBaltic is
  * 51 since the round-18 P0-02 fleet-denominator fix) keep this relative order
  * after the client re-sorts, never a random one. */
-var HOME_BOARD_ORDER = [
+var HOME_BOARD_SEED_ORDER = [
   'jsx', 'zipair', 'hawaiian', 'westjet', 'airbaltic', 'qatar', 'alaska', 'virginatlantic',
   'united', 'emirates', 'aircanada', 'britishairways', 'jetblue', 'american',
   'delta', 'southwest'
@@ -396,7 +397,11 @@ function homeRow(m, key, rank) {
 }
 
 function homeBoardRows(m) {
-  var ranked = HOME_BOARD_ORDER.map(function (k, i) { return homeRow(m, k, i + 1); }).join('');
+  var order = HomeOrder.rank(HOME_BOARD_SEED_ORDER, function (key) {
+    var a = m.A.scoreAirline(key);
+    return a && { odds: a.nextGenScore, connect: a.score };
+  });
+  var ranked = order.map(function (k, i) { return homeRow(m, k, i + 1); }).join('');
   var unranked = HOME_UNPUBLISHED_ORDER.map(function (k) { return homeRow(m, k, 0); }).join('');
   return ranked +
     '        <div class="unpublished-break"><b>Count unpublished · not ranked as zero</b> ' +
@@ -578,7 +583,7 @@ function home(m) {
      matching what this function generated). Both directions: a model key with
      no row here is exactly as wrong as a row for a key the model no longer has. */
   var modelKeys = Object.keys(m.A.WIFI_AIRLINES).slice().sort();
-  var tmplKeys = HOME_BOARD_ORDER.concat(HOME_UNPUBLISHED_ORDER).slice().sort();
+  var tmplKeys = HOME_BOARD_SEED_ORDER.concat(HOME_UNPUBLISHED_ORDER).slice().sort();
   if (modelKeys.length !== tmplKeys.length || modelKeys.join(',') !== tmplKeys.join(',')) {
     throw new Error('Render.home: airline key parity broken.\n  model:    [' + modelKeys.join(', ') +
       ']\n  template: [' + tmplKeys.join(', ') + ']');
