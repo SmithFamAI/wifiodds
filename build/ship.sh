@@ -176,7 +176,7 @@ if [ -z "$CHANGED" ]; then
         ':(exclude).playwright-mcp/**')" ] \
         || fail "main integration worktree is dirty: $MAIN_TREE" 97
       git -C "$MAIN_TREE" merge -q --ff-only "$BR" \
-        && git -C "$MAIN_TREE" push -q origin HEAD:main \
+        && git push -q origin HEAD:main \
         || fail "fast-forward of main from $BR failed; branch is pushed, main is not." 97
     fi
     echo "shipped resumed commit: $(git rev-parse --short HEAD) on main"

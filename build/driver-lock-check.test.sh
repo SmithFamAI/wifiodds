@@ -139,6 +139,9 @@ SHIP_REMOTE="$TMP/ship-remote.git"
 mkdir -p "$SHIP_REPO/build" "$SHIP_REPO/bin"
 cp "$ROOT/build/ship.sh" "$SHIP_REPO/build/ship.sh"
 cp "$CHECK" "$SHIP_REPO/build/driver-lock-check.sh"
+if grep -Fq 'git -C "$MAIN_TREE" push' "$SHIP_REPO/build/ship.sh"; then
+  bad "ship resume pushes from the protected main integration tree"
+else ok "ship resume pushes the reviewed branch through its owning worktree"; fi
 printf '#!/bin/sh\nexit 0\n' > "$SHIP_REPO/build/assemble.sh"
 printf '#!/bin/sh\nexit 0\n' > "$SHIP_REPO/build/proof-binding-controls.sh"
 printf '#!/bin/sh\nexit 0\n' > "$SHIP_REPO/bin/node"
