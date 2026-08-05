@@ -30,6 +30,7 @@
 
 var fs = require('fs');
 var path = require('path');
+var childProcess = require('child_process');
 var ROOT = path.join(__dirname, '..');
 var R = require('./routes.js');
 var DL = require('./lib/data.js');
@@ -723,12 +724,13 @@ function reconcileUnited() {
   }
   body = body.replace(RE_UNRESOLVED, 'unresolved: { n: ' + unresolved);
 
-  if (body === before) return;
+  if (body === before) return false;
   fs.writeFileSync(abs(p), head + body + tail);
   console.log('  united: reconciled ' + p + ' from data.json — ' +
     was[1] + '/' + was[2] + ' → ' + eq + '/' + tot + ' · starlink segment ' + sl[1] + ' → ' + eq +
     ' · unresolved ' + un[1] + ' → ' + unresolved +
     '  (stage assets/airlines.js with this commit)');
+  return true;
 }
 
 /* ═══ THE FIVE FENCING TRIPWIRES FOR THE PROJECTED SCORE ══════════════════
@@ -1046,7 +1048,18 @@ function assertProjectedRender(A) {
 
 /* ── main ────────────────────────────────────────────────────────────────── */
 function main() {
-  reconcileUnited();
+  if (reconcileUnited()) {
+    if (process.env.WIFIODDS_RECONCILE_RESTART === '1') {
+      console.error('Build FAILED — United reconciliation changed assets/airlines.js twice.');
+      process.exit(1);
+    }
+    var rerun = childProcess.spawnSync(process.execPath, [__filename], {
+      cwd: ROOT,
+      stdio: 'inherit',
+      env: Object.assign({}, process.env, { WIFIODDS_RECONCILE_RESTART: '1' })
+    });
+    process.exit(typeof rerun.status === 'number' ? rerun.status : 1);
+  }
   var m = DL.build();
 
   /* invariants worth failing the build over — these are the numbers every page
