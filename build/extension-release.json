@@ -1,11 +1,11 @@
 {
-  "version": "3.0.0",
-  "storePublishedOn": "2026-08-02",
-  "extensionCommit": "63576edd7c4a961b5111415627fb5b14c3997884",
-  "submissionEvidence": "store-assets/v3.0/SUBMIT-3.0.0.md at extension commit 63576edd7c4a961b5111415627fb5b14c3997884; owner verified the live Chrome Web Store listing body on 2026-08-02",
+  "version": "3.0.2",
+  "storePublishedOn": "2026-08-11",
+  "extensionCommit": "99f6b0b91a06a94e71a98ae458e22142513ff70b",
+  "submissionEvidence": "store-assets/v3.0/SUBMIT-3.0.2.md at extension commit 99f6b0b91a06a94e71a98ae458e22142513ff70b (tag v3.0.2; Claude Tier A receipt REVIEW-RECEIPT-A-extension-v3.0.2-2026-08-10); owner reported the live Chrome Web Store listing at 3.0.2 on 2026-08-11, and the store-version-sync task read the live listing body (3.0.2, updated August 11, 2026) in a real browser the same day",
   "contentCss": {
-    "path": "extension-content-3.0.0.css",
-    "sha256": "e972f1cbc43d44f540ef95fa296d5a9194a77b3705e8f4f7d5fbcde9715213a1"
+    "path": "extension-content-3.0.2.css",
+    "sha256": "ad264bb7f9c4e39b65811313985e55d70622379377318908749bbc2ba8c19b52"
   },
   "highlights": [
     {
