@@ -90,6 +90,9 @@ fi
 if ! node build/refresh-airline-counts.test.js; then
   fail "build/refresh-airline-counts.test.js exited non-zero. Tracker parsing or count reconciliation is unsafe." 98
 fi
+if ! bash test/revert-data-deploy.test.sh; then
+  fail "test/revert-data-deploy.test.sh exited non-zero. Rollback integration may bypass its registered worktree." 98
+fi
 
 echo "── 1/5 prerender ─────────────────────────────────────────"
 if ! node build/prerender.js; then
