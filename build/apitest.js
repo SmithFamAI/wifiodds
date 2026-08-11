@@ -1703,7 +1703,12 @@ async function main() {
     'See WiFi odds in your flight results.',
     'How WiFi Odds works on booking pages',
     'Choose which figures to compare.',
-    'United has next-gen aircraft flying. American, Delta, and Southwest are at 0% today.',
+    // Corrected 11 Aug 2026. The previous literal asserted "American, Delta, and
+    // Southwest are at 0% today" — false for Southwest, which the same page
+    // reports as 1 of 803. The claim was pinned here as well as in the template,
+    // so the test held the falsehood in place. Keep this figure-free: the Big-4
+    // cards carry the sourced counts.
+    'United has next-gen aircraft flying. American, Delta, and Southwest have almost none.',
     'Compare all 18 tracked airlines.',
     'Choose the number that answers your question.',
     'Airlines without published counts',

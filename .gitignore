@@ -4,3 +4,8 @@ dist/
 *.log
 .env
 .env.*
+
+# Playwright MCP debug artifacts (console logs + page snapshots). Tool output,
+# never deployable. Untracked files abort build/ship.sh, which would kill the
+# 04:32 data refresh, so this is ignored rather than left to trip the gate.
+.playwright-mcp/
