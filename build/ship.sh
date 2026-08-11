@@ -90,6 +90,9 @@ fi
 if ! node build/refresh-airline-counts.test.js; then
   fail "build/refresh-airline-counts.test.js exited non-zero. Tracker parsing or count reconciliation is unsafe." 98
 fi
+if ! node build/big4-denominator.test.js; then
+  fail "build/big4-denominator.test.js exited non-zero. Big-4 odds may not reconstruct from their displayed fleet totals." 98
+fi
 
 echo "── 1/5 prerender ─────────────────────────────────────────"
 if ! node build/prerender.js; then
