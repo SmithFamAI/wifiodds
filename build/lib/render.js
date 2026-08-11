@@ -416,8 +416,8 @@ function homeCard(m, key) {
   var sf = homeStreamingFloor(m, a);
   var streamStr = homeStr(homeFmtPct(sf.pct), key + '.streamStr');
   var ngCount = (a.segments || []).reduce(function (s, r) { return s + (r.nextGen ? r.n : 0); }, 0);
-  var known = a.known || 0;
-  var note = num(ngCount) + ' of ' + num(known) + ' aircraft next-gen today';
+  var total = a.total || 0;
+  var note = num(ngCount) + ' of ' + num(total) + ' aircraft next-gen today';
   var sup = key === 'united' ? '<sup>*</sup>' : '';
   var tierLabel = sf.uncertain ? 'streaming<br>floor' : 'streaming<br>or better';
 
