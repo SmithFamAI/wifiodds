@@ -165,6 +165,25 @@ function assertEnvelope(res, j, label) {
     label + ': sources credit unitedstarlinktracker.com');
 }
 
+/* 3.1.0 customer terminology is a rendered-page contract, not a source-token
+ * check. Strip non-visible blocks and markup before looking at each active
+ * route, so a legacy API field or a JavaScript variable cannot make this test
+ * fail while a traveller-facing label is already correct. */
+function renderedText(html) {
+  return String(html)
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function activePageText(route) {
+  var file = route === '/' ? 'index.html' : route.replace(/^\/+|\/+$/g, '') +
+    (route === '/privacy' ? '.html' : '/index.html');
+  return renderedText(fs.readFileSync(path.join(ROOT, file), 'utf8'));
+}
+
 /* ── tracker validation gate (P0-02, round 5) ───────────────────────────────
  * The two MCP calls (predict_route_starlink, search_starlink_flights) and the
  * plan-route JSON call all reach the reader's localStorage, live badge and
@@ -732,6 +751,8 @@ async function main() {
   eq(res.status, 200, '/api status');
   assertEnvelope(res, j, '/api');
   eq(res.headers.get('cache-control'), 'public, max-age=3600', '/api cache-control');
+  eq(res.headers.get('x-wifiodds-api'), res.headers.get('x-connectscore-api'),
+    '/api: x-wifiodds-api is the direct 3.1.0 alias for the preserved x-connectscore-api header');
   eq(j.version, 'v0', '/api version');
   eq(j.endpoints.length, 4, '/api lists 4 endpoints');
   eq(j.airlineCount, Object.keys(A.WIFI_AIRLINES).length, '/api airlineCount');
@@ -742,6 +763,8 @@ async function main() {
   eq(res.status, 200, '/api/airlines status');
   assertEnvelope(res, all, '/api/airlines');
   eq(res.headers.get('cache-control'), 'public, max-age=3600', '/api/airlines cache-control');
+  eq(res.headers.get('x-wifiodds-api'), res.headers.get('x-connectscore-api'),
+    '/api/airlines: x-wifiodds-api aliases the preserved x-connectscore-api header');
   eq(all.count, 18, '/api/airlines returns all 18 airlines');
   eq(all.airlines.length, 18, '/api/airlines airlines[] length');
 
@@ -763,6 +786,18 @@ async function main() {
   all.airlines.forEach(function (a) {
     var r = A.scoreAirline(a.key);
     eq(a.connectScore, r.score, 'connectScore for ' + a.key);
+    /* A regression can expose a field called streamingScore while accidentally
+     * feeding it the old coverage percentage. The aliases must be direct
+     * compatibility aliases for the 0–100 score, including its bounds and
+     * unrounded ranking value. */
+    eq(a.streamingScore, a.connectScore,
+      a.key + ': streamingScore aliases connectScore, not confirmed coverage');
+    eq(a.streamingScoreLower, a.connectScoreLower,
+      a.key + ': streamingScoreLower aliases connectScoreLower');
+    eq(a.streamingScoreUpper, a.connectScoreUpper,
+      a.key + ': streamingScoreUpper aliases connectScoreUpper');
+    eq(a.streamingScoreExact, a.connectScoreExact,
+      a.key + ': streamingScoreExact aliases connectScoreExact');
     ok(typeof a.name === 'string' && a.name.length, a.key + ': name');
     ok(typeof a.system.key === 'string', a.key + ': system.key');
     ok(typeof a.system.quality === 'number', a.key + ': system.quality');
@@ -950,6 +985,11 @@ async function main() {
      floor it contributes qMin × 0 = 0 (the ruling forbids an assumed 0.85
      midpoint in a floor). 47.6 + 0 + 0 = 48. */
   eq(dl.connectScore, 48, 'Delta connectScore is 48 — the whole-fleet lower bound');
+  eq(dl.fleet.equippedPct, 86,
+    'Delta confirmed streaming coverage is independently 86% of its 1,330-aircraft fleet');
+  ok(dl.streamingScore !== dl.fleet.equippedPct,
+    'Delta streamingScore is not derived from its confirmed streaming coverage percentage',
+    [dl.streamingScore, dl.fleet.equippedPct]);
   eq(dl.floor, 48, 'Delta floor is the published connectScore');
   /* The ceiling exists because the transpacific row could be a modern-GEO system
      at full price-free (qMax × fMax=1). Publishing the floor is what makes the
@@ -1078,6 +1118,8 @@ async function main() {
   var qr = await body(res);
   eq(res.status, 200, '/api/airlines/qatar status');
   assertEnvelope(res, qr, '/api/airlines/qatar');
+  eq(res.headers.get('x-wifiodds-api'), res.headers.get('x-connectscore-api'),
+    '/api/airlines/{key}: x-wifiodds-api aliases the preserved x-connectscore-api header');
   eq(qr.airline.key, 'qatar', 'qatar key');
   eq(qr.airline.fleet.equipped, 120, 'qatar equipped');
   eq(qr.airline.fleet.total, 241, 'qatar fleet total');
@@ -1428,6 +1470,8 @@ async function main() {
     params: { name: 'get_airline_score', arguments: { key: 'qatar' } } });
   var r1 = t1.j.result;
   eq(r1.isError, false, 'get_airline_score(qatar) is not an error');
+  eq(t1.res.headers.get('x-wifiodds-api'), t1.res.headers.get('x-connectscore-api'),
+    'MCP constructs the x-wifiodds-api compatibility header alongside x-connectscore-api');
   assertToolResult(r1, 'get_airline_score(qatar)');
   eq(r1.structuredContent.airline.connectScore, qr.airline.connectScore,
     'PARITY: MCP get_airline_score(qatar) equals /api/airlines/qatar');
@@ -1675,6 +1719,21 @@ async function main() {
    * connectScore, and the API must agree about both numbers. */
   var home = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 
+  /* The migration is customer-facing: every active rendered route must retire
+   * ConnectScore wording, while the homepage's two primary controls retain
+   * their distinct subjects. This catches a partial template migration where a
+   * supporting label, title, or non-home route keeps the old public name. */
+  ['/', '/methodology/', '/technology/', '/extension/', '/privacy'].forEach(function (route) {
+    ok(activePageText(route).indexOf('ConnectScore') === -1,
+      '3.1.0 visible terminology: ' + route + ' exposes no customer-facing ConnectScore label');
+  });
+  ok(/<button\b[^>]*\bdata-view="nextgen"[^>]*>Next-Gen<\/button>/.test(home),
+    '3.1.0 homepage primary control says Next-Gen, not the old next-gen odds label');
+  ok(/<button\b[^>]*\bdata-view="streaming"[^>]*>Streaming<\/button>/.test(home),
+    '3.1.0 homepage primary control says Streaming, not the old streaming-or-better coverage label');
+  ok(activePageText('/').indexOf('Confirmed streaming coverage') >= 0,
+    '3.1.0 homepage labels the supporting percentage Confirmed streaming coverage');
+
   /* The store listing, not the extension manifest, decides what public site
    * copy may call current. One ledger feeds the shared HTML constant and both
    * rendered templates; source-level guards in render.js reject a literal that
@@ -1881,6 +1940,44 @@ async function main() {
     (home.match(/<footer\b/g) || []).length);
   ok(/<body[^>]*\bdata-view="nextgen"/.test(home),
     'homepage: <body data-view="nextgen"> is present in the RAW HTML, correct before any script runs');
+
+  /* Southwest is the supplied false-zero discriminator. Its published source
+   * says one next-gen aircraft in a fleet of 803; derive that nonzero condition
+   * from those public record fields rather than from the production rounding
+   * helper. The API and the card must preserve the same nonzero result, and a
+   * card with an equipped aircraft may not deny that any exist. */
+  var southwest = all.airlines.filter(function (a) { return a.key === 'southwest'; })[0];
+  ok(!!southwest, 'Southwest is present for the sourced false-zero control');
+  if (southwest) {
+    var southwestCount = southwest.segments.filter(function (s) { return s.nextGen; })
+      .reduce(function (sum, s) { return sum + s.aircraft; }, 0);
+    var southwestFleet = southwest.wholeFleet.total;
+    eq(southwestCount, 1, 'Southwest source record has one published next-gen aircraft');
+    eq(southwestFleet, 803, 'Southwest source record has an 803-aircraft fleet');
+    ok(southwestCount / southwestFleet > 0,
+      'Southwest one-of-803 share is nonzero before any display rounding');
+    ok(southwest.nextGen.pct > 0,
+      'Southwest API preserves its sourced nonzero next-gen result instead of rounding it to zero',
+      southwest.nextGen.pct);
+    var southwestCards = home.split('<article class="aircard"').filter(function (chunk) {
+      return /<span class="airname">Southwest<\/span>/.test(chunk);
+    });
+    eq(southwestCards.length, 1, 'Southwest has one rendered Big 4 card for the false-zero control');
+    if (southwestCards.length === 1) {
+      var southwestCard = southwestCards[0];
+      var southwestNextGen = /data-nextgen="(-?[\d.]+)"/.exec(southwestCard);
+      ok(!!southwestNextGen, 'Southwest Big 4 card carries a next-gen result');
+      if (southwestNextGen) {
+        ok(Number(southwestNextGen[1]) > 0,
+          'Southwest homepage preserves its sourced nonzero next-gen result instead of rendering 0%',
+          southwestNextGen[1]);
+        eq(Number(southwestNextGen[1]), southwest.nextGen.pct,
+          'Southwest homepage next-gen result agrees with the API result');
+        ok(southwestCard.indexOf('No next-gen aircraft yet') === -1,
+          'Southwest homepage does not deny next-gen aircraft when its sourced count is one');
+      }
+    }
+  }
 
   /* ── Big 4 cards: name + data-nextgen attribute + the ConnectScore <b> in
    * .support must all agree with the API for the same airline. */
