@@ -1944,20 +1944,27 @@ async function main() {
   ok(/<body[^>]*\bdata-view="nextgen"/.test(home),
     'homepage: <body data-view="nextgen"> is present in the RAW HTML, correct before any script runs');
 
-  /* Both view states are present in the generated no-JavaScript HTML. Read the
-   * streaming state that a visitor activates, rather than the renderer source:
-   * its primary value must be the existing 0–100 score. Delta distinguishes
-   * this contract because its score is 48 while its confirmed coverage is 86. */
+  /* The generated Streaming state owns an explicit public marker. It must not
+   * reuse the retired coverage-floor state. Delta distinguishes the metrics:
+   * the plain primary score is 48 and its separate confirmed coverage is 86%. */
   home.split('<article class="aircard"').slice(1).forEach(function (card) {
     var nameMatch = /<span class="airname">([^<]+)<\/span>/.exec(card);
-    var streamingMatch = /<div class="primary-stat tier-only"><strong[^>]*>(?:≥)?([\d.]+)%/.exec(card);
+    var streamingMatch = /<[^>]*\bdata-streaming-view="primary"[^>]*>([^<]+)<\//.exec(card);
+    var coverageMatch = /<[^>]*\bdata-streaming-coverage="confirmed"[^>]*>([^<]+)<\//.exec(card);
     if (!nameMatch) return;
     var a = all.airlines.filter(function (x) { return x.name === nameMatch[1]; })[0];
     ok(!!a, 'streaming primary card names an airline the API knows', nameMatch[1]);
-    ok(!!streamingMatch, nameMatch[1] + ': generated streaming view has a primary percentage');
+    ok(!!streamingMatch, nameMatch[1] + ': generated Streaming view owns a marked primary score');
+    ok(!!coverageMatch, nameMatch[1] + ': generated Streaming view names separate confirmed coverage');
     if (a && streamingMatch) {
-      eq(Number(streamingMatch[1]), a.connectScore,
+      eq(streamingMatch[1], String(a.connectScore),
         '3.1.0 ' + nameMatch[1] + ' streaming primary card uses the 0–100 score, not coverage');
+    }
+    if (a && coverageMatch) {
+      ok(/^\d+(?:\.\d+)?%$/.test(coverageMatch[1]),
+        nameMatch[1] + ': confirmed streaming coverage is a separate percentage', coverageMatch[1]);
+      if (a.key === 'delta') eq(coverageMatch[1], '86%',
+        'Delta Streaming card keeps its independently measured 86% coverage separate from score 48');
     }
   });
 
@@ -2055,18 +2062,20 @@ async function main() {
     if (r.rankable) {
       eq(r.odds, a.nextGenScore, 'PARITY: ' + r.key + ' row data-odds == API nextGenScore');
       /* The default visible value follows data-odds. The activated Streaming
-         value follows the existing 0–100 score; confirmed coverage remains a
-         separate supporting datum and cannot become this primary figure. */
+         view has its own public marker, score, and supporting coverage. */
       var oddsTxt = /<b class="odds-only">(-?[\d.]+)%/.exec(r.inner);
-      var floorTxt = /<b class="tier-only">(?:≥)?(-?[\d.]+)%/.exec(r.inner);
+      var streamingPrimary = /<[^>]*\bdata-streaming-view="primary"[^>]*>([^<]+)<\//.exec(r.inner);
+      var streamingCoverage = /<[^>]*\bdata-streaming-coverage="confirmed"[^>]*>([^<]+)<\//.exec(r.inner);
       ok(!!oddsTxt, r.key + ' row prints an odds-only percentage', r.inner);
-      ok(!!floorTxt, r.key + ' row prints a tier-only percentage', r.inner);
+      ok(!!streamingPrimary, r.key + ' row has a marked Streaming primary score');
+      ok(!!streamingCoverage, r.key + ' row has marked confirmed streaming coverage');
       if (oddsTxt) eq(Number(oddsTxt[1]), r.odds, 'PARITY: ' + r.key + ' displayed odds-only figure == data-odds');
-      if (floorTxt) eq(Number(floorTxt[1]), a.connectScore,
+      if (streamingPrimary) eq(streamingPrimary[1], String(a.connectScore),
         '3.1.0 ' + r.key + ' streaming board value uses the 0–100 score, not coverage');
-      /* a floor already at 100 has no headroom for a remainder to raise, so
-         "≥100%" would be meaningless — the uncertain flag must be off */
-      if (r.floor >= 100) ok(!r.uncertain, r.key + ' row: floor at 100 never carries data-floor-uncertain');
+      if (streamingCoverage) ok(/^\d+(?:\.\d+)?%$/.test(streamingCoverage[1]),
+        r.key + ' row: confirmed streaming coverage is a separate percentage', streamingCoverage[1]);
+      if (r.key === 'delta' && streamingCoverage) eq(streamingCoverage[1], '86%',
+        'Delta Streaming board keeps its independently measured 86% coverage separate from score 48');
     } else {
       /* rule 4: an unpublished airline carries no numeric next-gen claim and
          no heat/ramp position. -1 is a structural sentinel the client script
