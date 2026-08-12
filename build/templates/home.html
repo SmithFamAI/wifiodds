@@ -269,6 +269,7 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
   var rows=[].slice.call(grid.querySelectorAll('.row'));
   var ranked=rows.filter(function(row){return row.dataset.rankable==='true'});
   var unranked=rows.filter(function(row){return row.dataset.rankable!=='true'});
+  var streamingRows=rows.slice();
   var bigCards=[].slice.call(document.querySelectorAll('#big4 .aircard'));
   var filter=document.getElementById('airline-filter');
   var choices=[].slice.call(filter.querySelectorAll('[data-airline-choice]'));
@@ -280,28 +281,36 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
     var t=Math.max(0,Math.min(100,value))/100;
     return [Math.round(41+(146-41)*t),Math.round(216+(108-216)*t),255].join(',');
   }
-  function updateRanks(){
-    var visibleRanked=ranked.filter(function(row){return !row.hidden});
-    visibleRanked.forEach(function(row,i){row.querySelector('.rank-text').textContent=String(i+1).padStart(2,'0')});
+  function updateRanks(activeRows){
+    var visibleActive=activeRows.filter(function(row){return !row.hidden});
+    visibleActive.forEach(function(row,i){row.querySelector('.rank-text').textContent=String(i+1).padStart(2,'0')});
     var visibleUnranked=unranked.some(function(row){return !row.hidden});
-    separator.hidden=!visibleUnranked;
-    count.textContent=(visibleRanked.length+unranked.filter(function(row){return !row.hidden}).length)+' shown';
+    separator.hidden=document.body.dataset.view==='streaming'||!visibleUnranked;
+    count.textContent=rows.filter(function(row){return !row.hidden}).length+' shown';
   }
   function applyFilter(){
     var selected=new Set(choices.filter(function(choice){return choice.checked}).map(function(choice){return choice.value}));
     rows.forEach(function(row){row.hidden=!selected.has(row.dataset.name)});
     summary.textContent=selected.size===choices.length?'All 18 airlines':selected.size===0?'No airlines selected':selected.size+' airlines selected';
-    updateRanks();
+    updateRanks(document.body.dataset.view==='streaming'?streamingRows:ranked);
   }
   function order(view){
     document.body.dataset.view=view;
     grid.classList.toggle('streaming',view==='streaming');
     buttons.forEach(function(button){button.setAttribute('aria-pressed',button.dataset.view===view?'true':'false')});
-    ranked.sort(function(a,b){
-      var metric=view==='streaming'?(+b.dataset.streamingScore)-(+a.dataset.streamingScore):(+b.dataset.odds)-(+a.dataset.odds);
-      return metric||((+b.dataset.score)-(+a.dataset.score));
+    var activeRows=view==='streaming'?streamingRows:ranked;
+    activeRows.sort(function(a,b){
+      if(view==='streaming'){
+        var exact=(+b.dataset.streamingExact)-(+a.dataset.streamingExact);
+        if(exact)return exact;
+        var coverage=(+b.dataset.streamingCoverageExact)-(+a.dataset.streamingCoverageExact);
+        if(coverage)return coverage;
+        return a.dataset.name.localeCompare(b.dataset.name);
+      }
+      var odds=(+b.dataset.odds)-(+a.dataset.odds);
+      return odds||((+b.dataset.score)-(+a.dataset.score));
     });
-    ranked.forEach(function(row){
+    activeRows.forEach(function(row){
       var value=view==='streaming'?+row.dataset.streamingScore:+row.dataset.odds;
       row.style.setProperty('--heat',String(value));
       row.style.setProperty('--ramp-rgb',ramp(value));
@@ -314,8 +323,8 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
       card.style.setProperty('--ramp-rgb',ramp(value));
       card.querySelector('.band i').style.width=value+'%';
     });
-    unranked.forEach(function(row){grid.appendChild(row)});
-    updateRanks();
+    if(view!=='streaming')unranked.forEach(function(row){grid.appendChild(row)});
+    updateRanks(activeRows);
   }
   buttons.forEach(function(button){button.addEventListener('click',function(){order(button.dataset.view)})});
   choices.forEach(function(choice){choice.addEventListener('change',applyFilter)});

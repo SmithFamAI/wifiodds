@@ -16,7 +16,7 @@
     {
       "id": "metrics",
       "home": "Separate flight and airline labels",
-      "full": "Marks per-flight next-gen odds and airline-wide Streaming score as different numbers, so you can tell whether the estimate describes your flight or the airline."
+      "full": "Marks per-flight next-gen odds and airline-wide ConnectScore as different numbers, so you can tell whether the estimate describes your flight or the airline."
     },
     {
       "id": "sorting",
@@ -75,10 +75,10 @@
       "id": "rows",
       "title": "Flight labels",
       "question": "Does this number describe the flight or the airline?",
-      "ceiling": "WiFi Odds shows per-flight odds for a United or Alaska flight number when the booking site provides one. Other recognised airlines get an airline-wide Streaming score label.",
-      "steps": ["Read the flight number", "Check dated tracker history", "Add the NEXT-GEN label", "Add the STREAMING label when needed", "Leave flights without data unscored"],
+      "ceiling": "WiFi Odds shows per-flight odds for a United or Alaska flight number when the booking site provides one. Other recognised airlines get an airline-wide ConnectScore label.",
+      "steps": ["Read the flight number", "Check dated tracker history", "Add the NEXT-GEN label", "Add the CONNECTSCORE label when needed", "Leave flights without data unscored"],
       "behaviors": {
-        "united": "Shows per-flight next-gen odds on United rows and the airline-wide Streaming score.",
+        "united": "Shows per-flight next-gen odds on United rows and the airline-wide ConnectScore.",
         "alaska": "Shows per-flight next-gen odds on Alaska rows after you grant site access.",
         "navan": "Shows per-flight odds on United rows. Other airlines get an airline-wide score or stay unknown.",
         "google": "Shows airline-wide scores. United and Alaska rows can get per-flight odds when Google shows the flight number."

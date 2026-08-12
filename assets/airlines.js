@@ -1299,8 +1299,13 @@ function nextGenShare(entry) {
 function nextGenScore(entry) {
   if (!entry) return 0;
   const L = ledgerFor(entry);
-  if (L) return Math.round(clamp01(L.rawNextGen) * 100);
-  return Math.round(clamp01(nextGenShare(entry) * freeFactor(entry.free)) * 100);
+  const raw = L
+    ? clamp01(L.rawNextGen)
+    : clamp01(nextGenShare(entry) * freeFactor(entry.free));
+  /* A confirmed fraction may round below one whole point (Southwest is 1 of
+   * 803). Preserve that evidence at the model boundary so every public
+   * consumer — API, HTML, and guidance — receives the same nonzero score. */
+  return raw > 0 ? Math.max(1, Math.round(raw * 100)) : 0;
 }
 
 /* True unless nextGenScore's 0 is a false zero: a segmented entry with

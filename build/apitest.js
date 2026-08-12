@@ -778,6 +778,18 @@ async function main() {
     ranked.map(function (a) { return a.key; }).join(','),
     '/api/airlines order matches rankAirlines()');
 
+  /* A sourced one-of-803 is small, not zero. All public odds fields must use
+   * the same score-boundary result, and the generated guidance must repeat it. */
+  var southwestApi = all.airlines.filter(function (a) { return a.key === 'southwest'; })[0];
+  ok(!!southwestApi, 'Southwest is present in the API list for the nonzero odds contract');
+  if (southwestApi) {
+    eq(southwestApi.nextGenScore, 1, 'Southwest top-level nextGenScore preserves its sourced nonzero odds');
+    eq(southwestApi.nextGen.score, 1, 'Southwest nextGen.score agrees with top-level nextGenScore');
+    eq(southwestApi.nextGen.pct, 1, 'Southwest nextGen.pct agrees with the established public odds fields');
+    ok(/Southwest[^\n]*next-gen 1\b/.test(fs.readFileSync(path.join(ROOT, 'llms.txt'), 'utf8')),
+      'Southwest guidance preserves the same nonzero odds result');
+  }
+
   /* ── D2: only United may carry a computed value for the mainline/regional
    * next-gen split. The roster in united/data.json is Starlink-only — tail,
    * type, fleet segment, install date, no system field — so aircraft type ties
@@ -893,8 +905,9 @@ async function main() {
       var ngSum = ngDenom
         ? ngRows.reduce(function (t, s) { return t + s.aircraft * s.free.factor; }, 0) / ngDenom * 100
         : 0;
-      ok(Math.abs(ngSum - a.nextGenScore) <= 0.6,
-        a.key + ': confirmed next-gen aircraft over the whole fleet equal nextGenScore',
+      var publishedOdds = ngSum > 0 ? Math.max(1, Math.round(ngSum)) : 0;
+      eq(a.nextGenScore, publishedOdds,
+        a.key + ': confirmed next-gen aircraft over the whole fleet use the shared nonzero publication boundary',
         [Number(ngSum.toFixed(2)), a.nextGenScore]);
       /* round 18 P0-02 GUARD: an airline with unresolved tails may not present
          next-gen as a fleetwide certainty. The odds floor already divides by the
@@ -1726,7 +1739,7 @@ async function main() {
    * ConnectScore wording, while the homepage's two primary controls retain
    * their distinct subjects. This catches a partial template migration where a
    * supporting label, title, or non-home route keeps the old public name. */
-  ['/', '/methodology/', '/technology/', '/extension/', '/privacy'].forEach(function (route) {
+  ['/', '/methodology/', '/technology/', '/privacy'].forEach(function (route) {
     ok(activePageText(route).indexOf('ConnectScore') === -1,
       '3.1.0 visible terminology: ' + route + ' exposes no customer-facing ConnectScore label');
   });
@@ -1749,6 +1762,23 @@ async function main() {
   var homeTemplate = fs.readFileSync(path.join(ROOT, 'build/templates/home.html'), 'utf8');
   var extensionTemplate = fs.readFileSync(path.join(ROOT, 'build/templates/extension-v3.html'), 'utf8');
   eq(HTML.EXT_VERSION, RELEASE.version, 'release ledger: shared EXT_VERSION is derived from the ledger');
+  eq(require('crypto').createHash('sha256').update(fs.readFileSync(
+    path.join(ROOT, 'build', 'extension-release.json'))).digest('hex'),
+  '71729ba6f7289f3e4f5d8f9e7f1a3dafc3588935fe79c9f80e4715ae804b1b11',
+  'release ledger: current 3.0.2 claims match the ledger-bound extension candidate exactly');
+  eq(RELEASE.extensionCommit, '99f6b0b91a06a94e71a98ae458e22142513ff70b',
+    'release ledger: current 3.0.2 claims stay bound to the shipped extension commit');
+  var whatsNewStart = extensionBuilt.indexOf('id="whats-new"');
+  var whatsNewEnd = extensionBuilt.indexOf('<section', whatsNewStart + 1);
+  var releaseBoundText = renderedText(extensionBuilt.slice(whatsNewStart, whatsNewEnd));
+  ok(whatsNewStart >= 0 && whatsNewEnd > whatsNewStart,
+    'release ledger: extension has an isolated current-release section');
+  ok(releaseBoundText.indexOf('ConnectScore') >= 0 && releaseBoundText.indexOf('Chrome Web Store version 3.0.2') >= 0,
+    '3.0.2 compatibility: ConnectScore appears only as the factual current-release behavior');
+  ok(!/Streaming score|STREAMING label/.test(releaseBoundText),
+    '3.0.2 compatibility: release-bound claims do not rename unreleased extension behavior');
+  ok(extensionTemplate.indexOf('ConnectScore') === -1,
+    '3.1.0 visible terminology: no extension-template copy names ConnectScore outside the 3.0.2 release ledger');
   eq((home.match(new RegExp('v' + RELEASE.version.replace(/\./g, '\\.') +
     ' · free · cleared review ' + releaseDate, 'g')) || []).length, 1,
     'release ledger: homepage renders exactly one ledger version/date line');
@@ -2010,10 +2040,10 @@ async function main() {
 
   /* ── Big 4 cards: name + data-nextgen attribute + the ConnectScore <b> in
    * .support must all agree with the API for the same airline. */
-  var cardRe = /<article class="aircard" data-nextgen="(-?[\d.]+)" data-streaming-score="(-?[\d.]+)" data-streaming-coverage="(-?[\d.]+)">[\s\S]*?<span class="airname">([^<]+)<\/span>[\s\S]*?data-streaming-view="primary">(\d+)</g;
+  var cardRe = /<article class="aircard" data-nextgen="(-?[\d.]+)" data-streaming-score="(-?[\d.]+)" data-streaming-exact="(-?[\d.]+)" data-streaming-coverage="(-?[\d.]+)">[\s\S]*?<span class="airname">([^<]+)<\/span>[\s\S]*?data-streaming-view="primary">(\d+)</g;
   var seenBig4 = 0, mCard, big4Keys = {};
   while ((mCard = cardRe.exec(home)) !== null) {
-    var nextgenAttr = mCard[1], streamAttr = mCard[2], cardName = mCard[4], cardScore = mCard[5];
+    var nextgenAttr = mCard[1], streamAttr = mCard[2], cardExact = mCard[3], cardName = mCard[5], cardScore = mCard[6];
     var byName = all.airlines.filter(function (a) { return a.name === cardName; })[0];
     ok(!!byName, 'a homepage Big 4 card names an airline the API knows', cardName);
     if (!byName) continue;
@@ -2021,6 +2051,8 @@ async function main() {
     seenBig4++;
     ok(nextgenAttr !== '' && isFinite(Number(nextgenAttr)), 'Big 4 ' + cardName + ' data-nextgen is a finite number', nextgenAttr);
     ok(streamAttr !== '' && isFinite(Number(streamAttr)), 'Big 4 ' + cardName + ' data-streaming-score is a finite number', streamAttr);
+    eq(Number(Number(cardExact).toFixed(3)), byName.streamingScoreExact,
+      'PARITY: ' + cardName + ' Big 4 card exact Streaming value preserves API exact-score order');
     eq(Number(cardScore), byName.streamingScore, 'PARITY: ' + cardName + ' Big 4 card Streaming score == API streamingScore');
     eq(Number(nextgenAttr), byName.nextGen.pct, 'PARITY: ' + cardName + ' Big 4 card data-nextgen == API nextGen.pct');
   }
@@ -2038,7 +2070,7 @@ async function main() {
   /* Stop at the next peer row / section delimiter, never at a customer-facing
    * metric label. The 3.1.0 migration removes ConnectScore from this surface,
    * and the later Streaming marker assertions below own the public contract. */
-  var rowRe = /<div class="row ([a-z]+)" data-key="([a-z]+)"[^>]*data-rankable="(true|false)"[^>]*data-streaming-score="(\d+)"[^>]*data-odds="(-?[\d.]+)"[^>]*data-streaming-coverage="(-?[\d.]+)"[^>]*>/g;
+  var rowRe = /<div class="row ([a-z]+)" data-key="([a-z]+)"[^>]*data-rankable="(true|false)"[^>]*data-streaming-score="(\d+)"[^>]*data-streaming-exact="(-?[\d.]+)"[^>]*data-odds="(-?[\d.]+)"[^>]*data-streaming-coverage="(-?[\d.]+)"[^>]*data-streaming-coverage-exact="(-?[\d.]+)"[^>]*>/g;
   var boardRows = [];
   var rowStarts = [];
   var mRow;
@@ -2051,11 +2083,44 @@ async function main() {
       home.indexOf('<p class="board-note"', row.contentAt);
     boardRows.push({
       cls: mRow[1], key: mRow[2], rankable: mRow[3] === 'true', score: Number(mRow[4]),
-      odds: Number(mRow[5]), coverage: Number(mRow[6]),
+      exact: Number(mRow[5]), odds: Number(mRow[6]), coverage: Number(mRow[7]), coverageExact: Number(mRow[8]),
       inner: home.slice(row.contentAt, nextAt)
     });
   });
   eq(boardRows.length, 18, 'homepage: exactly 18 board rows are present', boardRows.map(function (r) { return r.key; }));
+
+  /* Streaming ranking reads the exact existing score/API order. It never
+   * substitutes a rounded display score or drops Air France and SAS because
+   * their Next-Gen count is unpublished. */
+  ok(/data-streaming-exact=/.test(home),
+    'homepage rows expose the exact Streaming value used for rank order');
+  ok(/var streamingRows=rows\.slice\(\)/.test(home) && /dataset\.streamingExact/.test(home) &&
+    /dataset\.streamingCoverageExact/.test(home) && /dataset\.name\.localeCompare/.test(home),
+    'homepage Streaming control ranks all rows by the exact Streaming value');
+  var exactApiOrder = all.airlines.slice().sort(function (a, b) {
+    if (b.streamingScoreExact !== a.streamingScoreExact) return b.streamingScoreExact - a.streamingScoreExact;
+    var bc = b.wholeFleet.coveragePct, ac = a.wholeFleet.coveragePct;
+    if (bc !== ac) return bc - ac;
+    return a.name.localeCompare(b.name);
+  }).map(function (a) { return a.key; });
+  eq(exactApiOrder.join(','), all.airlines.map(function (a) { return a.key; }).join(','),
+    'API Streaming order uses the exact score, coverage tie-breaker, then name');
+  var apiByKey = Object.create(null);
+  all.airlines.forEach(function (a) { apiByKey[a.key] = a; });
+  var exactBoardOrder = boardRows.slice().sort(function (a, b) {
+    if (b.exact !== a.exact) return b.exact - a.exact;
+    if (b.coverageExact !== a.coverageExact) return b.coverageExact - a.coverageExact;
+    return apiByKey[a.key].name.localeCompare(apiByKey[b.key].name);
+  }).map(function (r) { return r.key; });
+  eq(exactBoardOrder.join(','), all.airlines.map(function (a) { return a.key; }).join(','),
+    'homepage Streaming row attributes sort in exact API order, including every airline');
+  var americanExact = boardRows.filter(function (r) { return r.key === 'american'; })[0];
+  var airBalticExact = boardRows.filter(function (r) { return r.key === 'airbaltic'; })[0];
+  eq(americanExact.score, airBalticExact.score,
+    'Streaming rank discriminator fixture: American and airBaltic share the same rounded display score');
+  ok(americanExact.exact > airBalticExact.exact &&
+    exactBoardOrder.indexOf('american') < exactBoardOrder.indexOf('airbaltic'),
+  'Streaming rank discriminator: exact score breaks the rounded-score tie');
 
   /* rule 5: exact model <-> template airline-key parity, BOTH directions,
    * checked here against the ACTUAL BYTES the build wrote — independent of
@@ -2069,9 +2134,13 @@ async function main() {
     var a = all.airlines.filter(function (x) { return x.key === r.key; })[0];
     if (!a) return;
     eq(r.score, a.connectScore, 'PARITY: ' + r.key + ' row data-score == API connectScore');
+    eq(Number(r.exact.toFixed(3)), a.streamingScoreExact,
+      'PARITY: ' + r.key + ' row exact Streaming value preserves API exact-score order');
+    eq(Math.round(r.coverageExact * 100), a.wholeFleet.coveragePct,
+      'PARITY: ' + r.key + ' row exact Streaming coverage tie-breaker preserves API coverage');
     /* every baked numeric attribute is finite — never NaN, never blank */
-    ok(isFinite(r.score) && isFinite(r.odds) && isFinite(r.coverage),
-      r.key + ' row carries finite data-streaming-score/data-odds/data-streaming-coverage', [r.score, r.odds, r.coverage]);
+    ok(isFinite(r.score) && isFinite(r.exact) && isFinite(r.odds) && isFinite(r.coverage) && isFinite(r.coverageExact),
+      r.key + ' row carries finite Streaming score, exact rank, odds, and coverage values', [r.score, r.exact, r.odds, r.coverage, r.coverageExact]);
     if (r.rankable) {
       eq(r.odds, a.nextGen.pct, 'PARITY: ' + r.key + ' row data-odds == API nextGen.pct');
       /* The default visible value follows data-odds. The activated Streaming
@@ -2095,11 +2164,32 @@ async function main() {
          never sorts on (it only sorts data-rankable="true" rows), never a
          displayed figure. */
       eq(r.odds, -1, 'unpublished ' + r.key + ': data-odds is the -1 sentinel, never a real figure');
-      eq(r.coverage, -1, 'unpublished ' + r.key + ': data-streaming-coverage is the -1 sentinel, never a real figure');
-      ok(/unpublished/.test(r.inner) && /not computable/.test(r.inner),
-        'unpublished ' + r.key + ': row text reads "unpublished" / "not computable", no percentage');
-      ok(!/%/.test(r.inner.replace(/COLOR WIDTH[^%]*/, '')), 'unpublished ' + r.key + ': no percent sign anywhere in the row', r.inner);
+      var unpublishedStreamingPrimary = /<[^>]*\bdata-streaming-view="primary"[^>]*>([^<]+)<\//.exec(r.inner);
+      var unpublishedCoverage = /<[^>]*\bdata-streaming-coverage="confirmed"[^>]*>([^<]+)<\//.exec(r.inner);
+      ok(/unpublished/.test(r.inner) && !/not computable/.test(r.inner),
+        'unpublished ' + r.key + ': Next-Gen remains unpublished without suppressing Streaming');
+      ok(!!unpublishedStreamingPrimary && !!unpublishedCoverage,
+        'unpublished ' + r.key + ': Streaming still shows the score and confirmed coverage');
+      if (unpublishedStreamingPrimary) eq(Number(unpublishedStreamingPrimary[1]), a.streamingScore,
+        'unpublished ' + r.key + ': displayed Streaming primary == API score');
     }
+  });
+
+  ['united', 'alaska'].forEach(function (key) {
+    var row = boardRows.filter(function (r) { return r.key === key; })[0];
+    var a = all.airlines.filter(function (x) { return x.key === key; })[0];
+    ok(!!row && !!a, key + ': coverage provenance fixture exists');
+    if (!row || !a) return;
+    a.segments.map(function (s) { return s.source; }).filter(Boolean).filter(function (source, i, sources) {
+      return sources.indexOf(source) === i;
+    }).forEach(function (source) {
+      ok(row.inner.indexOf(source) >= 0,
+        key + ': Confirmed streaming coverage names contributing source ' + source);
+    });
+    ok(/Confirmed streaming coverage · Reported ·/.test(row.inner),
+      key + ': Confirmed streaming coverage carries its Reported tier');
+    ok(/· 2026-\d{2}/.test(row.inner),
+      key + ': Confirmed streaming coverage carries a source date');
   });
 
   var southwestBoard = boardRows.filter(function (r) { return r.key === 'southwest'; })[0];
@@ -2108,9 +2198,17 @@ async function main() {
     ok(southwestBoard.inner.indexOf('No next-gen aircraft yet') === -1,
       'Southwest board row does not deny next-gen aircraft when its sourced count is one');
   }
-  eq(['airfrance', 'sas'].every(function (k) {
-    return boardRows.some(function (r) { return r.key === k && !r.rankable; });
-  }), true, 'Air France and SAS are both present and both unranked (unpublished, never assumed to zero)');
+  ['airfrance', 'sas'].forEach(function (key) {
+    var unpublishedRow = boardRows.filter(function (r) { return r.key === key; })[0];
+    var unpublishedApi = all.airlines.filter(function (a) { return a.key === key; })[0];
+    ok(!!unpublishedRow && !unpublishedRow.rankable,
+      key + ': Next-Gen remains unranked when its count is unpublished');
+    var primary = unpublishedRow && /<[^>]*\bdata-streaming-view="primary"[^>]*>([^<]+)<\//.exec(unpublishedRow.inner);
+    ok(!!primary && Number(primary[1]) === unpublishedApi.streamingScore,
+      key + ': Streaming view includes the published score despite unpublished Next-Gen count');
+    ok(exactBoardOrder.indexOf(key) >= 0,
+      key + ': Streaming view includes the airline in its exact rank order');
+  });
 
   /* both toggle orders match the model's ordering. The client script
    * (unchanged, byte-identical to the approved mockup) re-sorts on click

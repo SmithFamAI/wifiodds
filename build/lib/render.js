@@ -120,10 +120,9 @@ function crumbLd(items) {
  * Starlink count has never been published, so nextGenScore's 0 is not a
  * measurement (see nextGenPublished() in assets/airlines.js). homeRow's very
  * first line branches on that flag, before touching a single number, and the
- * unpublished branch never prints a percentage or a ramp position for either
- * view — "unpublished" / "not computable", data-odds="-1", data-floor="-1",
- * data-rankable="false", no data-score suppression (ConnectScore is a
- * different, always-published question).
+ * unpublished branch keeps Next-Gen as unpublished and out of that rank,
+ * while Streaming still prints and ranks its published 0–100 score. The
+ * separate coverage evidence remains visible in both cases.
  *
  * THE STREAMING FLOOR is a metric this codebase did not previously compute:
  * the share of the WHOLE fleet (unresolved tails IN the denominator since the
@@ -339,14 +338,20 @@ function homeRowClass(oddsScore) {
  * of them state was not achievable this pass; see the go-live report. */
 function homeOddsLabel(a) {
   if (a.nextGenScore >= 99) return 'Next-gen fleet';
-  if (a.nextGenShare > 0) return 'Mixed fleet';
+  if (a.nextGenScore > 0) return 'Mixed fleet';
   return 'No next-gen aircraft yet';
 }
-/* A sourced nonzero share must survive public whole-percent presentation. The
- * model keeps its exact share; this is only the customer-facing rounding rule. */
-function homeNextGenPct(a) {
-  var raw = homeNum(a.nextGenShare, a.key + '.nextGenShare') * 100;
-  return raw > 0 ? Math.max(1, Math.round(raw)) : 0;
+function homeCoverageSources(a) {
+  var seen = Object.create(null);
+  return (a.segments || []).map(function (segment) { return segment.src; }).filter(function (source) {
+    if (!source || seen[source]) return false;
+    seen[source] = true;
+    return true;
+  }).join('; ') || 'airline records';
+}
+function homeCoverageMeta(a) {
+  return 'Confirmed streaming coverage · Reported · ' + esc(homeCoverageSources(a)) +
+    ' · ' + esc(a.asOf || 'date unavailable');
 }
 /* The tier-only <small> label. Only prints a number when the uncertainty is a
  * real unresolved-aircraft count; a same-known-fleet ambiguous split (no
@@ -371,20 +376,24 @@ function homeRow(m, key, rank) {
   if (!a) throw new Error('Render.home: unknown airline key "' + key + '"');
   var dataName = esc(a.name.toLowerCase() + ' ' + (a.code || '').toLowerCase());
   var score = homeNum(a.score, key + '.score');
+  var exact = homeNum(a.scoreExact, key + '.scoreExact');
   var sf = homeStreamingFloor(m, a);
   var coverage = homeStr(homeFmtPct(sf.pct), key + '.coverage');
+  var coverageExact = homeNum(a.coverage, key + '.coverageExact');
+  var coverageMeta = homeCoverageMeta(a);
 
   if (a.nextGenPublished === false) {
     return '        <div class="row unranked" data-key="' + key + '" data-name="' + dataName +
-      '" data-rankable="false" data-streaming-score="' + score + '" data-odds="-1" data-streaming-coverage="-1">' +
+      '" data-rankable="false" data-streaming-score="' + score + '" data-streaming-exact="' + exact +
+      '" data-odds="-1" data-streaming-coverage="' + coverage + '" data-streaming-coverage-exact="' + coverageExact + '">' +
       '<div class="who"><b><span class="rank-text">–</span> · ' + esc(a.name) + '</b> ' +
       '<small>Starlink count unpublished</small></div>' +
-      '<div class="metric primary"><b class="unknown odds-only">unpublished</b>' +
-      '<b class="unknown streaming-only">not computable</b><small>primary</small></div>' +
-      '<div class="metric"><b data-streaming-view="primary">' + score + '</b> <small>Streaming</small></div></div>\n';
+      '<div class="metric primary"><b class="unknown odds-only">unpublished</b> ' +
+      '<b class="streaming-only" data-streaming-view="primary">' + score + '</b> <small>primary</small></div>' +
+      '<div class="metric"><b data-streaming-coverage="confirmed">' + coverage + '%</b> <small>' + coverageMeta + '</small></div></div>\n';
   }
 
-  var odds = homeNextGenPct(a);
+  var odds = homeNum(a.nextGenScore, key + '.nextGenScore');
   var rowClass = homeRowClass(odds);
   var tierNote = homeTierNote(a, sf);
   var smallHtml = tierNote
@@ -393,19 +402,19 @@ function homeRow(m, key, rank) {
     : '<small>' + esc(homeSysLabel(a)) + '</small>';
 
   return '        <div class="row ' + rowClass + '" data-key="' + key + '" data-name="' + dataName +
-    '" data-rankable="true" data-streaming-score="' + score + '" data-odds="' + odds + '" data-streaming-coverage="' +
-    coverage + '"><div class="who"><b><span class="rank-text">' +
+    '" data-rankable="true" data-streaming-score="' + score + '" data-streaming-exact="' + exact + '" data-odds="' + odds +
+    '" data-streaming-coverage="' + coverage + '" data-streaming-coverage-exact="' + coverageExact + '"><div class="who"><b><span class="rank-text">' +
     String(rank).padStart(2, '0') + '</span> · ' + esc(a.name) + '</b> ' + smallHtml + '</div>' +
     '<div class="metric primary"><b class="odds-only">' + odds + '%</b> <b class="streaming-only" data-streaming-view="primary">' +
     score + '</b> <small>primary</small></div>' +
-    '<div class="metric"><b data-streaming-coverage="confirmed">' + coverage + '%</b> <small>Confirmed streaming coverage · Reported · ' +
-    esc((a.segments[0] && a.segments[0].src) || 'airline records') + ' · ' + esc(a.asOf || 'date unavailable') + '</small></div></div>\n';
+    '<div class="metric"><b data-streaming-coverage="confirmed">' + coverage + '%</b> <small>' +
+    coverageMeta + '</small></div></div>\n';
 }
 
 function homeBoardRows(m) {
   var order = HomeOrder.rank(HOME_BOARD_SEED_ORDER, function (key) {
     var a = m.A.scoreAirline(key);
-    return a && { odds: homeNextGenPct(a), connect: a.score };
+    return a && { odds: a.nextGenScore, connect: a.score };
   });
   var ranked = order.map(function (k, i) { return homeRow(m, k, i + 1); }).join('');
   var unranked = HOME_UNPUBLISHED_ORDER.map(function (k) { return homeRow(m, k, 0); }).join('');
@@ -417,7 +426,7 @@ function homeBoardRows(m) {
 function homeCard(m, key) {
   var a = m.A.scoreAirline(key);
   if (!a) throw new Error('Render.home: unknown Big 4 airline key "' + key + '"');
-  var odds = homeNextGenPct(a);
+  var odds = homeNum(a.nextGenScore, key + '.nextGenScore');
   var score = homeNum(a.score, key + '.score');
   var sf = homeStreamingFloor(m, a);
   var streamStr = homeStr(homeFmtPct(sf.pct), key + '.streamStr');
@@ -425,10 +434,10 @@ function homeCard(m, key) {
   var total = a.total || 0;
   var note = num(ngCount) + ' of ' + num(total) + ' aircraft next-gen today';
   var sup = key === 'united' ? '<sup>*</sup>' : '';
-  var coverageMeta = 'Confirmed streaming coverage · Reported · ' +
-    esc((a.segments[0] && a.segments[0].src) || 'airline records') + ' · ' + esc(a.asOf || 'date unavailable');
+  var coverageMeta = homeCoverageMeta(a);
 
-  return '        <article class="aircard" data-nextgen="' + odds + '" data-streaming-score="' + score + '" data-streaming-coverage="' + streamStr +
+  return '        <article class="aircard" data-nextgen="' + odds + '" data-streaming-score="' + score + '" data-streaming-exact="' +
+    homeNum(a.scoreExact, key + '.scoreExact') + '" data-streaming-coverage="' + streamStr +
     '"><div class="airtop"><span class="airname">' + esc(a.name) + '</span> <span class="code">' +
     esc(a.code || '') + '</span></div>' +
     '<div class="primary-stat odds-only"><strong>' + odds + '%' + sup + '</strong>' +
