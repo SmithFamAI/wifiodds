@@ -165,6 +165,13 @@ function assertEnvelope(res, j, label) {
     label + ': sources credit unitedstarlinktracker.com');
 }
 
+function assertVersionHeaders(res, label) {
+  /* A rename cannot remove the public compatibility header. Check each header
+   * against the independently published v0 contract before checking aliases. */
+  eq(res.headers.get('x-wifiodds-api'), 'v0', label + ': x-wifiodds-api is present at v0');
+  eq(res.headers.get('x-connectscore-api'), 'v0', label + ': retained x-connectscore-api is present at v0');
+}
+
 /* 3.1.0 customer terminology is a rendered-page contract, not a source-token
  * check. Strip non-visible blocks and markup before looking at each active
  * route, so a legacy API field or a JavaScript variable cannot make this test
@@ -751,8 +758,7 @@ async function main() {
   eq(res.status, 200, '/api status');
   assertEnvelope(res, j, '/api');
   eq(res.headers.get('cache-control'), 'public, max-age=3600', '/api cache-control');
-  eq(res.headers.get('x-wifiodds-api'), res.headers.get('x-connectscore-api'),
-    '/api: x-wifiodds-api is the direct 3.1.0 alias for the preserved x-connectscore-api header');
+  assertVersionHeaders(res, '/api');
   eq(j.version, 'v0', '/api version');
   eq(j.endpoints.length, 4, '/api lists 4 endpoints');
   eq(j.airlineCount, Object.keys(A.WIFI_AIRLINES).length, '/api airlineCount');
@@ -763,8 +769,7 @@ async function main() {
   eq(res.status, 200, '/api/airlines status');
   assertEnvelope(res, all, '/api/airlines');
   eq(res.headers.get('cache-control'), 'public, max-age=3600', '/api/airlines cache-control');
-  eq(res.headers.get('x-wifiodds-api'), res.headers.get('x-connectscore-api'),
-    '/api/airlines: x-wifiodds-api aliases the preserved x-connectscore-api header');
+  assertVersionHeaders(res, '/api/airlines');
   eq(all.count, 18, '/api/airlines returns all 18 airlines');
   eq(all.airlines.length, 18, '/api/airlines airlines[] length');
 
@@ -1118,8 +1123,7 @@ async function main() {
   var qr = await body(res);
   eq(res.status, 200, '/api/airlines/qatar status');
   assertEnvelope(res, qr, '/api/airlines/qatar');
-  eq(res.headers.get('x-wifiodds-api'), res.headers.get('x-connectscore-api'),
-    '/api/airlines/{key}: x-wifiodds-api aliases the preserved x-connectscore-api header');
+  assertVersionHeaders(res, '/api/airlines/{key}');
   eq(qr.airline.key, 'qatar', 'qatar key');
   eq(qr.airline.fleet.equipped, 120, 'qatar equipped');
   eq(qr.airline.fleet.total, 241, 'qatar fleet total');
@@ -1470,8 +1474,7 @@ async function main() {
     params: { name: 'get_airline_score', arguments: { key: 'qatar' } } });
   var r1 = t1.j.result;
   eq(r1.isError, false, 'get_airline_score(qatar) is not an error');
-  eq(t1.res.headers.get('x-wifiodds-api'), t1.res.headers.get('x-connectscore-api'),
-    'MCP constructs the x-wifiodds-api compatibility header alongside x-connectscore-api');
+  assertVersionHeaders(t1.res, 'MCP get_airline_score');
   assertToolResult(r1, 'get_airline_score(qatar)');
   eq(r1.structuredContent.airline.connectScore, qr.airline.connectScore,
     'PARITY: MCP get_airline_score(qatar) equals /api/airlines/qatar');
@@ -1941,6 +1944,23 @@ async function main() {
   ok(/<body[^>]*\bdata-view="nextgen"/.test(home),
     'homepage: <body data-view="nextgen"> is present in the RAW HTML, correct before any script runs');
 
+  /* Both view states are present in the generated no-JavaScript HTML. Read the
+   * streaming state that a visitor activates, rather than the renderer source:
+   * its primary value must be the existing 0–100 score. Delta distinguishes
+   * this contract because its score is 48 while its confirmed coverage is 86. */
+  home.split('<article class="aircard"').slice(1).forEach(function (card) {
+    var nameMatch = /<span class="airname">([^<]+)<\/span>/.exec(card);
+    var streamingMatch = /<div class="primary-stat tier-only"><strong[^>]*>(?:≥)?([\d.]+)%/.exec(card);
+    if (!nameMatch) return;
+    var a = all.airlines.filter(function (x) { return x.name === nameMatch[1]; })[0];
+    ok(!!a, 'streaming primary card names an airline the API knows', nameMatch[1]);
+    ok(!!streamingMatch, nameMatch[1] + ': generated streaming view has a primary percentage');
+    if (a && streamingMatch) {
+      eq(Number(streamingMatch[1]), a.connectScore,
+        '3.1.0 ' + nameMatch[1] + ' streaming primary card uses the 0–100 score, not coverage');
+    }
+  });
+
   /* Southwest is the supplied false-zero discriminator. Its published source
    * says one next-gen aircraft in a fleet of 803; derive that nonzero condition
    * from those public record fields rather than from the production rounding
@@ -2034,18 +2054,16 @@ async function main() {
       r.key + ' row carries finite data-score/data-odds/data-floor', [r.score, r.odds, r.floor]);
     if (r.rankable) {
       eq(r.odds, a.nextGenScore, 'PARITY: ' + r.key + ' row data-odds == API nextGenScore');
-      /* the displayed figure equals its sort attribute: the odds-only <b>
-         and the tier-only <b> must print the same number data-odds/data-floor
-         carry — the fill width (--heat) is set by the unchanged client
-         script directly off these same two attributes, so asserting text ==
-         attribute here is what makes fill width agree too, without needing
-         a browser at build time. */
+      /* The default visible value follows data-odds. The activated Streaming
+         value follows the existing 0–100 score; confirmed coverage remains a
+         separate supporting datum and cannot become this primary figure. */
       var oddsTxt = /<b class="odds-only">(-?[\d.]+)%/.exec(r.inner);
       var floorTxt = /<b class="tier-only">(?:≥)?(-?[\d.]+)%/.exec(r.inner);
       ok(!!oddsTxt, r.key + ' row prints an odds-only percentage', r.inner);
       ok(!!floorTxt, r.key + ' row prints a tier-only percentage', r.inner);
       if (oddsTxt) eq(Number(oddsTxt[1]), r.odds, 'PARITY: ' + r.key + ' displayed odds-only figure == data-odds');
-      if (floorTxt) eq(Number(floorTxt[1]), r.floor, 'PARITY: ' + r.key + ' displayed tier-only figure == data-floor');
+      if (floorTxt) eq(Number(floorTxt[1]), a.connectScore,
+        '3.1.0 ' + r.key + ' streaming board value uses the 0–100 score, not coverage');
       /* a floor already at 100 has no headroom for a remainder to raise, so
          "≥100%" would be meaningless — the uncertain flag must be off */
       if (r.floor >= 100) ok(!r.uncertain, r.key + ' row: floor at 100 never carries data-floor-uncertain');
@@ -2061,6 +2079,13 @@ async function main() {
       ok(!/%/.test(r.inner.replace(/COLOR WIDTH[^%]*/, '')), 'unpublished ' + r.key + ': no percent sign anywhere in the row', r.inner);
     }
   });
+
+  var southwestBoard = boardRows.filter(function (r) { return r.key === 'southwest'; })[0];
+  ok(!!southwestBoard, 'Southwest has one all-airline board row for the false-zero control');
+  if (southwestBoard) {
+    ok(southwestBoard.inner.indexOf('No next-gen aircraft yet') === -1,
+      'Southwest board row does not deny next-gen aircraft when its sourced count is one');
+  }
   eq(['airfrance', 'sas'].every(function (k) {
     return boardRows.some(function (r) { return r.key === k && !r.rankable; });
   }), true, 'Air France and SAS are both present and both unranked (unpublished, never assumed to zero)');
