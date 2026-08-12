@@ -175,7 +175,7 @@ function scoreRing(score) {
   var R = 46, C = 2 * Math.PI * R;
   var on = C * (score / 100);
   return '<svg class="viz" width="120" height="120" viewBox="0 0 120 120" role="img" ' +
-    'aria-label="ConnectScore ' + score + ' out of 100">' +
+    'aria-label="Streaming score ' + score + ' out of 100">' +
     '<circle class="ring-bg" cx="60" cy="60" r="' + R + '" stroke-width="10"/>' +
     '<circle class="ring-fg" cx="60" cy="60" r="' + R + '" stroke-width="10" ' +
     'stroke-dasharray="' + r1(on) + ' ' + r1(C - on) + '" transform="rotate(-90 60 60)"/>' +

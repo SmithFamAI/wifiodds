@@ -1006,14 +1006,14 @@ const SYSTEM_LABEL = {
 };
 
 const SCORE_CAVEAT =
-  "ConnectScore is a conservative whole-fleet lower bound, not an expected value or a prediction about one flight: " +
+  "Streaming score is a conservative whole-fleet lower bound, not an expected value or a prediction about one flight: " +
   "United measured 320, 56 and 15 Mbps on three systems in one livery in one reporting period. " +
   "Aircraft whose system an airline does not publish stay in the denominator and add zero to the " +
   "lower bound rather than being dropped from it. Signed-but-unflown deals (AA Starlink 2027, " +
   "DL/B6 Amazon Leo) score zero until they fly.";
 
 const SCORE_METHOD_LINE =
-  "ConnectScore = the sum, over every segment of the fleet, of whole-fleet share × system quality × " +
+  "Streaming score = the sum, over every segment of the fleet, of whole-fleet share × system quality × " +
   "free-for-you. Unresolved aircraft stay in the denominator and add zero, so the published score " +
   "is a whole-fleet lower bound. " +
   "Data: unitedstarlinktracker.com · alaskastarlinktracker.com · airline announcements (Jul 2026).";
@@ -1042,7 +1042,7 @@ const PROJECTION_METHOD_LINE =
   "Projected score = committed aircraft ÷ the same known-fleet denominator the next-gen odds " +
   "use × 1.00 for low-earth orbit × free-for-you. It is the next-gen number a fleet would carry " +
   "if the announced deal lands as announced, so read it against next-gen odds and never against " +
-  "the ConnectScore. A projection never moves the leaderboard and it carries its date and its " +
+  "the Streaming score. A projection never moves the leaderboard and it carries its date and its " +
   "confidence wherever it appears. FIRM: count and date both published. SOFT: one of the two is " +
   "secondary reporting. SLIPPED: the announced date has passed with nothing installed, computed " +
   "from the build date rather than stored. A committed share of a fleet is not a measurement — " +

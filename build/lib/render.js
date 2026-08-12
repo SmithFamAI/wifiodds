@@ -249,6 +249,7 @@ function homeProofBuckets(m) {
   });
   b.unresolved = a.unresolved || 0;
   b.total = homeNum(m.fleet.total, 'fleet.total');
+  b.streamingScore = homeNum(a.score, 'united.score');
 
   /* ARITHMETIC GUARD. The four buckets partition the resolved fleet, so with the
      unresolved remainder they must reconstruct the published total exactly. If a
@@ -285,8 +286,8 @@ function homeProofBuckets(m) {
  * day it shipped, and it is the check that fires if the template ever goes back
  * to a literal. */
 function homeAssertProofFloor(out, pb, num) {
-  var floorStr = pb.floorStr;
-  var proof = /<div class="proof-num">[\s\S]*?<span class="tier-only">([^<]*)<\/span>/.exec(out);
+  var scoreStr = String(pb.streamingScore);
+  var proof = /<div class="proof-num">[\s\S]*?<span class="streaming-only">([^<]*)<\/span>/.exec(out);
   if (!proof) throw new Error('Render.home: the proof block streaming figure was not found in the output.');
 
   /* The four tiles, read back out of the finished page. The floor check below
@@ -295,7 +296,7 @@ function homeAssertProofFloor(out, pb, num) {
      which is exactly how 560/407/131 survived from round 18 to 1 Aug 2026. */
   var facts = /<div class="proof-facts">([\s\S]*?)<\/div>\s*<\/div>/.exec(out);
   if (!facts) throw new Error('Render.home: the proof-facts tile block was not found in the output.');
-  var tiles = facts[1].match(/<span class="tier-only">([^<]*)<\/span>/g) || [];
+  var tiles = facts[1].match(/<span class="streaming-only">([^<]*)<\/span>/g) || [];
   var got = tiles.map(function (t) { return t.replace(/<[^>]*>/g, '').trim(); })
     .filter(function (t) { return /^[\d,]+$/.test(t); });
   var want = [num(pb.nextGen), num(pb.streaming), num(pb.legacy), num(pb.noWifi)];
@@ -314,18 +315,17 @@ function homeAssertProofFloor(out, pb, num) {
     throw new Error('Render.home: expected exactly one United Big-4 card in the output, found ' +
       united.length + '.');
   }
-  var card = /<strong class="tier-value">([^<]*)</.exec(united[0]);
+  var card = /<strong[^>]*class="tier-value"[^>]*>([^<]*)</.exec(united[0]);
   if (!card) throw new Error('Render.home: the United card has no streaming figure in the output.');
   var cardStr = card[1].trim();
-  if (proof[1].trim() !== floorStr) {
+  if (proof[1].trim() !== scoreStr) {
     throw new Error('Render.home: the proof block rendered "' + proof[1].trim() +
-      '" where the model says the streaming floor is "' + floorStr +
+      '" where the model says the Streaming score is "' + scoreStr +
       '". A literal is back in build/templates/home.html.');
   }
   if (proof[1].trim() !== cardStr) {
-    throw new Error('Render.home: the proof block streaming floor "' + proof[1].trim() +
-      '" disagrees with the first Big-4 card, which prints "' + cardStr +
-      '". One page may not publish two different floors for the same fleet.');
+    throw new Error('Render.home: the proof block Streaming score "' + proof[1].trim() +
+      '" disagrees with the first Big-4 card, which prints "' + cardStr + '".');
   }
 }
 
@@ -339,8 +339,14 @@ function homeRowClass(oddsScore) {
  * of them state was not achievable this pass; see the go-live report. */
 function homeOddsLabel(a) {
   if (a.nextGenScore >= 99) return 'Next-gen fleet';
-  if (a.nextGenScore > 0) return 'Mixed fleet';
+  if (a.nextGenShare > 0) return 'Mixed fleet';
   return 'No next-gen aircraft yet';
+}
+/* A sourced nonzero share must survive public whole-percent presentation. The
+ * model keeps its exact share; this is only the customer-facing rounding rule. */
+function homeNextGenPct(a) {
+  var raw = homeNum(a.nextGenShare, a.key + '.nextGenShare') * 100;
+  return raw > 0 ? Math.max(1, Math.round(raw)) : 0;
 }
 /* The tier-only <small> label. Only prints a number when the uncertainty is a
  * real unresolved-aircraft count; a same-known-fleet ambiguous split (no
@@ -365,41 +371,41 @@ function homeRow(m, key, rank) {
   if (!a) throw new Error('Render.home: unknown airline key "' + key + '"');
   var dataName = esc(a.name.toLowerCase() + ' ' + (a.code || '').toLowerCase());
   var score = homeNum(a.score, key + '.score');
+  var sf = homeStreamingFloor(m, a);
+  var coverage = homeStr(homeFmtPct(sf.pct), key + '.coverage');
 
   if (a.nextGenPublished === false) {
     return '        <div class="row unranked" data-key="' + key + '" data-name="' + dataName +
-      '" data-rankable="false" data-score="' + score + '" data-odds="-1" data-floor="-1">' +
+      '" data-rankable="false" data-streaming-score="' + score + '" data-odds="-1" data-streaming-coverage="-1">' +
       '<div class="who"><b><span class="rank-text">–</span> · ' + esc(a.name) + '</b> ' +
       '<small>Starlink count unpublished</small></div>' +
       '<div class="metric primary"><b class="unknown odds-only">unpublished</b>' +
-      '<b class="unknown tier-only">not computable</b><small>primary</small></div>' +
-      '<div class="metric"><b>' + score + '</b> <small>ConnectScore</small></div></div>\n';
+      '<b class="unknown streaming-only">not computable</b><small>primary</small></div>' +
+      '<div class="metric"><b data-streaming-view="primary">' + score + '</b> <small>Streaming</small></div></div>\n';
   }
 
-  var odds = homeNum(a.nextGenScore, key + '.nextGenScore');
-  var sf = homeStreamingFloor(m, a);
-  var floorStr = homeStr(homeFmtPct(sf.pct), key + '.floorStr');
+  var odds = homeNextGenPct(a);
   var rowClass = homeRowClass(odds);
-  var uncertainAttr = sf.uncertain ? ' data-floor-uncertain="true"' : '';
   var tierNote = homeTierNote(a, sf);
   var smallHtml = tierNote
     ? '<small><span class="odds-only">' + esc(homeOddsLabel(a)) + '</span> ' +
-      '<span class="tier-only">' + esc(tierNote) + '</span></small>'
+      '<span class="streaming-only">' + esc(tierNote) + '</span></small>'
     : '<small>' + esc(homeSysLabel(a)) + '</small>';
 
   return '        <div class="row ' + rowClass + '" data-key="' + key + '" data-name="' + dataName +
-    '" data-rankable="true" data-score="' + score + '" data-odds="' + odds + '" data-floor="' +
-    floorStr + '"' + uncertainAttr + '><div class="who"><b><span class="rank-text">' +
+    '" data-rankable="true" data-streaming-score="' + score + '" data-odds="' + odds + '" data-streaming-coverage="' +
+    coverage + '"><div class="who"><b><span class="rank-text">' +
     String(rank).padStart(2, '0') + '</span> · ' + esc(a.name) + '</b> ' + smallHtml + '</div>' +
-    '<div class="metric primary"><b class="odds-only">' + odds + '%</b><b class="tier-only">' +
-    (sf.uncertain ? '≥' : '') + floorStr + '%</b><small>primary</small></div>' +
-    '<div class="metric"><b>' + score + '</b> <small>ConnectScore</small></div></div>\n';
+    '<div class="metric primary"><b class="odds-only">' + odds + '%</b> <b class="streaming-only" data-streaming-view="primary">' +
+    score + '</b> <small>primary</small></div>' +
+    '<div class="metric"><b data-streaming-coverage="confirmed">' + coverage + '%</b> <small>Confirmed streaming coverage · Reported · ' +
+    esc((a.segments[0] && a.segments[0].src) || 'airline records') + ' · ' + esc(a.asOf || 'date unavailable') + '</small></div></div>\n';
 }
 
 function homeBoardRows(m) {
   var order = HomeOrder.rank(HOME_BOARD_SEED_ORDER, function (key) {
     var a = m.A.scoreAirline(key);
-    return a && { odds: a.nextGenScore, connect: a.score };
+    return a && { odds: homeNextGenPct(a), connect: a.score };
   });
   var ranked = order.map(function (k, i) { return homeRow(m, k, i + 1); }).join('');
   var unranked = HOME_UNPUBLISHED_ORDER.map(function (k) { return homeRow(m, k, 0); }).join('');
@@ -411,7 +417,7 @@ function homeBoardRows(m) {
 function homeCard(m, key) {
   var a = m.A.scoreAirline(key);
   if (!a) throw new Error('Render.home: unknown Big 4 airline key "' + key + '"');
-  var odds = homeNum(a.nextGenScore, key + '.nextGenScore');
+  var odds = homeNextGenPct(a);
   var score = homeNum(a.score, key + '.score');
   var sf = homeStreamingFloor(m, a);
   var streamStr = homeStr(homeFmtPct(sf.pct), key + '.streamStr');
@@ -419,17 +425,18 @@ function homeCard(m, key) {
   var total = a.total || 0;
   var note = num(ngCount) + ' of ' + num(total) + ' aircraft next-gen today';
   var sup = key === 'united' ? '<sup>*</sup>' : '';
-  var tierLabel = sf.uncertain ? 'streaming<br>floor' : 'streaming<br>or better';
+  var coverageMeta = 'Confirmed streaming coverage · Reported · ' +
+    esc((a.segments[0] && a.segments[0].src) || 'airline records') + ' · ' + esc(a.asOf || 'date unavailable');
 
-  return '        <article class="aircard" data-nextgen="' + odds + '" data-streaming="' + streamStr +
+  return '        <article class="aircard" data-nextgen="' + odds + '" data-streaming-score="' + score + '" data-streaming-coverage="' + streamStr +
     '"><div class="airtop"><span class="airname">' + esc(a.name) + '</span> <span class="code">' +
     esc(a.code || '') + '</span></div>' +
     '<div class="primary-stat odds-only"><strong>' + odds + '%' + sup + '</strong>' +
     '<span>next-gen<br>odds</span></div>' +
-    '<div class="primary-stat tier-only"><strong class="tier-value">' + (sf.uncertain ? '≥' : '') +
-    streamStr + '%' + sup + '</strong><span>' + tierLabel + '</span></div>' +
+    '<div class="primary-stat streaming-only"><strong class="tier-value" data-streaming-view="primary">' + score + sup +
+    '</strong> <span>Streaming<br>score</span></div>' +
     '<div class="band"><i></i></div>' +
-    '<div class="support"><span>ConnectScore · all systems</span> <b>' + score + '</b></div>' +
+    '<div class="support"><span>' + coverageMeta + '</span> <b data-streaming-coverage="confirmed">' + streamStr + '%</b></div>' +
     '<p class="airnote">' + esc(note) + '</p></article>\n';
 }
 
@@ -547,11 +554,10 @@ function home(m) {
    *    should require saying so here, because that is the moment the binding
    *    could be dropped by accident. */
   var PROOF_FIELD_BINDING = {
-    P_STREAMFLOOR: '<span class="tier-only">{{P_STREAMFLOOR}}</span></div>',
-    P_STREAMCERTAIN: 'cover {{P_STREAMCERTAIN}} of United’s',
-    P_STREAMING: '<span class="tier-only">{{P_STREAMING}}</span></b>',
-    P_LEGACY: '<span class="tier-only">{{P_LEGACY}}</span></b>',
-    P_NOWIFI: '<span class="tier-only">{{P_NOWIFI}}</span></b>'
+    P_STREAMFLOOR: '<span class="streaming-only">{{P_STREAMFLOOR}}</span></div>',
+    P_STREAMING: '<span class="streaming-only">{{P_STREAMING}}</span></b>',
+    P_LEGACY: '<span class="streaming-only">{{P_LEGACY}}</span></b>',
+    P_NOWIFI: '<span class="streaming-only">{{P_NOWIFI}}</span></b>'
   };
   var tplNoComments = tpl.replace(/<!--[\s\S]*?-->/g, '');
   var parkedTokens = (tpl.match(/<!--[\s\S]*?-->/g) || []).join('\n').match(/\{\{P_[A-Z0-9_]+\}\}/g);
@@ -625,7 +631,7 @@ function home(m) {
     P_PACE: String(homeNum(m.fleet.mainlinePacePerWeek, 'fleet.mainlinePacePerWeek')),
     /* The streaming view's four tiles and its floor. Literals until 1 Aug 2026;
        see homeProofBuckets() for what they were saying wrong. */
-    P_STREAMFLOOR: pb.floorStr,
+    P_STREAMFLOOR: String(m.A.scoreAirline('united').score),
     P_STREAMCERTAIN: num(pb.floorCertain),
     P_STREAMING: num(pb.streaming),
     P_LEGACY: num(pb.legacy),

@@ -1022,7 +1022,7 @@ async function main() {
    * horizon and the confidence with it, which is the same contract the pages
    * render under. */
   ok(/committed aircraft/.test(j.projectedMethod || '') &&
-    /never against the ConnectScore/.test(j.projectedMethod || ''),
+    /never against the Streaming score/.test(j.projectedMethod || ''),
     '/api index explains the projected score and what not to compare it to');
   ok(/nobody has measured Amazon Leo/.test(j.projectedMethod || ''),
     '/api index says outright that Amazon Leo has never been measured in a cabin');
@@ -1098,7 +1098,7 @@ async function main() {
   /* rule 1, at the API boundary: today's floor orders the list, and a projection
      that outranks a floor must not move anybody. American projects 51 against a
      floor of 51; jetBlue projects 25 against a floor of 55. */
-  eq(all.order, 'whole-fleet lower-bound ConnectScore desc, ties by whole-fleet coverage then name',
+  eq(all.order, 'whole-fleet lower-bound Streaming score desc, ties by whole-fleet coverage then name',
     '/api/airlines declares it sorts on the whole-fleet lower bound');
   /* Round-18 P0-02: rank on the UNROUNDED whole-fleet lower bound
      (connectScoreExact), ties by whole-fleet coverage (known ÷ total), then
@@ -1442,7 +1442,7 @@ async function main() {
   eq(init.j.result.serverInfo.name, 'wifiodds', 'MCP serverInfo.name');
   var instr = init.j.result.instructions || '';
   ok(instr.length > 1500, 'MCP instructions are substantial (they are the product)', instr.length);
-  [/HOURS OF WORKING WIFI/, /Rank by ConnectScore/, /browser extension/, /Never/,
+  [/HOURS OF WORKING WIFI/, /Rank by Streaming score/, /browser extension/, /Never/,
     /martinamps/, /methodology/].forEach(function (re) {
     ok(re.test(instr), 'MCP instructions carry ' + re);
   });
@@ -1658,7 +1658,7 @@ async function main() {
   eq(mcpQatar.connectScoreUpper, 61, 'P0-02 #4: MCP agrees qatar ceiling is 61');
   ok(/whole-fleet lower bound/.test(mcpList.j.result.content[0].text),
     'P0-02 #4: MCP prose names the whole-fleet lower bound');
-  ok(/ConnectScore 53\/100 \(whole-fleet lower bound\)/.test(llmsTxt),
+  ok(/Streaming score 53\/100 \(whole-fleet lower bound\)/.test(llmsTxt),
     'P0-02 #4: llms.txt prints qatar 53 as the whole-fleet lower bound');
   ok(mcpAirlines.map(function (x) { return x.key; }).join(',') ===
      all.airlines.map(function (x) { return x.key; }).join(','),
@@ -1795,9 +1795,9 @@ async function main() {
   var methodology = fs.readFileSync(path.join(ROOT, 'methodology/index.html'), 'utf8');
   [
     'How the numbers work',
-    'Next-gen odds and ConnectScore answer different questions.',
+    'Next-Gen and Streaming answer different questions.',
     'Keep unpublished counts unknown. Do not record them as 0%.',
-    'We publish confirmed minimums for incomplete fleet data.',
+    'We publish confirmed coverage for incomplete fleet data.',
     'Each figure carries a source label.',
     'How we calculate each score.',
     'Aircraft-level data sources'
@@ -1949,7 +1949,7 @@ async function main() {
    * the plain primary score is 48 and its separate confirmed coverage is 86%. */
   home.split('<article class="aircard"').slice(1).forEach(function (card) {
     var nameMatch = /<span class="airname">([^<]+)<\/span>/.exec(card);
-    var streamingMatch = /<[^>]*\bdata-streaming-view="primary"[^>]*>([^<]+)<\//.exec(card);
+    var streamingMatch = /<[^>]*\bdata-streaming-view="primary"[^>]*>(\d+)(?:<sup[^>]*>[^<]*<\/sup>)?<\//.exec(card);
     var coverageMatch = /<[^>]*\bdata-streaming-coverage="confirmed"[^>]*>([^<]+)<\//.exec(card);
     if (!nameMatch) return;
     var a = all.airlines.filter(function (x) { return x.name === nameMatch[1]; })[0];
@@ -1986,7 +1986,9 @@ async function main() {
     ok(southwest.nextGen.pct > 0,
       'Southwest API preserves its sourced nonzero next-gen result instead of rounding it to zero',
       southwest.nextGen.pct);
-    var southwestCards = home.split('<article class="aircard"').filter(function (chunk) {
+    var southwestCards = home.split('<article class="aircard"').slice(1).map(function (chunk) {
+      return chunk.slice(0, chunk.indexOf('</article>'));
+    }).filter(function (chunk) {
       return /<span class="airname">Southwest<\/span>/.test(chunk);
     });
     eq(southwestCards.length, 1, 'Southwest has one rendered Big 4 card for the false-zero control');
@@ -2008,25 +2010,25 @@ async function main() {
 
   /* ── Big 4 cards: name + data-nextgen attribute + the ConnectScore <b> in
    * .support must all agree with the API for the same airline. */
-  var cardRe = /<article class="aircard" data-nextgen="(-?[\d.]+)" data-streaming="(-?[\d.]+)">[\s\S]*?<span class="airname">([^<]+)<\/span>[\s\S]*?<b>(\d+)<\/b><\/div>\s*<p class="airnote">/g;
+  var cardRe = /<article class="aircard" data-nextgen="(-?[\d.]+)" data-streaming-score="(-?[\d.]+)" data-streaming-coverage="(-?[\d.]+)">[\s\S]*?<span class="airname">([^<]+)<\/span>[\s\S]*?data-streaming-view="primary">(\d+)</g;
   var seenBig4 = 0, mCard, big4Keys = {};
   while ((mCard = cardRe.exec(home)) !== null) {
-    var nextgenAttr = mCard[1], streamAttr = mCard[2], cardName = mCard[3], cardScore = mCard[4];
+    var nextgenAttr = mCard[1], streamAttr = mCard[2], cardName = mCard[4], cardScore = mCard[5];
     var byName = all.airlines.filter(function (a) { return a.name === cardName; })[0];
     ok(!!byName, 'a homepage Big 4 card names an airline the API knows', cardName);
     if (!byName) continue;
     big4Keys[byName.key] = true;
     seenBig4++;
     ok(nextgenAttr !== '' && isFinite(Number(nextgenAttr)), 'Big 4 ' + cardName + ' data-nextgen is a finite number', nextgenAttr);
-    ok(streamAttr !== '' && isFinite(Number(streamAttr)), 'Big 4 ' + cardName + ' data-streaming is a finite number', streamAttr);
-    eq(Number(cardScore), byName.connectScore, 'PARITY: ' + cardName + ' Big 4 card ConnectScore == API connectScore');
-    eq(Number(nextgenAttr), byName.nextGenScore, 'PARITY: ' + cardName + ' Big 4 card data-nextgen == API nextGenScore');
+    ok(streamAttr !== '' && isFinite(Number(streamAttr)), 'Big 4 ' + cardName + ' data-streaming-score is a finite number', streamAttr);
+    eq(Number(cardScore), byName.streamingScore, 'PARITY: ' + cardName + ' Big 4 card Streaming score == API streamingScore');
+    eq(Number(nextgenAttr), byName.nextGen.pct, 'PARITY: ' + cardName + ' Big 4 card data-nextgen == API nextGen.pct');
   }
   eq(seenBig4, 4, 'PARITY: all four Big 4 cards were checked against the API');
   eq(Object.keys(big4Keys).sort().join(','), ['american', 'delta', 'southwest', 'united'].sort().join(','),
     'PARITY: the Big 4 cards are exactly united/american/delta/southwest');
   eq(dl.nextGenScore, 0, 'PARITY: the API next-gen score for Delta is 0');
-  ok(/data-nextgen="0" data-streaming="[\d.]+">[\s\S]{0,400}<span class="airname">Delta<\/span>/.test(home),
+  ok(/data-nextgen="0" data-streaming-score="[\d.]+"[^>]*>[\s\S]{0,400}<span class="airname">Delta<\/span>/.test(home),
     'the Delta Big 4 card ranks next-gen at a real 0, not blank and not projected');
 
 /* ── all 18 board rows: one <div class="row"> per airline. The rows were
@@ -2036,7 +2038,7 @@ async function main() {
   /* Stop at the next peer row / section delimiter, never at a customer-facing
    * metric label. The 3.1.0 migration removes ConnectScore from this surface,
    * and the later Streaming marker assertions below own the public contract. */
-  var rowRe = /<div class="row ([a-z]+)" data-key="([a-z]+)"[^>]*data-rankable="(true|false)"[^>]*data-score="(\d+)"[^>]*data-odds="(-?[\d.]+)"[^>]*data-floor="(-?[\d.]+)"[^>]*?(data-floor-uncertain="true")?>/g;
+  var rowRe = /<div class="row ([a-z]+)" data-key="([a-z]+)"[^>]*data-rankable="(true|false)"[^>]*data-streaming-score="(\d+)"[^>]*data-odds="(-?[\d.]+)"[^>]*data-streaming-coverage="(-?[\d.]+)"[^>]*>/g;
   var boardRows = [];
   var rowStarts = [];
   var mRow;
@@ -2049,7 +2051,7 @@ async function main() {
       home.indexOf('<p class="board-note"', row.contentAt);
     boardRows.push({
       cls: mRow[1], key: mRow[2], rankable: mRow[3] === 'true', score: Number(mRow[4]),
-      odds: Number(mRow[5]), floor: Number(mRow[6]), uncertain: !!mRow[7],
+      odds: Number(mRow[5]), coverage: Number(mRow[6]),
       inner: home.slice(row.contentAt, nextAt)
     });
   });
@@ -2068,10 +2070,10 @@ async function main() {
     if (!a) return;
     eq(r.score, a.connectScore, 'PARITY: ' + r.key + ' row data-score == API connectScore');
     /* every baked numeric attribute is finite — never NaN, never blank */
-    ok(isFinite(r.score) && isFinite(r.odds) && isFinite(r.floor),
-      r.key + ' row carries finite data-score/data-odds/data-floor', [r.score, r.odds, r.floor]);
+    ok(isFinite(r.score) && isFinite(r.odds) && isFinite(r.coverage),
+      r.key + ' row carries finite data-streaming-score/data-odds/data-streaming-coverage', [r.score, r.odds, r.coverage]);
     if (r.rankable) {
-      eq(r.odds, a.nextGenScore, 'PARITY: ' + r.key + ' row data-odds == API nextGenScore');
+      eq(r.odds, a.nextGen.pct, 'PARITY: ' + r.key + ' row data-odds == API nextGen.pct');
       /* The default visible value follows data-odds. The activated Streaming
          view has its own public marker, score, and supporting coverage. */
       var oddsTxt = /<b class="odds-only">(-?[\d.]+)%/.exec(r.inner);
@@ -2093,7 +2095,7 @@ async function main() {
          never sorts on (it only sorts data-rankable="true" rows), never a
          displayed figure. */
       eq(r.odds, -1, 'unpublished ' + r.key + ': data-odds is the -1 sentinel, never a real figure');
-      eq(r.floor, -1, 'unpublished ' + r.key + ': data-floor is the -1 sentinel, never a real figure');
+      eq(r.coverage, -1, 'unpublished ' + r.key + ': data-streaming-coverage is the -1 sentinel, never a real figure');
       ok(/unpublished/.test(r.inner) && /not computable/.test(r.inner),
         'unpublished ' + r.key + ': row text reads "unpublished" / "not computable", no percentage');
       ok(!/%/.test(r.inner.replace(/COLOR WIDTH[^%]*/, '')), 'unpublished ' + r.key + ': no percent sign anywhere in the row', r.inner);
@@ -2125,10 +2127,10 @@ async function main() {
   var byOdds = stableSortedBy(ranked, function (r) { return r.odds * 1000 + r.score; });
   eq(byOdds.map(function (r) { return r.key; }).join(','), ranked.map(function (r) { return r.key; }).join(','),
     'default (next-gen) order: the raw row order already matches odds-desc/score-tiebreak, so the client\'s stable sort changes nothing on load');
-  var byFloor = stableSortedBy(ranked, function (r) { return r.floor * 1000 + r.score; });
-  var floors = byFloor.map(function (r) { return r.floor; });
-  ok(floors.every(function (v, i) { return i === 0 || v <= floors[i - 1]; }),
-    'streaming order: sorting the same rows by data-floor is internally consistent (non-increasing)', floors);
+  var byScore = stableSortedBy(ranked, function (r) { return r.score; });
+  var scores = byScore.map(function (r) { return r.score; });
+  ok(scores.every(function (v, i) { return i === 0 || v <= scores[i - 1]; }),
+    'Streaming order: sorting the same rows by data-streaming-score is internally consistent (non-increasing)', scores);
   eq(ranked.slice(0, 3).map(function (r) { return r.key; }).join(','), 'jsx,zipair,hawaiian',
     'the first three ranked rows are JSX and ZIPAIR (both fleetwide 100) then Hawaiian at 64 — ' +
     'airBaltic left the top three when next-gen odds moved to the whole-fleet denominator (round 18 P0-02): ' +

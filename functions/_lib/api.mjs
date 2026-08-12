@@ -120,6 +120,11 @@ function round(n, places) {
   return Math.round(n * f) / f;
 }
 
+function publishedPct(share) {
+  if (!(share > 0)) return 0;
+  return Math.max(1, Math.round(share * 100));
+}
+
 /* ── one airline, JSON ─────────────────────────────────────────────────────
  * Every field is derived, nothing is transcribed. `streamingScore` is the
  * current name for the same integer the airline's own page prints in its score
@@ -191,7 +196,7 @@ export function airlineJson(key) {
       system: a.nextGenSystem,
       label: a.nextGenLabel,
       share: a.nextGenPublished === false ? null : round(a.nextGenShare, 4),
-      pct: a.nextGenPublished === false ? null : Math.round(a.nextGenShare * 100),
+      pct: a.nextGenPublished === false ? null : publishedPct(a.nextGenShare),
       /* ── D2: next-gen odds split by mainline vs regional fleet. United-only
        * today — see nextGenSplitFor() in assets/airlines.js for why a crosstab
        * for anyone else would be invented data.

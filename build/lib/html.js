@@ -600,7 +600,7 @@ function footer(updated, refreshAttemptedOn, wasRetained) {
        label text; move the links wherever you like. */
     '  <div class="frow"><a href="' + REPO_SITE + '" target="_blank" rel="noopener">Site source ↗</a> · ' +
     '<a href="' + REPO_EXT + '" target="_blank" rel="noopener">Extension source ↗</a></div>\n' +
-    '  <div class="frow">' + updatedLine + ' ConnectScores and per-flight odds are ' +
+    '  <div class="frow">' + updatedLine + ' Streaming scores and per-flight odds are ' +
     'historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and ' +
     'unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</div>\n' +
     /* The "United route optimiser caches the route list under usl3:<ORIG>-<DEST>"

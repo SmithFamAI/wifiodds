@@ -19,10 +19,10 @@
     "Tolerances are in build/slop-gate.js, deliberately not in this file."
   ],
   "wordlist": "2026-07-25",
-  "recorded": "2026-08-04",
+  "recorded": "2026-08-12",
   "pages": {
     "404.html": {
-      "words": 171,
+      "words": 174,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -230,7 +230,7 @@
       "pivotUnits": 0
     },
     "extension/index.html": {
-      "words": 2423,
+      "words": 2372,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -238,7 +238,7 @@
       "pivotUnits": 1
     },
     "index.html": {
-      "words": 1079,
+      "words": 1301,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -246,15 +246,15 @@
       "pivotUnits": 0
     },
     "llms.txt": {
-      "words": 2687,
+      "words": 2702,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
-      "pivotPer1000": 4.3,
-      "pivotUnits": 11.75
+      "pivotPer1000": 4.26,
+      "pivotUnits": 11.5
     },
     "methodology/index.html": {
-      "words": 773,
+      "words": 772,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
@@ -262,7 +262,7 @@
       "pivotUnits": 1.25
     },
     "privacy.html": {
-      "words": 1495,
+      "words": 1465,
       "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
