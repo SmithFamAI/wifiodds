@@ -1749,6 +1749,17 @@ async function main() {
     '3.1.0 homepage primary control says Streaming, not the old streaming-or-better coverage label');
   ok(activePageText('/').indexOf('Confirmed streaming coverage') >= 0,
     '3.1.0 homepage labels the supporting percentage Confirmed streaming coverage');
+  var boardNote = /<p class="board-note">([\s\S]*?)<\/p>/.exec(home);
+  ok(!!boardNote, 'homepage has one customer-facing board-order note');
+  if (boardNote) {
+    ok(/<span class="odds-only">[\s\S]*?Air France and SAS are unranked because the airlines have not published their next-gen aircraft counts\.<\/span>/.test(boardNote[1]),
+      'Next-Gen board note explains why Air France and SAS are unranked');
+    ok(/<span class="streaming-only">[\s\S]*?Air France and SAS are included in this ranking\. We could not verify their Confirmed streaming coverage\.<\/span>/.test(boardNote[1]),
+      'Streaming board note says Air France and SAS rank while coverage remains unknown');
+    var alwaysVisibleBoardNote = boardNote[1].replace(/<span class="(?:odds-only|streaming-only)">[\s\S]*?<\/span>/g, '');
+    ok(!/Air France|SAS|unranked|could not verify/i.test(alwaysVisibleBoardNote),
+      'board note keeps view-specific claims inside the matching view');
+  }
 
   /* The store listing, not the extension manifest, decides what public site
    * copy may call current. One ledger feeds the shared HTML constant and both
