@@ -134,8 +134,10 @@ python3 - "$d/$TPL" <<'PY'
 import sys
 p = sys.argv[1]
 s = open(p, encoding='utf-8').read()
-s = s.replace('<span class="tier-only">{{P_STREAMING}}</span></b>',
-              '<span class="tier-only">{{P_STREAMING}}</span></i>', 1)
+s = s.replace('<span class="streaming-only">{{P_STREAMING}}</span></b>',
+              '<span class="streaming-only">{{P_STREAMING}}</span></i>', 1)
+assert s.count('<span class="streaming-only">{{P_STREAMING}}</span></i>') == 1, \
+    'streaming binding mutation did not land exactly once'
 open(p, 'w', encoding='utf-8').write(s)
 PY
 control nonzero unbound-streaming-element "token kept, but no longer inside the element it binds"
