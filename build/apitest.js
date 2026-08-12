@@ -2033,15 +2033,26 @@ async function main() {
    * delinked in the 28 Jul cut (the airline detail pages they linked to are
    * gone), so the model key is read off the explicit data-key attribute that
    * homeRow now emits, rather than off the old /airlines/<key>/ href. */
-  var rowRe = /<div class="row ([a-z]+)" data-key="([a-z]+)"[^>]*data-rankable="(true|false)"[^>]*data-score="(\d+)"[^>]*data-odds="(-?[\d.]+)"[^>]*data-floor="(-?[\d.]+)"[^>]*?(data-floor-uncertain="true")?>([\s\S]*?<small>ConnectScore<\/small><\/div>)<\/div>/g;
+  /* Stop at the next peer row / section delimiter, never at a customer-facing
+   * metric label. The 3.1.0 migration removes ConnectScore from this surface,
+   * and the later Streaming marker assertions below own the public contract. */
+  var rowRe = /<div class="row ([a-z]+)" data-key="([a-z]+)"[^>]*data-rankable="(true|false)"[^>]*data-score="(\d+)"[^>]*data-odds="(-?[\d.]+)"[^>]*data-floor="(-?[\d.]+)"[^>]*?(data-floor-uncertain="true")?>/g;
   var boardRows = [];
+  var rowStarts = [];
   var mRow;
   while ((mRow = rowRe.exec(home)) !== null) {
+    rowStarts.push({ match: mRow, contentAt: rowRe.lastIndex });
+  }
+  rowStarts.forEach(function (row, i) {
+    mRow = row.match;
+    var nextAt = i + 1 < rowStarts.length ? rowStarts[i + 1].match.index :
+      home.indexOf('<p class="board-note"', row.contentAt);
     boardRows.push({
       cls: mRow[1], key: mRow[2], rankable: mRow[3] === 'true', score: Number(mRow[4]),
-      odds: Number(mRow[5]), floor: Number(mRow[6]), uncertain: !!mRow[7], inner: mRow[8]
+      odds: Number(mRow[5]), floor: Number(mRow[6]), uncertain: !!mRow[7],
+      inner: home.slice(row.contentAt, nextAt)
     });
-  }
+  });
   eq(boardRows.length, 18, 'homepage: exactly 18 board rows are present', boardRows.map(function (r) { return r.key; }));
 
   /* rule 5: exact model <-> template airline-key parity, BOTH directions,
