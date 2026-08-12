@@ -303,7 +303,7 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
       if(view==='streaming'){
         var exact=(+b.dataset.streamingExact)-(+a.dataset.streamingExact);
         if(exact)return exact;
-        var coverage=(+b.dataset.streamingCoverageExact)-(+a.dataset.streamingCoverageExact);
+        var coverage=(+b.dataset.streamingRankCoverageExact)-(+a.dataset.streamingRankCoverageExact);
         if(coverage)return coverage;
         return a.dataset.name.localeCompare(b.dataset.name);
       }

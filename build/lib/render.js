@@ -353,6 +353,10 @@ function homeCoverageMeta(a) {
   return 'Confirmed streaming coverage · Reported · ' + esc(homeCoverageSources(a)) +
     ' · ' + esc(a.asOf || 'date unavailable');
 }
+function homeUnknownCoverageMeta(a) {
+  return 'Confirmed streaming coverage · not published · could not verify a fleet share from ' +
+    esc(homeCoverageSources(a)) + ' · ' + esc(a.asOf || 'date unavailable');
+}
 /* The tier-only <small> label. Only prints a number when the uncertainty is a
  * real unresolved-aircraft count; a same-known-fleet ambiguous split (no
  * unresolved aircraft, just an unpublished system mix) gets the words with no
@@ -385,12 +389,13 @@ function homeRow(m, key, rank) {
   if (a.nextGenPublished === false) {
     return '        <div class="row unranked" data-key="' + key + '" data-name="' + dataName +
       '" data-rankable="false" data-streaming-score="' + score + '" data-streaming-exact="' + exact +
-      '" data-odds="-1" data-streaming-coverage="' + coverage + '" data-streaming-coverage-exact="' + coverageExact + '">' +
+      '" data-odds="-1" data-streaming-coverage="-1" data-streaming-coverage-exact="-1" data-streaming-rank-coverage-exact="' + coverageExact + '">' +
       '<div class="who"><b><span class="rank-text">–</span> · ' + esc(a.name) + '</b> ' +
       '<small>Starlink count unpublished</small></div>' +
       '<div class="metric primary"><b class="unknown odds-only">unpublished</b> ' +
       '<b class="streaming-only" data-streaming-view="primary">' + score + '</b> <small>primary</small></div>' +
-      '<div class="metric"><b data-streaming-coverage="confirmed">' + coverage + '%</b> <small>' + coverageMeta + '</small></div></div>\n';
+      '<div class="metric"><b class="unknown" data-streaming-coverage="unknown">could not verify</b> <small>' +
+      homeUnknownCoverageMeta(a) + '</small></div></div>\n';
   }
 
   var odds = homeNum(a.nextGenScore, key + '.nextGenScore');
@@ -403,7 +408,7 @@ function homeRow(m, key, rank) {
 
   return '        <div class="row ' + rowClass + '" data-key="' + key + '" data-name="' + dataName +
     '" data-rankable="true" data-streaming-score="' + score + '" data-streaming-exact="' + exact + '" data-odds="' + odds +
-    '" data-streaming-coverage="' + coverage + '" data-streaming-coverage-exact="' + coverageExact + '"><div class="who"><b><span class="rank-text">' +
+    '" data-streaming-coverage="' + coverage + '" data-streaming-coverage-exact="' + coverageExact + '" data-streaming-rank-coverage-exact="' + coverageExact + '"><div class="who"><b><span class="rank-text">' +
     String(rank).padStart(2, '0') + '</span> · ' + esc(a.name) + '</b> ' + smallHtml + '</div>' +
     '<div class="metric primary"><b class="odds-only">' + odds + '%</b> <b class="streaming-only" data-streaming-view="primary">' +
     score + '</b> <small>primary</small></div>' +

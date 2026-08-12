@@ -2070,7 +2070,7 @@ async function main() {
   /* Stop at the next peer row / section delimiter, never at a customer-facing
    * metric label. The 3.1.0 migration removes ConnectScore from this surface,
    * and the later Streaming marker assertions below own the public contract. */
-  var rowRe = /<div class="row ([a-z]+)" data-key="([a-z]+)"[^>]*data-rankable="(true|false)"[^>]*data-streaming-score="(\d+)"[^>]*data-streaming-exact="(-?[\d.]+)"[^>]*data-odds="(-?[\d.]+)"[^>]*data-streaming-coverage="(-?[\d.]+)"[^>]*data-streaming-coverage-exact="(-?[\d.]+)"[^>]*>/g;
+  var rowRe = /<div class="row ([a-z]+)" data-key="([a-z]+)"[^>]*data-rankable="(true|false)"[^>]*data-streaming-score="(\d+)"[^>]*data-streaming-exact="(-?[\d.]+)"[^>]*data-odds="(-?[\d.]+)"[^>]*data-streaming-coverage="(-?[\d.]+)"[^>]*data-streaming-coverage-exact="(-?[\d.]+)"(?: data-streaming-rank-coverage-exact="(-?[\d.]+)")?[^>]*>/g;
   var boardRows = [];
   var rowStarts = [];
   var mRow;
@@ -2084,6 +2084,7 @@ async function main() {
     boardRows.push({
       cls: mRow[1], key: mRow[2], rankable: mRow[3] === 'true', score: Number(mRow[4]),
       exact: Number(mRow[5]), odds: Number(mRow[6]), coverage: Number(mRow[7]), coverageExact: Number(mRow[8]),
+      rankCoverageExact: mRow[9] == null ? Number(mRow[8]) : Number(mRow[9]),
       inner: home.slice(row.contentAt, nextAt)
     });
   });
@@ -2095,7 +2096,7 @@ async function main() {
   ok(/data-streaming-exact=/.test(home),
     'homepage rows expose the exact Streaming value used for rank order');
   ok(/var streamingRows=rows\.slice\(\)/.test(home) && /dataset\.streamingExact/.test(home) &&
-    /dataset\.streamingCoverageExact/.test(home) && /dataset\.name\.localeCompare/.test(home),
+    /dataset\.streamingRankCoverageExact/.test(home) && /dataset\.name\.localeCompare/.test(home),
     'homepage Streaming control ranks all rows by the exact Streaming value');
   var exactApiOrder = all.airlines.slice().sort(function (a, b) {
     if (b.streamingScoreExact !== a.streamingScoreExact) return b.streamingScoreExact - a.streamingScoreExact;
@@ -2109,7 +2110,7 @@ async function main() {
   all.airlines.forEach(function (a) { apiByKey[a.key] = a; });
   var exactBoardOrder = boardRows.slice().sort(function (a, b) {
     if (b.exact !== a.exact) return b.exact - a.exact;
-    if (b.coverageExact !== a.coverageExact) return b.coverageExact - a.coverageExact;
+    if (b.rankCoverageExact !== a.rankCoverageExact) return b.rankCoverageExact - a.rankCoverageExact;
     return apiByKey[a.key].name.localeCompare(apiByKey[b.key].name);
   }).map(function (r) { return r.key; });
   eq(exactBoardOrder.join(','), all.airlines.map(function (a) { return a.key; }).join(','),
@@ -2136,7 +2137,7 @@ async function main() {
     eq(r.score, a.connectScore, 'PARITY: ' + r.key + ' row data-score == API connectScore');
     eq(Number(r.exact.toFixed(3)), a.streamingScoreExact,
       'PARITY: ' + r.key + ' row exact Streaming value preserves API exact-score order');
-    eq(Math.round(r.coverageExact * 100), a.wholeFleet.coveragePct,
+    eq(Math.round(r.rankCoverageExact * 100), a.wholeFleet.coveragePct,
       'PARITY: ' + r.key + ' row exact Streaming coverage tie-breaker preserves API coverage');
     /* every baked numeric attribute is finite — never NaN, never blank */
     ok(isFinite(r.score) && isFinite(r.exact) && isFinite(r.odds) && isFinite(r.coverage) && isFinite(r.coverageExact),
@@ -2168,10 +2169,16 @@ async function main() {
       var unpublishedCoverage = /<[^>]*\bdata-streaming-coverage="confirmed"[^>]*>([^<]+)<\//.exec(r.inner);
       ok(/unpublished/.test(r.inner) && !/not computable/.test(r.inner),
         'unpublished ' + r.key + ': Next-Gen remains unpublished without suppressing Streaming');
-      ok(!!unpublishedStreamingPrimary && !!unpublishedCoverage,
-        'unpublished ' + r.key + ': Streaming still shows the score and confirmed coverage');
+      ok(!!unpublishedStreamingPrimary && !unpublishedCoverage,
+        'unpublished ' + r.key + ': Streaming still shows the score while Confirmed coverage stays unknown');
       if (unpublishedStreamingPrimary) eq(Number(unpublishedStreamingPrimary[1]), a.streamingScore,
         'unpublished ' + r.key + ': displayed Streaming primary == API score');
+      eq(r.coverage, -1,
+        'unpublished ' + r.key + ': confirmed Streaming coverage uses the unknown sentinel, never 0%');
+      eq(r.coverageExact, -1,
+        'unpublished ' + r.key + ': coverage exact value uses the unknown sentinel, never model evidence');
+      ok(/could not verify|not published/i.test(r.inner) && !/\b0(?:\.0+)?%/.test(r.inner),
+        'unpublished ' + r.key + ': reader sees unknown coverage, source context, and no numeric coverage percentage');
     }
   });
 
