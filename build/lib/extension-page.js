@@ -110,7 +110,7 @@ function scriptData() {
 function referenceMarkup() {
   var rowStates = [
     ['row-probability', 'Per-flight odds', 'The tracker has dated history for this United or Alaska flight. WiFi Odds can compare it after the sample and confidence checks pass.'],
-    ['row-fleet', 'Airline-wide score', 'The booking page does not provide supported flight history. WiFi Odds labels the airline-wide Streaming score so you do not mistake it for this flight’s odds.'],
+    ['row-fleet', 'Airline-wide score', 'The booking page does not provide supported flight history. The WiFi Odds site’s Streaming score rates the airline across its whole fleet. The current Store extension labels are listed in the release notes for version ' + RELEASE.version + '.'],
     ['row-partial', 'Part of the fleet has data', 'The published score covers a named part of the fleet. WiFi Odds shows that limit and leaves the remaining aircraft unknown.'],
     ['row-no-history', 'No usable history', 'The tracker did not return enough history. WiFi Odds shows unknown, does not use 0%, and leaves the row out of the ranking.'],
     ['row-loading', 'Lookup in progress', 'WiFi Odds shows a loading message while it waits for the tracker.'],

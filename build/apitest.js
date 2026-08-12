@@ -1770,6 +1770,7 @@ async function main() {
   var releaseDate = String(Number(releaseParts[2])) + ' ' + releaseMonths[Number(releaseParts[1]) - 1] +
     ' ' + releaseParts[0];
   var extensionBuilt = fs.readFileSync(path.join(ROOT, 'extension/index.html'), 'utf8');
+  var privacy = fs.readFileSync(path.join(ROOT, 'privacy.html'), 'utf8');
   var homeTemplate = fs.readFileSync(path.join(ROOT, 'build/templates/home.html'), 'utf8');
   var extensionTemplate = fs.readFileSync(path.join(ROOT, 'build/templates/extension-v3.html'), 'utf8');
   eq(HTML.EXT_VERSION, RELEASE.version, 'release ledger: shared EXT_VERSION is derived from the ledger');
@@ -1790,6 +1791,26 @@ async function main() {
     '3.0.2 compatibility: release-bound claims do not rename unreleased extension behavior');
   ok(extensionTemplate.indexOf('ConnectScore') === -1,
     '3.1.0 visible terminology: no extension-template copy names ConnectScore outside the 3.0.2 release ledger');
+  var fleetReference = /<details id="row-fleet">([\s\S]*?)<\/details>/.exec(extensionBuilt);
+  ok(!!fleetReference, 'release-bound reference: extension page has the airline-wide score entry');
+  if (fleetReference) {
+    var fleetReferenceText = renderedText(fleetReference[1]);
+    ok(fleetReferenceText.indexOf('The WiFi Odds site’s Streaming score rates the airline across its whole fleet.') >= 0,
+      'release-bound reference: Streaming names the site score, not a current extension label');
+    ok(fleetReferenceText.indexOf('The current Store extension labels are listed in the release notes for version ' + RELEASE.version + '.') >= 0,
+      'release-bound reference: current extension labels defer to the ledger-bound release notes');
+    ok(fleetReference[1].indexOf(RELEASE.extensionCommit.slice(0, 8)) >= 0,
+      'release-bound reference: provenance identifies the ledger-bound extension commit');
+  }
+  var privacyProductCopy = /<h2>What the extension does<\/h2>\s*<p>([\s\S]*?)<\/p>/.exec(privacy);
+  ok(!!privacyProductCopy, 'privacy terminology: product description is present');
+  if (privacyProductCopy) {
+    var privacyProductText = renderedText(privacyProductCopy[1]);
+    ok(privacyProductText.indexOf('The WiFi Odds site also shows an airline-wide Streaming score.') >= 0,
+      'privacy terminology: Streaming describes the site’s airline-wide score');
+    ok(!/Streaming score in the popup/i.test(privacyProductText),
+      'privacy terminology: does not claim an unpublished popup label');
+  }
   eq((home.match(new RegExp('v' + RELEASE.version.replace(/\./g, '\\.') +
     ' · free · cleared review ' + releaseDate, 'g')) || []).length, 1,
     'release ledger: homepage renders exactly one ledger version/date line');
@@ -1885,7 +1906,6 @@ async function main() {
   ].forEach(function (copy) {
     ok(technology.indexOf(copy) === -1, 'technology stale slogan is absent', copy);
   });
-  var privacy = fs.readFileSync(path.join(ROOT, 'privacy.html'), 'utf8');
   [
     'How field reports are handled',
     'accepts up to five reports from one network address in each UTC hour',
