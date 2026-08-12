@@ -1,4 +1,4 @@
-/* functions/_lib/api.mjs — shared plumbing for the public ConnectScore API v0.
+/* functions/_lib/api.mjs — shared plumbing for the public WiFi Odds API v0.
  *
  * Cloudflare Pages Functions. Native ESM, ZERO dependencies, no build step of
  * its own: Pages bundles functions/ automatically alongside the static output of
@@ -63,12 +63,12 @@ export const SOURCES = [
   {
     name: 'WiFi Odds',
     url: ORIGIN + '/',
-    covers: 'the ConnectScore method itself',
+    covers: 'the Streaming score method itself',
     method: SCORE_METHOD_LINE,
     nextGenMethod: TIER_METHOD_LINE,
     caveat: SCORE_CAVEAT,
     citation: 'Please credit unitedstarlinktracker.com / alaskastarlinktracker.com ' +
-      '(@martinamps) when re-publishing fleet numbers, and wifiodds.com for the ConnectScore. ' +
+      '(@martinamps) when re-publishing fleet numbers, and wifiodds.com for the Streaming score. ' +
       'WiFi Odds is unofficial and not affiliated with any airline, SpaceX/Starlink, Amazon, ' +
       'Viasat, or the trackers.'
   }
@@ -81,6 +81,7 @@ function headers(cache, extra) {
     'access-control-allow-origin': '*',
     'access-control-allow-methods': 'GET, HEAD, OPTIONS',
     'access-control-max-age': '86400',
+    'x-wifiodds-api': API_VERSION,
     'x-connectscore-api': API_VERSION
   }, extra || {});
 }
@@ -120,13 +121,14 @@ function round(n, places) {
 }
 
 /* ── one airline, JSON ─────────────────────────────────────────────────────
- * Every field is derived, nothing is transcribed. `connectScore` is the same
- * integer the airline's own page prints in its score ring. */
+ * Every field is derived, nothing is transcribed. `streamingScore` is the
+ * current name for the same integer the airline's own page prints in its score
+ * ring. The connectScore fields remain as deprecated compatibility aliases. */
 export function airlineJson(key) {
   const e = WIFI_AIRLINES[key];
   const a = scoreAirline(key);
   if (!e || !a) return null;
-  return {
+  const result = {
     key: key,
     name: a.name,
     code: a.code,
@@ -157,7 +159,7 @@ export function airlineJson(key) {
       lower: a.connectScoreLower,
       upper: a.connectScoreUpper,
       status: a.fleetStatus,
-      source: 'wifiodds.com ConnectScore, whole-fleet lower bound',
+      source: 'wifiodds.com Streaming score, whole-fleet lower bound',
       asOf: a.asOf
     },
     resolvedSubsetScore: {
@@ -339,6 +341,14 @@ export function airlineJson(key) {
        those pages are gone, so a machine client would have followed a 301 to an
        unrelated home page. Their data is this very object (round 18, P1-01). */
   };
+  /* Keep the v0 contract byte-for-byte equivalent for existing clients. These
+   * are aliases of the values already published above, never a second scoring
+   * calculation or a coverage percentage. */
+  result.streamingScore = result.connectScore;
+  result.streamingScoreLower = result.connectScoreLower;
+  result.streamingScoreUpper = result.connectScoreUpper;
+  result.streamingScoreExact = result.connectScoreExact;
+  return result;
 }
 
 /* Best odds first — the same order, from the same function, as the leaderboard. */

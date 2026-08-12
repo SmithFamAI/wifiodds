@@ -2734,7 +2734,7 @@ function apiDocs(m) {
 
   var endpointRows = [
     ['GET', '/api', 'This index: every endpoint, the airline keys, the flight-number prefixes.'],
-    ['GET', '/api/airlines', 'All ' + m.airlineCount + ' airlines, best ConnectScore first.'],
+    ['GET', '/api/airlines', 'All ' + m.airlineCount + ' airlines, best Streaming score first.'],
     ['GET', '/api/airlines/{key}', 'One airline. Unknown key → 404 JSON with the list of valid keys.'],
     ['GET', '/api/score/{flightNumber}', 'RETIRED 2026-07-26. 410 Gone. A flight number with no ' +
       'date only ever answered what usually happens on the route, not whether YOUR flight has it. ' +
@@ -2768,9 +2768,9 @@ function apiDocs(m) {
 
   var body =
     '<header class="hero" style="padding-top:18px">\n' +
-    '  <span class="kicker"><span class="dot"></span>ConnectScore API <span class="apiv">v0</span></span>\n' +
-    '  <h1 class="ph">The ConnectScore API</h1>\n' +
-    '  <p class="lede">Every ConnectScore on this site, as JSON. Free, no key, no accounts, no ' +
+    '  <span class="kicker"><span class="dot"></span>WiFi Odds API <span class="apiv">v0</span></span>\n' +
+    '  <h1 class="ph">The WiFi Odds API</h1>\n' +
+    '  <p class="lede">Every Streaming score on this site, as JSON. Free, no key, no accounts, no ' +
     'rate limit, CORS open to every origin. Read-only. Each response carries a <b>sources</b> array ' +
     'with the data credits. Please keep it attached when you re-publish.</p>\n' +
     '  <div class="microlinks"><a href="/airlines/">The same data as a table →</a>' +
@@ -2793,14 +2793,14 @@ function apiDocs(m) {
     '    <tbody>\n' + endpointRows + '\n    </tbody>\n  </table></div>\n' +
 
     '  <h3 class="apih">GET /api/airlines</h3>\n' +
-    '  <p class="sec-lede">All ' + m.airlineCount + ' airlines, ordered by ConnectScore descending. ' +
+    '  <p class="sec-lede">All ' + m.airlineCount + ' airlines, ordered by Streaming score descending. ' +
     'A tied score breaks on fitted coverage (the more of the fleet that score is actually measured ' +
     'on, the higher it ranks), then on name. Same order as the leaderboard, from the same ' +
     'function.</p>\n' +
     code('{\n' +
       '  "count": ' + m.airlineCount + ',\n' +
       '  "asOf": "' + (m.ranked[0].asOf || m.updated) + '",\n' +
-      '  "order": "connectScore desc, ties by fitted coverage then name",\n' +
+      '  "order": "streamingScore desc, ties by fitted coverage then name",\n' +
       '  "airlines": [ … ' + m.airlineCount + ' objects … ],\n' +
       '  "sources": [ … ]\n' +
       '}') +
@@ -2813,7 +2813,7 @@ function apiDocs(m) {
       '    "key": "qatar",\n' +
       '    "name": ' + JSON.stringify(qr.name) + ',\n' +
       '    "code": "' + qr.code + '",\n' +
-      '    "connectScore": ' + qr.score + ',\n' +
+      '    "streamingScore": ' + qr.score + ',\n' +
       '    "band": "' + qr.label + '",\n' +
       '    "nextGenScore": ' + qr.nextGenScore + ',\n' +
       '    "nextGen": { "score": ' + qr.nextGenScore + ', "system": "' + qr.system +
@@ -2867,11 +2867,11 @@ function apiDocs(m) {
     '</section>\n\n' +
 
     /* ── the two-number section. Added when the site stopped leading with a single
-     * score: an API that returned only connectScore would have let a caller
+     * score: an API that returned only streamingScore would have let a caller
      * publish "Delta 49, United 48" and be technically correct and wrong. */
     '<section class="blk">\n  <div class="sec-h"><h2>Two numbers, not one</h2>' +
     '<span class="sub">read both before you quote either</span></div>\n' +
-    '  <p class="sec-lede">Every airline object carries <b>connectScore</b> and ' +
+    '  <p class="sec-lede">Every airline object carries <b>streamingScore</b> and ' +
     '<b>nextGenScore</b>, and they answer different questions. ' + esc(m.A.TIER_METHOD_LINE) + '</p>\n' +
     '  <div class="tbl-shell"><table class="tbl">\n' +
     '    <thead><tr><th scope="col">Field</th><th scope="col">What it is</th><th scope="col">Delta, as an example</th></tr></thead>\n' +
@@ -2879,7 +2879,7 @@ function apiDocs(m) {
     '      <tr><td class="mono"><b>nextGenScore</b></td><td>Odds of a Starlink or Amazon Leo ' +
     'aircraft × free-for-you. A signed deal contributes nothing.</td>' +
     '<td class="mono">' + m.A.scoreAirline('delta').nextGenScore + '</td></tr>\n' +
-    '      <tr><td class="mono"><b>connectScore</b></td><td>The whole fleet, segment by segment: ' +
+    '      <tr><td class="mono"><b>streamingScore</b></td><td>The whole fleet, segment by segment: ' +
     'share × system quality × free-for-you, added up. Credits streaming-class geostationary service ' +
     'at ' + m.A.SYSTEM_QUALITY.viasat.toFixed(2) + ' and no connectivity at 0.</td>' +
     '<td class="mono">' + m.A.scoreAirline('delta').score + '</td></tr>\n' +
@@ -2899,7 +2899,7 @@ function apiDocs(m) {
     '<section class="blk">\n  <div class="sec-h"><h2>The score, field by field</h2>' +
     '<span class="sub">nothing here is transcribed</span></div>\n' +
     '  <div class="panel"><p style="font-family:var(--mono);font-size:14.5px;color:var(--ink)">' +
-    'connectScore = Σ segments[].share × segments[].quality × segments[].free.factor, rounded. ' +
+    'streamingScore = Σ segments[].share × segments[].quality × segments[].free.factor, rounded. ' +
     'It is the FLOOR; ceiling is the same sum at the top of every unpublished split.</p>\n' +
     '  <div class="caveat">' + esc(m.A.SCORE_CAVEAT) + '</div></div>\n' +
     '  <div class="grid3" style="margin-top:16px">\n' +
@@ -2948,7 +2948,7 @@ function apiDocs(m) {
     '    <thead><tr><th scope="col">Tool</th><th scope="col">Arguments</th><th scope="col">Returns</th></tr></thead>\n' +
     '    <tbody>\n' +
     '      <tr><td class="mono"><b>get_airline_score</b></td><td class="mono">key</td>' +
-    '<td>One airline: ConnectScore, system, fleet share, cost onboard, and the confidence tier the ' +
+    '<td>One airline: Streaming score, system, fleet share, cost onboard, and the confidence tier the ' +
     'number comes from.</td></tr>\n' +
     '      <tr><td class="mono"><b>list_airline_scores</b></td><td class="mono">none</td>' +
     '<td>All ' + m.airlineCount + ' airlines, best odds first. One call instead of eighteen.</td></tr>\n' +
@@ -2970,7 +2970,7 @@ function apiDocs(m) {
     '    <div class="q"><h3>The <span class="mono">instructions</span> field is the point</h3>' +
     '<p>What <span class="mono">initialize</span> returns is not a description of the endpoints. It ' +
     'is the decision layer: someone asking about flight WiFi is trying to maximise <b>hours of working ' +
-    'WiFi</b>, so prefer the higher ConnectScore, name which confidence tier you are quoting, never ' +
+    'WiFi</b>, so prefer the higher Streaming score, name which confidence tier you are quoting, never ' +
     'invent a per-flight number from a fleet-wide one, and always pass the credits through. A data ' +
     'endpoint with no opinion gets averaged into mush by whichever model is holding it.</p></div>\n' +
     '    <div class="q"><h3>It is the same code as the REST API</h3><p>Each tool is a thin wrapper ' +
@@ -3000,26 +3000,29 @@ function apiDocs(m) {
     'Cache-Control header rather than polling. If it ever gets abused, a limit is the thing that ' +
     'appears first.</p></div>\n' +
     '    <div class="q"><h3>v0 means v0</h3><p>Fields may be added at any time. Anything already ' +
-    'here (<span class="mono">connectScore</span>, <span class="mono">method</span>, ' +
+    'here (<span class="mono">streamingScore</span>, <span class="mono">method</span>, ' +
     '<span class="mono">prob</span>, <span class="mono">sources</span>) will not change meaning ' +
     'without the path changing to <span class="mono">/api/v1/</span>. Every response carries an ' +
-    '<span class="mono">x-connectscore-api</span> header with the version.</p></div>\n' +
-    '    <div class="q"><h3>Not a guarantee</h3><p>ConnectScores and per-flight odds are historical ' +
+    '<span class="mono">x-wifiodds-api</span> header with the version. Deprecated compatibility fields ' +
+    '<span class="mono">connectScore</span>, <span class="mono">connectScoreLower</span>, ' +
+    '<span class="mono">connectScoreUpper</span>, and <span class="mono">connectScoreExact</span> remain ' +
+    'equal aliases during the compatibility window; <span class="mono">x-connectscore-api</span> remains too.</p></div>\n' +
+    '    <div class="q"><h3>Not a guarantee</h3><p>Streaming scores and per-flight odds are historical ' +
     'estimates. Aircraft assignments change until departure, and a whole-fleet lower bound is not a ' +
     'prediction about the aircraft you are assigned.</p></div>\n' +
     '  </div>\n</section>\n';
 
   return H.page({
-    title: 'ConnectScore API — free airline WiFi scores as JSON',
-    desc: 'The free public ConnectScore API: every airline’s inflight WiFi score as JSON, plus ' +
+    title: 'WiFi Odds API — free airline WiFi scores as JSON',
+    desc: 'The free public WiFi Odds API: every airline’s inflight Streaming score as JSON, plus ' +
       'per-flight Starlink odds for United. No key, no accounts, CORS open, credits in every response.',
     canonical: '/api/docs/', here: '/', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained, crumb: crumbs,
     extraHead: css, body: body,
     jsonld: [{
       '@context': 'https://schema.org', '@type': 'WebAPI',
-      name: 'WiFi Odds ConnectScore API', url: ORIGIN + '/api/docs/',
+      name: 'WiFi Odds API', url: ORIGIN + '/api/docs/',
       documentation: ORIGIN + '/api/docs/',
-      description: 'Free, key-less JSON API for airline inflight WiFi ConnectScores and per-flight ' +
+      description: 'Free, key-less JSON API for airline inflight WiFi Streaming scores and per-flight ' +
         'United Starlink odds.',
       provider: { '@type': 'Organization', name: 'WiFi Odds', url: ORIGIN + '/' },
       termsOfService: ORIGIN + '/privacy'

@@ -6,7 +6,7 @@
  * answers questions an ASSISTANT asks, on behalf of someone who is picking a
  * flight — and the difference is not the transport, it is the `instructions`
  * field returned by initialize. That field is the product: it carries the
- * decision rules (maximise working-WiFi hours, prefer the higher ConnectScore,
+ * decision rules (maximise working-WiFi hours, prefer the higher Streaming score,
  * never invent a per-flight number, always credit the trackers). A data API
  * with no opinion gets averaged into mush by whatever model is holding it.
  * See INSTRUCTIONS below.
@@ -66,14 +66,19 @@ export const INSTRUCTIONS = [
   'Say so plainly and make the trade explicit; do not hedge back toward whatever they already had.',
   '',
   'THE DEFAULT RECOMMENDATION',
-  'Rank by ConnectScore — the whole-fleet lower bound — descending, and recommend in that order. It',
+  'Rank by Streaming score — the whole-fleet lower bound — descending, and recommend in that order. It',
   'already folds together three things: how much of the fleet carries the modern system, how good',
   'that system is, and whether it is free once you are onboard, so a smaller airline that finished',
   'its rollout genuinely beats a giant one that is half done. Do NOT override this order for options',
   'that are close: there is no five-point band. An exact tie in the lower bound breaks on whole-fleet',
   'coverage, then stable airline name. Free-for-everyone access and longer flight time on the better',
   'system are real tradeoffs you may surface AFTER stating the score order — never as a reason to',
-  'prefer a lower ConnectScore.',
+  'prefer a lower Streaming score.',
+  '',
+  'COMPATIBILITY',
+  'Use streamingScore, streamingScoreLower, streamingScoreUpper, and streamingScoreExact. The',
+  'deprecated connectScore, connectScoreLower, connectScoreUpper, and connectScoreExact fields',
+  'remain equal aliases during the compatibility window.',
   '',
   'TOOL SELECTION',
   '- The user named a flight number (UA212, AS15): map it to its airline and call get_airline_score —',
@@ -129,8 +134,8 @@ const AIRLINE_KEYS = Object.keys(WIFI_AIRLINES).sort();
 export const TOOLS = [
   {
     name: 'get_airline_score',
-    title: 'Get one airline\'s ConnectScore',
-    description: 'ConnectScore (0–100) and the full WiFi picture for one airline: which system it flies, ' +
+    title: 'Get one airline\'s Streaming score',
+    description: 'Streaming score (0–100) and the full WiFi picture for one airline: which system it flies, ' +
       'how much of the fleet has it, whether it is free onboard, and which confidence tier the number ' +
       'comes from. Use this when the user has named a single airline.',
     inputSchema: {
@@ -149,7 +154,7 @@ export const TOOLS = [
   {
     name: 'list_airline_scores',
     title: 'List every airline, best WiFi odds first',
-    description: 'Every airline we score, ordered by ConnectScore descending. Call this once when the ' +
+    description: 'Every airline we score, ordered by Streaming score descending. Call this once when the ' +
       'user is comparing airlines or has not chosen one yet — then reason over the list rather than ' +
       'calling get_airline_score repeatedly.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false }
@@ -175,6 +180,7 @@ function heads(extra) {
       'mcp-protocol-version, last-event-id',
     'access-control-expose-headers': 'mcp-session-id, mcp-protocol-version',
     'access-control-max-age': '86400',
+    'x-wifiodds-api': API_VERSION,
     'x-connectscore-api': API_VERSION,
     'x-mcp-server': SERVER_NAME + '/' + SERVER_VERSION
   }, extra || {});
@@ -218,7 +224,7 @@ async function viaHandler(handler, context, path, params) {
 /* ── result shaping ───────────────────────────────────────────────────────── */
 const CREDIT_LINE = 'Data credit: unitedstarlinktracker.com and alaskastarlinktracker.com ' +
   '(independent community trackers by @martinamps); every other airline from public airline ' +
-  'announcements. ConnectScore by WiFi Odds (' + ORIGIN + '), unofficial and not affiliated with any ' +
+  'announcements. Streaming score by WiFi Odds (' + ORIGIN + '), unofficial and not affiliated with any ' +
   'airline, SpaceX/Starlink, Amazon, Viasat, or the trackers.';
 
 /* The tier is derived from the same two facts the site derives it from: whether a
@@ -246,7 +252,7 @@ function airlineLine(a) {
    * "N of total (Z%)" branch would print "null of 123 aircraft (%)" — the
    * MCP-text version of the false "0 of 123 (0%)" that shipped on the
    * rendered page until 2026-07-26. */
-  /* Round-18 P0-02: connectScore is the whole-fleet lower bound. When a fleet
+  /* Round-18 P0-02: streamingScore is the whole-fleet lower bound. When a fleet
      has unresolved aircraft, say so and give the resolved coverage, so a reader
      never mistakes a partial-fleet score for a fleetwide one. */
   var wf = a.wholeFleet || {};
@@ -254,7 +260,7 @@ function airlineLine(a) {
     ? ' · ' + (wf.status || 'mixed') + ': ' + wf.unresolved + ' of ' + wf.total +
       ' aircraft unresolved (' + wf.coveragePct + '% resolved), ceiling ' + a.connectScoreUpper
     : '';
-  return a.name + ' (' + (a.code || '—') + ') — ConnectScore ' + a.connectScore +
+  return a.name + ' (' + (a.code || '—') + ') — Streaming score ' + a.streamingScore +
     '/100 (whole-fleet lower bound), ' + a.band +
     ' · ' + a.system.label + ' on ' +
     (!a.fleet.total ? 'the fleet (no tail counts published)'
@@ -326,8 +332,8 @@ async function toolListAirlineScores(context) {
     '',
     list.map(function (a, i) { return (i + 1) + '. ' + airlineLine(a); }).join('\n'),
     '',
-    'Rank by ConnectScore (whole-fleet lower bound) descending; an exact tie breaks on whole-fleet ' +
-    'coverage, then name. There is no five-point band — never prefer a lower ConnectScore. Free access ' +
+    'Rank by Streaming score (whole-fleet lower bound) descending; an exact tie breaks on whole-fleet ' +
+    'coverage, then name. There is no five-point band — never prefer a lower Streaming score. Free access ' +
     'and longer time on the better system are tradeoffs to mention after the order, not tie-breakers.',
     'Leaderboard: ' + ORIGIN + '/#all · method: ' + METHODOLOGY,
     '',
@@ -336,7 +342,7 @@ async function toolListAirlineScores(context) {
   return toolOk(text, {
     count: list.length,
     asOf: out.data.asOf || null,
-    order: out.data.order || 'whole-fleet lower-bound ConnectScore desc, ties by whole-fleet coverage then name',
+    order: out.data.order || 'whole-fleet lower-bound Streaming score desc, ties by whole-fleet coverage then name',
     airlines: list.map(function (a) {
       return Object.assign({ confidenceTier: tierOf(a) }, a);
     }),
@@ -373,7 +379,7 @@ async function dispatch(context, msg) {
       capabilities: { tools: { listChanged: false } },
       serverInfo: {
         name: SERVER_NAME,
-        title: 'WiFi Odds — inflight WiFi ConnectScore',
+        title: 'WiFi Odds — inflight WiFi Streaming score',
         version: SERVER_VERSION,
         websiteUrl: ORIGIN + '/'
       },

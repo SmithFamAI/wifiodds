@@ -253,7 +253,7 @@ function build() {
      * nobody has published one yet, or when assets/reports.json is not there at
      * all — a fresh clone builds fine without it. Class them FIELD REPORT
      * wherever they render; they are one person on one flight, not the measured
-     * medians the methodology page cites, and they never touch a ConnectScore. */
+     * medians the methodology page cites, and they never touch a Streaming score. */
     reports: RP.load(A)
   };
 }

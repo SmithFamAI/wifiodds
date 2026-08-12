@@ -1,4 +1,4 @@
-/* functions/_lib/handlers.mjs — the four ConnectScore API v0 handlers.
+/* functions/_lib/handlers.mjs — the four WiFi Odds API v0 handlers.
  *
  * ALL of the logic lives here, and this file is native ESM that plain `node` can
  * import and call directly. The files under functions/api/ are one-line shims
@@ -23,10 +23,10 @@ export function apiIndex(context) {
   if (stop) return stop;
   const airlines = allAirlinesJson();
   return json({
-    api: 'WiFi Odds ConnectScore API',
+    api: 'WiFi Odds Streaming API',
     version: API_VERSION,
     docs: DOCS,
-    description: 'ConnectScore (0–100) for every airline we track, plus per-flight Starlink odds ' +
+    description: 'Streaming score (0–100) for every airline we track, plus per-flight Starlink odds ' +
       'for United out of our own daily-cached route history. Free, no key, no accounts, ' +
       'CORS open to everyone. Read-only.',
     /* Imported, never typed: this string is the one in assets/airlines.js, so the
@@ -46,6 +46,10 @@ export function apiIndex(context) {
       basic: 'Legacy satellite service. Email and messaging.',
       mixed: 'Part next-gen, the rest streaming-class or basic.'
     },
+    fields: {
+      current: 'streamingScore, streamingScoreLower, streamingScoreUpper, streamingScoreExact',
+      deprecatedCompatibility: 'connectScore, connectScoreLower, connectScoreUpper, connectScoreExact; retained as equal aliases during the compatibility window.'
+    },
     airlineCount: airlines.length,
     endpoints: [
       {
@@ -55,7 +59,7 @@ export function apiIndex(context) {
       },
       {
         path: '/api/airlines',
-        returns: 'every airline, best ConnectScore first',
+        returns: 'every airline, best Streaming score first',
         example: ORIGIN + '/api/airlines'
       },
       {
@@ -91,7 +95,7 @@ export function airlinesAll(context) {
   return json({
     count: airlines.length,
     asOf: airlines.length ? airlines[0].asOf : null,
-    order: 'whole-fleet lower-bound ConnectScore desc, ties by whole-fleet coverage then name',
+    order: 'whole-fleet lower-bound Streaming score desc, ties by whole-fleet coverage then name',
     airlines: airlines,
     docs: DOCS,
     sources: SOURCES
