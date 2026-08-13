@@ -125,6 +125,10 @@ if ! sh build/homepage-visual-controls.sh; then
   fail "build/homepage-visual-controls.sh exited non-zero. A planted layout, evidence, or
 keyboard defect escaped the real-browser gate, or the clean control failed." 98
 fi
+if ! sh build/technology-label-wrap-controls.sh; then
+  fail "build/technology-label-wrap-controls.sh exited non-zero. The Technology page may split a
+service-tier label inside the word at a supported phone width, or the planted regression escaped." 98
+fi
 
 echo ""
 echo "── 3/5 proof-binding controls ────────────────────────────"

@@ -130,7 +130,7 @@
   .js #p-curtain .pullme{left:20px;font-size:12px;padding:7px 11px}
   #p-map .mbar.ng .mrocket{width:46px;height:24px;right:-24px}
   #p-map .axis{grid-template-columns:1fr 1fr 1fr;gap:6px}
-  #p-map .mbar{grid-template-columns:92px 1fr;grid-template-areas:"tier track" "verdict verdict";gap:6px 12px}
+  #p-map .mbar{grid-template-columns:max-content minmax(0,1fr);grid-template-areas:"tier track" "verdict verdict";gap:6px 12px}
   #p-map .mtier{grid-area:tier}#p-map .mtrack{grid-area:track}#p-map .mverdict{grid-area:verdict;text-align:left;font-size:12px}
 }
 </style>
