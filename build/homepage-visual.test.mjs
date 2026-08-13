@@ -81,12 +81,15 @@ for (const [engineName, engine] of engines) {
               const source = evidence && evidence.querySelector('.figure-source-list');
               const cs = evidence && getComputedStyle(evidence);
               const bg = evidence && getComputedStyle(block).backgroundColor;
+              const ownerNode = node.closest('.row, .aircard');
               return {
                 value: node.textContent.trim(),
                 kind: node.getAttribute('data-published-figure'),
+                owner: ownerNode ? (ownerNode.getAttribute('data-key') || ownerNode.querySelector('.airname, .who b')?.textContent.trim()) : '',
                 evidence: !!evidence,
                 summary: !!summary,
                 source: !!source && source.textContent.trim().length > 0,
+                sourceText: source ? source.textContent.trim() : '',
                 text: evidence ? evidence.textContent.trim() : '',
                 font: cs ? parseFloat(cs.fontSize) : 0,
                 color: cs ? cs.color : '',
@@ -101,6 +104,14 @@ for (const [engineName, engine] of engines) {
             engineName + ' ' + width + ' ' + mode + ': ' + figure.kind + ' has tier and date', figure.text);
           check(figure.font >= 12,
             engineName + ' ' + width + ' ' + mode + ': evidence is at least 12px', String(figure.font));
+        });
+        const sourceSets = new Map();
+        published.forEach(function (figure) {
+          const previous = sourceSets.get(figure.owner);
+          if (previous == null) sourceSets.set(figure.owner, figure.sourceText);
+          else check(previous === figure.sourceText,
+            engineName + ' ' + width + ' ' + mode + ': ' + figure.owner + ' disclosures use the same whole-fleet source set',
+            previous + ' <> ' + figure.sourceText);
         });
 
         const visibleEvidence = page.locator('#airline-grid [data-figure-evidence]:visible');

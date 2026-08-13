@@ -2159,6 +2159,24 @@ async function main() {
     'API Streaming order uses the exact score, coverage tie-breaker, then name');
   var apiByKey = Object.create(null);
   all.airlines.forEach(function (a) { apiByKey[a.key] = a; });
+  function homeEvidenceSourceText(fragment, id) {
+    var safeId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    var match = new RegExp('id="' + safeId + '"[\\s\\S]*?<p class="figure-source-list">([\\s\\S]*?)<\\/p>').exec(fragment);
+    return match ? match[1] : null;
+  }
+  function homeExpectedSources(a) {
+    var seen = Object.create(null);
+    return a.segments.map(function (segment) { return segment.source; }).filter(function (source) {
+      var key = source && source.trim().toLowerCase();
+      if (!key || seen[key]) return false;
+      seen[key] = true;
+      return true;
+    }).map(function (source) {
+      return String(source).replace(/[&<>"]/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+      });
+    }).join('; ') || 'airline records';
+  }
   var exactBoardOrder = boardRows.slice().sort(function (a, b) {
     if (b.exact !== a.exact) return b.exact - a.exact;
     if (b.rankCoverageExact !== a.rankCoverageExact) return b.rankCoverageExact - a.rankCoverageExact;
@@ -2185,6 +2203,12 @@ async function main() {
   boardRows.forEach(function (r) {
     var a = all.airlines.filter(function (x) { return x.key === r.key; })[0];
     if (!a) return;
+    var expectedSources = homeExpectedSources(a);
+    var evidenceKinds = r.rankable ? ['nextgen', 'streaming', 'coverage'] : ['streaming', 'coverage'];
+    evidenceKinds.forEach(function (kind) {
+      eq(homeEvidenceSourceText(r.inner, 'row-' + r.key + '-' + kind + '-evidence'), expectedSources,
+        r.key + ' ' + kind + ' disclosure names the complete whole-fleet source set');
+    });
     eq(r.score, a.connectScore, 'PARITY: ' + r.key + ' row data-score == API connectScore');
     eq(Number(r.exact.toFixed(3)), a.streamingScoreExact,
       'PARITY: ' + r.key + ' row exact Streaming value preserves API exact-score order');
@@ -2238,16 +2262,21 @@ async function main() {
     var a = all.airlines.filter(function (x) { return x.key === key; })[0];
     ok(!!row && !!a, key + ': coverage provenance fixture exists');
     if (!row || !a) return;
-    a.segments.map(function (s) { return s.source; }).filter(Boolean).filter(function (source, i, sources) {
-      return sources.indexOf(source) === i;
-    }).forEach(function (source) {
-      ok(row.inner.indexOf(source) >= 0,
-        key + ': Confirmed streaming coverage names contributing source ' + source);
-    });
     ok(/Confirmed streaming coverage · Reported ·/.test(row.inner),
       key + ': Confirmed streaming coverage carries its Reported tier');
-    ok(/· 2026-\d{2}/.test(row.inner),
-      key + ': Confirmed streaming coverage carries a source date');
+    ok(/· checked 2026-\d{2}/.test(row.inner),
+      key + ': Confirmed streaming coverage carries a checked date');
+  });
+
+  Object.keys(big4Keys).forEach(function (key) {
+    var a = apiByKey[key];
+    var cardStart = home.indexOf('<article class="aircard"', home.indexOf('<span class="airname">' + a.name + '</span>') - 500);
+    var cardEnd = home.indexOf('</article>', cardStart);
+    var card = home.slice(cardStart, cardEnd);
+    ['nextgen', 'streaming', 'coverage'].forEach(function (kind) {
+      eq(homeEvidenceSourceText(card, 'card-' + key + '-' + kind + '-evidence'), homeExpectedSources(a),
+        'Big 4 ' + key + ' ' + kind + ' disclosure names the complete whole-fleet source set');
+    });
   });
 
   var southwestBoard = boardRows.filter(function (r) { return r.key === 'southwest'; })[0];

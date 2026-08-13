@@ -39,6 +39,10 @@ make_case hidden-keyboard-slider || exit 2
 perl -0pi -e 's/<div class="handle" aria-hidden="true"><b>↔<\/b>/<div class="handle" aria-hidden="true"><b tabindex="0" role="slider">↔<\/b>/' "$TMP/hidden-keyboard-slider/technology/index.html"
 expect_fail hidden-keyboard-slider
 
+make_case incomplete-denominator-source || exit 2
+perl -0pi -e 's/(id="row-alaska-nextgen-evidence"[\s\S]*?<p class="figure-source-list">)alaskastarlinktracker\.com; /$1/' "$TMP/incomplete-denominator-source/index.html"
+expect_fail incomplete-denominator-source
+
 make_case clean || exit 2
 RAN=$((RAN + 1))
 if (cd "$TMP/clean" && node build/homepage-visual.test.mjs --quick >/dev/null 2>&1); then
@@ -48,8 +52,8 @@ else
   FAIL=$((FAIL + 1))
 fi
 
-if [ "$RAN" -ne 4 ]; then
-  echo "FAIL control count: expected 4, ran $RAN"
+if [ "$RAN" -ne 5 ]; then
+  echo "FAIL control count: expected 5, ran $RAN"
   exit 1
 fi
 if [ "$FAIL" -ne 0 ]; then

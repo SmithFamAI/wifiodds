@@ -341,20 +341,13 @@ function homeOddsLabel(a) {
   if (a.nextGenScore > 0) return 'Mixed fleet';
   return 'No next-gen aircraft yet';
 }
-function homeFigureSources(m, a, kind) {
+function homeFigureSources(a) {
   var seen = Object.create(null);
   var segments = a.segments || [];
-  var relevant = segments;
-  if (kind === 'nextgen') {
-    relevant = segments.filter(function (segment) { return segment.nextGen; });
-  } else if (kind === 'coverage') {
-    relevant = segments.filter(function (segment) { return segment.qMin >= m.A.STREAMING_MIN_Q; });
-  }
-  /* A published zero is supported by the ledger that shows no qualifying row,
-   * so an empty positive subset falls back to the full ledger rather than to a
-   * made-up "no source" string. */
-  if (!relevant.length) relevant = segments;
-  return relevant.map(function (segment) { return segment.src; }).filter(function (source) {
+  /* Each published figure uses a whole-fleet denominator. Sources for the
+   * non-qualifying and unresolved rows therefore contribute to the result too;
+   * a disclosure that named only positive rows would omit denominator evidence. */
+  return segments.map(function (segment) { return segment.src; }).filter(function (source) {
     var key = source && source.trim().toLowerCase();
     if (!key || seen[key]) return false;
     seen[key] = true;
@@ -367,15 +360,15 @@ function homeFigureEvidence(m, a, kind, id) {
     streaming: 'Streaming score · Modelled',
     coverage: 'Confirmed streaming coverage · Reported'
   };
-  return '<div class="figure-evidence" data-figure-evidence="' + kind + '" id="' + id + '"><span>' + labels[kind] + ' · ' +
+  return '<div class="figure-evidence" data-figure-evidence="' + kind + '" id="' + id + '"><span>' + labels[kind] + ' · checked ' +
     esc(a.asOf || 'date unavailable') + '</span><details class="figure-sources"><summary>Sources</summary>' +
-    '<p class="figure-source-list">' + esc(homeFigureSources(m, a, kind)) + '</p></details></div>';
+    '<p class="figure-source-list">' + esc(homeFigureSources(a)) + '</p></details></div>';
 }
 function homeUnknownCoverageEvidence(m, a, id) {
   return '<div class="figure-evidence" data-figure-evidence="coverage" id="' + id + '"><span>' +
-    'Confirmed streaming coverage · could not verify · ' + esc(a.asOf || 'date unavailable') +
+    'Confirmed streaming coverage · could not verify · checked ' + esc(a.asOf || 'date unavailable') +
     '</span><details class="figure-sources"><summary>Sources checked</summary><p class="figure-source-list">' +
-    esc(homeFigureSources(m, a, 'coverage')) + '</p></details></div>';
+    esc(homeFigureSources(a)) + '</p></details></div>';
 }
 /* The tier-only <small> label. Only prints a number when the uncertainty is a
  * real unresolved-aircraft count; a same-known-fleet ambiguous split (no
