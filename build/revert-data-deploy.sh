@@ -16,14 +16,8 @@ FULL=$(git rev-parse "$BAD_SHA^{commit}") || exit 5
 git revert --no-commit "$FULL" || exit 7
 WIFIODDS_DRIVER_ID="$WIFIODDS_DRIVER_ID" git commit -m "revert failed daily data deploy $BAD_SHA" \
   -m "Driver: $WIFIODDS_DRIVER_ID" || exit 7
-git push origin HEAD || exit 8
-
-BR=$(git branch --show-current)
-if [ "$BR" != "main" ]; then
-  MAIN_TREE=$(git worktree list --porcelain | awk '/^worktree /{tree=substr($0,10)} /^branch refs\/heads\/main$/{print tree;exit}')
-  [ -n "$MAIN_TREE" ] || exit 9
-  [ -z "$(git -C "$MAIN_TREE" status --porcelain --untracked-files=normal)" ] || exit 9
-  git -C "$MAIN_TREE" merge --ff-only "$BR" || exit 9
-  git -C "$MAIN_TREE" push origin HEAD:main || exit 9
-fi
+# ship.sh owns the branch push and isolated-worktree fast-forward into main.
+# Direct integration here used the primary main tree, which the registered
+# driver hook correctly rejects.
+WIFIODDS_DRIVER_ID="$WIFIODDS_DRIVER_ID" bash build/ship.sh "revert failed daily data deploy $BAD_SHA" || exit 8
 echo "reverted $FULL with $(git rev-parse HEAD)"

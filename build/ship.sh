@@ -93,6 +93,9 @@ fi
 if ! node build/big4-denominator.test.js; then
   fail "build/big4-denominator.test.js exited non-zero. Big-4 odds may not reconstruct from their displayed fleet totals." 98
 fi
+if ! bash test/revert-data-deploy.test.sh; then
+  fail "test/revert-data-deploy.test.sh exited non-zero. Rollback integration may bypass its registered worktree." 98
+fi
 
 echo "── 1/5 prerender ─────────────────────────────────────────"
 if ! node build/prerender.js; then
