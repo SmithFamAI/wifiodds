@@ -87,8 +87,7 @@ function featureDemos() {
     return '<article class="feature-chapter" id="f-' + esc(feature.id) + '" data-feature-section="' +
       esc(feature.id) + '"><header><div><span class="eyebrow">Example ' + (i + 1) + ' of ' +
       RELEASE.allowedFeatureClaims.length + '</span><h3>' + esc(feature.title) + '</h3></div>' +
-      '<button class="demo-play" type="button" data-demo-play ' +
-      'aria-pressed="false">Pause demo</button></header><div class="host-tabs" role="group" ' +
+      '<button class="demo-play" type="button" data-demo-play>Pause demo</button></header><div class="host-tabs" role="group" ' +
       'aria-label="Show ' + esc(feature.title) + ' by booking site">' + buttons + '</div><div class="demo-grid">' +
       demoScene(feature) + '<div class="demo-copy"><p class="host-behavior" data-host-behavior>' +
       esc(feature.behaviors.united) + '</p><p class="evidence-ceiling"><b>What it can tell you</b>' +

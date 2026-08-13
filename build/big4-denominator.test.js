@@ -10,7 +10,7 @@ var Render = require('./lib/render.js');
 var html = Render.home(Data.build());
 var united = html.match(/<article class="aircard"[\s\S]*?<span class="airname">United<\/span>[\s\S]*?<\/article>/);
 var score = Data.build().A.scoreAirline('united');
-var note = united && united[0].match(/<p class="airnote">([\d,]+) of ([\d,]+) aircraft next-gen today<\/p>/);
+var note = united && united[0].match(/<p class="airnote[^"]*"[^>]*>([\d,]+) of ([\d,]+) aircraft next-gen today<\/p>/);
 var odds = united && united[0].match(/data-nextgen="(\d+)"/);
 var ngCount = (score.segments || []).reduce(function (sum, segment) {
   return sum + (segment.nextGen ? segment.n : 0);

@@ -212,7 +212,7 @@
           <div class="gut"></div>
         </div>
         <div class="cover" aria-hidden="true"><div class="gut"></div><div class="cover-card"><div><b>WiFi available</b> <span>What the booking page shows</span></div></div><div class="cover-card"><div><b>WiFi available</b> <span>What the booking page shows</span></div></div><div class="cover-card"><div><b>WiFi available</b> <span>What the booking page shows</span></div></div><div class="gut"></div></div>
-        <div class="handle" aria-hidden="true"><b tabindex="0" role="slider" aria-label="Reveal the systems" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">↔</b></div>
+        <div class="handle" aria-hidden="true"><b>↔</b></div>
         <div class="pullme" id="pullme">Grab &amp; drag <span aria-hidden="true">→</span></div>
       </div>
       <div class="controls"><label class="control-label" for="curtain">Reveal the systems <span id="amount">Booking label</span></label><input class="range" id="curtain" type="range" min="0" max="100" value="0" aria-describedby="range-help"><p class="hint" id="range-help">Drag the divider, or use this slider and the arrow keys. The full comparison is readable without any of it.</p></div>
@@ -273,17 +273,16 @@ document.documentElement.className='js';
 var ROCKET='<svg viewBox="0 0 46 24" width="62" height="32" fill="none"><g class="flame"><path d="M1 12l11-4.5v9z" fill="#ff8a2a"/><path d="M5 12l7-2.6v5.2z" fill="#ffd76a"/></g><rect x="12" y="7.5" width="20" height="9" rx="4.5" fill="#eef1f6"/><path d="M32 7.5c6.5 1.7 6.5 6.8 0 9z" fill="#dfe4ec"/><circle cx="20" cy="12" r="2.1" fill="#29d8ff"/><path d="M14.5 7.5l-4-3.6 5 3.6zM14.5 16.5l-4 3.6 5-3.6z" fill="#c7cdd8"/></svg>';
 document.querySelectorAll('#p-map .mrocket').forEach(function(r){r.innerHTML=ROCKET});
 (function(){
-  var reveal=document.getElementById('c-reveal'),input=document.getElementById('curtain'),amount=document.getElementById('amount'),knob=document.querySelector('#p-curtain .handle b'),pull=document.getElementById('pullme'),moved=false;
+  var reveal=document.getElementById('c-reveal'),input=document.getElementById('curtain'),amount=document.getElementById('amount'),pull=document.getElementById('pullme'),moved=false;
   if(!reveal||!input)return;
   function label(v){return v<12?'Booking label':v<40?'Peeking through':v>=97?'Systems revealed':v>66?'Systems mostly revealed':'Half revealed';}
-  function set(v){v=Math.max(0,Math.min(100,Math.round(v)));document.documentElement.style.setProperty('--split',v+'%');input.value=v;amount.textContent=label(v);if(knob)knob.setAttribute('aria-valuenow',v);if(!moved&&v>1){moved=true;if(pull)pull.classList.add('hide');}}
+  function set(v){v=Math.max(0,Math.min(100,Math.round(v)));document.documentElement.style.setProperty('--split',v+'%');input.value=v;amount.textContent=label(v);if(!moved&&v>1){moved=true;if(pull)pull.classList.add('hide');}}
   input.addEventListener('input',function(){set(+input.value)});
   var drag=false;
   function fromX(e){var r=reveal.getBoundingClientRect();var cx=(e.touches?e.touches[0].clientX:e.clientX)-r.left;set(cx/r.width*100);}
   reveal.addEventListener('pointerdown',function(e){drag=true;try{reveal.setPointerCapture(e.pointerId)}catch(_){}fromX(e);e.preventDefault();});
   window.addEventListener('pointermove',function(e){if(drag)fromX(e);});
   window.addEventListener('pointerup',function(){drag=false;});
-  if(knob)knob.addEventListener('keydown',function(e){var v=+input.value;if(e.key==='ArrowRight'||e.key==='ArrowUp'){set(v+4);e.preventDefault();}if(e.key==='ArrowLeft'||e.key==='ArrowDown'){set(v-4);e.preventDefault();}});
   set(0);
 })();
 (function(){

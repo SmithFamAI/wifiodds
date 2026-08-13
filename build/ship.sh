@@ -115,6 +115,18 @@ genuinely disagree. Read the failing checks above before doing anything else." 9
 fi
 
 echo ""
+echo "── homepage browser regressions ──────────────────────────"
+if ! node build/homepage-visual.test.mjs; then
+  fail "build/homepage-visual.test.mjs exited non-zero. A supported viewport lost an airline
+name, a figure lost its evidence binding, or the Technology reveal regained a hidden keyboard
+stop. This is a real-browser gate; do not replace it with a markup-only assertion." 98
+fi
+if ! sh build/homepage-visual-controls.sh; then
+  fail "build/homepage-visual-controls.sh exited non-zero. A planted layout, evidence, or
+keyboard defect escaped the real-browser gate, or the clean control failed." 98
+fi
+
+echo ""
 echo "── 3/5 proof-binding controls ────────────────────────────"
 # Round 6, 1 Aug 2026. Steps 1 and 2 are the site's opinion of its own work, and
 # the auditor showed that opinion can be wrong in the one way that matters: the

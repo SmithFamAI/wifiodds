@@ -95,8 +95,8 @@
     if (reduced) { button.textContent = 'Reduced motion · settled'; button.disabled = true; return; }
     button.addEventListener('click', function () {
       var frame = button.closest('[data-feature-section]').querySelector('[data-demo-frame]');
-      if (paused.has(frame)) { paused.delete(frame); button.textContent = 'Pause demo'; button.setAttribute('aria-pressed', 'false'); }
-      else { paused.add(frame); button.textContent = 'Play demo'; button.setAttribute('aria-pressed', 'true'); }
+      if (paused.has(frame)) { paused.delete(frame); button.textContent = 'Pause demo'; }
+      else { paused.add(frame); button.textContent = 'Play demo'; }
     });
   });
 

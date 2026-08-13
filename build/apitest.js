@@ -1906,6 +1906,12 @@ async function main() {
   ].forEach(function (copy) {
     ok(technology.indexOf(copy) === -1, 'technology stale slogan is absent', copy);
   });
+  ok(!/aria-hidden="true"[^>]*>[\s\S]{0,160}\btabindex="0"/.test(technology),
+    'technology reveal: no keyboard-focusable control sits inside aria-hidden content');
+  eq((technology.match(/\brole="slider"/g) || []).length, 0,
+    'technology reveal: the native range is the only slider');
+  eq((technology.match(/id="curtain"[^>]*type="range"|type="range"[^>]*id="curtain"/g) || []).length, 1,
+    'technology reveal: one native range remains available to keyboard and assistive technology');
   [
     'How field reports are handled',
     'accepts up to five reports from one network address in each UTC hour',
@@ -1939,6 +1945,18 @@ async function main() {
   ok(whatsNewAt >= 0 && whatsNewAt < extensionSectionAt && sharedDemoAt === -1 &&
     home.indexOf('Sort page by next-gen odds') === -1,
     'homepage integration: What’s New sits above the full extension section and the obsolete demo is absent');
+  ok(/class="allgrid allgrid-v2"/.test(home) && /\.allgrid\.allgrid-v2\{grid-template-columns:1fr\}/.test(home),
+    'homepage board: the all-airline leaderboard owns a one-column outer grid at every width');
+  var publicFigureCount = (home.match(/data-published-figure="(?:nextgen|streaming|coverage)"/g) || []).length;
+  var evidenceCount = (home.match(/data-figure-evidence="(?:nextgen|streaming|coverage)"/g) || []).length;
+  ok(publicFigureCount >= 40 && evidenceCount >= publicFigureCount,
+    'homepage figures: every marked figure has a tier/source/date evidence block',
+    { publicFigures: publicFigureCount, evidenceBlocks: evidenceCount });
+  ok((home.match(/class="figure-sources"/g) || []).length >= publicFigureCount &&
+    (home.match(/class="figure-source-list"/g) || []).length >= publicFigureCount,
+    'homepage figures: full sources live in keyboard-accessible disclosures, not always-visible prose');
+  ok(/\.figure-evidence\{[^}]*font:[^;}]*12px/.test(home) || /\.figure-evidence\{[^}]*font-size:12px/.test(home),
+    'homepage evidence: source/tier/date text is never the former 9px copy');
   var extensionSectionIds = Array.from(extensionBuilt.matchAll(/<section\b[^>]*\bid="([^"]+)"/g))
     .map(function (match) { return match[1]; }).filter(function (id) {
       return ['hero', 'how', 'hosts', 'whats-new', 'features', 'demos', 'silent', 'install'].indexOf(id) >= 0;
@@ -1957,6 +1975,8 @@ async function main() {
     ok(extensionBuilt.indexOf(feature.question) === -1,
       'extension density: ' + feature.id + ' question prompt is absent');
   });
+  eq((extensionBuilt.match(/class="demo-play"[^>]*aria-pressed=/g) || []).length, 0,
+    'extension demos: changing Pause/Play action labels do not also expose contradictory pressed state');
   [
     'How the extension labels and sorts flights.',
     'Features available on each booking site.',
@@ -2071,7 +2091,7 @@ async function main() {
 
   /* ── Big 4 cards: name + data-nextgen attribute + the ConnectScore <b> in
    * .support must all agree with the API for the same airline. */
-  var cardRe = /<article class="aircard" data-nextgen="(-?[\d.]+)" data-streaming-score="(-?[\d.]+)" data-streaming-exact="(-?[\d.]+)" data-streaming-coverage="(-?[\d.]+)">[\s\S]*?<span class="airname">([^<]+)<\/span>[\s\S]*?data-streaming-view="primary">(\d+)</g;
+  var cardRe = /<article class="aircard" data-nextgen="(-?[\d.]+)" data-streaming-score="(-?[\d.]+)" data-streaming-exact="(-?[\d.]+)" data-streaming-coverage="(-?[\d.]+)">[\s\S]*?<span class="airname">([^<]+)<\/span>[\s\S]*?data-streaming-view="primary"[^>]*>(\d+)/g;
   var seenBig4 = 0, mCard, big4Keys = {};
   while ((mCard = cardRe.exec(home)) !== null) {
     var nextgenAttr = mCard[1], streamAttr = mCard[2], cardExact = mCard[3], cardName = mCard[5], cardScore = mCard[6];
@@ -2177,7 +2197,7 @@ async function main() {
       eq(r.odds, a.nextGen.pct, 'PARITY: ' + r.key + ' row data-odds == API nextGen.pct');
       /* The default visible value follows data-odds. The activated Streaming
          view has its own public marker, score, and supporting coverage. */
-      var oddsTxt = /<b class="odds-only">(-?[\d.]+)%/.exec(r.inner);
+      var oddsTxt = /<b[^>]*data-published-figure="nextgen"[^>]*>(-?[\d.]+)%/.exec(r.inner);
       var streamingPrimary = /<[^>]*\bdata-streaming-view="primary"[^>]*>([^<]+)<\//.exec(r.inner);
       var streamingCoverage = /<[^>]*\bdata-streaming-coverage="confirmed"[^>]*>([^<]+)<\//.exec(r.inner);
       ok(!!oddsTxt, r.key + ' row prints an odds-only percentage', r.inner);

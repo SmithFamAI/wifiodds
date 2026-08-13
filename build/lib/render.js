@@ -341,21 +341,41 @@ function homeOddsLabel(a) {
   if (a.nextGenScore > 0) return 'Mixed fleet';
   return 'No next-gen aircraft yet';
 }
-function homeCoverageSources(a) {
+function homeFigureSources(m, a, kind) {
   var seen = Object.create(null);
-  return (a.segments || []).map(function (segment) { return segment.src; }).filter(function (source) {
-    if (!source || seen[source]) return false;
-    seen[source] = true;
+  var segments = a.segments || [];
+  var relevant = segments;
+  if (kind === 'nextgen') {
+    relevant = segments.filter(function (segment) { return segment.nextGen; });
+  } else if (kind === 'coverage') {
+    relevant = segments.filter(function (segment) { return segment.qMin >= m.A.STREAMING_MIN_Q; });
+  }
+  /* A published zero is supported by the ledger that shows no qualifying row,
+   * so an empty positive subset falls back to the full ledger rather than to a
+   * made-up "no source" string. */
+  if (!relevant.length) relevant = segments;
+  return relevant.map(function (segment) { return segment.src; }).filter(function (source) {
+    var key = source && source.trim().toLowerCase();
+    if (!key || seen[key]) return false;
+    seen[key] = true;
     return true;
   }).join('; ') || 'airline records';
 }
-function homeCoverageMeta(a) {
-  return 'Confirmed streaming coverage · Reported · ' + esc(homeCoverageSources(a)) +
-    ' · ' + esc(a.asOf || 'date unavailable');
+function homeFigureEvidence(m, a, kind, id) {
+  var labels = {
+    nextgen: 'Next-Gen odds · Modelled',
+    streaming: 'Streaming score · Modelled',
+    coverage: 'Confirmed streaming coverage · Reported'
+  };
+  return '<div class="figure-evidence" data-figure-evidence="' + kind + '" id="' + id + '"><span>' + labels[kind] + ' · ' +
+    esc(a.asOf || 'date unavailable') + '</span><details class="figure-sources"><summary>Sources</summary>' +
+    '<p class="figure-source-list">' + esc(homeFigureSources(m, a, kind)) + '</p></details></div>';
 }
-function homeUnknownCoverageMeta(a) {
-  return 'Confirmed streaming coverage · not published · could not verify a fleet share from ' +
-    esc(homeCoverageSources(a)) + ' · ' + esc(a.asOf || 'date unavailable');
+function homeUnknownCoverageEvidence(m, a, id) {
+  return '<div class="figure-evidence" data-figure-evidence="coverage" id="' + id + '"><span>' +
+    'Confirmed streaming coverage · could not verify · ' + esc(a.asOf || 'date unavailable') +
+    '</span><details class="figure-sources"><summary>Sources checked</summary><p class="figure-source-list">' +
+    esc(homeFigureSources(m, a, 'coverage')) + '</p></details></div>';
 }
 /* The tier-only <small> label. Only prints a number when the uncertainty is a
  * real unresolved-aircraft count; a same-known-fleet ambiguous split (no
@@ -384,7 +404,9 @@ function homeRow(m, key, rank) {
   var sf = homeStreamingFloor(m, a);
   var coverage = homeStr(homeFmtPct(sf.pct), key + '.coverage');
   var coverageExact = homeNum(a.coverage, key + '.coverageExact');
-  var coverageMeta = homeCoverageMeta(a);
+  var nextGenEvidenceId = 'row-' + key + '-nextgen-evidence';
+  var streamingEvidenceId = 'row-' + key + '-streaming-evidence';
+  var coverageEvidenceId = 'row-' + key + '-coverage-evidence';
 
   if (a.nextGenPublished === false) {
     return '        <div class="row unranked" data-key="' + key + '" data-name="' + dataName +
@@ -392,10 +414,12 @@ function homeRow(m, key, rank) {
       '" data-odds="-1" data-streaming-coverage="-1" data-streaming-coverage-exact="-1" data-streaming-rank-coverage-exact="' + coverageExact + '">' +
       '<div class="who"><b><span class="rank-text">–</span> · ' + esc(a.name) + '</b> ' +
       '<small>Starlink count unpublished</small></div>' +
-      '<div class="metric primary"><b class="unknown odds-only">unpublished</b> ' +
-      '<b class="streaming-only" data-streaming-view="primary">' + score + '</b> <small>primary</small></div>' +
-      '<div class="metric"><b class="unknown" data-streaming-coverage="unknown">could not verify</b> <small>' +
-      homeUnknownCoverageMeta(a) + '</small></div></div>\n';
+      '<div class="metric primary"><div class="odds-only"><b class="unknown">unpublished</b> <small>primary</small></div>' +
+      '<div class="streaming-only" data-figure-block="streaming"><b data-streaming-view="primary" ' +
+      'data-published-figure="streaming" aria-describedby="' + streamingEvidenceId + '">' + score + '</b> <small>primary</small>' +
+      homeFigureEvidence(m, a, 'streaming', streamingEvidenceId) + '</div></div>' +
+      '<div class="metric" data-figure-block="coverage"><b class="unknown" data-streaming-coverage="unknown">could not verify</b>' +
+      homeUnknownCoverageEvidence(m, a, coverageEvidenceId) + '</div></div>\n';
   }
 
   var odds = homeNum(a.nextGenScore, key + '.nextGenScore');
@@ -410,10 +434,15 @@ function homeRow(m, key, rank) {
     '" data-rankable="true" data-streaming-score="' + score + '" data-streaming-exact="' + exact + '" data-odds="' + odds +
     '" data-streaming-coverage="' + coverage + '" data-streaming-coverage-exact="' + coverageExact + '" data-streaming-rank-coverage-exact="' + coverageExact + '"><div class="who"><b><span class="rank-text">' +
     String(rank).padStart(2, '0') + '</span> · ' + esc(a.name) + '</b> ' + smallHtml + '</div>' +
-    '<div class="metric primary"><b class="odds-only">' + odds + '%</b> <b class="streaming-only" data-streaming-view="primary">' +
-    score + '</b> <small>primary</small></div>' +
-    '<div class="metric"><b data-streaming-coverage="confirmed">' + coverage + '%</b> <small>' +
-    coverageMeta + '</small></div></div>\n';
+    '<div class="metric primary"><div class="odds-only" data-figure-block="nextgen"><b data-published-figure="nextgen" ' +
+    'aria-describedby="' + nextGenEvidenceId + '">' + odds + '%</b> <small>primary</small>' +
+    homeFigureEvidence(m, a, 'nextgen', nextGenEvidenceId) + '</div>' +
+    '<div class="streaming-only" data-figure-block="streaming"><b data-streaming-view="primary" ' +
+    'data-published-figure="streaming" aria-describedby="' + streamingEvidenceId + '">' + score + '</b> <small>primary</small>' +
+    homeFigureEvidence(m, a, 'streaming', streamingEvidenceId) + '</div></div>' +
+    '<div class="metric" data-figure-block="coverage"><b data-streaming-coverage="confirmed" data-published-figure="coverage" ' +
+    'aria-describedby="' + coverageEvidenceId + '">' + coverage + '%</b>' +
+    homeFigureEvidence(m, a, 'coverage', coverageEvidenceId) + '</div></div>\n';
 }
 
 function homeBoardRows(m) {
@@ -439,19 +468,25 @@ function homeCard(m, key) {
   var total = a.total || 0;
   var note = num(ngCount) + ' of ' + num(total) + ' aircraft next-gen today';
   var sup = key === 'united' ? '<sup>*</sup>' : '';
-  var coverageMeta = homeCoverageMeta(a);
+  var nextGenEvidenceId = 'card-' + key + '-nextgen-evidence';
+  var streamingEvidenceId = 'card-' + key + '-streaming-evidence';
+  var coverageEvidenceId = 'card-' + key + '-coverage-evidence';
 
   return '        <article class="aircard" data-nextgen="' + odds + '" data-streaming-score="' + score + '" data-streaming-exact="' +
     homeNum(a.scoreExact, key + '.scoreExact') + '" data-streaming-coverage="' + streamStr +
     '"><div class="airtop"><span class="airname">' + esc(a.name) + '</span> <span class="code">' +
     esc(a.code || '') + '</span></div>' +
-    '<div class="primary-stat odds-only"><strong>' + odds + '%' + sup + '</strong>' +
-    '<span>next-gen<br>odds</span></div>' +
-    '<div class="primary-stat streaming-only"><strong class="tier-value" data-streaming-view="primary">' + score + sup +
-    '</strong> <span>Streaming<br>score</span></div>' +
+    '<div class="primary-figure odds-only" data-figure-block="nextgen"><div class="primary-stat"><strong ' +
+    'data-published-figure="nextgen" aria-describedby="' + nextGenEvidenceId + '">' + odds + '%' + sup + '</strong>' +
+    '<span>next-gen<br>odds</span></div>' + homeFigureEvidence(m, a, 'nextgen', nextGenEvidenceId) + '</div>' +
+    '<div class="primary-figure streaming-only" data-figure-block="streaming"><div class="primary-stat"><strong class="tier-value" ' +
+    'data-streaming-view="primary" data-published-figure="streaming" aria-describedby="' + streamingEvidenceId + '">' + score + sup +
+    '</strong> <span>Streaming<br>score</span></div>' + homeFigureEvidence(m, a, 'streaming', streamingEvidenceId) + '</div>' +
     '<div class="band"><i></i></div>' +
-    '<div class="support"><span>' + coverageMeta + '</span> <b data-streaming-coverage="confirmed">' + streamStr + '%</b></div>' +
-    '<p class="airnote">' + esc(note) + '</p></article>\n';
+    '<div class="support" data-figure-block="coverage"><div class="support-copy"><span>Confirmed streaming coverage</span>' +
+    homeFigureEvidence(m, a, 'coverage', coverageEvidenceId) + '</div> <b data-streaming-coverage="confirmed" ' +
+    'data-published-figure="coverage" aria-describedby="' + coverageEvidenceId + '">' + streamStr + '%</b></div>' +
+    '<p class="airnote odds-only" aria-describedby="' + nextGenEvidenceId + '">' + esc(note) + '</p></article>\n';
 }
 
 function homeBig4Cards(m) {
