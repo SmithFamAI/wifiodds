@@ -804,11 +804,20 @@ async function main() {
    * need to change. */
   var VALUE_SPLIT_ALLOWED = ['united'];
 
+  var publishedNonzeroEquippedShareCount = 0;
+  var samePublishedShareCount = 0;
   all.airlines.forEach(function (a) {
     var r = A.scoreAirline(a.key);
-    if (a.fleet.equippedPublished && a.fleet.equipped > 0) {
+    if (a.fleet.equippedPublished && a.fleet.equippedShare > 0) {
+      publishedNonzeroEquippedShareCount++;
       ok(a.fleet.equippedPct > 0,
-        a.key + ': a published nonzero equipped count never renders as fleet.equippedPct 0');
+        a.key + ': a published nonzero equipped share never renders as fleet.equippedPct 0');
+    }
+    if (a.fleet.equippedShare != null && a.nextGen.share != null &&
+        a.fleet.equippedShare === a.nextGen.share) {
+      samePublishedShareCount++;
+      eq(a.fleet.equippedPct, a.nextGen.pct,
+        a.key + ': equal published fleet and next-gen shares produce equal percentages');
     }
     eq(a.connectScore, r.score, 'connectScore for ' + a.key);
     /* A regression can expose a field called streamingScore while accidentally
@@ -962,6 +971,10 @@ async function main() {
       }
     }
   });
+  eq(publishedNonzeroEquippedShareCount, 16,
+    'all 16 published nonzero equipped shares are covered by the false-zero invariant');
+  eq(samePublishedShareCount, 13,
+    'all 13 non-null equal-share airlines are covered by the percentage-agreement invariant');
 
   /* ── D2: United's mainline + regional next-gen odds sum to its own totals. ──
    * This is the check that stops the split from quietly drifting away from the
