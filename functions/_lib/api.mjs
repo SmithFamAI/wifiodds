@@ -334,7 +334,7 @@ export function airlineJson(key) {
        * caught. A consumer must check this field before trusting the pct. */
       equippedPublished: a.equippedPublished !== false,
       equippedShare: a.equippedPublished === false ? null : round(a.parts.pctEquipped, 4),
-      equippedPct: a.equippedPublished === false ? null : Math.round(a.parts.pctEquipped * 100),
+      equippedPct: a.equippedPublished === false ? null : publishedPct(a.parts.pctEquipped),
       basis: a.fleet ? 'tail-counts' : 'fleetwide-coverage'
     },
     perFlightOdds: a.instrumented,

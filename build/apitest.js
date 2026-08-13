@@ -786,6 +786,10 @@ async function main() {
     eq(southwestApi.nextGenScore, 1, 'Southwest top-level nextGenScore preserves its sourced nonzero odds');
     eq(southwestApi.nextGen.score, 1, 'Southwest nextGen.score agrees with top-level nextGenScore');
     eq(southwestApi.nextGen.pct, 1, 'Southwest nextGen.pct agrees with the established public odds fields');
+    eq(southwestApi.fleet.equippedPct, 1,
+      'Southwest fleet equippedPct preserves the same sourced nonzero share');
+    eq(southwestApi.fleet.equippedPct, southwestApi.nextGen.pct,
+      'Southwest fleet equippedPct agrees with the sibling next-gen percentage');
     ok(/Southwest[^\n]*next-gen 1\b/.test(fs.readFileSync(path.join(ROOT, 'llms.txt'), 'utf8')),
       'Southwest guidance preserves the same nonzero odds result');
   }
@@ -802,6 +806,10 @@ async function main() {
 
   all.airlines.forEach(function (a) {
     var r = A.scoreAirline(a.key);
+    if (a.fleet.equippedPublished && a.fleet.equipped > 0) {
+      ok(a.fleet.equippedPct > 0,
+        a.key + ': a published nonzero equipped count never renders as fleet.equippedPct 0');
+    }
     eq(a.connectScore, r.score, 'connectScore for ' + a.key);
     /* A regression can expose a field called streamingScore while accidentally
      * feeding it the old coverage percentage. The aliases must be direct
