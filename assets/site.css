@@ -1036,12 +1036,13 @@ footer.site{margin-top:2.8rem;border-top:1px solid var(--line);padding:1.6rem 0 
    (Site source, Extension source, API, Privacy, …) stays exactly where it was. */
 footer.site .ftop{display:flex;align-items:center;gap:.55rem;margin-bottom:1rem;
   font-family:var(--sans);font-weight:850;letter-spacing:-.03em;font-size:1.05rem;
-  color:var(--ink);text-decoration:none}
+  color:var(--ink);text-decoration:none;min-height:44px}
 footer.site .ftop .mk{color:var(--sky)}
 footer.site .ftop:hover{text-decoration:none}
 footer.site .frow{margin-top:.6rem;max-width:52rem}
 footer.site .flinks{display:flex;gap:.5rem 1.1rem;flex-wrap:wrap;margin-bottom:.9rem;
   font-size:.9rem}
+footer.site .flinks a{display:inline-flex;align-items:center;min-width:44px;min-height:44px}
 footer.site b{color:var(--muted-strong)}
 
 /* ── faq ──────────────────────────────────────────────────────────────── */
