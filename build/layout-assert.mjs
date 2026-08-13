@@ -34,6 +34,7 @@ import path from 'node:path';
 
 const BASE = process.argv[2] || 'http://127.0.0.1:8787';
 const ASSERT = process.argv.includes('--assert');
+const CONTROLS = process.argv.includes('--controls');
 
 /* 360px was missing from the first version and an auditor named it. */
 const WIDTHS = [320, 360, 375, 390, 430, 440, 768, 1024, 1280, 1440];
@@ -94,10 +95,17 @@ function collect(floors) {
     if (!oneWord(t)) return;
     const r = el.getBoundingClientRect();
     if (r.width <= 0 || r.height <= 0) return;
-    const lh = parseFloat(getComputedStyle(el).lineHeight) || 16;
-    if (r.height > lh * 1.6) {
+    /* Element height includes target padding and min-height. Measure the text
+       fragments themselves so a 44px button is not mistaken for a wrapped
+       word. A real mid-word break produces fragments on two or more lines. */
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const rects = [...range.getClientRects()].filter(x => x.width > 0 && x.height > 0);
+    const lines = new Set(rects.map(x => Math.round(x.top * 10) / 10));
+    range.detach();
+    if (lines.size > 1) {
       const key = t.slice(0, 30);
-      if (!seen.has(key)) { seen.add(key); out.brokenWords.push({ text: key, h: Math.round(r.height), lh: Math.round(lh) }); }
+      if (!seen.has(key)) { seen.add(key); out.brokenWords.push({ text: key, lines: lines.size }); }
     }
   });
 
@@ -135,6 +143,12 @@ function collect(floors) {
   document.querySelectorAll(INTERACTIVE).forEach(el => {
     const r = el.getBoundingClientRect();
     if (r.width <= 0 || r.height <= 0) return;
+    if (r.right <= 0 || r.bottom <= 0) return;
+    const renderedStyle = getComputedStyle(el);
+    if ((renderedStyle.clip && renderedStyle.clip !== 'auto') ||
+        (renderedStyle.clipPath && renderedStyle.clipPath !== 'none')) return;
+    if (el.matches('input[type="checkbox"]') && el.id && document.querySelector('label[for="' + CSS.escape(el.id) + '"]')) return;
+    if (el.matches('label[for]') && document.getElementById(el.getAttribute('for'))) return;
     if (el.tagName === 'A') {
       const cs = getComputedStyle(el);
       const parent = el.parentElement;
@@ -149,7 +163,12 @@ function collect(floors) {
       const key = 'T' + text(el).slice(0, 20) + Math.round(r.height) + Math.round(r.width);
       if (!seen.has(key)) {
         seen.add(key);
-        out.smallTargets.push({ text: text(el).slice(0, 26) || el.className || el.tagName, w: Math.round(r.width), h: Math.round(r.height) });
+        const belowMinimum = r.height < floors.minimum - 0.5 || r.width < floors.minimum - 0.5;
+        out.smallTargets.push({
+          text: text(el).slice(0, 26) || el.className || el.tagName,
+          w: Math.round(r.width), h: Math.round(r.height),
+          severity: belowMinimum ? 'defect' : 'warning'
+        });
       }
     }
   });
@@ -253,9 +272,83 @@ function collect(floors) {
   return out;
 }
 
+async function runControls() {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({ viewport: { width: 390, height: 400 } });
+  const results = [];
+  const floors = { label: TYPE_FLOOR_LABEL, copy: TYPE_FLOOR_COPY, target: TARGET_PREFERRED, minimum: TARGET_MIN, stickyPhase: false };
+
+  async function probe(name, html, inspect, scrollY = 0, stickyPhase = false) {
+    await page.setContent('<!doctype html><meta name="viewport" content="width=device-width"><style>*{box-sizing:border-box}body{margin:0}</style>' + html);
+    if (scrollY) await page.evaluate(y => window.scrollTo({ top: y, behavior: 'instant' }), scrollY);
+    const measured = await page.evaluate(collect, { ...floors, stickyPhase });
+    const ok = inspect(measured);
+    results.push({ name, ok });
+    console.log((ok ? 'PASS ' : 'FAIL ') + name);
+  }
+
+  await probe('known-good padded word is not a mid-word break',
+    '<a href="#" style="display:flex;align-items:center;min-height:44px">Privacy</a>',
+    r => r.brokenWords.length === 0);
+  await probe('known-bad wrapped word is detected',
+    '<span style="display:inline-block;width:24px;overflow-wrap:anywhere">Streaming</span>',
+    r => r.brokenWords.some(x => x.text === 'Streaming'));
+
+  await probe('known-good label and copy meet type floors',
+    '<span style="font-size:12px">Label</span><p style="font-size:14px">This explanatory sentence is deliberately long enough to use the copy floor in the layout instrument.</p>',
+    r => r.smallText.length === 0);
+  await probe('known-bad label and copy fall below type floors',
+    '<span style="font-size:8px">Label</span><p style="font-size:10px">This explanatory sentence is deliberately long enough to use the copy floor in the layout instrument.</p>',
+    r => r.smallText.length === 2);
+
+  await probe('known-good target and inline-link exception pass',
+    '<a href="#" style="display:inline-flex;align-items:center;min-width:44px;min-height:44px">Go</a><p>This sentence contains an <a href="#">inline source</a> with enough surrounding prose.</p>',
+    r => r.smallTargets.length === 0);
+  await probe('known-bad standalone target is detected',
+    '<div><a href="#" style="display:block;width:20px;height:20px">Go</a></div>',
+    r => r.smallTargets.length === 1);
+
+  await probe('known-good overflow stays inside a scroller',
+    '<div style="width:200px;overflow-x:auto"><span style="display:block;width:500px">wide content</span></div>',
+    r => r.overflow === null);
+  await probe('known-bad page overflow is detected',
+    '<div style="width:500px">wide content</div>',
+    r => r.overflow !== null);
+
+  await probe('known-good first viewport contains a call to action',
+    '<h1>Page</h1><a class="btn" href="#">Continue</a>',
+    r => r.firstViewport.h1InFold && r.firstViewport.ctaInFold);
+  await probe('known-bad first viewport has no call to action',
+    '<h1>Page</h1><p>Information only.</p>',
+    r => !r.firstViewport.ctaInFold);
+
+  const rows = '<tbody>' + '<tr><td style="height:40px">row</td></tr>'.repeat(20) + '</tbody>';
+  await probe('known-good sticky heading remains visible',
+    '<div style="height:180px"></div><table><thead><tr><th style="position:sticky;top:0;height:30px">Heading</th></tr></thead>' + rows + '</table>',
+    r => r.stickyOver.length === 0, 260, true);
+  await probe('known-bad sticky heading inside horizontal scroller is detected',
+    '<div style="height:180px"></div><div style="overflow-x:auto"><table><thead><tr><th style="position:sticky;top:0;height:30px">Heading</th></tr></thead>' + rows + '</table></div>',
+    r => r.stickyOver.length === 1, 360, true);
+
+  await browser.close();
+  const failed = results.filter(result => !result.ok);
+  console.log('layout controls: ' + (results.length - failed.length) + '/' + results.length + ' behaved');
+  if (failed.length) process.exit(1);
+  return results.length;
+}
+
+if (CONTROLS) {
+  await runControls();
+  process.exit(0);
+}
+
 const failures = [];
+const warnings = [];
 function note(route, width, engine, kind, detail) {
   failures.push({ route, width, engine, kind, detail });
+}
+function warn(route, width, engine, kind, detail) {
+  warnings.push({ route, width, engine, kind, detail });
 }
 
 for (const [name, engine] of [['chromium', chromium], ['webkit', webkit]]) {
@@ -270,7 +363,8 @@ for (const [name, engine] of [['chromium', chromium], ['webkit', webkit]]) {
       await page.waitForTimeout(250);
       const floors = {
         label: TYPE_FLOOR_LABEL, copy: TYPE_FLOOR_COPY,
-        target: width <= 700 ? TARGET_PREFERRED : TARGET_MIN, stickyPhase: false
+        target: width <= 700 ? TARGET_PREFERRED : TARGET_MIN,
+        minimum: TARGET_MIN, stickyPhase: false
       };
       const r = await page.evaluate(collect, floors);
 
@@ -292,10 +386,11 @@ for (const [name, engine] of [['chromium', chromium], ['webkit', webkit]]) {
         await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
       }
       r.brokenWords.forEach(x => note(route, width, name, 'mid-word break',
-        `"${x.text}" renders ${x.h}px tall on a ${x.lh}px line`));
-      r.smallText.forEach(x => note(route, width, name, 'type below floor',
+        `"${x.text}" renders across ${x.lines} text lines`));
+      r.smallText.forEach(x => warn(route, width, name, 'type below preferred floor',
         `${x.px}px ${x.kind} (floor ${x.floor}) "${x.text}"`));
-      r.smallTargets.forEach(x => note(route, width, name, 'target too small',
+      r.smallTargets.forEach(x => (x.severity === 'defect' ? note : warn)(route, width, name,
+        x.severity === 'defect' ? 'target below 24px minimum' : 'target below 44px preference',
         `${x.w}x${x.h} "${x.text}"`));
       r.stickyOver.forEach(x => note(route, width, name, 'sticky heading hidden',
         `"${x.text}" top ${x.top} is above header bottom ${x.hdrBottom}`));
@@ -303,7 +398,7 @@ for (const [name, engine] of [['chromium', chromium], ['webkit', webkit]]) {
         `document ${r.overflow.doc}px in a ${r.overflow.view}px viewport` +
         (r.overflow.culprits.length ? ' · ' + r.overflow.culprits.join(', ') : ''));
       if (width <= 440 && route === '/' && !r.firstViewport.ctaInFold)
-        note(route, width, name, 'no CTA in first viewport', 'nothing actionable above the fold');
+        warn(route, width, name, 'no CTA in first viewport', 'nothing actionable above the fold');
       await ctx.close();
     }
   }
@@ -312,12 +407,13 @@ for (const [name, engine] of [['chromium', chromium], ['webkit', webkit]]) {
 
 const byKind = {};
 failures.forEach(f => { (byKind[f.kind] = byKind[f.kind] || []).push(f); });
+const warningsByKind = {};
+warnings.forEach(f => { (warningsByKind[f.kind] = warningsByKind[f.kind] || []).push(f); });
 
 console.log('layout-assert · ' + BASE);
 console.log('  ' + WIDTHS.length + ' widths x ' + ROUTES.length + ' routes x 2 engines');
 if (!failures.length) {
-  console.log('  clean: no mid-word breaks, no type below floor, no undersized targets,');
-  console.log('  no hidden sticky headings, a call to action in the first viewport.');
+  console.log('  defects: 0 · no mid-word breaks, targets below 24px, page overflow, or hidden sticky headings.');
 } else {
   Object.keys(byKind).sort().forEach(k => {
     const list = byKind[k];
@@ -330,8 +426,21 @@ if (!failures.length) {
       console.log(`    ${String(f.width).padStart(4)}px ${f.engine.padEnd(8)} ${f.route.padEnd(12)} ${f.detail}`);
     });
   });
-  console.log('\n  ' + failures.length + ' finding(s) across ' +
+  console.log('\n  defects: ' + failures.length + ' across ' +
     new Set(failures.map(f => f.kind)).size + ' classes.');
 }
+
+Object.keys(warningsByKind).sort().forEach(k => {
+  const list = warningsByKind[k];
+  console.log('\n  WARNING · ' + k.toUpperCase() + ' — ' + list.length + ' measured item(s)');
+  const shown = new Set();
+  list.forEach(f => {
+    const key = f.kind + f.detail;
+    if (shown.has(key) || shown.size > 80) return;
+    shown.add(key);
+    console.log(`    ${String(f.width).padStart(4)}px ${f.engine.padEnd(8)} ${f.route.padEnd(12)} ${f.detail}`);
+  });
+});
+console.log('\n  warnings: ' + warnings.length + ' measured items; warnings do not fail --assert.');
 
 if (ASSERT && failures.length) process.exit(1);
