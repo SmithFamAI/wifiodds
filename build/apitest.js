@@ -806,8 +806,18 @@ async function main() {
 
   var publishedNonzeroEquippedShareCount = 0;
   var samePublishedShareCount = 0;
+  var unpublishedEquippedKeys = [];
   all.airlines.forEach(function (a) {
     var r = A.scoreAirline(a.key);
+    if (r.equippedPublished === false) {
+      unpublishedEquippedKeys.push(a.key);
+      eq(a.fleet.equippedPublished, false,
+        a.key + ': an unpublished equipped count stays explicitly unpublished');
+      eq(a.fleet.equippedShare, null,
+        a.key + ': an unpublished equipped share is unknown, never zero');
+      eq(a.fleet.equippedPct, null,
+        a.key + ': an unpublished equipped percentage is unknown, never zero');
+    }
     if (a.fleet.equippedPublished && a.fleet.equippedShare > 0) {
       publishedNonzeroEquippedShareCount++;
       ok(a.fleet.equippedPct > 0,
@@ -971,6 +981,8 @@ async function main() {
       }
     }
   });
+  eq(unpublishedEquippedKeys.sort().join(','), 'airfrance,sas',
+    'the unpublished equipped-fleet control covers the exact two-airline source population');
   eq(publishedNonzeroEquippedShareCount, 16,
     'all 16 published nonzero equipped shares are covered by the false-zero invariant');
   eq(samePublishedShareCount, 13,

@@ -133,6 +133,10 @@ if ! sh build/mobile-touch-target-controls.sh; then
   fail "build/mobile-touch-target-controls.sh exited non-zero. A supported phone target may be
 smaller than 44 by 44 CSS pixels, or a planted target-size regression escaped." 98
 fi
+if ! sh build/unpublished-null-controls.sh; then
+  fail "build/unpublished-null-controls.sh exited non-zero. An unpublished fleet value may have
+collapsed from unknown to zero, or one of the planted null-shape regressions escaped." 98
+fi
 
 echo ""
 echo "── 3/5 proof-binding controls ────────────────────────────"
