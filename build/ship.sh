@@ -129,6 +129,10 @@ if ! sh build/technology-label-wrap-controls.sh; then
   fail "build/technology-label-wrap-controls.sh exited non-zero. The Technology page may split a
 service-tier label inside the word at a supported phone width, or the planted regression escaped." 98
 fi
+if ! sh build/mobile-touch-target-controls.sh; then
+  fail "build/mobile-touch-target-controls.sh exited non-zero. A supported phone target may be
+smaller than 44 by 44 CSS pixels, or a planted target-size regression escaped." 98
+fi
 
 echo ""
 echo "── 3/5 proof-binding controls ────────────────────────────"

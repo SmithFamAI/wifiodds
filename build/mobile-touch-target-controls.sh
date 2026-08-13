@@ -4,7 +4,7 @@
 set -eu
 cd "$(dirname "$0")/.."
 
-expected=2
+expected=3
 observed=0
 
 if MOBILE_TARGET_MUTATION=footer-nav-shrink node build/mobile-touch-targets.test.mjs >/dev/null 2>&1; then
@@ -13,6 +13,13 @@ if MOBILE_TARGET_MUTATION=footer-nav-shrink node build/mobile-touch-targets.test
 fi
 observed=$((observed + 1))
 echo "PASS footer-nav-shrink: planted undersized links were caught"
+
+if MOBILE_TARGET_MUTATION=feature-tour-shrink node build/mobile-touch-targets.test.mjs >/dev/null 2>&1; then
+  echo "FAIL feature-tour-shrink: planted undersized homepage link escaped" >&2
+  exit 1
+fi
+observed=$((observed + 1))
+echo "PASS feature-tour-shrink: planted undersized homepage link was caught"
 
 node build/mobile-touch-targets.test.mjs
 observed=$((observed + 1))

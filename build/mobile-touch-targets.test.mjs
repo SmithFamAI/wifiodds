@@ -19,7 +19,7 @@ try {
 }
 
 const root = process.cwd();
-const widths = [390, 440];
+const widths = [375, 390, 440];
 const routes = ['/', '/methodology/', '/technology/', '/extension/', '/privacy'];
 const routeFiles = new Map([
   ['/', 'index.html'],
@@ -69,6 +69,10 @@ try {
             await page.addStyleTag({ content:
               'footer .ftop,footer .flinks>a,footer .footer-top>.brand,footer .footlinks>a{min-width:0!important;min-height:0!important;padding:0!important}' });
           }
+          if (mutation === 'feature-tour-shrink') {
+            await page.addStyleTag({ content:
+              '.badge-meta a{display:inline!important;min-width:0!important;min-height:0!important;padding:0!important}' });
+          }
           const result = await page.evaluate(function () {
             function visible(el) {
               const r = el.getBoundingClientRect();
@@ -100,8 +104,13 @@ try {
                 }).map(el => record(el, 'privacy standalone'))
               : [];
 
+            const homepageFeatureTour = location.pathname === '/'
+              ? [...document.querySelectorAll('.badge-meta a[href="/extension/"]')]
+                  .filter(visible).map(el => record(el, 'homepage feature tour'))
+              : [];
+
             return {
-              targets: footerTargets.concat(privacyStandalone),
+              targets: footerTargets.concat(privacyStandalone, homepageFeatureTour),
               overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
             };
           });
@@ -131,4 +140,4 @@ if (failures.length) {
   process.exit(1);
 }
 console.log('mobile touch-target checks PASS: ' + checks +
-  ' checks across 5 routes, 2 phone widths, and 2 engines');
+  ' checks across 5 routes, 3 phone widths, and 2 engines');
