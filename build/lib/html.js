@@ -52,11 +52,10 @@ var EXT = 'https://chromewebstore.google.com/detail/wifi-odds-for-flights/ojplad
 /* Two repositories, two links. `REPO` used to be the only one and it pointed at
    the EXTENSION, under a footer label that said "Open source" — so a reader
    following it from a page about the website landed in the browser-extension
-   tree. The extension repo also still carries its pre-rename name, which is
-   agreed to change once the store accepts 2.0.0; when it does, only this
-   constant moves. */
+   tree. The public GitHub name is wifiodds-extension (renamed from
+   united-starlink-companion). User-facing URLs must use the current name. */
 var REPO_SITE = 'https://github.com/jeremyinthebay/wifiodds';
-var REPO_EXT = 'https://github.com/jeremyinthebay/united-starlink-companion';
+var REPO_EXT = 'https://github.com/jeremyinthebay/wifiodds-extension';
 var REPO = REPO_SITE;
 /* What the store serves TODAY, not what is in review. The banner prints it, so
  * a stale value here is a wrong claim on the homepage. build/lib/pages.js also
@@ -604,12 +603,12 @@ function footer(updated, refreshAttemptedOn, wasRetained) {
     'historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and ' +
     'unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</div>\n' +
     /* The "United route optimiser caches the route list under usl3:<ORIG>-<DEST>"
-       exception was true until the 28 Jul 2026 cut removed the /united/ page. No
-       surviving page writes to storage now, so the sentence is unconditional
-       again — the shape it had before the optimiser existed. */
-    '  <div class="frow"><b>No accounts, no analytics, no tracking</b> on this site or in the extension. ' +
-    'Nothing about you is stored in your browser. ' +
-    'What the server keeps is on the <a href="/privacy">privacy page</a>.</div>\n' +
+       exception was true until the 28 Jul 2026 cut removed the /united/ page.
+       The site still writes nothing. The extension does write local preferences,
+       Guard trips, and outcomes — named here, detailed on /privacy. */
+    '  <div class="frow"><b>No accounts, no analytics</b> on this site. The extension keeps local ' +
+    'preferences, Guard trips, and outcomes on the device. Its daily selector fetch still carries ' +
+    'an IP. Details are on the <a href="/privacy">privacy page</a>.</div>\n' +
     '  <div class="frow">' + THEME_SENTENCE + '</div>\n' +
     '</footer>\n';
 }

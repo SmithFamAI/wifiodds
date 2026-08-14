@@ -2,7 +2,7 @@
 set -eu
 cd "$(dirname "$0")/.."
 
-expected=4
+expected=6
 observed=0
 work=$(mktemp -d "${TMPDIR:-/tmp}/wifiodds-unpublished-null.XXXXXX")
 trap 'rm -rf "$work"' EXIT HUP INT TERM
@@ -34,9 +34,17 @@ run_mutation equipped-published-true \
   'equippedPublished: a.equippedPublished !== false' \
   'equippedPublished: true'
 
+run_mutation nextgen-score-zero \
+  'return a.nextGenPublished === false ? null : a.nextGenScore;' \
+  'return a.nextGenPublished === false ? 0 : a.nextGenScore;'
+
+run_mutation nextgen-ranked-true \
+  'ranked: a.nextGenPublished !== false,' \
+  'ranked: true,'
+
 node build/apitest.js >/dev/null
 observed=$((observed + 1))
-echo "PASS clean: unpublished equipped values remain false and null"
+echo "PASS clean: unpublished equipped values remain false and null, unpublished next-gen is not a numeric 0"
 
 [ "$observed" -eq "$expected" ] || {
   echo "FAIL control count: expected $expected, observed $observed" >&2

@@ -471,7 +471,7 @@ function homeCard(m, key) {
     esc(a.code || '') + '</span></div>' +
     '<div class="primary-figure odds-only" data-figure-block="nextgen"><div class="primary-stat"><strong ' +
     'data-published-figure="nextgen" aria-describedby="' + nextGenEvidenceId + '">' + odds + '%' + sup + '</strong>' +
-    '<span>next-gen<br>odds</span></div>' + homeFigureEvidence(m, a, 'nextgen', nextGenEvidenceId) + '</div>' +
+    '<span>airline<br>next-gen odds</span></div>' + homeFigureEvidence(m, a, 'nextgen', nextGenEvidenceId) + '</div>' +
     '<div class="primary-figure streaming-only" data-figure-block="streaming"><div class="primary-stat"><strong class="tier-value" ' +
     'data-streaming-view="primary" data-published-figure="streaming" aria-describedby="' + streamingEvidenceId + '">' + score + sup +
     '</strong> <span>Streaming<br>score</span></div>' + homeFigureEvidence(m, a, 'streaming', streamingEvidenceId) + '</div>' +
@@ -495,7 +495,7 @@ function homeBig4Cards(m) {
 function homeHeadExtra(m) {
   var title = 'WiFi Odds · your odds of next-gen WiFi';
   var desc = 'Your odds of a next-gen Starlink or Amazon Leo aircraft, next to what each fleet ' +
-    'delivers today, across all ' + m.airlineCount + ' tracked airlines. Free, unofficial, no tracking.';
+    'delivers today, across all ' + m.airlineCount + ' tracked airlines. Free, unofficial.';
   var url = ORIGIN + '/';
   var ogImg = ORIGIN + '/assets/og.png?v=' + H.assetHash('assets/og.png');
   return H.THEME_BOOT + '\n' +
@@ -3266,7 +3266,7 @@ function privacyPage(m) {
   return H.page({
     title: 'Privacy Policy · WiFi Odds for Flights',
     desc: 'Privacy policy for WiFi Odds (wifiodds.com) and the WiFi Odds for Flights browser extension. ' +
-      'No accounts, no analytics, no tracking, and no personal data collected.',
+      'No accounts, no analytics. Local extension storage and the daily selector fetch are named on this page.',
     /* The file on disk is privacy.html and routes.js keeps it that way, but
        Cloudflare serves it at /privacy and 308s the .html form to it. The
        canonical and the crumb name the URL a reader actually lands on, because

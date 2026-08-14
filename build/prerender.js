@@ -319,10 +319,9 @@ function buildLlms(m) {
        equipped count is null. Two separate faults on one line: the score
        ignored the publication flag, and the null denominator was concatenated
        straight into the text.
-       The API had it right all along — it pairs score 0 with published:false in
-       the same object. The serializer simply did not honour the pairing, which
-       is the auditor's exact point: a numeric field is only safe when every
-       reader of it respects the flag beside it. */
+       The API now emits null for that unpublished next-gen score, with
+       published:false and ranked:false on the same object. A numeric 0 next to
+       the flag was the shape a naive consumer sorted as a floor. */
     var ngText = a.nextGenPublished === false
       ? 'next-gen count unpublished'
       : 'next-gen ' + a.nextGenScore;

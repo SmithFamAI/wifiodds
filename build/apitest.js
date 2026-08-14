@@ -851,10 +851,14 @@ async function main() {
     ok(typeof a.note === 'string' && a.note.length, a.key + ': note');
     ok(/^\d{4}-\d{2}$/.test(a.asOf), a.key + ': asOf', a.asOf);
     /* ── the three-tier fields. ADDITIVE: every assertion above still holds, and
-     * these two are the split the site now leads with. The contract worth
-     * protecting is that nextGenScore is ZERO for a fleet with no low-earth-orbit
-     * hardware in the air, however good its connectScore is. */
-    eq(a.nextGenScore, r.nextGenScore, 'nextGenScore for ' + a.key);
+     * these two are the split the site now leads with. A sourced zero (Delta:
+     * no LEO hardware in the air) stays a number. An unpublished count
+     * (SAS, Air France) must not: the public nextGenScore is null, ranked is
+     * false, and a naive numeric sort cannot recreate the missing count as 0. */
+    var publicNg = r.nextGenPublished === false ? null : r.nextGenScore;
+    eq(a.nextGenScore, publicNg, 'nextGenScore for ' + a.key);
+    eq(a.nextGen.ranked, r.nextGenPublished !== false,
+      a.key + ': nextGen.ranked follows nextGen.published');
     eq(a.serviceTier, r.serviceTier, 'serviceTier for ' + a.key);
     ok(['next-gen', 'mixed', 'streaming', 'basic'].indexOf(a.serviceTier) >= 0,
       a.key + ': serviceTier is one of the four tiers', a.serviceTier);
@@ -862,7 +866,12 @@ async function main() {
     eq(a.service.tier, a.serviceTier, a.key + ': service.tier mirrors serviceTier');
     ok(typeof a.service.label === 'string' && a.service.label.length, a.key + ': service.label');
     ok(typeof a.service.means === 'string' && a.service.means.length, a.key + ': service.means');
-    if (!A.isNextGen(a.system.key)) {
+    if (r.nextGenPublished === false) {
+      eq(a.nextGenScore, null, a.key + ': unpublished nextGenScore is null, never a sortable 0');
+      eq(typeof a.nextGenScore, 'object', a.key + ': JSON null is not a number');
+      eq(a.nextGen.published, false, a.key + ': unpublished nextGen.published stays false');
+      eq(a.nextGen.ranked, false, a.key + ': unpublished next-gen is not ranked');
+    } else if (!A.isNextGen(a.system.key)) {
       eq(a.nextGenScore, 0, a.key + ': no LEO hardware flying ⇒ nextGenScore 0');
       eq(a.nextGen.system, null, a.key + ': nextGen.system null when nothing next-gen flies');
     } else {
@@ -933,9 +942,15 @@ async function main() {
         ? ngRows.reduce(function (t, s) { return t + s.aircraft * s.free.factor; }, 0) / ngDenom * 100
         : 0;
       var publishedOdds = ngSum > 0 ? Math.max(1, Math.round(ngSum)) : 0;
-      eq(a.nextGenScore, publishedOdds,
-        a.key + ': confirmed next-gen aircraft over the whole fleet use the shared nonzero publication boundary',
-        [Number(ngSum.toFixed(2)), a.nextGenScore]);
+      if (r.nextGenPublished === false) {
+        eq(a.nextGenScore, null,
+          a.key + ': unpublished next-gen score is null rather than the ledger zero',
+          [Number(ngSum.toFixed(2)), a.nextGenScore]);
+      } else {
+        eq(a.nextGenScore, publishedOdds,
+          a.key + ': confirmed next-gen aircraft over the whole fleet use the shared nonzero publication boundary',
+          [Number(ngSum.toFixed(2)), a.nextGenScore]);
+      }
       /* round 18 P0-02 GUARD: an airline with unresolved tails may not present
          next-gen as a fleetwide certainty. The odds floor already divides by the
          whole fleet (checked directly above); this forbids the "next-gen" tier
@@ -946,9 +961,11 @@ async function main() {
         ok(a.serviceTier !== 'next-gen',
           a.key + ': ' + a.unresolved.aircraft + ' unresolved tails, so serviceTier is not ' +
           '"next-gen" (which renders "fleetwide")', a.serviceTier);
-        ok(a.nextGenScore < 100,
-          a.key + ': unresolved tails, so next-gen odds cannot be an unconditional 100',
-          a.nextGenScore);
+        if (r.nextGenPublished !== false) {
+          ok(a.nextGenScore < 100,
+            a.key + ': unresolved tails, so next-gen odds cannot be an unconditional 100',
+            a.nextGenScore);
+        }
       }
       /* aircraft, not just points: the rows plus the unresolved pool have to be
          the fleet, or the denominator is quietly wrong */
@@ -1029,6 +1046,30 @@ async function main() {
   var dl = all.airlines.filter(function (a) { return a.key === 'delta'; })[0];
   eq(dl.nextGenScore, 0, 'PARITY: /api/airlines Delta nextGenScore is 0');
   eq(dl.serviceTier, 'streaming', 'PARITY: /api/airlines Delta serviceTier is streaming');
+  /* Backlog 51: unpublished next-gen must not be a sortable 0. Streaming for
+   * SAS (0) and Air France (5), and United's 28% next-gen, stay bit-for-bit. */
+  var sasApi = all.airlines.filter(function (a) { return a.key === 'sas'; })[0];
+  var afApi = all.airlines.filter(function (a) { return a.key === 'airfrance'; })[0];
+  var uaApi = all.airlines.filter(function (a) { return a.key === 'united'; })[0];
+  ok(!!sasApi && !!afApi && !!uaApi, 'SAS, Air France, and United are in /api/airlines for the honesty-pass control');
+  if (sasApi && afApi && uaApi) {
+    eq(sasApi.nextGen.published, false, 'SAS nextGen.published stays false');
+    eq(sasApi.nextGenScore, null, 'SAS unpublished nextGenScore is null, not 0');
+    eq(sasApi.nextGen.score, null, 'SAS unpublished nextGen.score is null, not 0');
+    eq(sasApi.nextGen.ranked, false, 'SAS unpublished next-gen is not ranked');
+    eq(sasApi.connectScore, 0, 'SAS Streaming connectScore stays 0');
+    eq(sasApi.streamingScore, 0, 'SAS streamingScore alias stays 0');
+    eq(afApi.nextGen.published, false, 'Air France nextGen.published stays false');
+    eq(afApi.nextGenScore, null, 'Air France unpublished nextGenScore is null, not 0');
+    eq(afApi.nextGen.score, null, 'Air France unpublished nextGen.score is null, not 0');
+    eq(afApi.nextGen.ranked, false, 'Air France unpublished next-gen is not ranked');
+    eq(afApi.connectScore, 5, 'Air France Streaming connectScore stays 5');
+    eq(afApi.streamingScore, 5, 'Air France streamingScore alias stays 5');
+    eq(uaApi.nextGenScore, 28, 'United nextGenScore stays 28');
+    eq(uaApi.nextGen.pct, 28, 'United nextGen.pct stays 28');
+    eq(uaApi.fleet.equipped, 514, 'United equipped count stays 514');
+    eq(uaApi.fleet.total, 1817, 'United fleet total stays 1817');
+  }
   /* Round-18 P0-02: Delta is three rows out of 1,330 aircraft, all resolved:
      1,150 on Viasat or Hughes (modern-GEO 0.55, free) = 47.6 points; the 80
      Boeing 717s with no wifi (0.0); and 100 transpacific widebodies whose system
@@ -1387,21 +1428,26 @@ async function main() {
         bad.push(label + ' ' + node.key + ' MCP structuredContent lost published:false');
       }
     }
-    /* A flat numeric next-gen field (nextGenScore is the documented floor
-       score and legitimately 0) is only safe while the honest
-       nextGen.published:false flag sits beside it on the same record. A
-       serializer that emits the number and drops the object drops the flag
-       with it, and the scan above never fires because it requires the object.
-       This branch catches exactly that shape: an unpublished-count airline
-       record carrying a numeric next-gen field with NO published:false
-       sibling. No fixed field name, so a renamed variant is caught too. */
-    if (typeof node.key === 'string' && UNPUB_META[node.key] &&
-        !(node.nextGen && typeof node.nextGen === 'object' && node.nextGen.published === false)) {
+    /* An unpublished-count airline must not carry a numeric next-gen field at
+       all, even beside published:false. The 14 Aug 2026 honesty pass retired
+       the old "0 plus a flag" shape: a naive consumer sorting nextGenScore
+       would recreate SAS/Air France as a measured zero. */
+    if (typeof node.key === 'string' && UNPUB_META[node.key]) {
+      if (typeof node.nextGenScore === 'number') {
+        covered[node.key] = true;
+        bad.push(label + ' ' + node.key + ' MCP structuredContent carries numeric nextGenScore=' +
+          node.nextGenScore + ' for an unpublished count');
+      }
+      if (node.nextGen && typeof node.nextGen === 'object' && typeof node.nextGen.score === 'number') {
+        covered[node.key] = true;
+        bad.push(label + ' ' + node.key + ' MCP structuredContent carries numeric nextGen.score=' +
+          node.nextGen.score + ' for an unpublished count');
+      }
       Object.keys(node).forEach(function (fk) {
         if (/next.?gen/i.test(fk) && typeof node[fk] === 'number') {
           covered[node.key] = true;
           bad.push(label + ' ' + node.key + ' MCP structuredContent carries flat numeric ' +
-            fk + '=' + node[fk] + ' with no published:false beside it');
+            fk + '=' + node[fk] + ' for an unpublished count');
         }
       });
     }
@@ -1858,6 +1904,8 @@ async function main() {
     'homepage integration: Option B stays a one-line callout instead of the old stacked release card');
   [
     'See WiFi odds in your flight results.',
+    'Per-flight next-gen history is United and Alaska',
+    'United fleet checked',
     'How WiFi Odds works on booking pages',
     'Choose which figures to compare.',
     // Corrected 11 Aug 2026. The previous literal asserted "American, Delta, and
@@ -1875,6 +1923,10 @@ async function main() {
   });
   [
     'The odds, right on the flight.',
+    'WiFi Odds adds an odds badge to every flight in your results',
+    'All 18 airlines ranked in the popup',
+    'No account, analytics, or tracking',
+    'Live figures · checked',
     'How the extension moves from a booking page to a grounded answer',
     'Label the evidence and its ceiling',
     'Switches every airline signal below',
@@ -1946,22 +1998,30 @@ async function main() {
   eq((technology.match(/id="curtain"[^>]*type="range"|type="range"[^>]*id="curtain"/g) || []).length, 1,
     'technology reveal: one native range remains available to keyboard and assistive technology');
   [
-    'How field reports are handled',
-    'accepts up to five reports from one network address in each UTC hour',
-    'makes a SHA-256 digest from the address, a secret salt, and the current UTC',
-    'sends only the digest and report to storage',
-    'marks each new report unpublished',
-    'A person reviews it before any publication.'
+    'There is no public report form',
+    'Those URLs now redirect to the home page',
+    'A leftover intake Worker still answers',
+    'GET returns 405',
+    'chrome.storage.local',
+    'Trip Guardian flights you asked it to',
+    'That request carries nothing about you beyond what any web',
+    'https://github.com/jeremyinthebay/wifiodds-extension'
   ].forEach(function (copy) {
-    ok(privacy.indexOf(copy) !== -1, 'privacy cleanup: direct intake explanation is present', copy);
+    ok(privacy.indexOf(copy) !== -1, 'privacy cleanup: current product explanation is present', copy);
   });
   [
+    'How field reports are handled',
+    'The report form at the foot of each airline page',
+    'methodology page</a> also accepts speed and latency readings',
     'Something has to stop one connection filing a thousand rows',
     'a captcha cannot do it here',
     'Every submission lands unpublished',
-    'the only thing about you that can ever be published'
+    'the only thing about you that can ever be published',
+    'Nothing about you is stored in your browser',
+    'Nothing personal is collected',
+    'united-starlink-companion'
   ].forEach(function (copy) {
-    ok(privacy.indexOf(copy) === -1, 'privacy cleanup: stale intake framing is absent', copy);
+    ok(privacy.indexOf(copy) === -1, 'privacy cleanup: stale intake or storage framing is absent', copy);
   });
   var notFoundPage = fs.readFileSync(path.join(ROOT, '404.html'), 'utf8');
   ['Page not found', 'The address may have changed, or the page may no longer exist.',
@@ -2747,7 +2807,7 @@ async function main() {
   var repoBad = [];
   var EXPECT = [
     { label: 'Site source', mustContain: '/jeremyinthebay/wifiodds' },
-    { label: 'Extension source', mustContain: '/jeremyinthebay/united-starlink-companion' }
+    { label: 'Extension source', mustContain: '/jeremyinthebay/wifiodds-extension' }
   ];
   var repoSurface = fs.readFileSync(path.join(ROOT, 'privacy.html'), 'utf8');
   EXPECT.forEach(function (e) {
