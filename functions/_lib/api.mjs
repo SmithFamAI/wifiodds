@@ -125,6 +125,16 @@ function publishedPct(share) {
   return Math.max(1, Math.round(share * 100));
 }
 
+/* Unpublished next-gen counts must not leave this function as a number.
+ * SAS and Air France compute nextGenScore 0 internally because no confirmed
+ * LEO row is in the ledger; that 0 is a missing count, not a measured floor.
+ * A naive consumer sorting nextGenScore would rank them with Delta's sourced
+ * zero. null + ranked:false is the public contract; the model function is
+ * unchanged so HTML ranking and Streaming scores stay put. */
+function publicNextGenScore(a) {
+  return a.nextGenPublished === false ? null : a.nextGenScore;
+}
+
 /* ── one airline, JSON ─────────────────────────────────────────────────────
  * Every field is derived, nothing is transcribed. `streamingScore` is the
  * current name for the same integer the airline's own page prints in its score
@@ -183,16 +193,18 @@ export function airlineJson(key) {
      *                  actually delivers today. `rest` is the tier on the part of
      *                  the fleet that is not next-gen yet; null when there is no
      *                  such part, "unknown" when we have not verified it. */
-    nextGenScore: a.nextGenScore,
+    nextGenScore: publicNextGenScore(a),
     nextGen: {
-      score: a.nextGenScore,
+      score: publicNextGenScore(a),
       /* False unless nextGenScore's 0 IS a false zero — see nextGenPublished()
-       * in assets/airlines.js. score/system/label stay as computed (the floor
-       * concept holds regardless, same as connectScore), but a consumer must
-       * check this before reading share/pct as a real percentage: both are
-       * null, never 0, when the count behind them was never published. This
-       * is what SAS exposed 2026-07-26 — see the commit for the HTML side. */
+       * in assets/airlines.js. When published is false, score is null (never
+       * 0) and ranked is false, so a consumer sorting numbers cannot recreate
+       * the SAS/Air France missing-count as a floor. share/pct stay null in
+       * the same case. Delta's sourced 0 remains a number: published true,
+       * ranked true. Streaming / connectScore are a different axis and are
+       * not rewritten here. */
       published: a.nextGenPublished !== false,
+      ranked: a.nextGenPublished !== false,
       system: a.nextGenSystem,
       label: a.nextGenLabel,
       share: a.nextGenPublished === false ? null : round(a.nextGenShare, 4),

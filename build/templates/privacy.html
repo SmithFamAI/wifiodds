@@ -34,7 +34,7 @@
   <span class="kicker">Policy</span>
   <h1 class="ph">Privacy policy</h1>
   <p class="lede">This covers the <b>WiFi Odds for Flights</b> browser extension and the
-  <b>wifiodds.com</b> website. Effective <b>4 Aug 2026</b>. Earlier versions stay in the
+  <b>wifiodds.com</b> website. Effective <b>14 Aug 2026</b>. Earlier versions stay in the
   public git history of the repository linked at the foot of this page.</p>
 </header>
 
@@ -47,11 +47,13 @@
 
 <div class="callout pol" style="margin-top:1.2rem">
   <span class="kicker">The short version</span>
-  <p>No accounts, no cookies, no analytics, no advertising, and nothing about you is sold or passed
-  on. One thing leaves your browser, and it is named below: the extension asks two public community
-  trackers for odds. The website itself asks nobody. Every page is prerendered and arrives holding its
-  numbers, so reading the site calls no other origin and writes nothing to your browser. An earlier
-  version had a live United route optimizer page that did; it was removed on 29 Jul 2026.</p>
+  <p>No accounts, no cookies, no analytics, and no advertising. Nothing about you is sold. Two
+  things leave the extension, and both are named below: odds lookups to two public community
+  trackers, and a daily selector file from this site. That selector request still carries your IP
+  address, the way any web request does. The website itself asks nobody. Every page is prerendered
+  and arrives holding its numbers, so reading the site calls no other origin and writes nothing to
+  your browser. An earlier version had a live United route optimizer page that did; it was removed
+  on 29 Jul 2026.</p>
 </div>
 
 <section class="blk pol">
@@ -65,23 +67,27 @@
 
 <section class="blk pol">
   <span class="kicker">§2 · The extension</span>
-  <h2>Nothing personal is collected</h2>
-  <p>The extension does not collect, store, transmit, sell or share personal information. There are
-  no analytics, no tracking pixels, no accounts, no sign-in, and no server of mine that receives
-  anything you do. The list below is the complete set of things that happen.</p>
+  <h2>What the extension reads, stores, and sends</h2>
+  <p>There are no analytics, no tracking pixels, no accounts, and no sign-in. Chrome Web Store still
+  lists User activity and Website content, because the extension reads flight numbers already shown
+  on a booking page. That parsing stays in the browser. The list below is what actually happens.</p>
   <ul class="rows">
     <li><b>Reading pages, locally.</b> On a flight search at <b>united.com</b>, <b>alaskaair.com</b>
-    or <b>Navan</b>, the extension reads the routes and flight numbers already displayed on the page
-    in front of you. That parsing happens in your browser. Nothing about the page is uploaded.</li>
-    <li><b>Odds lookups.</b> To attach odds to a flight the extension asks the public APIs of the
+    or <b>Navan</b>, and on <b>Google Flights</b> after you grant access, the extension reads the
+    routes and flight numbers already displayed on the page in front of you. Nothing about the page
+    is uploaded.</li>
+    <li><b>Odds lookups.</b> To attach per-flight odds the extension asks the public APIs of the
     independent community trackers
     <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a>
     and <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a>.
     Each request carries a route such as DEN to SFO, or a flight number and a date. No booking
-    details, no passenger names, no fare or payment data, nothing that identifies you.</li>
-    <li><b>Caching, locally.</b> Responses are cached for about six hours in the browser's extension
-    storage, next to a handful of interface preferences: panel collapsed, keep-sorted, and whether
-    you turned Alaska support on. Clearing that storage or uninstalling removes all of it.</li>
+    details, no passenger names, no fare or payment data.</li>
+    <li><b>Local extension storage.</b> Odds responses are cached for about six hours in
+    <b>chrome.storage.local</b>. The same store holds interface preferences (panel collapsed, sort
+    behaviour, which metric to show, optional site access), Trip Guardian flights you asked it to
+    watch, and a later worked / did-not-work / did-not-fly outcome if you answer the prompt. Clearing
+    that storage or uninstalling removes all of it. It is not an account, and it is not sent to
+    WiFi Odds.</li>
     <li><b>Selector updates.</b> Roughly once a day the extension fetches a small configuration file
     from <b>wifiodds.com</b> that says where the relevant elements sit on the airline pages, so a
     site redesign does not break it. That request carries nothing about you beyond what any web
@@ -117,7 +123,7 @@
   <p>Nothing. No page on the site writes to your browser. An earlier version wrote one thing, the
   route optimizer’s six-hour cache, and that page was removed on 29 Jul 2026. No cookie is set on
   any page, and there is no session storage, no fingerprinting and no advertising identifier anywhere
-  on the site.</p>
+  on the site. Local storage used by the extension is described in §2, not here.</p>
   <p>The light and dark switch in the header stores nothing at all. It holds your choice in a class
   on the page until you reload, and then the page goes back to following your operating system. An
   earlier version of this site kept that choice under a localStorage key called <b>woTheme</b>. That
@@ -127,22 +133,12 @@
 
 <section class="blk pol" id="intake">
   <span class="kicker">§6 · Intake</span>
-  <h2>How field reports are handled</h2>
-  <p>The report form at the foot of each airline page sends your report to <b>/api/report</b>. It asks
-  for the flight date, airline, flight number, onboard system, and your observations. The longer form
-  on the <a href="/methodology/#field">methodology page</a> also accepts speed and latency readings.
-  Neither form has an account step or email field.</p>
-  <p>The server accepts up to five reports from one network address in each UTC hour. To enforce that
-  limit, the intake Worker makes a SHA-256 digest from the address, a secret salt, and the current UTC
-  hour. It holds the raw address in memory long enough to make the digest, then
-  sends only the digest and report to storage. WiFi Odds does not write the raw address to its report store or application
-  logs.</p>
-  <p>The digest changes at the start of each UTC hour. Reports from different hour buckets cannot be
-  linked using it. The site sets no cookie, loads no captcha, and records no browser measurements.
-  This avoids loading Turnstile, reCAPTCHA, or hCaptcha as third-party scripts.</p>
-  <p>The server marks each new report unpublished. A person reviews it before any publication. If a
-  report is published, the site can display the optional name or handle from the credit box. You can
-  leave that box empty.</p>
+  <h2>There is no public report form</h2>
+  <p>Airline pages that used to carry a report form, and the longer form on the methodology page,
+  were removed. Those URLs now redirect to the home page. This site does not offer a form for field
+  reports, and this page does not invent a replacement.</p>
+  <p>A leftover intake Worker still answers <b>/api/report</b>. GET returns 405. No current page
+  posts to it. Do not send personal information there.</p>
 </section>
 
 <section class="blk pol">
@@ -159,7 +155,8 @@
         <tr><td class="mono">unitedstarlinktracker.com<br>alaskastarlinktracker.com</td>
           <td>Fetch route and flight statistics.</td></tr>
         <tr><td class="mono">wifiodds.com</td><td>The daily selector-configuration file described in §2.</td></tr>
-        <tr><td class="mono">storage</td><td>The local cache and the interface preferences described in §2.</td></tr>
+        <tr><td class="mono">storage</td><td>The local cache, interface preferences, Guard trips, and
+          outcomes described in §2.</td></tr>
         <tr><td class="mono">activeTab</td><td>Let the popup read the route of the tab you opened it on.</td></tr>
         <tr><td class="mono">scripting</td><td>Register the optional Alaska content script, and only
           once you have granted that permission.</td></tr>
@@ -171,31 +168,32 @@
 <section class="blk pol">
   <span class="kicker">§8 · Children</span>
   <h2>Data from children</h2>
-  <p>The extension and the site are general-audience tools that collect no personal data from
-  anyone, so they collect none from children.</p>
+  <p>The extension and the site are general-audience tools. They do not ask anyone, including
+  children, for a name, email, or account.</p>
 </section>
 
 <section class="blk pol">
   <span class="kicker">§9 · Revisions</span>
   <h2>When this policy changes</h2>
   <p>The effective date at the top changes with it, and the version it replaced stays in the public
-  git history of the repository below. This revision, on 4 Aug 2026, rewrote §6 in plain language
-  without changing how reports or network addresses are handled. The 29 Jul 2026 revision rewrote
-  §3, §4 and §5 because
-  the United route optimizer page and the other United pages were removed from the site and now
-  redirect to the home page: no page calls another origin or writes to your browser now. The route
-  planning still lives in the extension, where its lookups are the ones described in §2. Earlier
-  revisions rewrote §4 and §5 when that page began prerendering its tables, and on 25 Jul 2026
-  corrected the storage claim in §5.</p>
+  git history of the repository below. This revision, on 14 Aug 2026, rewrote §2 and §6 so the page
+  matches the product: there is no public report form, local extension storage is named, and the
+  daily selector fetch is not described as collecting nothing. The 4 Aug 2026 revision rewrote §6
+  in plain language while a form still existed. The 29 Jul 2026 revision rewrote §3, §4 and §5
+  because the United route optimizer page and the other United pages were removed from the site and
+  now redirect to the home page: no page calls another origin or writes to your browser now. The
+  route planning still lives in the extension, where its lookups are the ones described in §2.
+  Earlier revisions rewrote §4 and §5 when that page began prerendering its tables, and on 25 Jul
+  2026 corrected the storage claim in §5.</p>
 </section>
 
 <section class="blk pol">
   <span class="kicker">§10 · Affiliation</span>
   <h2>Who runs this</h2>
   <p>WiFi Odds is an unofficial, free, open-source hobby project
-  (<a href="https://github.com/jeremyinthebay/united-starlink-companion" target="_blank" rel="noopener">source code</a>).
+  (<a href="https://github.com/jeremyinthebay/wifiodds-extension" target="_blank" rel="noopener">source code</a>).
   It is not affiliated with, endorsed by or sponsored by United Airlines, Alaska Airlines, any other
   airline, Navan, SpaceX/Starlink, Amazon, Viasat, or the trackers whose data it credits.</p>
   <p>Questions go on the
-  <a href="https://github.com/jeremyinthebay/united-starlink-companion/issues" target="_blank" rel="noopener">issue tracker</a>.</p>
+  <a href="https://github.com/jeremyinthebay/wifiodds-extension/issues" target="_blank" rel="noopener">issue tracker</a>.</p>
 </section>
