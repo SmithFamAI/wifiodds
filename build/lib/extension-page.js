@@ -89,7 +89,8 @@ function featureDemos() {
       RELEASE.allowedFeatureClaims.length + '</span><h3>' + esc(feature.title) + '</h3></div>' +
       '<button class="demo-play" type="button" data-demo-play>Pause demo</button></header><div class="host-tabs" role="group" ' +
       'aria-label="Show ' + esc(feature.title) + ' by booking site">' + buttons + '</div><div class="demo-grid">' +
-      demoScene(feature) + '<div class="demo-copy"><p class="host-behavior" data-host-behavior>' +
+      demoScene(feature) + '<div class="demo-copy"><p class="feature-question">' + esc(feature.question) +
+      '</p><p class="host-behavior" data-host-behavior>' +
       esc(feature.behaviors.united) + '</p><p class="evidence-ceiling"><b>What it can tell you</b>' +
       esc(feature.ceiling) + '</p><ol class="demo-steps" data-demo-fallback>' +
       feature.steps.map(function (step) { return '<li>' + esc(step) + '</li>'; }).join('') +

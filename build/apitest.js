@@ -2071,8 +2071,8 @@ async function main() {
       'extension manifest: ' + feature.id + ' has one demo frame');
     eq((extensionBuilt.match(new RegExp('data-feature-coverage="' + feature.id + '"', 'g')) || []).length, 1,
       'extension manifest: ' + feature.id + ' has one host-coverage row');
-    ok(extensionBuilt.indexOf(feature.question) === -1,
-      'extension density: ' + feature.id + ' question prompt is absent');
+    eq((extensionBuilt.match(new RegExp(feature.question.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length, 1,
+      'extension density: ' + feature.id + ' question prompt renders exactly once');
   });
   eq((extensionBuilt.match(/class="demo-play"[^>]*aria-pressed=/g) || []).length, 0,
     'extension demos: changing Pause/Play action labels do not also expose contradictory pressed state');
