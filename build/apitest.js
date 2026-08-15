@@ -1855,7 +1855,7 @@ async function main() {
   eq(HTML.EXT_VERSION, RELEASE.version, 'release ledger: shared EXT_VERSION is derived from the ledger');
   eq(require('crypto').createHash('sha256').update(fs.readFileSync(
     path.join(ROOT, 'build', 'extension-release.json'))).digest('hex'),
-  '71729ba6f7289f3e4f5d8f9e7f1a3dafc3588935fe79c9f80e4715ae804b1b11',
+  'ba9fc2f3d484cff13c2b30f9aa1fc6bb39f80501add6d49696ae8f66ec93d622',
   'release ledger: current 3.0.2 claims match the ledger-bound extension candidate exactly');
   eq(RELEASE.extensionCommit, '99f6b0b91a06a94e71a98ae458e22142513ff70b',
     'release ledger: current 3.0.2 claims stay bound to the shipped extension commit');

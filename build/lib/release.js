@@ -9,6 +9,19 @@ function fail(message) {
   throw new Error('extension-release.json: ' + message);
 }
 
+/* A host is not offered a route summary when the behavior names that limit
+ * up front, or when it denies a separate route summary in other words. The
+ * prefix-only check (`/^not offered here\./i`) was the hole: "No separate
+ * route summary is shown on United." sat next to routePanel Yes. */
+function routeBehaviorIsOffered(behavior) {
+  var text = String(behavior || '').replace(/^\s+/, '');
+  var lower = text.toLowerCase();
+  if (/^not offered here\./i.test(text)) return false;
+  if (lower.indexOf('instead of a separate route summary') !== -1) return false;
+  if (lower.indexOf('no separate route summary') !== -1) return false;
+  return true;
+}
+
 function validate(release) {
   if (!release || typeof release !== 'object' || Array.isArray(release)) fail('record must be an object');
   if (!/^\d+\.\d+\.\d+$/.test(release.version || '')) fail('version must be a semantic version');
@@ -78,6 +91,19 @@ function validate(release) {
     });
     if (Object.keys(feature.behaviors).sort().join(',') !== Object.keys(hostIds).sort().join(',')) {
       fail('allowedFeatureClaims[' + i + '].behaviors must match the host manifest exactly');
+    }
+  });
+  var routeFeature = null;
+  release.allowedFeatureClaims.forEach(function (feature) {
+    if (feature.id === 'route') routeFeature = feature;
+  });
+  if (!routeFeature) fail('allowedFeatureClaims must include a route feature');
+  release.hosts.forEach(function (host) {
+    var offered = routeBehaviorIsOffered(routeFeature.behaviors[host.id]);
+    if ((host.routePanel === 'Yes') !== offered) {
+      fail('hosts[' + host.id + '].routePanel is ' + JSON.stringify(host.routePanel) +
+        ' but allowedFeatureClaims[route].behaviors.' + host.id + ' is ' +
+        (offered ? 'offered' : 'not offered'));
     }
   });
   return release;

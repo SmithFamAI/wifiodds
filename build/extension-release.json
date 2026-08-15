@@ -33,7 +33,7 @@
       "carrierFallback": "Recognised airlines",
       "autoSort": "Yes, with undo",
       "prioritize": "No",
-      "routePanel": "No",
+      "routePanel": "Yes",
       "guardian": "Yes"
     },
     {
@@ -66,7 +66,7 @@
       "carrierFallback": "Recognised airlines",
       "autoSort": "No",
       "prioritize": "No",
-      "routePanel": "Yes",
+      "routePanel": "No",
       "guardian": "Yes"
     }
   ],
@@ -117,7 +117,7 @@
       "ceiling": "The summary uses flights shown on the page and says which ones have scores. Flights without scores stay in place.",
       "steps": ["Read the flights on the page", "Separate scored and unscored flights", "Build the route summary", "Name which flights have data", "Keep unscored flights in place"],
       "behaviors": {
-        "united": "United pages use the flight labels and Best WiFi choice instead of a separate route summary.",
+        "united": "Shows a route summary of the visible United flights and their per-flight evidence.",
         "alaska": "Shows a route summary after you grant Alaska site access.",
         "navan": "Summarises United rows and marks other airlines as unscored.",
         "google": "Not offered here. Google Flights gets labels on each row instead."

@@ -93,6 +93,9 @@ fi
 if ! node build/big4-denominator.test.js; then
   fail "build/big4-denominator.test.js exited non-zero. Big-4 odds may not reconstruct from their displayed fleet totals." 98
 fi
+if ! node build/release-host-route-parity.test.js; then
+  fail "build/release-host-route-parity.test.js exited non-zero. Host-matrix routePanel and route-behavior meaning disagree, or a planted parity defect escaped." 98
+fi
 if ! bash test/revert-data-deploy.test.sh; then
   fail "test/revert-data-deploy.test.sh exited non-zero. Rollback integration may bypass its registered worktree." 98
 fi
