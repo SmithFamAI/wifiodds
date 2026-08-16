@@ -44,7 +44,8 @@ var EXPECTED_CONTROLS = [
   'function-syntax',
   'fetch-allowlist',
   'api-page-parity',
-  'report-intake-privacy'
+  'report-intake-privacy',
+  'feedback-intake'
 ];
 var observedControls = new Set();
 
@@ -93,13 +94,14 @@ function checkSyntax() {
   });
   fs.rmSync(tmp, { recursive: true, force: true });
 
-  /* Politeness, enforced on the source. TWO modules may call fetch and nothing
+  /* Politeness, enforced on the source. THREE modules may call fetch and nothing
    * else may:
    *   _lib/api.mjs      readAsset() — this deploy's own static assets
    *   _lib/reports.mjs  the report intake's write to its own Supabase project
+   *   _lib/feedback.mjs copy mail to the submitter, and only if they asked
    * If a handler ever starts calling a tracker, an analytics endpoint or a
    * captcha vendor, this fails before it ships. */
-  var MAY_FETCH = { '_lib/api.mjs': 1, '_lib/reports.mjs': 1 };
+  var MAY_FETCH = { '_lib/api.mjs': 1, '_lib/reports.mjs': 1, '_lib/feedback.mjs': 1 };
   control('fetch-allowlist');
   files.forEach(function (f) {
     var rel = path.relative(FN, f);
@@ -107,9 +109,8 @@ function checkSyntax() {
     var calls = (src.match(/\bfetch\s*\(/g) || []).length;
     checks++;
     if (calls && !MAY_FETCH[rel]) {
-      fails.push('functions/' + rel + ' calls fetch() — only _lib/api.mjs and _lib/reports.mjs may, ' +
-        'and only to our own assets and our own database. This API must never make a third-party ' +
-        'request.');
+      fails.push('functions/' + rel + ' calls fetch() — only _lib/api.mjs, _lib/reports.mjs and _lib/feedback.mjs may, ' +
+        'and only to our own assets, our own database, or the copy mailer the submitter opted into.');
     }
   });
 
@@ -126,6 +127,16 @@ function checkSyntax() {
   ok(!/turnstile|recaptcha|hcaptcha|google|analytics|gtag|plausible|fathom/i.test(code),
     'reports.mjs names no captcha or analytics vendor');
   ok(!/document\.cookie|set-cookie/i.test(code), 'reports.mjs sets no cookie');
+
+  var fsrc = fs.readFileSync(path.join(FN, '_lib', 'feedback.mjs'), 'utf8');
+  var fcode = fsrc.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  ok(!/turnstile|recaptcha|hcaptcha|gtag|plausible|fathom/i.test(fcode),
+    'feedback.mjs names no captcha or analytics vendor');
+  ok(!/document\.cookie|set-cookie/i.test(fcode), 'feedback.mjs sets no cookie');
+  ok(!/jeremyinthebay@gmail\.com/i.test(fcode),
+    'feedback.mjs does not hard-code Jeremy as a mail recipient');
+  ok(fcode.indexOf('api.resend.com') < 0,
+    'feedback.mjs does not hard-code the copy-mailer hostname');
   return files;
 }
 
@@ -1316,7 +1327,7 @@ async function main() {
      the live REST + MCP paths, and the retired /api/score/* (which answers a
      documented 410, not a redirect). A /airlines/, /api/docs/, /race/ etc. is
      absent on purpose — those are the 301s this guard exists to catch. */
-  var LIVE_URL = /^https:\/\/wifiodds\.com(\/?|\/methodology\/|\/technology\/|\/privacy|\/api|\/api\/airlines(\/[a-z]+)?|\/api\/score\/[A-Za-z0-9{}]+|\/mcp|\/united\/data\.json|\/llms\.txt|\/sitemap\.xml|\/#[a-z0-9-]+|\/api\/airlines\/\{key\})$/;
+  var LIVE_URL = /^https:\/\/wifiodds\.com(\/?|\/methodology\/|\/technology\/|\/privacy|\/feedback\/?|\/api|\/api\/airlines(\/[a-z]+)?|\/api\/score\/[A-Za-z0-9{}]+|\/mcp|\/united\/data\.json|\/llms\.txt|\/sitemap\.xml|\/#[a-z0-9-]+|\/api\/airlines\/\{key\})$/;
   function sweepUrls(label, obj) {
     var text = typeof obj === 'string' ? obj : JSON.stringify(obj);
     (text.match(/https:\/\/wifiodds\.com[^\s"'`)\\]*/g) || []).forEach(function (u) {
@@ -1819,7 +1830,7 @@ async function main() {
    * ConnectScore wording, while the homepage's two primary controls retain
    * their distinct subjects. This catches a partial template migration where a
    * supporting label, title, or non-home route keeps the old public name. */
-  ['/', '/methodology/', '/technology/', '/privacy', '/extension/'].forEach(function (route) {
+  ['/', '/methodology/', '/technology/', '/privacy', '/extension/', '/feedback/'].forEach(function (route) {
     ok(activePageText(route).indexOf('ConnectScore') === -1,
       '3.1.0 visible terminology: ' + route + ' exposes no customer-facing ConnectScore label');
   });
@@ -2029,10 +2040,11 @@ async function main() {
   eq((technology.match(/id="curtain"[^>]*type="range"|type="range"[^>]*id="curtain"/g) || []).length, 1,
     'technology reveal: one native range remains available to keyboard and assistive technology');
   [
-    'There is no public report form',
+    'This site does not offer a form for field reports',
     'Those URLs now redirect to the home page',
     'A leftover intake Worker still answers',
     'GET returns 405',
+    '/api/feedback',
     'chrome.storage.local',
     'Trip Guardian flights you asked it to',
     'That request carries nothing about you beyond what any web',
@@ -2050,10 +2062,34 @@ async function main() {
     'the only thing about you that can ever be published',
     'Nothing about you is stored in your browser',
     'Nothing personal is collected',
-    'united-starlink-companion'
+    'united-starlink-companion',
+    'There is no public report form',
+    'The website itself asks nobody'
   ].forEach(function (copy) {
     ok(privacy.indexOf(copy) === -1, 'privacy cleanup: stale intake or storage framing is absent', copy);
   });
+  var feedbackPage = fs.readFileSync(path.join(ROOT, 'feedback/index.html'), 'utf8');
+  ok(/action="\/api\/feedback"/.test(feedbackPage), 'feedback page posts to /api/feedback');
+  ok(feedbackPage.indexOf('/api/report') === -1, 'feedback page does not post to /api/report');
+  ok(/name="message"[^>]*required|required[^>]*name="message"/.test(feedbackPage),
+    'feedback page requires a message');
+  ok(/name="email"[^>]*required|required[^>]*name="email"/.test(feedbackPage),
+    'feedback page requires an email');
+  ok(/name="screenshots"/.test(feedbackPage) && /multiple/.test(feedbackPage),
+    'feedback page accepts multiple screenshots');
+  ok(/name="name"/.test(feedbackPage) && !/name="name"[^>]*required/.test(feedbackPage),
+    'feedback page name is optional');
+  ok(/name="sendCopy"/.test(feedbackPage) && !/name="sendCopy"[^>]*checked/.test(feedbackPage),
+    'send-me-a-copy is present and unchecked');
+  ok(/name="allowFollowup"/.test(feedbackPage) && !/name="allowFollowup"[^>]*checked/.test(feedbackPage),
+    'follow-up checkbox is present and unchecked');
+  ok(/Send me a copy of this submission/.test(feedbackPage),
+    'feedback page uses the specified copy-checkbox label');
+  ok(/The developer may email me with follow-up questions/.test(feedbackPage),
+    'feedback page uses the specified follow-up label');
+  ok(!/honest/i.test(renderedText(feedbackPage)), 'feedback page copy does not say honest');
+  ok(!/\u2014/.test(renderedText(feedbackPage)), 'feedback page visible copy has no em dash');
+
   var notFoundPage = fs.readFileSync(path.join(ROOT, '404.html'), 'utf8');
   ['Page not found', 'The address may have changed, or the page may no longer exist.',
     'How WiFi Odds calculates scores'].forEach(function (copy) {
@@ -2459,13 +2495,14 @@ async function main() {
      binding: requiring the route while still permitting the anchor would pass on
      a nav carrying both. */
   ['index.html', 'methodology/index.html', 'technology/index.html', 'extension/index.html',
-    'privacy.html', '404.html'].forEach(function (rel) {
+    'feedback/index.html', 'privacy.html', '404.html'].forEach(function (rel) {
     var f = path.join(ROOT, rel);
     if (!fs.existsSync(f)) return;
     var masthead = (/<nav\b[\s\S]*?<\/nav>/.exec(fs.readFileSync(f, 'utf8')) || [''])[0];
     ok(/href="[^"]*\/methodology\/"/.test(masthead), rel + ': masthead nav links Methodology');
     ok(/href="[^"]*\/technology\/"/.test(masthead), rel + ': masthead nav links Technology');
     ok(/href="[^"]*\/extension\/"/.test(masthead), rel + ': masthead nav links Extension');
+    ok(/href="[^"]*\/feedback\/"/.test(masthead), rel + ': masthead nav links Feedback');
     ok(!/href="[^"]*#extension"/.test(masthead), rel + ': masthead Extension is the route, not the homepage anchor');
   });
 
@@ -3275,8 +3312,331 @@ async function main() {
   ok(seedDowns.every(function (n) { return n > 0 && n <= 5000; }),
     'every committed download figure is physically possible', seedDowns);
 
+  /* ── POST /api/feedback — product feedback, not the inflight report pipe ──
+   * Same method as the report intake: wrangler is not installed, so the module
+   * is imported and called with a mock Pages context. The store is an in-memory
+   * D1/R2 stand-in keyed on the exported SQL strings. Copy mail is stubbed at
+   * globalThis.fetch; Jeremy is never a recipient. */
+  var FB = await import('../functions/_lib/feedback.mjs');
+  function mockFeedbackD1() {
+    var buckets = new Map();
+    var rows = new Map();
+    function stmt(sql) {
+      var binds = [];
+      return {
+        bind: function () { binds = Array.prototype.slice.call(arguments); return this; },
+        first: async function () {
+          if (sql === FB.SQL.selectBucket) {
+            var b = buckets.get(binds[0]);
+            return b ? { seen: b.seen, cap: b.cap } : null;
+          }
+          if (sql === FB.SQL.getRow) return rows.get(binds[0]) || null;
+          return null;
+        },
+        run: async function () {
+          if (sql === FB.SQL.insertBucket) {
+            buckets.set(binds[0], { seen: 1, cap: binds[1] });
+            return { success: true };
+          }
+          if (sql === FB.SQL.bumpBucket) {
+            var cur = buckets.get(binds[0]);
+            if (cur) cur.seen += 1;
+            return { success: true };
+          }
+          if (sql === FB.SQL.insertRow) {
+            rows.set(binds[0], {
+              id: binds[0], created_at: binds[1], status: binds[2], name: binds[3],
+              email: binds[4], message: binds[5], send_copy: binds[6],
+              allow_followup: binds[7], copy_sent: binds[8],
+              screenshots_json: binds[9], ip_hash: binds[10]
+            });
+            return { success: true };
+          }
+          if (sql === FB.SQL.setStatus) {
+            var st = rows.get(binds[1]);
+            if (st) st.status = binds[0];
+            return { success: true };
+          }
+          if (sql === FB.SQL.setCopySent) {
+            var cs = rows.get(binds[0]);
+            if (cs) cs.copy_sent = 1;
+            return { success: true };
+          }
+          throw new Error('unexpected D1 SQL: ' + sql);
+        },
+        all: async function () {
+          if (sql === FB.SQL.listRows) {
+            return { results: Array.from(rows.values()).sort(function (a, b) {
+              return String(b.created_at).localeCompare(String(a.created_at));
+            }) };
+          }
+          if (sql === FB.SQL.countByStatus) {
+            var counts = {};
+            rows.forEach(function (r) {
+              counts[r.status] = (counts[r.status] || 0) + 1;
+            });
+            return { results: Object.keys(counts).map(function (status) {
+              return { status: status, n: counts[status] };
+            }) };
+          }
+          throw new Error('unexpected D1 SQL all(): ' + sql);
+        }
+      };
+    }
+    return { prepare: stmt, _rows: rows, _buckets: buckets };
+  }
+  function mockFeedbackR2() {
+    var objects = new Map();
+    return {
+      put: async function (key, bytes, opts) {
+        objects.set(key, {
+          bytes: Buffer.from(bytes),
+          httpMetadata: (opts && opts.httpMetadata) || {}
+        });
+      },
+      get: async function (key) {
+        var o = objects.get(key);
+        if (!o) return null;
+        return {
+          httpMetadata: o.httpMetadata,
+          body: o.bytes,
+          arrayBuffer: async function () {
+            return o.bytes.buffer.slice(o.bytes.byteOffset, o.bytes.byteOffset + o.bytes.byteLength);
+          }
+        };
+      },
+      _objects: objects
+    };
+  }
+  var FB_ENV = {
+    FEEDBACK_IP_SALT: 'a-feedback-salt-that-is-not-the-real-one',
+    FEEDBACK_FEED_TOKEN: 'feed-secret'
+  };
+  function fbCtx(payload, opts) {
+    opts = opts || {};
+    var method = opts.method || 'POST';
+    var url = opts.url || 'https://wifiodds.com/api/feedback';
+    var c = ctx(url, opts.params || {}, method);
+    var h = {};
+    if (opts.auth) h.authorization = opts.auth;
+    if (opts.accept) h.accept = opts.accept;
+    if (opts.tokenQuery) url = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'token=' + opts.tokenQuery;
+    if (opts.contentType !== null && !(payload instanceof FormData)) {
+      h['content-type'] = opts.contentType || (method === 'POST' ? 'application/json' : undefined);
+      if (!h['content-type']) delete h['content-type'];
+    }
+    if (opts.ip !== null) h['cf-connecting-ip'] = opts.ip || '203.0.113.7';
+    var init = { method: method, headers: h };
+    if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS' && payload !== undefined) {
+      init.body = payload instanceof FormData || typeof payload === 'string'
+        ? payload : JSON.stringify(payload);
+    }
+    c.request = new Request(url, init);
+    c.params = opts.params || {};
+    c.env = Object.assign({}, c.env, {
+      FEEDBACK_DB: opts.db || mockFeedbackD1(),
+      FEEDBACK_SHOTS: opts.r2 || mockFeedbackR2()
+    }, FB_ENV, opts.env || {});
+    if (opts.dropEnv) opts.dropEnv.forEach(function (k) { delete c.env[k]; });
+    return c;
+  }
+  var GOOD_FB = {
+    message: 'The extension badge sits under the fare on United search.',
+    email: 'traveller@example.com'
+  };
+  var mailSent = [];
+  var realFetch2 = globalThis.fetch;
+  globalThis.fetch = async function (url, init) {
+    var rec = { url: String(url), init: init || {} };
+    try { rec.body = JSON.parse((init || {}).body); } catch (e) { rec.body = null; }
+    mailSent.push(rec);
+    return new Response(JSON.stringify({ id: 're_test' }), {
+      status: 200, headers: { 'content-type': 'application/json' }
+    });
+  };
+
+  mailSent = [];
+  var db = mockFeedbackD1();
+  res = await FB.submitFeedback(fbCtx(GOOD_FB, { db: db }));
+  var stored = await body(res);
+  eq(res.status, 201, 'a valid feedback JSON post → 201');
+  eq(stored.stored, true, 'the 201 says the row was stored');
+  eq(stored.copySent, false, 'copy is not mailed unless the box was ticked');
+  eq(db._rows.size, 1, 'one row lands in D1');
+  eq(mailSent.length, 0, 'Resend is not called when sendCopy is off');
+  ok(!/jeremyinthebay@gmail\.com/i.test(JSON.stringify(stored)),
+    'the public response does not name Jeremy as a mail recipient');
+  assertEnvelope(res, stored, '/api/feedback 201');
+
+  mailSent = [];
+  db = mockFeedbackD1();
+  res = await FB.submitFeedback(fbCtx(Object.assign({}, GOOD_FB, { sendCopy: true }), {
+    db: db,
+    env: { RESEND_API_KEY: 're_test', RESEND_FROM: 'WiFi Odds <feedback@example.com>' }
+  }));
+  var copied = await body(res);
+  eq(res.status, 201, 'sendCopy with a configured mailer still stores the row');
+  eq(copied.copySent, true, 'the 201 says the copy was mailed');
+  eq(mailSent.length, 1, 'exactly one copy-mailer request leaves the Worker');
+  eq(mailSent[0].url, 'https://' + FB.resendHost({}) + '/emails',
+    'the copy mailer URL is built from the host helper, not a literal');
+  eq(JSON.stringify(mailSent[0].body.to), JSON.stringify(['traveller@example.com']),
+    'the copy goes only to the submitter');
+  ok(JSON.stringify(mailSent[0].body).indexOf('jeremyinthebay@gmail.com') < 0,
+    'Jeremy is not on the copy');
+
+  mailSent = [];
+  db = mockFeedbackD1();
+  res = await FB.submitFeedback(fbCtx(Object.assign({}, GOOD_FB, { sendCopy: true }), { db: db }));
+  var noMailer = await body(res);
+  eq(res.status, 201, 'sendCopy without a mailer still stores the row');
+  eq(noMailer.stored, true, 'missing Resend config does not drop the submission');
+  eq(noMailer.copySent, false, 'the 201 says the copy was not mailed');
+  eq(mailSent.length, 0, 'no fetch when the copy mailer is unconfigured');
+  eq(db._rows.size, 1, 'the row is still in D1');
+
+  res = await FB.submitFeedback(fbCtx({ email: 'traveller@example.com' }));
+  var noMsg = await body(res);
+  eq(res.status, 400, 'a missing message → 400');
+  eq(noMsg.error.code, 'invalid_feedback', 'missing-message error code');
+  ok(/message/.test(noMsg.error.message) && noMsg.fields && noMsg.fields.message,
+    'it names the message field');
+
+  res = await FB.submitFeedback(fbCtx({ message: 'hello' }));
+  var noEmail = await body(res);
+  eq(res.status, 400, 'a missing email → 400');
+  ok(/email/.test(JSON.stringify(noEmail.fields || noEmail)), 'it names the email field');
+
+  db = mockFeedbackD1();
+  res = await FB.submitFeedback(fbCtx(Object.assign({}, GOOD_FB, { website: 'http://spam.example' }),
+    { db: db }));
+  var potFb = await body(res);
+  eq(res.status, 202, 'a filled honeypot → 202');
+  eq(potFb.stored, false, 'a filled honeypot stores nothing');
+  eq(db._rows.size, 0, 'a filled honeypot never reaches D1');
+
+  res = await FB.submitFeedback(fbCtx(GOOD_FB, { dropEnv: ['FEEDBACK_DB'] }));
+  var unconfFb = await body(res);
+  eq(res.status, 503, 'an unconfigured deploy → 503');
+  eq(unconfFb.error.code, 'intake_unconfigured', 'unconfigured error code');
+  ok(/FEEDBACK_DB/.test(unconfFb.error.message), 'it names the missing binding');
+
+  db = mockFeedbackD1();
+  var codes = [];
+  for (var fi = 0; fi < 6; fi++) {
+    res = await FB.submitFeedback(fbCtx(GOOD_FB, { db: db }));
+    codes.push(res.status);
+  }
+  eq(codes.join(','), '201,201,201,201,201,429',
+    'five feedback posts go through and the sixth is refused');
+  var limitedFb = await body(res);
+  eq(limitedFb.error.code, 'rate_limited', 'the sixth carries the rate_limited code');
+  eq(db._rows.size, 5, 'the 429 stores nothing');
+
+  var png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+  var shotFile = new File([png], 'dot.png', { type: 'image/png' });
+  var fdShot = new FormData();
+  fdShot.set('message', 'Screenshot of the badge sitting under the fare.');
+  fdShot.set('email', 'traveller@example.com');
+  fdShot.append('screenshots', shotFile);
+  db = mockFeedbackD1();
+  var r2 = mockFeedbackR2();
+  res = await FB.submitFeedback(fbCtx(fdShot, {
+    db: db, r2: r2, contentType: null, accept: 'application/json'
+  }));
+  var withShot = await body(res);
+  eq(res.status, 201, 'a multipart post with a PNG stores the row');
+  eq(withShot.stored, true, 'the PNG submission is stored');
+  eq(r2._objects.size, 1, 'the PNG lands in R2');
+  var shotRow = db._rows.get(withShot.id);
+  ok(shotRow && /dot\.png/.test(shotRow.screenshots_json),
+    'screenshot metadata is on the row', shotRow && shotRow.screenshots_json);
+
+  db = mockFeedbackD1();
+  await FB.submitFeedback(fbCtx(GOOD_FB, { db: db }));
+  res = await FB.feedbackFeed(fbCtx(undefined, {
+    method: 'GET', url: 'https://wifiodds.com/api/feedback/feed', db: db
+  }));
+  var noTok = await body(res);
+  eq(res.status, 401, 'the feed without a token → 401');
+  eq(noTok.error.code, 'unauthorized', 'feed 401 code');
+  ok(!('sources' in noTok) || noTok.sources === undefined,
+    'the feed error is not the public API sources envelope');
+
+  res = await FB.feedbackFeed(fbCtx(undefined, {
+    method: 'GET', url: 'https://wifiodds.com/api/feedback/feed',
+    db: db, auth: 'Bearer feed-secret'
+  }));
+  var feed = await body(res);
+  eq(res.status, 200, 'the feed with a bearer token → 200');
+  eq(feed.kind, 'wifiodds-feedback-feed', 'the feed names its kind');
+  eq(feed.unread, 1, 'unread count is 1 after one stored row');
+  eq(feed.waiting, 1, 'waiting count includes unread');
+  eq(feed.items.length, 1, 'the feed lists the row');
+  eq(feed.items[0].email, 'traveller@example.com', 'the feed carries the submitter email');
+  ok(!('sources' in feed), 'the Danger-board feed is not the public sources envelope');
+
+  res = await FB.feedbackFeed(fbCtx(undefined, {
+    method: 'GET', url: 'https://wifiodds.com/api/feedback/feed',
+    db: db, tokenQuery: 'feed-secret'
+  }));
+  eq(res.status, 200, 'the feed also accepts ?token=');
+
+  db = mockFeedbackD1();
+  res = await FB.submitFeedback(fbCtx(Object.assign({}, GOOD_FB, { allowFollowup: true }), { db: db }));
+  var followId = (await body(res)).id;
+  res = await FB.ackFeedback(fbCtx({ id: followId }, {
+    url: 'https://wifiodds.com/api/feedback/ack', db: db, auth: 'Bearer feed-secret'
+  }));
+  var acked = await body(res);
+  eq(res.status, 200, 'ack of a follow-up row → 200');
+  eq(acked.status, 'waiting', 'default ack is waiting when follow-up was allowed');
+  eq(db._rows.get(followId).status, 'waiting', 'D1 status moved to waiting');
+
+  res = await FB.ackFeedback(fbCtx({ id: followId, status: 'read' }, {
+    url: 'https://wifiodds.com/api/feedback/ack', db: db, auth: 'Bearer feed-secret'
+  }));
+  eq((await body(res)).status, 'read', 'ack can set status to read');
+
+  var shotId = withShot.id + '-0';
+  res = await FB.getShot(fbCtx(undefined, {
+    method: 'GET', url: 'https://wifiodds.com/api/feedback/shot/' + shotId,
+    params: { id: shotId }, r2: r2, auth: 'Bearer feed-secret'
+  }));
+  eq(res.status, 200, 'GET shot with a token → 200');
+  eq(res.headers.get('content-type'), 'image/png', 'the shot is served as PNG');
+  var shotBytes = Buffer.from(await res.arrayBuffer());
+  ok(shotBytes.equals(png), 'the bytes round-trip from R2');
+
+  db = mockFeedbackD1();
+  res = await FB.submitFeedback(fbCtx(
+    'message=The+map+is+wrong&email=traveller%40example.com',
+    { db: db, contentType: 'application/x-www-form-urlencoded', accept: 'application/json' }
+  ));
+  var formFb = await body(res);
+  eq(res.status, 201, 'a urlencoded form post works with no JavaScript');
+  eq(formFb.stored, true, 'the urlencoded post is stored');
+
+  db = mockFeedbackD1();
+  res = await FB.submitFeedback(fbCtx(
+    'message=The+map+is+wrong&email=traveller%40example.com',
+    { db: db, contentType: 'application/x-www-form-urlencoded', accept: 'text/html' }
+  ));
+  eq(res.status, 201, 'an HTML Accept form post → 201');
+  ok(/text\/html/.test(res.headers.get('content-type') || ''),
+    'an HTML Accept form post returns HTML');
+  var formHtml = await res.text();
+  ok(/Got it/.test(formHtml) && /queue/.test(formHtml),
+    'the HTML confirmation says the row was stored');
+
+  res = await FB.submitFeedback(fbCtx(undefined, { method: 'GET' }));
+  eq(res.status, 405, 'GET /api/feedback → 405');
+
+  globalThis.fetch = realFetch2;
+
   /* ── report ── */
   control('report-intake-privacy');
+  control('feedback-intake');
   control('api-page-parity');
   var missingControls = EXPECTED_CONTROLS.filter(function (name) { return !observedControls.has(name); });
   var extraControls = Array.from(observedControls).filter(function (name) {

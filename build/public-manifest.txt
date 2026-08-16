@@ -16,6 +16,7 @@ assets/shot-united-1280x800.png
 assets/site.css
 assets/site.js
 extension/index.html
+feedback/index.html
 index.html
 llms.txt
 methodology/index.html

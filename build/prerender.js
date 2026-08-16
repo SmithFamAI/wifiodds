@@ -302,6 +302,8 @@ function buildLlms(m) {
   p('- ' + ORIGIN + '/#all has all Streaming scores as a sortable board on the homepage');
   p('- ' + ORIGIN + '/technology/ covers Starlink, Amazon Leo and every system flying, with quality weights');
   p('- ' + ORIGIN + '/methodology/ has the tiers, the worked example, freshness, and what we cannot know');
+  p('- ' + ORIGIN + '/feedback/ is the product feedback form for the site and the extension. It is not a');
+  p('  field-report form. Do not invent a Chrome Web Store review URL as a substitute.');
   p('- ' + ORIGIN + '/sitemap.xml');
   p();
   p('## Streaming scores (' + m.ranked.length + ' airlines, regenerated on every build)');
@@ -1211,6 +1213,7 @@ function main() {
     fs.readFileSync(abs('extension/index.html'), 'utf8'));
   /* the two remaining template pages: content from build/templates/, numbers
      baked from data.json at render time. Everything else was 301'd on 28 Jul. */
+  write('feedback/index.html', Render.feedbackPage(m));
   write('privacy.html', Render.privacyPage(m));
   write('404.html', Render.notFound(m));
 

@@ -32,7 +32,7 @@ cd "$ROOT" || exit 2
 trap '[ -z "${LIVE_PROBE_TMP:-}" ] || rm -rf "$LIVE_PROBE_TMP"' EXIT
 
 # Paths that SHOULD be public. Anything served and not matching this is a finding.
-PUBLIC='^(index\.html|404\.html|privacy\.html|sitemap\.xml|robots\.txt|llms\.txt|assets/|airlines/|united/|record/|alaska/|race/|systems/|methodology/|roadmap/|api/)'
+PUBLIC='^(index\.html|404\.html|privacy\.html|sitemap\.xml|robots\.txt|llms\.txt|assets/|airlines/|united/|record/|alaska/|race/|systems/|methodology/|roadmap/|api/|extension/|technology/|feedback/)'
 
 live_probe_init "$SITE" /robots.txt
 init_exit=$?

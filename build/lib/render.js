@@ -3257,6 +3257,21 @@ function alaskaRollout(m) {
   });
 }
 
+/* ═══ /feedback/ ═══════════════════════════════════════════════════════ */
+function feedbackPage(m) {
+  var t = T.load('feedback');
+  return H.page({
+    title: 'Feedback · WiFi Odds',
+    desc: 'Send product feedback about the WiFi Odds site or the browser extension. Message and email required. Screenshots optional.',
+    canonical: '/feedback/', here: '/feedback/',
+    updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained,
+    mastheadV2: true,
+    extraHead: t.head, body: t.body, afterWrap: t.foot,
+    crumb: [['/', 'Home'], ['/feedback/', 'Feedback']],
+    jsonld: [crumbLd([['/', 'Home'], ['/feedback/', 'Feedback']])]
+  });
+}
+
 /* ═══ /privacy.html ═════════════════════════════════════════════════════ */
 function privacyPage(m) {
   /* §4 used to bake live route-cache counts from the /united/ optimizer page.
@@ -3266,7 +3281,7 @@ function privacyPage(m) {
   return H.page({
     title: 'Privacy Policy · WiFi Odds for Flights',
     desc: 'Privacy policy for WiFi Odds (wifiodds.com) and the WiFi Odds for Flights browser extension. ' +
-      'No accounts, no analytics. Local extension storage and the daily selector fetch are named on this page.',
+      'No accounts, no analytics. The feedback form stores the message and email you submit, plus screenshots if you attach them.',
     /* The file on disk is privacy.html and routes.js keeps it that way, but
        Cloudflare serves it at /privacy and 308s the .html form to it. The
        canonical and the crumb name the URL a reader actually lands on, because
@@ -3291,6 +3306,7 @@ module.exports = {
   racePage: racePage, systemsPage: systemsPage,
   apiDocs: apiDocs, notFound: notFound,
   unitedOptimizer: unitedOptimizer, unitedHistory: unitedHistory,
-  alaskaRollout: alaskaRollout, privacyPage: privacyPage, recordPage: recordPage,
+  alaskaRollout: alaskaRollout, privacyPage: privacyPage, feedbackPage: feedbackPage,
+  recordPage: recordPage,
   datasetLd: datasetLd, crumbLd: crumbLd, DATASET_ID: DATASET_ID
 };
