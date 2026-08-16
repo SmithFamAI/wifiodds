@@ -250,20 +250,21 @@ function chipDate(iso) {
  * NAV is the GLOBAL row and is identical on every page. It must stay free of
  * anything airline-specific: with 18 airlines there is no version of "Fleet" or
  * "United" that belongs in a site-wide header. Per-airline pages get a SECOND
- * row (subnav) scoped to that airline instead. If you are tempted to add an
- * airline link here, add a SUBNAV section instead.
+ * row (subnav) scoped to that airline instead. If you are tempted to add a
+ * single-carrier link here, add a SUBNAV section instead. The /airlines/
+ * directory is the site-wide destination for the rank-list carriers; that is
+ * not a carrier page, and it belongs on this row.
  *
  * The Extension entry is a plain nav link to the homepage's companion section,
  * not a store link: the store surfaces are Google's badge, twice on the
  * homepage, plus United's #plugin block, and the masthead is not one of them. */
 var NAV = [
-  /* The three-page site (28 Jul cut). This shared masthead renders only on
-     /privacy and 404, because /, /methodology/ and /technology/ are
-     whole-document templates carrying their own nav. It lists the two content
-     pages; Extension is appended just below, so nav, homepage footer and the
-     sitemap all agree on what the site is. */
+  /* Classic masthead (404.html). Survivor pages use mastheadV2. The directory
+     sits with Methodology and Technology so the 404 nav, V2 nav, footer, and
+     the existing sitemap all name /airlines/. Do not invent a second sitemap. */
   ['/methodology/', 'Methodology'],
-  ['/technology/', 'Technology']
+  ['/technology/', 'Technology'],
+  ['/airlines/', 'Airlines']
 ];
 
 /* Airline sections. Key = section id passed as page({section:…}); the active tab
@@ -400,7 +401,7 @@ function masthead(here, suffix, updated, refreshAttemptedOn, wasRetained) {
  * full-width normal-flow stack, not a modal or drawer) and the button HIDDEN.
  * Only the `is-enhanced` class, added by the script once its listeners attach,
  * reveals the button and enables the collapse. So a page whose script fails
- * still reaches Methodology, Technology and Extension by keyboard.
+ * still reaches Methodology, Technology, Airlines and Extension by keyboard.
  *
  * One store constant (EXT) feeds both the compact and the desktop CTA, so the
  * two can never point at different URLs. Tokens are read with fallbacks so the
@@ -477,7 +478,7 @@ var MASTHEAD_JS =
   'if(mq.addEventListener)mq.addEventListener("change",sync);else if(mq.addListener)mq.addListener(sync);})();';
 
 /* here = the canonical path of the current page, for aria-current on its own
- * nav link. Privacy sets nothing current: it is not one of the four primary
+ * nav link. Privacy sets nothing current: it is not one of the primary
  * destinations.
  *
  * The Extension item pointed at `/#extension` until 1 Aug 2026, a homepage
@@ -505,6 +506,7 @@ function mastheadV2(here) {
     '      <a href="/"' + cur('/') + '>Home</a>\n' +
     '      <a href="/methodology/"' + cur('/methodology/') + '>Methodology</a>\n' +
     '      <a href="/technology/"' + cur('/technology/') + '>Technology</a>\n' +
+    '      <a href="/airlines/"' + cur('/airlines/') + '>Airlines</a>\n' +
     '      <a href="/extension/"' + cur('/extension/') + '>Extension</a>\n' +
     '      <a href="/feedback/"' + cur('/feedback/') + '>Feedback</a>\n' +
     '      <a class="pill primary desktop-cta" href="' + EXT + '" target="_blank" rel="noopener">Add to Chrome</a>\n' +

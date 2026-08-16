@@ -87,6 +87,18 @@ assert.ok(directory.indexOf('class="sitebar"') !== -1, 'directory reuses the liv
 assert.ok(directory.indexOf('<footer class="site">') !== -1, 'directory reuses the live footer');
 assert.ok(directory.indexOf('href="/airlines/"') !== -1 || directory.indexOf('>Airlines<') !== -1,
   'directory names itself Airlines');
+var dirNav = (/<nav id="primary-nav"[\s\S]*?<\/nav>/.exec(directory) || [''])[0];
+assert.ok(/<a href="\/airlines\/"[^>]*>Airlines<\/a>/.test(dirNav),
+  'directory primary nav links Airlines to /airlines/');
+var dirFooter = (/<footer class="site">[\s\S]*?<\/footer>/.exec(directory) || [''])[0];
+assert.ok(/<a href="\/airlines\/">Airlines<\/a>/.test(dirFooter),
+  'directory footer still links Airlines to /airlines/');
+var homeNav = (/<nav id="primary-nav"[\s\S]*?<\/nav>/.exec(htmlOf('index.html')) || [''])[0];
+assert.ok(/<a href="\/airlines\/">Airlines<\/a>/.test(homeNav),
+  'homepage Forecast masthead links Airlines to /airlines/');
+var homeFooter = (/<footer class="footer">[\s\S]*?<\/footer>/.exec(htmlOf('index.html')) || [''])[0];
+assert.ok(/href="[^"]*\/airlines\/"[^>]*>Airlines<\/a>/.test(homeFooter),
+  'homepage footer still links Airlines');
 LOCKED_KEYS.forEach(function (key) {
   var scored = A.scoreAirline(key);
   assert.ok(directory.indexOf('href="/airlines/' + key + '/"') !== -1,
@@ -102,6 +114,8 @@ LOCKED_KEYS.forEach(function (key) {
     key + ' prints the airline name as the page heading');
   assert.ok(/href="\/(#all)?"/.test(html), key + ' links back to the homepage');
   assert.ok(html.indexOf('href="/airlines/"') !== -1, key + ' links to the directory');
+  assert.ok(/<nav id="primary-nav"[\s\S]*?<a href="\/airlines\/"[^>]*>Airlines<\/a>/.test(html),
+    key + ' primary nav links Airlines to /airlines/');
   assert.ok(html.indexOf('data-date="as_of"') !== -1, key + ' splits as_of');
   assert.ok(html.indexOf('data-date="checked_at"') !== -1, key + ' splits checked_at');
   assert.ok(html.indexOf('Data current as of') !== -1, key + ' puts as_of beside snapshot figures');
