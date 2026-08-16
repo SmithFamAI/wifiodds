@@ -1204,6 +1204,343 @@ function airlinePage(m, key) {
   });
 }
 
+/* ═══ /airlines/ and /airlines/{key}/ ══════════════════════════════════
+ * Forecast shell, one family, fixed section order. Scoped CSS only. Does not
+ * restyle homepage rank cards. */ 
+function airlineScopedCss() {
+  return '<style id="airline-scoped">\n' +
+    '.airline-page .date-split{display:flex;flex-wrap:wrap;gap:16px 28px;margin:14px 0 0;' +
+    'color:var(--muted,#aaaab2);font:11px ui-monospace,SFMono-Regular,Menlo,monospace;' +
+    'letter-spacing:.06em;text-transform:uppercase}\n' +
+    '.airline-page .date-split b{display:block;margin-top:4px;color:var(--ink,#fff);' +
+    'font:700 14px Inter,ui-sans-serif,sans-serif;letter-spacing:0;text-transform:none}\n' +
+    '.airline-page .dir-list{margin:0;padding:0;list-style:none;' +
+    'border-top:1px solid var(--line,var(--soft,#29292f))}\n' +
+    '.airline-page .dir-list a,.airline-page .dir-list .dir-head{' +
+    'display:grid;grid-template-columns:minmax(0,1.6fr) minmax(96px,.55fr) minmax(96px,.55fr);' +
+    'gap:12px;align-items:baseline;padding:14px 0;' +
+    'border-bottom:1px solid var(--line,var(--soft,#29292f))}\n' +
+    '.airline-page .dir-list .dir-head{color:var(--muted,#aaaab2);font:11px ui-monospace,SFMono-Regular,Menlo,monospace;' +
+    'letter-spacing:.06em;text-transform:uppercase}\n' +
+    '.airline-page .dir-list small{display:block;margin-top:3px;color:var(--muted,#aaaab2);' +
+    'font-size:11px;letter-spacing:.04em;text-transform:none}\n' +
+    '.airline-page .dir-list .fig{text-align:right;font-variant-numeric:tabular-nums}\n' +
+    '.airline-page .tech-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;' +
+    'padding:12px 0;border-bottom:1px solid var(--line,var(--soft,#29292f))}\n' +
+    '.airline-page .tech-row .d{margin-top:3px;color:var(--muted,#aaaab2);font-size:13px}\n' +
+    '.airline-page .tech-row .n{font-variant-numeric:tabular-nums}\n' +
+    '.airline-page .tech-row small{margin-left:8px;color:var(--muted,#aaaab2);font-size:11px;' +
+    'letter-spacing:.04em;text-transform:uppercase}\n' +
+    '</style>\n';
+}
+
+function airlinePath(key) { return '/airlines/' + key + '/'; }
+
+function capFirst(s) {
+  s = String(s || '');
+  if (!s) return s;
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function airlinePublishedAt(a) {
+  var dates = [];
+  if (a.ledger && a.ledger.rows) {
+    a.ledger.rows.forEach(function (r) { if (r.as) dates.push(String(r.as)); });
+  }
+  if (a.projected && a.projected.as) dates.push(String(a.projected.as));
+  if (!dates.length) return null;
+  dates.sort();
+  return dates[dates.length - 1];
+}
+
+function airlineNewsItems(key) {
+  /* Stub hook. The daily refresh writes united/data.json and patches
+     assets/airlines.js. It does not write a second per-airline news file, and
+     this page must not start a second fleet writer. If a later refresh begins
+     dropping assets/airline-news/{key}.json, render at most two dated notes. */
+  var newsPath = PATH.join(__dirname, '..', '..', 'assets', 'airline-news', key + '.json');
+  var raw;
+  try { raw = FS.readFileSync(newsPath, 'utf8'); } catch (e) { return []; }
+  var news;
+  try { news = JSON.parse(raw); } catch (e) { return []; }
+  if (!news || !Array.isArray(news.items)) return [];
+  return news.items.filter(function (it) {
+    return it && it.text && it.date && it.src;
+  }).slice(0, 2);
+}
+
+function airlineBoardOrder() {
+  return HOME_BOARD_SEED_ORDER.concat(HOME_UNPUBLISHED_ORDER);
+}
+
+function airlinesDirectory(m) {
+  var order = HomeOrder.rank(HOME_BOARD_SEED_ORDER, function (k) {
+    var row = m.A.scoreAirline(k);
+    return row && { odds: row.nextGenScore, connect: row.score };
+  }).concat(HOME_UNPUBLISHED_ORDER);
+  var rows = order.map(function (key) {
+    var a = m.A.scoreAirline(key);
+    if (!a) return '';
+    var unpublished = a.nextGenPublished === false;
+    var nextGen = unpublished
+      ? '<span class="fig" data-figure-block="nextgen">Unpublished</span>'
+      : '<span class="fig" data-figure-block="nextgen">' + homeNum(a.nextGenScore, key + '.nextGenScore') + '%</span>';
+    var streaming = '<span class="fig" data-figure-block="streaming">' +
+      homeNum(a.score, key + '.score') + '</span>';
+    return '    <li><a href="' + airlinePath(key) + '"><span><b>' + esc(a.name) +
+      '</b> <small>as_of ' + esc(a.asOf || 'Unknown') + '</small></span> ' +
+      nextGen + ' ' + streaming + '</a></li>\n';
+  }).join('');
+  var crumbs = [['/', 'Home'], ['/airlines/', 'Airlines']];
+  var body =
+    '<div class="airline-page">\n' +
+    '<header class="hero" style="padding-top:14px">\n' +
+    '  <span class="kicker">The forecast</span>\n' +
+    '  <h1 class="ph">Airlines</h1>\n' +
+    '  <p class="lede">One page per carrier on the homepage rank list. Next-Gen and Streaming stay separate; unpublished next-gen counts render Unpublished.</p>\n' +
+    '</header>\n\n' +
+    '<section class="blk" id="directory">\n' +
+    '  <div class="sec-h"><h2>Directory</h2><span class="sub">' +
+    airlineBoardOrder().length + ' carriers</span></div>\n' +
+    '  <ul class="dir-list">\n' +
+    '    <li class="dir-head" aria-hidden="true"><span>Carrier</span> ' +
+    '<span class="fig">Next-Gen</span> <span class="fig">Streaming</span></li>\n' +
+    rows + '  </ul>\n' +
+    '</section>\n' +
+    '</div>\n';
+  return H.page({
+    title: 'Airlines · WiFi Odds',
+    desc: 'Next-Gen and Streaming figures for each airline on the WifiOdds rank list.',
+    canonical: '/airlines/', here: '/airlines/',
+    updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained,
+    mastheadV2: true,
+    crumb: crumbs,
+    extraHead: airlineScopedCss(),
+    body: body,
+    jsonld: [crumbLd(crumbs), {
+      '@context': 'https://schema.org', '@type': 'CollectionPage',
+      name: 'Airline inflight WiFi directory',
+      url: ORIGIN + '/airlines/',
+      dateModified: m.updated,
+      isPartOf: { '@id': ORIGIN + '/#site' }
+    }]
+  });
+}
+
+function airlineTechRows(a) {
+  var L = a.ledger;
+  if (!L || !L.rows || !L.rows.length) {
+    return '<p>No published onboard system list for this fleet.</p>\n';
+  }
+  var html = L.rows.filter(function (r) { return !r.assumed; }).map(function (r) {
+    var detail = r.split
+      ? num(r.n) + ' aircraft. Split Unknown.'
+      : num(r.n) + ' aircraft.';
+    if (r.as) detail += ' published_at ' + r.as + '.';
+    return '  <div class="tech-row"><div><b>' + esc(r.systemLabel) + '</b>' +
+      (r.nextGen ? ' <small>Next-Gen</small>' : '') +
+      '<div class="d">' + esc(detail) + '</div></div>' +
+      '<div class="n">' + num(r.n) + '</div></div>\n';
+  }).join('');
+  if (L.unresolved) {
+    html += '  <div class="tech-row"><div><b>Unknown</b><div class="d">' +
+      'No published system for these aircraft.' +
+      '</div></div><div class="n">' + num(L.unresolved) + '</div></div>\n';
+  }
+  return html;
+}
+
+function airlineSubpage(m, key) {
+  var e = m.A.WIFI_AIRLINES[key];
+  var a = m.A.scoreAirline(key);
+  if (!e || !a) throw new Error('Render.airlineSubpage: unknown airline key "' + key + '"');
+  var path = airlinePath(key);
+  var crumbs = [['/', 'Home'], ['/airlines/', 'Airlines'], [path, a.name]];
+  var sf = homeStreamingFloor(m, a);
+  var unpublished = a.nextGenPublished === false;
+  var equippedUnpub = a.equippedPublished === false;
+  var asOf = a.asOf || null;
+  var checkedAt = m.updated;
+  var rankOrder = HomeOrder.rank(HOME_BOARD_SEED_ORDER, function (k) {
+    var row = m.A.scoreAirline(k);
+    return row && { odds: row.nextGenScore, connect: row.score };
+  });
+  var rank = unpublished ? null : rankOrder.indexOf(key) + 1;
+
+  var nextGenFig = unpublished
+    ? '<b>Unpublished</b>'
+    : '<b>' + homeNum(a.nextGenScore, key + '.nextGenScore') + '%</b>';
+  var nextGenNote = unpublished
+    ? 'Next-gen count Unpublished.'
+    : esc(homeOddsLabel(a));
+
+  var streamFig = '<b>' + homeNum(a.score, key + '.score') + '</b>';
+
+  var fleetFig;
+  var fleetNote;
+  if (!a.fleet) {
+    fleetFig = '<b>Fleetwide</b>';
+    fleetNote = esc(homeSysLabel(a));
+  } else if (equippedUnpub) {
+    fleetFig = '<b>Unpublished</b>';
+    fleetNote = num(a.fleet) + ' aircraft; equipped count Unpublished.';
+  } else {
+    fleetFig = '<b>' + num(a.equipped) + '</b><small> / ' + num(a.fleet) + '</small>';
+    fleetNote = num(a.equipped) + ' of ' + num(a.fleet) + ' aircraft next-gen today.';
+  }
+
+  var coverageFig;
+  var coverageNote;
+  if (unpublished) {
+    coverageFig = '<b>Unknown</b>';
+    coverageNote = 'Confirmed streaming coverage is Unpublished for this fleet.';
+  } else {
+    coverageFig = '<b>' + esc(homeFmtPct(sf.pct)) + '%</b>';
+    coverageNote = sf.uncertain
+      ? esc(homeTierNote(a, sf) || 'remainder Unknown')
+      : 'Confirmed streaming coverage.';
+  }
+
+  var lede = esc(a.name);
+  if (unpublished) {
+    lede += ' has not published a next-gen aircraft count. Next-Gen is Unpublished. ' +
+      'Streaming score ' + a.score + '.';
+  } else {
+    lede += ' Next-Gen ' + a.nextGenScore + '%. Streaming score ' + a.score + '.';
+    if (!a.fleet) lede += ' Fleetwide coverage.';
+    else if (equippedUnpub) lede += ' Equipped count Unpublished across ' + num(a.fleet) + ' aircraft.';
+    else lede += ' ' + num(a.equipped) + ' of ' + num(a.fleet) + ' aircraft next-gen today.';
+  }
+
+  var trackerBody;
+  if (a.tracker) {
+    trackerBody = P.srcLine('reported',
+      'Per-tail counts from <a href="https://' + esc(a.tracker) + '" target="_blank" rel="noopener">' +
+      esc(a.tracker) + '</a> (@martinamps), checked_at ' + esc(H.plateDate(checkedAt)) + '.');
+  } else {
+    trackerBody = P.srcLine('reported',
+      'Fleet state compiled from public ' + esc(a.name) + ' announcements, as_of ' +
+      esc(asOf || 'Unknown') +
+      '. Quality weights from Ookla Speedtest Intelligence, published_at 28 Apr 2026.');
+  }
+
+  var split = a.nextGenSplit;
+  var splitHtml = '';
+  if (split && split.state === 'value' && split.mainline && split.regional) {
+    splitHtml = '  <h3>Mainline and regional</h3>\n' +
+      '  <p class="sec-lede">United Starlink tails, mainline versus regional, from the public tracker. ' +
+      'Other systems are not broken out.</p>\n' +
+      '  <div class="stats">\n' +
+      '    <div class="stat rv"><div class="n">' + num(split.mainline.n) + '<small> / ' +
+      num(split.mainline.of) + '</small></div><div class="l">Mainline</div>' +
+      '<div class="d">' + num(split.mainline.n) + ' of ' + num(split.mainline.of) +
+      ' mainline aircraft.</div></div>\n' +
+      '    <div class="stat rv"><div class="n">' + num(split.regional.n) + '<small> / ' +
+      num(split.regional.of) + '</small></div><div class="l">Regional</div>' +
+      '<div class="d">' + num(split.regional.n) + ' of ' + num(split.regional.of) +
+      ' regional aircraft.</div></div>\n' +
+      '  </div>\n' +
+      P.srcLine('reported', 'united/data.json, daily pull from unitedstarlinktracker.com, checked_at ' +
+        esc(H.plateDate(checkedAt)) + '.');
+  }
+
+  var newsItems = airlineNewsItems(key);
+  var newsHtml = newsItems.map(function (it) {
+    return '  <p data-published-at="' + esc(it.date) + '">' + esc(it.text) + '</p>\n' +
+      P.srcLine('reported', esc(it.src) + ', published_at ' + esc(H.plateDate(it.date)) + '.');
+  }).join('');
+
+  var rankLine = unpublished
+    ? 'Not ranked on next-gen odds.'
+    : 'Ranked ' + rank + ' of ' + HOME_BOARD_SEED_ORDER.length + ' on the homepage next-gen list.';
+
+  var publishedAt = airlinePublishedAt(a);
+  var dateSplit =
+    '  <div class="date-split">' +
+    (publishedAt
+      ? '<span>published_at<b data-date="published_at">' + esc(publishedAt) + '</b></span>'
+      : '') +
+    '<span>as_of<b data-date="as_of">' + esc(asOf || 'Unknown') + '</b></span>' +
+    '<span>checked_at<b data-date="checked_at">' + esc(checkedAt) + '</b></span>' +
+    '</div>\n';
+
+  var rolloutBits = '';
+  if (a.projected) {
+    rolloutBits +=
+      '  <div class="callout rv"><h3>Signed count, not flying yet</h3>' +
+      '<p style="margin-top:10px">' + P.projected(a) + '</p>' +
+      P.srcLine('reported', esc(a.projected.src) + ', published_at ' +
+        esc(H.plateDate(a.projected.as)) + '.') +
+      '</div>\n';
+  }
+  rolloutBits += splitHtml;
+  if (newsHtml) {
+    rolloutBits += '  <h3>Dated notes</h3>\n' + newsHtml;
+  }
+  if (!rolloutBits) {
+    rolloutBits = '  <p>No dated rollout note beyond the snapshot.</p>\n';
+  }
+
+  var body =
+    '<div class="airline-page">\n' +
+    '<header class="hero" style="padding-top:14px">\n' +
+    '  <span class="kicker">The forecast</span>\n' +
+    '  <h1 class="ph">' + esc(a.name) + '</h1>\n' +
+    '  <p class="lede">' + lede + '</p>\n' +
+    '  <p class="footnote">' + rankLine + ' ' + esc(capFirst(P.freeText(e.free))) + '.</p>\n' +
+    dateSplit +
+    trackerBody +
+    '</header>\n\n' +
+    '<section class="blk" id="snapshot">\n' +
+    '  <div class="sec-h"><h2>Snapshot</h2></div>\n' +
+    '  <div class="stats">\n' +
+    '    <div class="stat rv" data-figure-block="nextgen"><div class="n">' + nextGenFig +
+    '</div><div class="l">Next-Gen</div><div class="d">' + nextGenNote + '</div></div>\n' +
+    '    <div class="stat rv" data-figure-block="streaming"><div class="n">' + streamFig +
+    '</div><div class="l">Streaming</div><div class="d">Whole-fleet Streaming score.</div></div>\n' +
+    '    <div class="stat rv" data-figure-block="fleet"><div class="n">' + fleetFig +
+    '</div><div class="l">Aircraft</div><div class="d">' + fleetNote + '</div></div>\n' +
+    '    <div class="stat rv" data-figure-block="coverage"><div class="n">' + coverageFig +
+    '</div><div class="l">Coverage</div><div class="d">' + coverageNote + '</div></div>\n' +
+    '  </div>\n' +
+    '</section>\n\n' +
+    '<section class="blk" id="tech-on-board">\n' +
+    '  <div class="sec-h"><h2>Tech on board</h2></div>\n' +
+    airlineTechRows(a) +
+    '</section>\n\n' +
+    '<section class="blk" id="rollout">\n' +
+    '  <div class="sec-h"><h2>Rollout</h2></div>\n' +
+    rolloutBits +
+    '</section>\n\n' +
+    '<section class="blk">\n' +
+    '  <div class="cta-row"><a class="btn" href="/airlines/">Airline directory</a>' +
+    '<a class="btn ghost" href="/#all">Homepage rank list</a></div>\n' +
+    '</section>\n' +
+    '</div>\n';
+
+  return H.page({
+    title: a.name + ' WiFi · WiFi Odds',
+    desc: unpublished
+      ? a.name + ' next-gen aircraft count is Unpublished. Streaming score ' + a.score +
+        ', as_of ' + (asOf || 'Unknown') + ', checked_at ' + checkedAt + '.'
+      : a.name + ' Next-Gen ' + a.nextGenScore + '%, Streaming score ' + a.score +
+        ', as_of ' + (asOf || 'Unknown') + ', checked_at ' + checkedAt + '.',
+    canonical: path, here: path,
+    updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained,
+    mastheadV2: true,
+    crumb: crumbs,
+    extraHead: airlineScopedCss(),
+    body: body,
+    jsonld: [crumbLd(crumbs), {
+      '@context': 'https://schema.org', '@type': 'WebPage',
+      name: a.name + ' inflight WiFi',
+      url: ORIGIN + path,
+      dateModified: m.updated,
+      isPartOf: { '@id': ORIGIN + '/#site' }
+    }]
+  });
+}
+
 /* ═══ /united/fleet/ ════════════════════════════════════════════════════ */
 function fleetPage(m) {
   var crumbs = [['/', 'Home'], ['/united/', 'United'], ['/united/fleet/', 'Fleet']];
@@ -3306,6 +3643,8 @@ function privacyPage(m) {
 
 module.exports = {
   home: home, airlinesIndex: airlinesIndex, airlinePage: airlinePage,
+  airlineSubpage: airlineSubpage,
+  airlinesDirectory: airlinesDirectory,
   fleetPage: fleetPage, roadmapPage: roadmapPage, methodologyPage: methodologyPage,
   technologyPage: technologyPage,
   extensionPage: extensionPage,

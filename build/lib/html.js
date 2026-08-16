@@ -589,6 +589,7 @@ function footer(updated, refreshAttemptedOn, wasRetained) {
        removed in the same change rather than left to fail. */
     '  <div class="flinks"><a href="/methodology/">Methodology</a>' +
     '<a href="/technology/">Technology</a>' +
+    '<a href="/airlines/">Airlines</a>' +
     '<a href="/feedback/">Feedback</a>' +
     '<a href="/privacy">Privacy</a></div>\n' +
     '  <div class="frow">Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> ' +

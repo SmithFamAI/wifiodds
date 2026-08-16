@@ -1334,15 +1334,14 @@ async function main() {
   /* ── round 18 P1-01: no machine surface may advertise a deleted route ──────
    * Every absolute wifiodds.com URL the REST index, the airline list, a detail
    * response, and the MCP initialize + tools/list surfaces put in front of a
-   * client must be a LIVE destination. Before the fix these emitted
-   * /api/docs/ and /airlines/{key}/, both of which now 301 to an unrelated home
-   * page, so a client asking for documentation or an airline silently landed on
-   * the homepage. This fails on any path the 28 Jul cut removed. */
-  /* The allow-list is "does not 301": the bare origin and every survivor page,
-     the live REST + MCP paths, and the retired /api/score/* (which answers a
-     documented 410, not a redirect). A /airlines/, /api/docs/, /race/ etc. is
-     absent on purpose — those are the 301s this guard exists to catch. */
-  var LIVE_URL = /^https:\/\/wifiodds\.com(\/?|\/methodology\/|\/technology\/|\/privacy|\/feedback\/?|\/api|\/api\/airlines(\/[a-z]+)?|\/api\/score\/[A-Za-z0-9{}]+|\/mcp|\/united\/data\.json|\/llms\.txt|\/sitemap\.xml|\/#[a-z0-9-]+|\/api\/airlines\/\{key\})$/;
+   * client must be a LIVE destination. Before the 16 Aug 2026 airline pages,
+   * these emitted /api/docs/ and /airlines/{key}/, both of which 301'd home.
+   * /airlines/ and /airlines/{key}/ are live generated pages again; /api/docs/,
+   * /united/, /alaska/, /race/, and /systems/ still 301. */
+  /* The allow-list is "does not 301": the bare origin, survivor pages, the
+     live REST + MCP paths, the HTML airline directory, and the retired
+     /api/score/* (which answers a documented 410, not a redirect). */
+  var LIVE_URL = /^https:\/\/wifiodds\.com(\/?|\/methodology\/|\/technology\/|\/privacy|\/feedback\/?|\/airlines\/?|\/airlines\/(\{key\}|[a-z]+)\/?|\/api|\/api\/airlines(\/[a-z]+)?|\/api\/score\/[A-Za-z0-9{}]+|\/mcp|\/united\/data\.json|\/llms\.txt|\/sitemap\.xml|\/#[a-z0-9-]+|\/api\/airlines\/\{key\})$/;
   function sweepUrls(label, obj) {
     var text = typeof obj === 'string' ? obj : JSON.stringify(obj);
     (text.match(/https:\/\/wifiodds\.com[^\s"'`)\\]*/g) || []).forEach(function (u) {
@@ -1843,7 +1842,11 @@ async function main() {
 
   /* Rank-list density (Backlog 56): Next-Gen is the card primary. Streaming is
    * a second figure on the same row. The page-level view toggle is gone. */
-  ['/', '/methodology/', '/technology/', '/privacy', '/extension/', '/feedback/'].forEach(function (route) {
+  var termRoutes = ['/', '/methodology/', '/technology/', '/privacy', '/extension/', '/feedback/', '/airlines/']
+    .concat(require(path.join(__dirname, 'routes.js')).AIRLINE_KEYS.map(function (k) {
+      return '/airlines/' + k + '/';
+    }));
+  termRoutes.forEach(function (route) {
     ok(activePageText(route).indexOf('ConnectScore') === -1,
       '3.1.0 visible terminology: ' + route + ' exposes no customer-facing ConnectScore label');
   });
@@ -2658,15 +2661,19 @@ async function main() {
     var entry = A_LIB.WIFI_AIRLINES[k];
     var nm = entry.name;
 
-    /* 1. the detail page's ledger row */
+    /* 1. the detail page's Next-Gen figure. The 28 Jul ConnectScore ledger
+       table is gone; the Forecast snapshot is the live field. */
     var f = path.join(ROOT, 'airlines', k, 'index.html');
     if (fs.existsSync(f)) {
       unpubSurfaces++;
-      var row = /Next-gen odds, the top row on its own([\s\S]{0,400}?)<\/tr>/.exec(fs.readFileSync(f, 'utf8'));
-      if (!row) unpubBad.push(k + ': ledger row selector rotted');
+      var detail = fs.readFileSync(f, 'utf8');
+      var ngBlock = /data-figure-block="nextgen"[\s\S]*?<\/div>\s*<\/div>/.exec(detail);
+      if (!ngBlock) unpubBad.push(k + ': next-gen figure block missing');
       else {
-        var nums = row[1].replace(/<[^>]+>/g, ' ').match(/\d+(?:\.\d+)?%?/g) || [];
-        if (nums.length) unpubBad.push(k + ' detail ledger prints ' + nums.join(', '));
+        var ngText = ngBlock[0].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+        if (!/Unpublished/.test(ngText) || /\d/.test(ngText.replace(/Unpublished/g, ''))) {
+          unpubBad.push(k + ' next-gen field prints ' + ngText.slice(0, 80));
+        }
       }
     }
 

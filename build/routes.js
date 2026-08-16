@@ -23,16 +23,11 @@ var AIRLINE_KEYS = ['united', 'alaska', 'jsx', 'airbaltic', 'zipair', 'westjet',
   'southwest', 'american', 'delta', 'jetblue'];
 
 var ROUTES = [
-  /* THE THREE-PAGE SITE (28 Jul 2026 cut). Down from 31 routes to four: the
-     homepage, a rebuilt /methodology/, a new /technology/, and /privacy (kept
-     for the Chrome Web Store listing, out of the nav). /extension/ was added on
-     1 Aug 2026. /feedback/ was added on 16 Aug 2026, so this is six listed
-     routes plus 404.html. /extension/ shipped with ONE inbound link site-wide,
-     from /technology/, because the masthead's Extension item pointed at the
-     /#extension homepage section instead; the nav names the route as of 1 Aug
-     2026. The other 28 routes are 301'd to / in _redirects. The /united/
-     DIRECTORY stays on disk because the extension reads united/data.json; only
-     the /united/ PAGE routes are gone.
+  /* Core pages plus /airlines/ and one /airlines/{key}/ page per homepage
+     rank card. The 28 Jul cut 301'd those paths home; 57-v1 removes those two
+     redirect rules so the files can serve. The /united/ DIRECTORY stays on
+     disk because the extension reads united/data.json; only the /united/
+     PAGE routes stay 301'd.
      NEVER HAND-EDIT A FILE LISTED HERE. */
   { url: '/', file: 'index.html', kind: 'gen', changefreq: 'daily', priority: '1.0' },
   { url: '/methodology/', file: 'methodology/index.html', kind: 'gen', changefreq: 'daily', priority: '0.7' },
@@ -44,8 +39,26 @@ var ROUTES = [
     priority: '0.3', lastmod: '2026-08-16' }
 ];
 
-/* The 18 /airlines/{key}/ routes were removed in the 28 Jul cut. AIRLINE_KEYS
-   stays: prerender.js and functions/_lib/mcp.mjs still import it. */
+/* Compact directory plus one HTML page per airline that already has a
+   homepage rank card. Plural /airlines/{key}/ is the canonical path. Keys stay
+   the same list prerender.js and functions/_lib/mcp.mjs already import. */
+var AIRLINE_DIRECTORY = {
+  url: '/airlines/',
+  file: 'airlines/index.html',
+  kind: 'gen',
+  changefreq: 'daily',
+  priority: '0.7'
+};
+var AIRLINE_ROUTES = AIRLINE_KEYS.map(function (key) {
+  return {
+    url: '/airlines/' + key + '/',
+    file: 'airlines/' + key + '/index.html',
+    kind: 'gen',
+    changefreq: 'daily',
+    priority: '0.6'
+  };
+});
+ROUTES = ROUTES.concat([AIRLINE_DIRECTORY], AIRLINE_ROUTES);
 
 /* Not in the sitemap; Cloudflare Pages serves it for any unmatched path. */
 var UNLISTED = [{ url: '/404.html', file: '404.html', kind: 'gen' }];

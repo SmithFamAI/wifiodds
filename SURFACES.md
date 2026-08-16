@@ -10,7 +10,7 @@ which ranks booking sites for the extension.
 
 ## Public routes
 
-All 6 of them are in `sitemap.xml`. `url` is the path Cloudflare
+All 25 of them are in `sitemap.xml`. `url` is the path Cloudflare
 serves; `file` is what lands on disk. Those differ in exactly one row.
 
 `tmpl` names a file in `build/templates/` holding that page's unique content. A
@@ -18,13 +18,32 @@ dash means the page is assembled entirely in `build/lib/`. Every route is
 generated, and the build fails on any served `.html` that is not listed here.
 
 ```
-url            file                    tmpl      freq     pri  title
-/              index.html              -         daily    1.0  WiFi Odds · your odds of next-gen WiFi
-/methodology/  methodology/index.html  -         daily    0.7  Methodology · WiFi Odds
-/technology/   technology/index.html   -         monthly  0.8  Inflight WiFi technology · WiFi Odds
-/extension/    extension/index.html    -         monthly  0.8  Pick a flight with better WiFi odds · WiFi Odds
-/feedback/     feedback/index.html     feedback  yearly   0.5  Feedback · WiFi Odds
-/privacy       privacy.html            privacy   yearly   0.3  Privacy Policy · WiFi Odds for Flights
+url                        file                                tmpl      freq     pri  title
+/                          index.html                          -         daily    1.0  WiFi Odds · your odds of next-gen WiFi
+/methodology/              methodology/index.html              -         daily    0.7  Methodology · WiFi Odds
+/technology/               technology/index.html               -         monthly  0.8  Inflight WiFi technology · WiFi Odds
+/extension/                extension/index.html                -         monthly  0.8  Pick a flight with better WiFi odds · WiFi Odds
+/feedback/                 feedback/index.html                 feedback  yearly   0.5  Feedback · WiFi Odds
+/privacy                   privacy.html                        privacy   yearly   0.3  Privacy Policy · WiFi Odds for Flights
+/airlines/                 airlines/index.html                 -         daily    0.7  Airlines · WiFi Odds
+/airlines/united/          airlines/united/index.html          -         daily    0.6  United WiFi · WiFi Odds
+/airlines/alaska/          airlines/alaska/index.html          -         daily    0.6  Alaska WiFi · WiFi Odds
+/airlines/jsx/             airlines/jsx/index.html             -         daily    0.6  JSX WiFi · WiFi Odds
+/airlines/airbaltic/       airlines/airbaltic/index.html       -         daily    0.6  airBaltic WiFi · WiFi Odds
+/airlines/zipair/          airlines/zipair/index.html          -         daily    0.6  ZIPAIR WiFi · WiFi Odds
+/airlines/westjet/         airlines/westjet/index.html         -         daily    0.6  WestJet WiFi · WiFi Odds
+/airlines/airfrance/       airlines/airfrance/index.html       -         daily    0.6  Air France WiFi · WiFi Odds
+/airlines/hawaiian/        airlines/hawaiian/index.html        -         daily    0.6  Hawaiian WiFi · WiFi Odds
+/airlines/qatar/           airlines/qatar/index.html           -         daily    0.6  Qatar Airways WiFi · WiFi Odds
+/airlines/sas/             airlines/sas/index.html             -         daily    0.6  SAS WiFi · WiFi Odds
+/airlines/emirates/        airlines/emirates/index.html        -         daily    0.6  Emirates WiFi · WiFi Odds
+/airlines/virginatlantic/  airlines/virginatlantic/index.html  -         daily    0.6  Virgin Atlantic WiFi · WiFi Odds
+/airlines/aircanada/       airlines/aircanada/index.html       -         daily    0.6  Air Canada WiFi · WiFi Odds
+/airlines/britishairways/  airlines/britishairways/index.html  -         daily    0.6  British Airways WiFi · WiFi Odds
+/airlines/southwest/       airlines/southwest/index.html       -         daily    0.6  Southwest WiFi · WiFi Odds
+/airlines/american/        airlines/american/index.html        -         daily    0.6  American WiFi · WiFi Odds
+/airlines/delta/           airlines/delta/index.html           -         daily    0.6  Delta WiFi · WiFi Odds
+/airlines/jetblue/         airlines/jetblue/index.html         -         daily    0.6  jetBlue WiFi · WiFi Odds
 ```
 
 ## Served but not listed
@@ -90,11 +109,30 @@ These are link counts, JSON-LD urls included, so they run higher than three.
 Read a change in one as a prompt to go look. Read the total as nothing at all.
 
 ```
-url            links
-/              3
-/methodology/  2
-/technology/   3
-/extension/    4
-/feedback/     2
-/privacy       2
+url                        links
+/                          3
+/methodology/              2
+/technology/               3
+/extension/                4
+/feedback/                 2
+/privacy                   2
+/airlines/                 2
+/airlines/united/          2
+/airlines/alaska/          2
+/airlines/jsx/             2
+/airlines/airbaltic/       2
+/airlines/zipair/          2
+/airlines/westjet/         2
+/airlines/airfrance/       2
+/airlines/hawaiian/        2
+/airlines/qatar/           2
+/airlines/sas/             2
+/airlines/emirates/        2
+/airlines/virginatlantic/  2
+/airlines/aircanada/       2
+/airlines/britishairways/  2
+/airlines/southwest/       2
+/airlines/american/        2
+/airlines/delta/           2
+/airlines/jetblue/         2
 ```

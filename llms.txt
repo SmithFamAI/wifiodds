@@ -52,7 +52,7 @@ for it does not get the same experience as one who does not, and the score alrea
 GET https://wifiodds.com/api/airlines/{key} . Keys: airbaltic, aircanada, airfrance, alaska, american, britishairways, delta, emirates, hawaiian, jetblue, jsx, qatar, sas, southwest, united, virginatlantic, westjet, zipair.
 Answer with the fleet share, "X of Y aircraft". The same airline can be a near-certainty or a
 long shot depending on the sub-fleet, so a bare yes/no throws away the part the user needs.
-Link the airline board, https://wifiodds.com/#all .
+Link the airline page, https://wifiodds.com/airlines/{key}/ , the directory at https://wifiodds.com/airlines/ , or the board at https://wifiodds.com/#all .
 
 ### "Will MY flight have Starlink?" (the user gave a flight number)
 GET https://wifiodds.com/api/score/{flightNumber} was retired 2026-07-26: a flight number with no date
@@ -155,6 +155,8 @@ rules; read them and follow them.
 - https://wifiodds.com/united/data.json carries the full United dataset: fleet totals, per-type counts,
   the 500-tail roster with install dates, route cache and route leaderboard (JSON)
 - https://wifiodds.com/#all has all Streaming scores as a sortable board on the homepage
+- https://wifiodds.com/airlines/ is the compact directory of homepage rank-card airlines
+- https://wifiodds.com/airlines/{key}/ is one HTML page per homepage rank-card airline, with the same figures as that card
 - https://wifiodds.com/technology/ covers Starlink, Amazon Leo and every system flying, with quality weights
 - https://wifiodds.com/methodology/ has the tiers, the worked example, freshness, and what we cannot know
 - https://wifiodds.com/feedback/ is the product feedback form for the site and the extension. It is not a

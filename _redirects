@@ -26,8 +26,10 @@
 # A real static asset would win over a redirect on Cloudflare Pages anyway, but
 # not writing the glob is the belt to that suspenders. Likewise /api/docs/ is
 # exact so it cannot shadow the /api/* Pages Functions.
-/airlines/            /   301
-/airlines/*           /   301
+#
+# /airlines/ and /airlines/* were in this list until 16 Aug 2026. They MUST NOT
+# return: /airlines/ and /airlines/{slug}/ are live generated pages. Leaving
+# those two 301s would bounce every new page home behind a 200-looking redirect.
 /race/                /   301
 /race/*               /   301
 /systems/             /   301
