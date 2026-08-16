@@ -1209,11 +1209,6 @@ function airlinePage(m, key) {
  * restyle homepage rank cards. */ 
 function airlineScopedCss() {
   return '<style id="airline-scoped">\n' +
-    '.airline-page .date-split{display:flex;flex-wrap:wrap;gap:16px 28px;margin:14px 0 0;' +
-    'color:var(--muted,#aaaab2);font:11px ui-monospace,SFMono-Regular,Menlo,monospace;' +
-    'letter-spacing:.06em;text-transform:uppercase}\n' +
-    '.airline-page .date-split b{display:block;margin-top:4px;color:var(--ink,#fff);' +
-    'font:700 14px Inter,ui-sans-serif,sans-serif;letter-spacing:0;text-transform:none}\n' +
     '.airline-page .dir-list{margin:0;padding:0;list-style:none;' +
     'border-top:1px solid var(--line,var(--soft,#29292f))}\n' +
     '.airline-page .dir-list a,.airline-page .dir-list .dir-head{' +
@@ -1240,17 +1235,6 @@ function capFirst(s) {
   s = String(s || '');
   if (!s) return s;
   return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-function airlinePublishedAt(a) {
-  var dates = [];
-  if (a.ledger && a.ledger.rows) {
-    a.ledger.rows.forEach(function (r) { if (r.as) dates.push(String(r.as)); });
-  }
-  if (a.projected && a.projected.as) dates.push(String(a.projected.as));
-  if (!dates.length) return null;
-  dates.sort();
-  return dates[dates.length - 1];
 }
 
 function airlineNewsItems(key) {
@@ -1327,7 +1311,7 @@ function airlinesDirectory(m) {
   });
 }
 
-function airlineTechRows(a) {
+function airlineTechRows(a, checkedAt) {
   var L = a.ledger;
   if (!L || !L.rows || !L.rows.length) {
     return '<p>No published onboard system list for this fleet.</p>\n';
@@ -1336,7 +1320,10 @@ function airlineTechRows(a) {
     var detail = r.split
       ? num(r.n) + ' aircraft. Split Unknown.'
       : num(r.n) + ' aircraft.';
-    if (r.as) detail += ' published_at ' + r.as + '.';
+    /* r.as is the fact date on that row. The daily job rewrites United
+       Starlink's `as` to the check day; that date is checked_at, not
+       published_at and not as_of. */
+    if (r.as && String(r.as) !== String(checkedAt)) detail += ' as_of ' + r.as + '.';
     return '  <div class="tech-row"><div><b>' + esc(r.systemLabel) + '</b>' +
       (r.nextGen ? ' <small>Next-Gen</small>' : '') +
       '<div class="d">' + esc(detail) + '</div></div>' +
@@ -1361,11 +1348,7 @@ function airlineSubpage(m, key) {
   var equippedUnpub = a.equippedPublished === false;
   var asOf = a.asOf || null;
   var checkedAt = m.updated;
-  var rankOrder = HomeOrder.rank(HOME_BOARD_SEED_ORDER, function (k) {
-    var row = m.A.scoreAirline(k);
-    return row && { odds: row.nextGenScore, connect: row.score };
-  });
-  var rank = unpublished ? null : rankOrder.indexOf(key) + 1;
+  var checkedAtHtml = '<span data-date="checked_at">' + esc(checkedAt) + '</span>';
 
   var nextGenFig = unpublished
     ? '<b>Unpublished</b>'
@@ -1416,19 +1399,21 @@ function airlineSubpage(m, key) {
   if (a.tracker) {
     trackerBody = P.srcLine('reported',
       'Per-tail counts from <a href="https://' + esc(a.tracker) + '" target="_blank" rel="noopener">' +
-      esc(a.tracker) + '</a> (@martinamps), checked_at ' + esc(H.plateDate(checkedAt)) + '.');
+      esc(a.tracker) + '</a> (@martinamps), checked_at ' + checkedAtHtml + '.');
   } else {
     trackerBody = P.srcLine('reported',
       'Fleet state compiled from public ' + esc(a.name) + ' announcements, as_of ' +
-      esc(asOf || 'Unknown') +
-      '. Quality weights from Ookla Speedtest Intelligence, published_at 28 Apr 2026.');
+      '<span data-date="as_of">' + esc(asOf || 'Unknown') + '</span>' +
+      '. Quality weights from Ookla Speedtest Intelligence, published_at ' +
+      '<span data-date="published_at">2026-04-28</span>, checked_at ' +
+      checkedAtHtml + '.');
   }
 
   var split = a.nextGenSplit;
   var splitHtml = '';
   if (split && split.state === 'value' && split.mainline && split.regional) {
     splitHtml = '  <h3>Mainline and regional</h3>\n' +
-      '  <p class="sec-lede">United Starlink tails, mainline versus regional, from the public tracker. ' +
+      '  <p class="sec-lede">The public tracker splits United Starlink tails into mainline and regional. ' +
       'Other systems are not broken out.</p>\n' +
       '  <div class="stats">\n' +
       '    <div class="stat rv"><div class="n">' + num(split.mainline.n) + '<small> / ' +
@@ -1441,28 +1426,15 @@ function airlineSubpage(m, key) {
       ' regional aircraft.</div></div>\n' +
       '  </div>\n' +
       P.srcLine('reported', 'united/data.json, daily pull from unitedstarlinktracker.com, checked_at ' +
-        esc(H.plateDate(checkedAt)) + '.');
+        checkedAtHtml + '.');
   }
 
   var newsItems = airlineNewsItems(key);
   var newsHtml = newsItems.map(function (it) {
     return '  <p data-published-at="' + esc(it.date) + '">' + esc(it.text) + '</p>\n' +
-      P.srcLine('reported', esc(it.src) + ', published_at ' + esc(H.plateDate(it.date)) + '.');
+      P.srcLine('reported', esc(it.src) + ', published_at <span data-date="published_at">' +
+        esc(it.date) + '</span>.');
   }).join('');
-
-  var rankLine = unpublished
-    ? 'Not ranked on next-gen odds.'
-    : 'Ranked ' + rank + ' of ' + HOME_BOARD_SEED_ORDER.length + ' on the homepage next-gen list.';
-
-  var publishedAt = airlinePublishedAt(a);
-  var dateSplit =
-    '  <div class="date-split">' +
-    (publishedAt
-      ? '<span>published_at<b data-date="published_at">' + esc(publishedAt) + '</b></span>'
-      : '') +
-    '<span>as_of<b data-date="as_of">' + esc(asOf || 'Unknown') + '</b></span>' +
-    '<span>checked_at<b data-date="checked_at">' + esc(checkedAt) + '</b></span>' +
-    '</div>\n';
 
   var rolloutBits = '';
   if (a.projected) {
@@ -1470,7 +1442,7 @@ function airlineSubpage(m, key) {
       '  <div class="callout rv"><h3>Signed count, not flying yet</h3>' +
       '<p style="margin-top:10px">' + P.projected(a) + '</p>' +
       P.srcLine('reported', esc(a.projected.src) + ', published_at ' +
-        esc(H.plateDate(a.projected.as)) + '.') +
+        '<span data-date="published_at">' + esc(a.projected.as) + '</span>.') +
       '</div>\n';
   }
   rolloutBits += splitHtml;
@@ -1487,12 +1459,12 @@ function airlineSubpage(m, key) {
     '  <span class="kicker">The forecast</span>\n' +
     '  <h1 class="ph">' + esc(a.name) + '</h1>\n' +
     '  <p class="lede">' + lede + '</p>\n' +
-    '  <p class="footnote">' + rankLine + ' ' + esc(capFirst(P.freeText(e.free))) + '.</p>\n' +
-    dateSplit +
+    '  <p class="footnote">' + esc(capFirst(P.freeText(e.free))) + '.</p>\n' +
     trackerBody +
     '</header>\n\n' +
     '<section class="blk" id="snapshot">\n' +
-    '  <div class="sec-h"><h2>Snapshot</h2></div>\n' +
+    '  <div class="sec-h"><h2>Snapshot</h2><span class="sub">Data current as of <b data-date="as_of">' +
+    esc(asOf || 'Unknown') + '</b></span></div>\n' +
     '  <div class="stats">\n' +
     '    <div class="stat rv" data-figure-block="nextgen"><div class="n">' + nextGenFig +
     '</div><div class="l">Next-Gen</div><div class="d">' + nextGenNote + '</div></div>\n' +
@@ -1506,7 +1478,7 @@ function airlineSubpage(m, key) {
     '</section>\n\n' +
     '<section class="blk" id="tech-on-board">\n' +
     '  <div class="sec-h"><h2>Tech on board</h2></div>\n' +
-    airlineTechRows(a) +
+    airlineTechRows(a, checkedAt) +
     '</section>\n\n' +
     '<section class="blk" id="rollout">\n' +
     '  <div class="sec-h"><h2>Rollout</h2></div>\n' +
@@ -1529,6 +1501,7 @@ function airlineSubpage(m, key) {
     updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained,
     mastheadV2: true,
     crumb: crumbs,
+    asofChip: false,
     extraHead: airlineScopedCss(),
     body: body,
     jsonld: [crumbLd(crumbs), {

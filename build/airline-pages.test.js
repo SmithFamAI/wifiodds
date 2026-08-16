@@ -104,6 +104,12 @@ LOCKED_KEYS.forEach(function (key) {
   assert.ok(html.indexOf('href="/airlines/"') !== -1, key + ' links to the directory');
   assert.ok(html.indexOf('data-date="as_of"') !== -1, key + ' splits as_of');
   assert.ok(html.indexOf('data-date="checked_at"') !== -1, key + ' splits checked_at');
+  assert.ok(html.indexOf('Data current as of') !== -1, key + ' puts as_of beside snapshot figures');
+  assert.ok(!/\bRanked \d+ of \d+\b/.test(text), key + ' does not print a rank sentence');
+  assert.ok(text.indexOf('Not ranked on next-gen odds') === -1,
+    key + ' does not print an unpublished rank sentence');
+  assert.ok(html.indexOf('Data effective') === -1,
+    key + ' does not present the check day as Data effective');
   assert.ok(text.indexOf('ConnectScore') === -1,
     key + ' does not revive the ConnectScore label');
   assert.ok(html.indexOf('class="sitebar"') !== -1, key + ' reuses the live masthead');
@@ -138,14 +144,36 @@ LOCKED_KEYS.forEach(function (key) {
 });
 
 var united = htmlOf('airlines/united/index.html');
+var unitedAsOf = A.scoreAirline('united').asOf;
+var unitedChecked = JSON.parse(htmlOf('united/data.json')).updated;
 assert.ok(/unitedstarlinktracker\.com/.test(united),
   'United names the public tracker it follows');
 assert.ok(/Mainline/.test(united) && /Regional/.test(united),
   'United prints the published mainline/regional Starlink split');
+assert.ok(unitedAsOf && unitedChecked && unitedAsOf !== unitedChecked,
+  'control: United as_of and checked_at are different dates');
+assert.ok(united.indexOf('Data current as of <b data-date="as_of">' + unitedAsOf + '</b>') !== -1,
+  'United snapshot as_of is the airline fact date, not the check day');
+assert.ok(united.indexOf('data-date="checked_at">' + unitedChecked) !== -1,
+  'United checked_at is the job date');
+assert.ok(!new RegExp('published_at ' + unitedChecked).test(united),
+  'United does not copy the check day into published_at');
+assert.ok(united.indexOf('data-date="published_at">' + unitedChecked) === -1,
+  'United does not mark the check day as published_at');
+assert.ok(!/Starlink[\s\S]{0,280}published_at/.test(united),
+  'United Starlink row does not label a date published_at');
 
 var alaska = htmlOf('airlines/alaska/index.html');
 assert.ok(/alaskastarlinktracker\.com/.test(alaska),
   'Alaska names the public tracker it follows');
+
+var sasPage = htmlOf('airlines/sas/index.html');
+var sasScore = A.scoreAirline('sas');
+assert.strictEqual(sasScore.score, 0, 'SAS Streaming stays the published 0');
+assert.ok(nextGenStat(sasPage).indexOf('Unpublished') !== -1);
+var sasStream = /data-figure-block="streaming"[\s\S]*?<\/div>\s*<\/div>/.exec(sasPage);
+assert.ok(sasStream && visible(sasStream[0]).indexOf('0') !== -1,
+  'SAS Streaming 0 is still printed');
 
 var homeCss = htmlOf(path.join('build', 'templates', 'home.html'));
 assert.ok(/\.row\{display:grid/.test(homeCss),

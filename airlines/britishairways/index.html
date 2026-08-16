@@ -23,8 +23,6 @@
 <meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=0338b16e">
 <link rel="stylesheet" href="/assets/site.css?v=ef07b265">
 <style id="airline-scoped">
-.airline-page .date-split{display:flex;flex-wrap:wrap;gap:16px 28px;margin:14px 0 0;color:var(--muted,#aaaab2);font:11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase}
-.airline-page .date-split b{display:block;margin-top:4px;color:var(--ink,#fff);font:700 14px Inter,ui-sans-serif,sans-serif;letter-spacing:0;text-transform:none}
 .airline-page .dir-list{margin:0;padding:0;list-style:none;border-top:1px solid var(--line,var(--soft,#29292f))}
 .airline-page .dir-list a,.airline-page .dir-list .dir-head{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(96px,.55fr) minmax(96px,.55fr);gap:12px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--line,var(--soft,#29292f))}
 .airline-page .dir-list .dir-head{color:var(--muted,#aaaab2);font:11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase}
@@ -65,18 +63,17 @@
 <div class="wrap">
 <main id="main-content">
 <div class="ph-top"><nav class="crumb" aria-label="Breadcrumb"><a href="/">Home</a><span class="sep">→</span><a href="/airlines/">Airlines</a><span class="sep">→</span><span aria-current="page">British Airways</span></nav>
-<span class="asof"><i></i>Data effective <b>16 Aug 2026</b></span></div>
+</div>
 <div class="airline-page">
 <header class="hero" style="padding-top:14px">
   <span class="kicker">The forecast</span>
   <h1 class="ph">British Airways</h1>
   <p class="lede">British Airways Next-Gen 2%. Streaming score 15. 5 of 261 aircraft next-gen today.</p>
-  <p class="footnote">Ranked 12 of 16 on the homepage next-gen list. Free onboard.</p>
-  <div class="date-split"><span>published_at<b data-date="published_at">2026-07</b></span><span>as_of<b data-date="as_of">2026-07</b></span><span>checked_at<b data-date="checked_at">2026-08-16</b></span></div>
-<p class="src"><span class="cls">Reported</span> Fleet state compiled from public British Airways announcements, as_of 2026-07. Quality weights from Ookla Speedtest Intelligence, published_at 28 Apr 2026.</p></header>
+  <p class="footnote">Free onboard.</p>
+<p class="src"><span class="cls">Reported</span> Fleet state compiled from public British Airways announcements, as_of <span data-date="as_of">2026-07</span>. Quality weights from Ookla Speedtest Intelligence, published_at <span data-date="published_at">2026-04-28</span>, checked_at <span data-date="checked_at">2026-08-16</span>.</p></header>
 
 <section class="blk" id="snapshot">
-  <div class="sec-h"><h2>Snapshot</h2></div>
+  <div class="sec-h"><h2>Snapshot</h2><span class="sub">Data current as of <b data-date="as_of">2026-07</b></span></div>
   <div class="stats">
     <div class="stat rv" data-figure-block="nextgen"><div class="n"><b>2%</b></div><div class="l">Next-Gen</div><div class="d">Mixed fleet</div></div>
     <div class="stat rv" data-figure-block="streaming"><div class="n"><b>15</b></div><div class="l">Streaming</div><div class="d">Whole-fleet Streaming score.</div></div>
@@ -87,8 +84,8 @@
 
 <section class="blk" id="tech-on-board">
   <div class="sec-h"><h2>Tech on board</h2></div>
-  <div class="tech-row"><div><b>Starlink</b> <small>Next-Gen</small><div class="d">5 aircraft. published_at 2026-03.</div></div><div class="n">5</div></div>
-  <div class="tech-row"><div><b>Panasonic or Inmarsat</b><div class="d">225 aircraft. Split Unknown. published_at 2026-07.</div></div><div class="n">225</div></div>
+  <div class="tech-row"><div><b>Starlink</b> <small>Next-Gen</small><div class="d">5 aircraft. as_of 2026-03.</div></div><div class="n">5</div></div>
+  <div class="tech-row"><div><b>Panasonic or Inmarsat</b><div class="d">225 aircraft. Split Unknown. as_of 2026-07.</div></div><div class="n">225</div></div>
 </section>
 
 <section class="blk" id="rollout">

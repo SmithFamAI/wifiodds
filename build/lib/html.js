@@ -735,9 +735,12 @@ function page(o) {
        (interior-system-v1.html's `.asof`) on one row, generically for every
        route that passes a crumb — no per-page rewrite needed, since `updated`
        already reaches page() for the masthead/footer datechips. A route with
-       no crumb (404) gets neither, same as before. */
+       no crumb (404) gets neither, same as before. asofChip: false skips the
+       chip: `updated` is checked_at (the job), not the date the figures were
+       true, and printing it as "Data effective" would copy the check day onto
+       the fact. */
     (o.crumb ? '<div class="ph-top">' + crumb(o.crumb) +
-      (o.updated ? '<span class="asof"><i></i>Data effective <b>' +
+      (o.updated && o.asofChip !== false ? '<span class="asof"><i></i>Data effective <b>' +
         esc(chipDate(o.updated)) + '</b></span>' : '') + '</div>\n' : '') +
     o.body +
     '</main>\n' +
