@@ -370,6 +370,7 @@ function masthead(here, suffix, updated, refreshAttemptedOn, wasRetained) {
        never a literal store URL, so a store-side path change only has to be
        fixed in that one constant. */
     '      <a href="/extension/"' + (here === '/extension/' ? ' aria-current="page"' : '') + '>Extension</a>\n' +
+    '      <a href="/feedback/"' + (here === '/feedback/' ? ' aria-current="page"' : '') + '>Feedback</a>\n' +
     '    </nav>\n' +
     /* THE PILL IS OUTSIDE <nav>, AND THAT IS THE WHOLE POINT OF THIS LINE.
      * It lived inside <nav> until 28 Jul 2026, which meant the `@media(max-width:880px)`
@@ -505,6 +506,7 @@ function mastheadV2(here) {
     '      <a href="/methodology/"' + cur('/methodology/') + '>Methodology</a>\n' +
     '      <a href="/technology/"' + cur('/technology/') + '>Technology</a>\n' +
     '      <a href="/extension/"' + cur('/extension/') + '>Extension</a>\n' +
+    '      <a href="/feedback/"' + cur('/feedback/') + '>Feedback</a>\n' +
     '      <a class="pill primary desktop-cta" href="' + EXT + '" target="_blank" rel="noopener">Add to Chrome</a>\n' +
     '    </nav>\n' +
     '  </div>\n' +
@@ -550,12 +552,13 @@ function credit(which) {
 }
 
 /* The footer: nav, the source line, the unaffiliated line, and the theme
- * sentence. That last one is not boilerplate. The site stores nothing at all
- * now, so the reader is told what the switch does and what happens to their
- * choice, in one sentence, on every page. The old copy said "the only thing
- * stored in your browser is your light/dark choice" — that key is gone, and a
- * footer that still claimed it would be the site lying about its own storage on
- * thirty routes. */
+ * sentence. That last one is not boilerplate. No page writes the theme choice
+ * to the browser, so the reader is told what the switch does and what happens
+ * to their choice, in one sentence, on every page. The old copy said "the only
+ * thing stored in your browser is your light/dark choice" — that key is gone,
+ * and a footer that still claimed it would be the site lying about its own
+ * storage on thirty routes. Product feedback is stored server-side (D1/R2),
+ * named on /privacy, and is not a browser write. */
 function footer(updated, refreshAttemptedOn, wasRetained) {
   var updatedLine = (!wasRetained || !refreshAttemptedOn)
     ? 'Data updated <b>' + esc(updated) + '</b>.'
@@ -586,6 +589,7 @@ function footer(updated, refreshAttemptedOn, wasRetained) {
        removed in the same change rather than left to fail. */
     '  <div class="flinks"><a href="/methodology/">Methodology</a>' +
     '<a href="/technology/">Technology</a>' +
+    '<a href="/feedback/">Feedback</a>' +
     '<a href="/privacy">Privacy</a></div>\n' +
     '  <div class="frow">Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> ' +
     '· <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> ' +

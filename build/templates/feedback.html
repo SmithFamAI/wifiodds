@@ -1,0 +1,122 @@
+<!--@head-->
+<style>
+  .wrap{max-width:52rem}
+  .pol p{color:var(--ink-soft);font-size:var(--fs-body);max-width:44rem}
+  .pol p+p{margin-top:.7rem}
+  .pol b{color:var(--ink);font-weight:700}
+  .ff textarea{min-height:10rem}
+  .ffcheck{display:flex;align-items:flex-start;gap:.65rem;min-height:44px;
+    font:400 15px/1.45 var(--sans);color:var(--ink-soft);max-width:44rem}
+  .ffcheck input{width:1.15rem;height:1.15rem;margin:.15rem 0 0;flex:none;accent-color:var(--sky)}
+  .frm .btn{min-height:44px}
+  .ff input[type=file]{padding:.55rem 0;min-height:44px}
+  #feedback-ok,#feedback-err{margin:1rem 0 0;max-width:44rem}
+  #feedback-ok[hidden],#feedback-err[hidden]{display:none}
+  noscript p{margin-top:1rem;color:var(--ink-soft);max-width:44rem}
+</style>
+<!--@body-->
+<header class="hero pol">
+  <span class="kicker">Site</span>
+  <h1 class="ph">Feedback</h1>
+  <p class="lede">Use this form for the site or the extension. Flight WiFi measurements still have
+  no public form.</p>
+</header>
+
+<div class="callout pol" style="margin-top:1.2rem">
+  <span class="kicker">What we keep</span>
+  <p>Your message and email. Your name if you type one. Screenshots if you attach them. The
+  <a href="/privacy">privacy page</a> names every field the form stores.</p>
+  <p>Jeremy is not mailed on every submission. Tick "send me a copy" if you want the same text in
+  your inbox.</p>
+</div>
+
+<section class="blk pol" id="form">
+  <span class="kicker">The form</span>
+  <h2>Write what happened</h2>
+  <p id="feedback-ok" class="callout" hidden>Got it. It is in the queue.</p>
+  <p id="feedback-err" class="ferr frm-top" hidden></p>
+  <form class="frm" id="feedback-form" method="post" action="/api/feedback" enctype="multipart/form-data">
+    <div class="ffgrid">
+      <div class="ff wide">
+        <label><span class="lt">Message (required)</span>
+          <textarea id="feedback-message" name="message" required maxlength="8000" rows="8"
+            autocomplete="off"></textarea></label>
+      </div>
+      <div class="ff wide">
+        <label><span class="lt">Screenshots (optional)</span>
+          <input id="feedback-shots" name="screenshots" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple></label>
+        <p class="note">JPEG, PNG, WebP, or GIF. Up to five files, 2 MB each.</p>
+      </div>
+      <div class="ff">
+        <label><span class="lt">Email (required)</span>
+          <input id="feedback-email" name="email" type="email" required maxlength="254"
+            autocomplete="email" inputmode="email"></label>
+      </div>
+      <div class="ff">
+        <label><span class="lt">Name (optional)</span>
+          <input id="feedback-name" name="name" type="text" maxlength="80" autocomplete="name"></label>
+      </div>
+      <div class="ff wide hp" aria-hidden="true">
+        <label>Leave this empty <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+      </div>
+      <div class="ff wide">
+        <label class="ffcheck"><input type="checkbox" name="sendCopy" value="1">
+          <span>Send me a copy of this submission</span></label>
+      </div>
+      <div class="ff wide">
+        <label class="ffcheck"><input type="checkbox" name="allowFollowup" value="1">
+          <span>The developer may email me with follow-up questions</span></label>
+      </div>
+    </div>
+    <div class="frm-ft">
+      <button class="btn" type="submit">Send feedback</button>
+      <p class="note">Email is stored because you submitted feedback. Screenshots are stored only if
+      you attach them.</p>
+    </div>
+  </form>
+  <noscript>
+    <p>This form posts to this site with no JavaScript. The next page confirms whether the row was stored.</p>
+  </noscript>
+</section>
+<!--@foot-->
+<script>
+(function () {
+  var form = document.getElementById('feedback-form');
+  var ok = document.getElementById('feedback-ok');
+  var err = document.getElementById('feedback-err');
+  if (!form || !window.fetch) return;
+  function show(el, text) {
+    if (ok) { ok.hidden = el !== ok; }
+    if (err) {
+      err.hidden = el !== err;
+      err.textContent = el === err ? (text || '') : '';
+    }
+    if (el) el.scrollIntoView({ block: 'nearest' });
+  }
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    show(null);
+    var body = new FormData(form);
+    fetch('/api/feedback', {
+      method: 'POST',
+      headers: { accept: 'application/json' },
+      body: body
+    }).then(function (res) { return res.json().then(function (j) { return { res: res, j: j }; }); })
+      .then(function (out) {
+        if (out.res.status === 201 && out.j && out.j.stored) {
+          form.reset();
+          ok.textContent = out.j.whatHappensNext || 'Got it. It is in the queue.';
+          show(ok);
+          return;
+        }
+        var msg = (out.j && out.j.error && out.j.error.message) ||
+          (out.j && out.j.why) ||
+          'Nothing was stored. Try again in a minute.';
+        show(err, msg);
+      })
+      .catch(function () {
+        show(err, 'The intake did not answer. Try again in a minute.');
+      });
+  });
+})();
+</script>

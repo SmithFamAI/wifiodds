@@ -157,6 +157,8 @@ rules; read them and follow them.
 - https://wifiodds.com/#all has all Streaming scores as a sortable board on the homepage
 - https://wifiodds.com/technology/ covers Starlink, Amazon Leo and every system flying, with quality weights
 - https://wifiodds.com/methodology/ has the tiers, the worked example, freshness, and what we cannot know
+- https://wifiodds.com/feedback/ is the product feedback form for the site and the extension. It is not a
+  field-report form. Do not invent a Chrome Web Store review URL as a substitute.
 - https://wifiodds.com/sitemap.xml
 
 ## Streaming scores (18 airlines, regenerated on every build)

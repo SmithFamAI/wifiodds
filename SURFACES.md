@@ -10,7 +10,7 @@ which ranks booking sites for the extension.
 
 ## Public routes
 
-All 5 of them are in `sitemap.xml`. `url` is the path Cloudflare
+All 6 of them are in `sitemap.xml`. `url` is the path Cloudflare
 serves; `file` is what lands on disk. Those differ in exactly one row.
 
 `tmpl` names a file in `build/templates/` holding that page's unique content. A
@@ -18,12 +18,13 @@ dash means the page is assembled entirely in `build/lib/`. Every route is
 generated, and the build fails on any served `.html` that is not listed here.
 
 ```
-url            file                    tmpl     freq     pri  title
-/              index.html              -        daily    1.0  WiFi Odds · your odds of next-gen WiFi
-/methodology/  methodology/index.html  -        daily    0.7  Methodology · WiFi Odds
-/technology/   technology/index.html   -        monthly  0.8  Inflight WiFi technology · WiFi Odds
-/extension/    extension/index.html    -        monthly  0.8  Pick a flight with better WiFi odds · WiFi Odds
-/privacy       privacy.html            privacy  yearly   0.3  Privacy Policy · WiFi Odds for Flights
+url            file                    tmpl      freq     pri  title
+/              index.html              -         daily    1.0  WiFi Odds · your odds of next-gen WiFi
+/methodology/  methodology/index.html  -         daily    0.7  Methodology · WiFi Odds
+/technology/   technology/index.html   -         monthly  0.8  Inflight WiFi technology · WiFi Odds
+/extension/    extension/index.html    -         monthly  0.8  Pick a flight with better WiFi odds · WiFi Odds
+/feedback/     feedback/index.html     feedback  yearly   0.5  Feedback · WiFi Odds
+/privacy       privacy.html            privacy   yearly   0.3  Privacy Policy · WiFi Odds for Flights
 ```
 
 ## Served but not listed
@@ -44,12 +45,16 @@ make the build assert files that must never exist. `/api/docs/` is the one `/api
 path that IS a page. It appears in the route list above instead.
 
 ```
-endpoint             source
-/api/airlines/{key}  functions/api/airlines/[key].js
-/api/airlines        functions/api/airlines/index.js
-/api                 functions/api/index.js
-/api/report          functions/api/report.js
-/api/score/{flight}  functions/api/score/[flight].js
+endpoint                 source
+/api/airlines/{key}      functions/api/airlines/[key].js
+/api/airlines            functions/api/airlines/index.js
+/api/feedback/ack        functions/api/feedback/ack.js
+/api/feedback/feed       functions/api/feedback/feed.js
+/api/feedback            functions/api/feedback/index.js
+/api/feedback/shot/{id}  functions/api/feedback/shot/[id].js
+/api                     functions/api/index.js
+/api/report              functions/api/report.js
+/api/score/{flight}      functions/api/score/[flight].js
 ```
 
 ## Files the site cannot work without
@@ -90,5 +95,6 @@ url            links
 /methodology/  2
 /technology/   3
 /extension/    4
+/feedback/     2
 /privacy       2
 ```

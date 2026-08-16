@@ -20,12 +20,13 @@ try {
 
 const root = process.cwd();
 const widths = [375, 390, 440];
-const routes = ['/', '/methodology/', '/technology/', '/extension/', '/privacy'];
+const routes = ['/', '/methodology/', '/technology/', '/extension/', '/feedback/', '/privacy'];
 const routeFiles = new Map([
   ['/', 'index.html'],
   ['/methodology/', 'methodology/index.html'],
   ['/technology/', 'technology/index.html'],
   ['/extension/', 'extension/index.html'],
+  ['/feedback/', 'feedback/index.html'],
   ['/privacy', 'privacy.html']
 ]);
 const mutation = process.env.MOBILE_TARGET_MUTATION || '';
