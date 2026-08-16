@@ -140,6 +140,10 @@ if ! sh build/unpublished-null-controls.sh; then
   fail "build/unpublished-null-controls.sh exited non-zero. An unpublished fleet value may have
 collapsed from unknown to zero, or one of the planted null-shape regressions escaped." 98
 fi
+if ! sh build/united-refresh-derived-controls.sh; then
+  fail "build/united-refresh-derived-controls.sh exited non-zero. A moving United source figure may
+have severed from its API or rendered whole-fleet denominator, or a planted regression escaped." 98
+fi
 
 echo ""
 echo "── 3/5 proof-binding controls ────────────────────────────"

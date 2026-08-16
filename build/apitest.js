@@ -1047,7 +1047,11 @@ async function main() {
   eq(dl.nextGenScore, 0, 'PARITY: /api/airlines Delta nextGenScore is 0');
   eq(dl.serviceTier, 'streaming', 'PARITY: /api/airlines Delta serviceTier is streaming');
   /* Backlog 51: unpublished next-gen must not be a sortable 0. Streaming for
-   * SAS (0) and Air France (5), and United's 28% next-gen, stay bit-for-bit. */
+   * SAS (0) and Air France (5) stays bit-for-bit. United is deliberately NOT
+   * pinned: the daily tracker is allowed to make a sourced movement. Instead,
+   * bind its model, API, and rendered card to the same next-gen rows and whole
+   * fleet denominator. The 1,817 denominator remains an explicit guard: a
+   * moving numerator must never silently shrink the passenger population. */
   var sasApi = all.airlines.filter(function (a) { return a.key === 'sas'; })[0];
   var afApi = all.airlines.filter(function (a) { return a.key === 'airfrance'; })[0];
   var uaApi = all.airlines.filter(function (a) { return a.key === 'united'; })[0];
@@ -1065,9 +1069,20 @@ async function main() {
     eq(afApi.nextGen.ranked, false, 'Air France unpublished next-gen is not ranked');
     eq(afApi.connectScore, 5, 'Air France Streaming connectScore stays 5');
     eq(afApi.streamingScore, 5, 'Air France streamingScore alias stays 5');
-    eq(uaApi.nextGenScore, 28, 'United nextGenScore stays 28');
-    eq(uaApi.nextGen.pct, 28, 'United nextGen.pct stays 28');
-    eq(uaApi.fleet.equipped, 514, 'United equipped count stays 514');
+    var uaModel = A.scoreAirline('united');
+    var uaNextGenAircraft = (uaModel.segments || []).filter(function (s) { return s.nextGen; })
+      .reduce(function (sum, s) { return sum + s.n; }, 0);
+    var uaWholeFleet = uaModel.total;
+    var uaDerivedPct = uaWholeFleet
+      ? Math.max(1, Math.round(uaNextGenAircraft / uaWholeFleet * 100)) : 0;
+    eq(uaApi.nextGenScore, uaModel.nextGenScore,
+      'United API nextGenScore derives from the current model rather than a frozen refresh literal');
+    eq(uaApi.nextGen.pct, uaDerivedPct,
+      'United API nextGen.pct uses the unchanged whole-fleet rounding rule');
+    eq(uaApi.fleet.equipped, uaNextGenAircraft,
+      'United API equipped count equals the current next-gen source rows');
+    eq(uaApi.fleet.total, uaWholeFleet,
+      'United API denominator equals the current whole-fleet source record');
     eq(uaApi.fleet.total, 1817, 'United fleet total stays 1817');
   }
   /* Round-18 P0-02: Delta is three rows out of 1,330 aircraft, all resolved:
@@ -2209,6 +2224,27 @@ async function main() {
   eq(seenBig4, 4, 'PARITY: all four Big 4 cards were checked against the API');
   eq(Object.keys(big4Keys).sort().join(','), ['american', 'delta', 'southwest', 'united'].sort().join(','),
     'PARITY: the Big 4 cards are exactly united/american/delta/southwest');
+  var unitedCard = home.split('<article class="aircard"').slice(1).map(function (chunk) {
+    return chunk.slice(0, chunk.indexOf('</article>'));
+  }).filter(function (chunk) {
+    return /<span class="airname">United<\/span>/.test(chunk);
+  });
+  eq(unitedCard.length, 1, 'United has one rendered Big 4 card for refresh parity');
+  if (uaApi && unitedCard.length === 1) {
+    var uaCard = unitedCard[0];
+    var uaRenderedNote = /<p class="airnote odds-only"[^>]*>([\d,]+) of ([\d,]+) aircraft next-gen today<\//.exec(uaCard);
+    var uaRenderedOdds = /data-nextgen="(-?[\d.]+)"/.exec(uaCard);
+    ok(!!uaRenderedNote && !!uaRenderedOdds,
+      'United rendered card exposes its sourced numerator, denominator, and next-gen odds');
+    if (uaRenderedNote && uaRenderedOdds) {
+      eq(Number(uaRenderedNote[1].replace(/,/g, '')), uaApi.fleet.equipped,
+        'PARITY: United rendered numerator equals the API equipped count');
+      eq(Number(uaRenderedNote[2].replace(/,/g, '')), uaApi.fleet.total,
+        'PARITY: United rendered denominator equals the API whole fleet');
+      eq(Number(uaRenderedOdds[1]), uaApi.nextGen.pct,
+        'PARITY: United rendered odds equals the API rounded next-gen percentage');
+    }
+  }
   eq(dl.nextGenScore, 0, 'PARITY: the API next-gen score for Delta is 0');
   ok(/data-nextgen="0" data-streaming-score="[\d.]+"[^>]*>[\s\S]{0,400}<span class="airname">Delta<\/span>/.test(home),
     'the Delta Big 4 card ranks next-gen at a real 0, not blank and not projected');
