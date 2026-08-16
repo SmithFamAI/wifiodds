@@ -1853,6 +1853,13 @@ async function main() {
     'homepage dropped the page-level choose-the-number block');
   ok(/\.checked-date\{white-space:nowrap\}/.test(home),
     'rank-card checked dates use nowrap so 2026-MM cannot split after the hyphen');
+  ok(/#airline-grid \.row \.metric\.primary\{[^}]*flex-direction:row/.test(home) &&
+    /#airline-grid \.row \.metric\.primary\{[^}]*flex-wrap:nowrap/.test(home),
+    'rank-card Next-Gen and Streaming stay one row: the primary pair is a nowrap row');
+  ok(/#airline-grid \.row \.row-figs>\.metric:not\(\.primary\)\{[^}]*flex-direction:column/.test(home),
+    'rank-card column stacking is limited to coverage, not the Next-Gen/Streaming pair');
+  ok(!/#airline-grid \.row \.row-figs>\.metric\{/.test(home),
+    'rank-card does not restack every .row-figs metric, including the primary pair');
   ok(activePageText('/').indexOf('Confirmed streaming coverage') >= 0,
     '3.1.0 homepage labels the supporting percentage Confirmed streaming coverage');
   var boardNote = /<p class="board-note">([\s\S]*?)<\/p>/.exec(home);

@@ -95,14 +95,18 @@ for (const [engineName, engine] of engines) {
 
       const dualFigures = await rows.evaluateAll(function (nodes) {
         return nodes.map(function (row) {
+          const primary = row.querySelector('.metric.primary');
           const nextgen = row.querySelector('.odds-only b');
           const streaming = row.querySelector('[data-streaming-view="primary"]');
           const nr = nextgen && nextgen.getBoundingClientRect();
           const sr = streaming && streaming.getBoundingClientRect();
+          const cs = primary && getComputedStyle(primary);
           return {
             key: row.getAttribute('data-key'),
             nextgen: nextgen ? nextgen.textContent.trim() : '',
             streaming: streaming ? streaming.textContent.trim() : '',
+            flexDirection: cs ? cs.flexDirection : '',
+            flexWrap: cs ? cs.flexWrap : '',
             sameRow: !!(nr && sr && Math.abs(nr.top - sr.top) < 28)
           };
         });
@@ -110,6 +114,8 @@ for (const [engineName, engine] of engines) {
       dualFigures.forEach(function (fig) {
         check(!!fig.nextgen && !!fig.streaming,
           engineName + ' ' + width + ': ' + fig.key + ' shows Next-Gen and Streaming', JSON.stringify(fig));
+        check(fig.flexDirection === 'row' && fig.flexWrap === 'nowrap',
+          engineName + ' ' + width + ': ' + fig.key + ' Next-Gen/Streaming pair is a nowrap row', JSON.stringify(fig));
         check(fig.sameRow,
           engineName + ' ' + width + ': ' + fig.key + ' keeps Streaming on the same row as Next-Gen', JSON.stringify(fig));
       });
