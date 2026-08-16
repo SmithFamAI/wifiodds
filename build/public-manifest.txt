@@ -2,6 +2,25 @@
 # Cloudflare publishes dist/, which build/assemble.sh creates only from this list.
 404.html
 _redirects
+airlines/airbaltic/index.html
+airlines/aircanada/index.html
+airlines/airfrance/index.html
+airlines/alaska/index.html
+airlines/american/index.html
+airlines/britishairways/index.html
+airlines/delta/index.html
+airlines/emirates/index.html
+airlines/hawaiian/index.html
+airlines/index.html
+airlines/jetblue/index.html
+airlines/jsx/index.html
+airlines/qatar/index.html
+airlines/sas/index.html
+airlines/southwest/index.html
+airlines/united/index.html
+airlines/virginatlantic/index.html
+airlines/westjet/index.html
+airlines/zipair/index.html
 assets/SourceSerif4-OFL.txt
 assets/airlines.js
 assets/cws/badge-border-large.png

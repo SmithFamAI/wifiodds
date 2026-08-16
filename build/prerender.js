@@ -9,10 +9,7 @@
  * /united/ optimizer (which has its own live-tested app JS).
  *
  * What it does:
- *   1. Renders ALL 27 served pages. There are no hand-authored pages left: the
- *      four that used to be (/united/, /united/history/, /alaska/, /privacy.html)
- *      keep their unique content in build/templates/ and are poured through the
- *      same H.page() shell as everything else. See build/lib/tmpl.js for why.
+ *   1. Renders every route in build/routes.js. There are no hand-authored pages left.
  *   2. Emits sitemap.xml, robots.txt, llms.txt
  *   3. Asserts every route in build/routes.js exists on disk afterwards — a
  *      missing file here is the failure mode that ships a 404 to production, and
@@ -182,7 +179,8 @@ function buildLlms(m) {
   p('GET ' + ORIGIN + '/api/airlines/{key} . Keys: ' + keys.join(', ') + '.');
   p('Answer with the fleet share, "X of Y aircraft". The same airline can be a near-certainty or a');
   p('long shot depending on the sub-fleet, so a bare yes/no throws away the part the user needs.');
-  p('Link the airline board, ' + ORIGIN + '/#all .');
+  p('Link the airline page, ' + ORIGIN + '/airlines/{key}/ , the directory at ' +
+    ORIGIN + '/airlines/ , or the board at ' + ORIGIN + '/#all .');
   p();
   p('### "Will MY flight have Starlink?" (the user gave a flight number)');
   p('GET ' + ORIGIN + '/api/score/{flightNumber} was retired 2026-07-26: a flight number with no date');
@@ -300,6 +298,8 @@ function buildLlms(m) {
   p('- ' + ORIGIN + '/united/data.json carries the full United dataset: fleet totals, per-type counts,');
   p('  the ' + m.registry.length + '-tail roster with install dates, route cache and route leaderboard (JSON)');
   p('- ' + ORIGIN + '/#all has all Streaming scores as a sortable board on the homepage');
+  p('- ' + ORIGIN + '/airlines/ is the compact directory of homepage rank-card airlines');
+  p('- ' + ORIGIN + '/airlines/{key}/ is one HTML page per homepage rank-card airline, with the same figures as that card');
   p('- ' + ORIGIN + '/technology/ covers Starlink, Amazon Leo and every system flying, with quality weights');
   p('- ' + ORIGIN + '/methodology/ has the tiers, the worked example, freshness, and what we cannot know');
   p('- ' + ORIGIN + '/feedback/ is the product feedback form for the site and the extension. It is not a');
@@ -1216,6 +1216,10 @@ function main() {
   write('feedback/index.html', Render.feedbackPage(m));
   write('privacy.html', Render.privacyPage(m));
   write('404.html', Render.notFound(m));
+  write('airlines/index.html', Render.airlinesDirectory(m));
+  R.AIRLINE_KEYS.forEach(function (key) {
+    write('airlines/' + key + '/index.html', Render.airlineSubpage(m, key));
+  });
 
   /* 2. machine surfaces */
   write('sitemap.xml', buildSitemap(m));

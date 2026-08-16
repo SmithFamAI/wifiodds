@@ -119,6 +119,12 @@ does not match a safe, complete dist/ tree. Read the named path above." 99
 fi
 
 echo ""
+echo "── airline subpages ──────────────────────────────────────"
+if ! node build/airline-pages.test.js; then
+  fail "build/airline-pages.test.js exited non-zero. /airlines/ pages may be missing, inventing unpublished counts, or disagreeing with the homepage rank list." 98
+fi
+
+echo ""
 echo "── 2/5 api suite ─────────────────────────────────────────"
 if ! node build/apitest.js; then
   fail "node build/apitest.js exited non-zero. THIS IS THE 26 JUL FAULT: a cached
