@@ -18,7 +18,7 @@ function arg(name, fallback) {
   return i >= 0 ? process.argv[i + 1] : fallback;
 }
 function rowOrder(html) {
-  return Array.from(String(html).matchAll(/class="row [^"]*" data-key="([a-z]+)"[^>]*data-rankable="true"/g), function (m) { return m[1]; });
+  return Array.from(String(html).matchAll(/class="row [^"]*"[^>]*data-key="([a-z]+)"[^>]*data-rankable="true"/g), function (m) { return m[1]; });
 }
 function localExpected() {
   const unitedBytes = fs.readFileSync(path.join(ROOT, 'united/data.json'));
