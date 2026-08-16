@@ -1,20 +1,28 @@
 # Cloudflare Pages redirects for wifiodds.com.
 #
-# Nothing needed yet: every route is a REAL file on disk (/index.html,
-# /united/index.html, /alaska/index.html, /united/history/index.html,
-# /privacy.html), so Pages serves them directly and there is deliberately NO
-# SPA fallback ( /*  /index.html  200 ) — a fallback here would turn genuine
-# 404s into a silent copy of the home page, which is exactly the "green light
-# that wasn't looking" failure we avoid.
+# Live HTML routes are files on disk. Pages serves them directly:
+#   /                 index.html
+#   /methodology/     methodology/index.html
+#   /technology/      technology/index.html
+#   /extension/       extension/index.html
+#   /feedback/        feedback/index.html
+#   /privacy          privacy.html
+#   /airlines/        airlines/index.html
+#   /airlines/{key}/  airlines/{key}/index.html
+# There is deliberately NO SPA fallback ( /*  /index.html  200 ). A fallback
+# here would turn genuine 404s into a silent copy of the home page.
 #
 # Cloudflare Pages does NOT support Netlify's `!` force syntax or 200-proxying
 # to an external origin; keep both out of this file (that combination broke
 # every deep link on points-compass once).
 #
-# Placeholder for the smithfamai.com cutover era — add here if the old paths
-# ever need to live on this side of the fence:
-# /unitedstarlink      /united/   301
-# /unitedstarlink/*     /united/:splat  301
+# Do not add a /united/* glob. united/data.json lives in that directory and
+# the Chrome extension fetches it. The /united/ and /alaska/ HTML pages are
+# gone; only the JSON asset remains. The encyclopedia cut of 28 Jul 2026 is
+# below; destinations stay "/".
+#
+# /airlines/ and /airlines/{key}/ are live generated pages. Do not restore
+# 301s for those paths.
 
 # ── 28 Jul 2026 three-page cut ──────────────────────────────────────────────
 # Every route below was removed from build/routes.js and its file deleted; these

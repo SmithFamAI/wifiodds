@@ -1,186 +1,192 @@
 # wifiodds.com
 
-**WiFi Odds — know before you book.** A static site that answers one question:
-*what are my odds of getting good WiFi on this flight?*
+A static site plus Cloudflare Pages Functions, and a free Chrome overlay for
+airline-direct search.
 
-- **`/`** — the instant flight check, then the extension in full (real screenshots), then The Race,
-  the systems teaser, and the seven US carriers scored **twice**: next-gen odds as the headline and
-  today's service tier under it. See "Two numbers" below.
-- **`/race/`** — every airline's rollout timeline to full next-gen: current share against the finish
-  line that airline has actually announced, with a source and a date on every row. United appears as
-  the fastest large retrofit, not as the subject.
-- **`/systems/`** — evergreen: Starlink vs Amazon Leo head-to-head plus every system flying on the
-  fleets we score, with the quality weight each one carries in the formula.
-- **`/airlines/`** — all 18 ranked by **ConnectScore** (0–100), sortable, filterable.
-- **`/united/`** — the full United toolkit (route optimizer, best routings, confirmed tails, trip
-  planner, booking playbook, fleet pulse) plus **`/united/history/`**, the day-by-day rollout timeline.
-  Reads its own `/united/data.json`, refreshed daily.
-- **`/alaska/`** — Alaska's Starlink rollout: ConnectScore, fleet-by-fleet status, and where the
-  per-flight odds live (the extension, on alaskaair.com).
-- **`/privacy.html`** — the privacy policy the Chrome Web Store listing points at.
+Live Chrome Web Store build is **3.0.2**, published 11 Aug 2026. Do not describe a
+later store version as live. The public product URL is https://wifiodds.com/ .
+That is the homepage the site uses; it is not the retired
+`smithfamai.com/unitedstarlink` page.
 
-Ported from `smithfamai.com/unitedstarlink` (Mac-mini-hosted Caddy) in July 2026. The `/united/` page
-is a near-verbatim port: its internals are live-tested, so only the head, the brand header and the
-footer were touched.
+The overlay scores United, Alaska, and Navan search results. Google Flights is
+labels only: it never reorders. Best WiFi names a winner only when at least two
+flights have usable data, the leader is ahead by eight points or more, and
+tracker confidence is medium or high. If those checks fail, it refuses.
+
+## Two numbers
+
+Keep them separate:
+
+- **Next-gen odds** are the chance of a Starlink or Amazon Leo aircraft. The
+  extension prints this per flight when the booking page supplies a United or
+  Alaska flight number. The homepage board prints the airline-level figure.
+- **Streaming score** is a 0-100 rating of WiFi quality across an airline's
+  whole published fleet today. It is airline-wide. It is not per-flight
+  next-gen odds.
+
+A high Streaming score can sit next to sourced next-gen odds of zero. An
+unpublished next-gen count is unknown, not zero. United is mixed: some aircraft
+have next-gen WiFi and some do not. This site does not claim Starlink on a
+given tail.
+
+## Public HTML routes
+
+`SURFACES.md` is generated from `build/routes.js` on every `node build/prerender.js`
+run. It is the committed list of public HTML routes. Do not hand-edit it.
+
+| URL | File on disk | What it is |
+|---|---|---|
+| `/` | `index.html` | Homepage: next-gen odds and Streaming score, plus the 3.0.2 extension pitch |
+| `/methodology/` | `methodology/index.html` | How the two numbers are built, sourced, and labelled |
+| `/technology/` | `technology/index.html` | Inflight WiFi systems |
+| `/extension/` | `extension/index.html` | The Chrome overlay, including the 3.0.2 host matrix |
+| `/feedback/` | `feedback/index.html` | Product feedback form |
+| `/privacy` | `privacy.html` | Privacy policy the Chrome Web Store listing points at |
+| `/airlines/` | `airlines/index.html` | Compact A-Z directory of the tracked carriers |
+| `/airlines/{key}/` | `airlines/{key}/index.html` | Field notes for each homepage rank-card carrier |
+
+Cloudflare Pages maps `/privacy` to `privacy.html`. A plain static server that
+does not apply Pages pretty-URL mapping serves the same file at `/privacy.html`.
+
+`/404.html` is served for unmatched paths. It is absent from `sitemap.xml` on
+purpose.
+
+JSON endpoints live under `/api/*` as Pages Functions (no HTML file on disk):
+
+| Endpoint | Role |
+|---|---|
+| `GET /api` | Index, field names, sources |
+| `GET /api/airlines` | Every tracked airline |
+| `GET /api/airlines/{key}` | One airline |
+| `POST /api/feedback` | Product feedback intake |
+| `POST /api/report` | Leftover report Worker; no current page posts to it |
+| `GET /api/score/{flight}` | Retired 2026-07-26; returns 410 Gone |
+
+`GET /api` documents `docs` as `https://wifiodds.com/methodology/`.
+
+`/united/data.json` is a required static asset. The Chrome extension fetches it.
+The `/united/` HTML page is gone. Do not move that JSON path.
+
+## Old encyclopedia URLs
+
+These paths are not current pages. `_redirects` sends each of them to `/` with a
+301:
+
+`/race/`, `/systems/`, `/united/` (exact, not a glob), `/united/fleet/`,
+`/united/history/`, `/alaska/`, `/roadmap/`, `/record/`, `/api/docs/`
+
+The `/united/` rule is enumerated exactly so it cannot swallow
+`/united/data.json`. Do not add a `/united/*` glob. `/airlines/` and
+`/airlines/{key}/` are live pages. Do not restore those 301s.
+
+## API names
+
+The JSON API is Cloudflare Pages Functions in `functions/`. There is no
+`wrangler.toml`. `wrangler` is not installed; `node build/apitest.js` is the
+local stand-in (run `node build/prerender.js` first).
+
+Current fields: `streamingScore`, `streamingScoreLower`, `streamingScoreUpper`,
+`streamingScoreExact`.
+
+`connectScore` and its lower/upper/exact siblings remain as **deprecated
+compatibility aliases**. They equal the Streaming score fields. Do not present
+ConnectScore as a customer-facing ranking name.
+
+`nextGenScore` is next-gen odds. When next-gen is unpublished, the public value
+is JSON `null` with `nextGen.published: false` and `nextGen.ranked: false`.
+
+One formula: scores are computed in `assets/airlines.js`, which must stay a
+classic browser script (an `export` there breaks the pages). `build/prerender.js`
+re-emits that file as `functions/_lib/score.mjs`. The API must not drift from
+the pages.
+
+No third-party requests from the Functions. They read `united/data.json` from
+the same deploy via `env.ASSETS`.
 
 ## Stack
 
 | | |
 |---|---|
-| Hosting | **Cloudflare Pages**, GitHub integration — push to `main` deploys, PRs get preview URLs |
+| Hosting | Cloudflare Pages, GitHub integration. Push to `main` deploys. PRs get preview URLs |
 | Build command | `node build/prerender.js` |
-| Output directory | **repo root** (`/`) |
-| Framework preset | None |
-| Node | Any current LTS. **Zero dependencies** — there is no `package.json` and nothing to install |
-| Excluded from the deploy | **Nothing.** The build output directory is empty, so Cloudflare Pages publishes the repository root and every tracked file is a public URL. Measured 26 Jul 2026: 78 of 90 tracked files are served, including all of `build/`. `functions/` is the exception — Pages compiles it and never serves the source. |
+| Node | Current LTS. No `package.json`; nothing to install |
+| Generated HTML | Committed, because that is what the site serves |
 
-`build/prerender.js` **generates every one of the 30 served pages** and writes `sitemap.xml`,
-`robots.txt`, `llms.txt` and `functions/_lib/score.mjs`. `<lastmod>` comes from `united/data.json`'s `updated` field, so the daily
-data commit moves it too. The generated HTML is committed, because Pages serves the repo root.
+**Never hand-edit a file listed in `build/routes.js`.** The next build overwrites
+it. Change the generator or the template.
 
-**Never hand-edit a file listed in `build/routes.js` — the next build overwrites it.** Layout:
-
-| | |
+| Path | Role |
 |---|---|
-| `build/routes.js` | the route table. Source of truth for what exists publicly |
-| `build/lib/html.js` | the shared chrome: one `<head>` builder, one topbar, one subnav, one footer |
-| `build/lib/render.js` | one function per page |
-| `build/templates/*.html` | the unique content of the four pages that are too bespoke to express in JS — chiefly `united-optimizer.html`, which holds the optimizer's ~1,400 lines of live-tested app JS/CSS **verbatim**. Templates are injected, never parsed |
-| `build/lib/market.js` | the two **editorial** data sets: each airline's announced finish line (for `/race/`) and the satellite-system primer (for `/systems/`). Every row carries its source and date. Fleet numbers are never repeated here — they are read live off `airlines.js`, so a row cannot disagree with the same airline's card |
-| `build/lib/reel.js` | the homepage extension demo: ONE sequence over the **two real product screenshots** in `assets/`, four captions (search → odds → sort → guard). It replaced 883 lines of hand-drawn fake united.com/Navan UI. Read its header before changing it |
+| `build/routes.js` | Route table. Source of truth for public HTML |
+| `build/prerender.js` | Writes every route, plus `sitemap.xml`, `robots.txt`, `llms.txt`, and `functions/_lib/score.mjs` |
+| `build/templates/` | Unique page content poured through the shared chrome |
+| `build/lib/` | Shared chrome and page assembly |
+| `build/assemble.sh` | Copies the allow-listed files in `build/public-manifest.txt` into `dist/` |
+| `functions/api/` | One-line route bindings |
+| `functions/_lib/` | API logic, importable from plain `node` |
+| `_redirects` | 301s for removed encyclopedia URLs |
+| `assets/selectors.json` | Remote selector manifest the extension fetches. Keep this path: `https://wifiodds.com/assets/selectors.json` |
 
-Five tripwires fail the build rather than shipping quietly:
+`build/ship.sh` is the sanctioned publish path (`--check-only` builds and
+verifies without committing). **Never `git add .`.** Stage by explicit path.
 
-1. a route in `ROUTES` with no file on disk (the failure that silently ships a 404);
-2. a served `.html` file that is **not** in `ROUTES` — the drift guard. Four pages were once
-   hand-authored whole documents, each with its own stale copy of the header, and nothing caught it.
-   The `EMBEDS` escape hatch is now **empty**, which is the goal state;
-3. a route still marked `kind: 'hand'`. There are none left;
-4. a stored `serviceTier` that disagrees with the fleet share it describes. Counts update daily, the
-   tier word does not, so without this a finished fleet would print "mixed" next to "97%" forever;
-5. a missing rollout row on `/race/` or a missing screenshot for the reel — a blank timeline cell
-   reads as "no rollout", and a broken `<img>` inside a section arguing "these are real screenshots"
-   is worse than no section.
-
-## Two numbers, not one
-
-Every airline is scored twice, and the difference is the point:
-
-| | |
-|---|---|
-| `nextGenScore` | **the headline.** Odds of a Starlink or Amazon Leo aircraft × free-for-you. A signed-but-unflown deal contributes **zero** — Delta is 0 |
-| `connectScore` | the original score. Fleet share × system quality × free-for-you, crediting streaming-class geostationary at 0.6 rather than nothing — Delta is 60 |
-| `serviceTier` | what the fleet delivers **today**: `next-gen` · `streaming` · `basic` · `mixed`. `restTier` is the tier on the part that is not next-gen yet, and `"unknown"` where we have not verified it |
-
-Delta at *next-gen 0 and ConnectScore 60* is the case that forced this: a single number let a reader
-conclude "Delta's WiFi beats United's Starlink" from two figures that were each individually correct.
-Both numbers are on every card, in the API, and in `llms.txt`. **The tier fields are additive** —
-`scoreAirline()` returns everything it always returned, so the extension and the API stay compatible.
-
-## The public ConnectScore API
-
-`/api/airlines`, `/api/airlines/{key}`, `/api/score/{flightNumber}` and `/api` are **Cloudflare Pages
-Functions**, not files. They deploy automatically from `functions/` alongside the static build — there
-is no build change and no `wrangler.toml`.
-
-| | |
-|---|---|
-| `functions/api/**/*.js` | route bindings, one line each. `[key].js` / `[flight].js` are dynamic segments |
-| `functions/_lib/handlers.mjs` | **all** the logic. Kept out of the route files so plain `node` can import and test it |
-| `functions/_lib/api.mjs` | response envelope, CORS, the `sources` credits, flight-number parsing, the `united/data.json` lookup |
-| `functions/_lib/score.mjs` | **GENERATED — do not edit.** `build/prerender.js` re-emits `assets/airlines.js` as an ES module |
-| `api/docs/index.html` | the human docs — a normal generated page, the only `/api` path in `ROUTES` |
-
-Two rules the code enforces on itself:
-
-- **One formula.** The score lives only in `assets/airlines.js`, which must stay a *classic* script
-  (the browser loads it with a plain `<script src>`, so an `export` keyword there breaks every page).
-  `prerender.js` mechanically re-emits it as `functions/_lib/score.mjs` — a verbatim copy with the
-  CommonJS tail swapped for `export {}` — and fails the build if a name it re-exports has been
-  renamed. Nothing is retyped, so the API cannot drift from the pages.
-- **No third-party requests.** The API reads only `united/data.json` out of its own deploy via
-  `env.ASSETS`. It never calls a tracker or an airline. `build/apitest.js` fails if any module other
-  than `_lib/api.mjs` so much as mentions `fetch(`.
-
-```bash
-node build/prerender.js     # must run first — apitest reads its output
-node build/apitest.js       # 538 checks: syntax, every handler against a mock context, and PARITY
-```
-
-PARITY now runs on both axes: the API's `connectScore` must equal the number `/airlines/qatar/`
-prints, **and** its `nextGenScore` must equal the headline number on that airline's homepage card
-(all seven checked). Delta reading 0 on the card and 0 from the API, while `connectScore` stays 60,
-is the specific thing being protected.
-
-`wrangler` is deliberately not installed, so there is no local Functions runtime. `apitest.js` is the
-substitute: it copies each `functions/**/*.js` to a temp `.mjs` for `node --check`, imports the
-handlers for real, and asserts the **parsed response bodies** — including that the score the API
-returns for Qatar equals the number the generated `/airlines/qatar/index.html` actually prints. A
-green light there is a light that was looking.
+The live Pages output directory is a Cloudflare dashboard setting. Do not infer
+it from this file. `SURFACES.md` lists the public HTML routes that actually
+ship.
 
 ## Local preview
 
-Any static file server works, but the pages use **root-absolute** paths (`/assets/airlines.js`,
-`/united/`), so serve the repo root — not a subdirectory:
+Pages use root-absolute paths (`/assets/airlines.js`). Serve the repo root, not
+a subdirectory:
 
 ```bash
-cd ~/Projects/wifiodds
-node build/prerender.js          # optional: regenerate sitemap/robots
-python3 -m http.server 8000      # or: npx serve .
+node build/prerender.js
+python3 -m http.server 8000
 ```
 
-Then open <http://localhost:8000/>. Verify by **response body**, never by status code:
+Then open <http://localhost:8000/>. Verify by **response body**, never by status
+code. Use a cache-buster:
 
 ```bash
-curl -sS "http://localhost:8000/?cb=$RANDOM"        | grep -i '<title>'   # WiFi Odds — know before you book
-curl -sS "http://localhost:8000/united/?cb=$RANDOM" | grep -i '<title>'   # WiFi Odds · United
-curl -sS "http://localhost:8000/alaska/?cb=$RANDOM" | grep -c 'alaskastarlinktracker'   # > 0
+curl -sS "http://localhost:8000/?cb=$RANDOM"              | grep -o '<title>[^<]*'
+curl -sS "http://localhost:8000/methodology/?cb=$RANDOM"  | grep -o '<title>[^<]*'
+curl -sS "http://localhost:8000/extension/?cb=$RANDOM"    | grep -o '<title>[^<]*'
+curl -sS "http://localhost:8000/airlines/?cb=$RANDOM"     | grep -o '<title>[^<]*'
+curl -sS "http://localhost:8000/privacy.html?cb=$RANDOM"  | grep -o '<title>[^<]*'
 ```
 
-Every number, table row and chart path is **baked at build time** — the airline leaderboard and the
-Alaska ConnectScore included — so the pages read correctly with JavaScript switched off. Two pages
-still render a list client-side from `united/data.json` and are the only ones allowed to say
-"Loading…": `/united/` (the live route optimizer) and `/united/history/` (the 176-day day-log).
+The last line hits the privacy file on a plain static server. Live production
+URL is `/privacy`.
 
-## Data pipeline
+`python3 -m http.server` does not apply `_redirects` and does not run Pages
+Functions. Old encyclopedia paths will 404 locally. `/api/*` needs the deployed
+Functions.
 
-`/united/data.json` (fleet, roster, history, route cache) is regenerated by
-`scripts/update-unitedstarlink.js` on the Mac mini under the `starlink-data-refresh` scheduled task.
-After the cutover the task **commits into this repo**, and the push auto-deploys Pages — the mini stops
-being a web server and becomes just the cron box. Nothing else in the tree is generated.
+Every homepage figure is baked at build time. JavaScript off still shows the
+scores.
 
-- The path is **`/united/data.json`**. `/united/index.html` fetches it as a *relative* `data.json`
-  and `/united/history/index.html` as `../data.json` — don't move the file without changing both.
-- Later this becomes a GitHub Action or a Supabase scheduled function (Phase B); not needed for the
-  cutover.
+## Data
 
-`assets/airlines.js` is a **copy** of the extension's `extension/airlines.js`
-(`jeremyinthebay/united-starlink-companion`, branch `bridge-1.6`), which stays the single source of
-truth until the `airlines` table in Supabase replaces both. Change one, change the other.
+`/united/data.json` holds the United roster the extension reads (Starlink tails,
+mainline vs regional). Keep that path. `build/prepare-daily-data.sh` copies a
+candidate into this repo from a source worktree that still contains
+`scripts/update-unitedstarlink.js`; that updater is not in this tree.
 
-> **KNOWN DIVERGENCE, deliberate and additive.** This copy is ahead of the extension's by the
-> three-tier fields (`serviceTier`, `restTier`) and their helpers (`nextGenScore`, `serviceTierOf`,
-> …). Nothing was removed or renamed, so the extension's popup keeps working against its own older
-> copy — it simply does not show the second number yet. Fold these fields into
-> `extension/airlines.js` on the next 2.0 build so the popup can lead with next-gen odds like the
-> site does.
+`assets/airlines.js` is the scoring map the site and the API share. Change it
+here and keep the extension's copy in mind until one table replaces both.
 
-`assets/shot-united-1280x800.png` / `assets/shot-navan-1280x800.png` are the **real** store
-screenshots (copies of `store-assets/screenshot-{united,navan}-1280x800.png` in the extension repo).
-`build/lib/reel.js` builds the homepage demo from them and fails the build if either is missing.
-The same two files feed the v2.0.0 store listing and any Reddit post — one asset set, three surfaces.
-
-`assets/selectors.json` is the extension's remote selector manifest — it is fetched by the extension
-about once a day so an airline redesign doesn't break the overlay. It is served from this site, so
-**keep the path stable**: `https://wifiodds.com/assets/selectors.json`.
+Required runtime files are listed in `build/routes.js` as `REQUIRED`. Losing one
+of them can still return HTTP 200.
 
 ## Credits
 
-Fleet verification for the two instrumented airlines comes from the independent community trackers
-**[unitedstarlinktracker.com](https://unitedstarlinktracker.com)** and
-**[alaskastarlinktracker.com](https://alaskastarlinktracker.com)**, built by **@martinamps**, which
-check every tail against the airline's own site. All credit for that data goes to them. Every other
-airline in the ConnectScore map is compiled from public airline announcements (July 2026).
+Fleet verification for United and Alaska comes from the independent community
+trackers **[unitedstarlinktracker.com](https://unitedstarlinktracker.com)** and
+**[alaskastarlinktracker.com](https://alaskastarlinktracker.com)**, built by
+**@martinamps**, which check every tail against the airline's own site. All
+credit for that data goes to them. Every other airline is compiled from public
+airline announcements (July 2026).
 
-WiFi Odds is unofficial, free and open source, and is not affiliated with, endorsed by, or sponsored
-by any airline, Navan, SpaceX/Starlink, Amazon, Viasat, or the community trackers.
+WiFi Odds is unofficial and is not affiliated with, endorsed by, or sponsored
+by any airline, Navan, SpaceX/Starlink, Amazon, Viasat, or the community
+trackers.

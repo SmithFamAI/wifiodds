@@ -99,6 +99,9 @@ fi
 if ! node build/privacy-permissions.test.js; then
   fail "build/privacy-permissions.test.js exited non-zero. Privacy §7 may list undeclared hosts as permissions, or a planted 3.0.2 grant-kind defect escaped." 98
 fi
+if ! node build/readme-live-product.test.js; then
+  fail "build/readme-live-product.test.js exited non-zero. README may still sell the retired encyclopedia, or privacy §7 / /extension/ copy may have drifted from live Store 3.0.2." 98
+fi
 if ! node build/functions-import-resolve.test.js; then
   fail "build/functions-import-resolve.test.js exited non-zero. Pages Functions relative imports walk out of functions/ or miss functions/_lib/feedback.mjs." 98
 fi
