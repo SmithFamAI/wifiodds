@@ -102,6 +102,9 @@ fi
 if ! bash test/revert-data-deploy.test.sh; then
   fail "test/revert-data-deploy.test.sh exited non-zero. Rollback integration may bypass its registered worktree." 98
 fi
+if ! node build/verify-data-deploy-controls.js; then
+  fail "build/verify-data-deploy-controls.js exited non-zero. Pages lag may be treated as a failed deploy, or a count the tracker does not support may escape." 98
+fi
 
 echo "── 1/5 prerender ─────────────────────────────────────────"
 if ! node build/prerender.js; then
