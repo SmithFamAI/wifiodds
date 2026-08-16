@@ -8,7 +8,7 @@ var Data = require('./lib/data.js');
 var Render = require('./lib/render.js');
 
 var html = Render.home(Data.build());
-var united = html.match(/<article class="aircard"[\s\S]*?<span class="airname">United<\/span>[\s\S]*?<\/article>/);
+var united = html.match(/<a class="aircard"[\s\S]*?<span class="airname">United<\/span>[\s\S]*?<\/a>/);
 var score = Data.build().A.scoreAirline('united');
 var note = united && united[0].match(/<p class="airnote[^"]*"[^>]*>([\d,]+) of ([\d,]+) aircraft next-gen today<\/p>/);
 var odds = united && united[0].match(/data-nextgen="(\d+)"/);

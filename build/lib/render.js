@@ -95,7 +95,7 @@ function crumbLd(items) {
  *                            gets from H.page() — canonical link, favicon,
  *                            og/twitter tags, the theme-boot script — copied
  *                            from the exact same H.* strings, not retyped.
- *   <!--HOME:BIG4_CARDS-->   the four Big-4 <article class="aircard"> cards.
+ *   <!--HOME:BIG4_CARDS-->   the four Big-4 <a class="aircard"> cards.
  *   <!--HOME:BOARD_ROWS-->   all 18 <a class="row"> board entries.
  *   <!--HOME:CWS_BADGE-->    Google's own cached Chrome Web Store badge,
  *                            replacing the mockup's embedded base64 PNG.
@@ -307,7 +307,7 @@ function homeAssertProofFloor(out, pb, num) {
   /* Anchor on United by name, not on card order: the Big-4 order is a constant
      someone may reasonably reorder, and a guard that silently starts comparing
      against American is worse than no guard. */
-  var united = out.split('<article class="aircard"').filter(function (chunk) {
+  var united = out.split('<a class="aircard"').filter(function (chunk) {
     return /<span class="airname">United<\/span>/.test(chunk);
   });
   if (united.length !== 1) {
@@ -407,7 +407,7 @@ function homeRow(m, key, rank) {
   var coverageEvidenceId = 'row-' + key + '-coverage-evidence';
 
   if (a.nextGenPublished === false) {
-    return '        <div class="row unranked" data-key="' + key + '" data-name="' + dataName +
+    return '        <a class="row unranked" href="' + airlinePath(key) + '" data-key="' + key + '" data-name="' + dataName +
       '" data-rankable="false" data-streaming-score="' + score + '" data-streaming-exact="' + exact +
       '" data-odds="-1" data-streaming-coverage="-1" data-streaming-coverage-exact="-1" data-streaming-rank-coverage-exact="' + coverageExact + '">' +
       '<div class="who"><b><span class="rank-text">–</span> · ' + esc(a.name) + '</b> ' +
@@ -419,7 +419,7 @@ function homeRow(m, key, rank) {
       homeFigureEvidence(m, a, 'streaming', streamingEvidenceId) + '</div></div>' +
       '<div class="metric" data-figure-block="coverage"><b class="unknown" data-streaming-coverage="unknown">could not verify</b>' +
       homeUnknownCoverageEvidence(m, a, coverageEvidenceId) + '</div></div>' +
-      '<div class="row-meta">' + homeCheckedDate(a) + '</div></div>\n';
+      '<div class="row-meta">' + homeCheckedDate(a) + '</div></a>\n';
   }
 
   var odds = homeNum(a.nextGenScore, key + '.nextGenScore');
@@ -427,7 +427,7 @@ function homeRow(m, key, rank) {
   var tierNote = homeTierNote(a, sf);
   var smallHtml = '<small>' + esc(tierNote ? homeOddsLabel(a) : homeSysLabel(a)) + '</small>';
 
-  return '        <div class="row ' + rowClass + '" data-key="' + key + '" data-name="' + dataName +
+  return '        <a class="row ' + rowClass + '" href="' + airlinePath(key) + '" data-key="' + key + '" data-name="' + dataName +
     '" data-rankable="true" data-streaming-score="' + score + '" data-streaming-exact="' + exact + '" data-odds="' + odds +
     '" data-streaming-coverage="' + coverage + '" data-streaming-coverage-exact="' + coverageExact + '" data-streaming-rank-coverage-exact="' + coverageExact + '"><div class="who"><b><span class="rank-text">' +
     String(rank).padStart(2, '0') + '</span> · ' + esc(a.name) + '</b> ' + smallHtml + '</div>' +
@@ -441,7 +441,7 @@ function homeRow(m, key, rank) {
     '<div class="metric" data-figure-block="coverage"><b data-streaming-coverage="confirmed" data-published-figure="coverage" ' +
     'aria-describedby="' + coverageEvidenceId + '">' + coverage + '%</b>' +
     homeFigureEvidence(m, a, 'coverage', coverageEvidenceId) + '</div></div>' +
-    '<div class="row-meta">' + homeCheckedDate(a) + '</div></div>\n';
+    '<div class="row-meta">' + homeCheckedDate(a) + '</div></a>\n';
 }
 
 function homeBoardRows(m) {
@@ -471,7 +471,7 @@ function homeCard(m, key) {
   var streamingEvidenceId = 'card-' + key + '-streaming-evidence';
   var coverageEvidenceId = 'card-' + key + '-coverage-evidence';
 
-  return '        <article class="aircard" data-nextgen="' + odds + '" data-streaming-score="' + score + '" data-streaming-exact="' +
+  return '        <a class="aircard" href="' + airlinePath(key) + '" data-nextgen="' + odds + '" data-streaming-score="' + score + '" data-streaming-exact="' +
     homeNum(a.scoreExact, key + '.scoreExact') + '" data-streaming-coverage="' + streamStr +
     '"><div class="airtop"><span class="airname">' + esc(a.name) + '</span> <span class="code">' +
     esc(a.code || '') + '</span></div>' +
@@ -485,7 +485,7 @@ function homeCard(m, key) {
     '<div class="support" data-figure-block="coverage"><div class="support-copy"><span>Confirmed streaming coverage</span>' +
     homeFigureEvidence(m, a, 'coverage', coverageEvidenceId) + '</div> <b data-streaming-coverage="confirmed" ' +
     'data-published-figure="coverage" aria-describedby="' + coverageEvidenceId + '">' + streamStr + '%</b></div>' +
-    '<p class="airnote odds-only" aria-describedby="' + nextGenEvidenceId + '">' + esc(note) + '</p></article>\n';
+    '<p class="airnote odds-only" aria-describedby="' + nextGenEvidenceId + '">' + esc(note) + '</p></a>\n';
 }
 
 function homeBig4Cards(m) {
@@ -1211,15 +1211,8 @@ function airlineScopedCss() {
   return '<style id="airline-scoped">\n' +
     '.airline-page .dir-list{margin:0;padding:0;list-style:none;' +
     'border-top:1px solid var(--line,var(--soft,#29292f))}\n' +
-    '.airline-page .dir-list a,.airline-page .dir-list .dir-head{' +
-    'display:grid;grid-template-columns:minmax(0,1.6fr) minmax(96px,.55fr) minmax(96px,.55fr);' +
-    'gap:12px;align-items:baseline;padding:14px 0;' +
+    '.airline-page .dir-list a{display:block;padding:10px 0;' +
     'border-bottom:1px solid var(--line,var(--soft,#29292f))}\n' +
-    '.airline-page .dir-list .dir-head{color:var(--muted,#aaaab2);font:11px ui-monospace,SFMono-Regular,Menlo,monospace;' +
-    'letter-spacing:.06em;text-transform:uppercase}\n' +
-    '.airline-page .dir-list small{display:block;margin-top:3px;color:var(--muted,#aaaab2);' +
-    'font-size:11px;letter-spacing:.04em;text-transform:none}\n' +
-    '.airline-page .dir-list .fig{text-align:right;font-variant-numeric:tabular-nums}\n' +
     '.airline-page .tech-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;' +
     'padding:12px 0;border-bottom:1px solid var(--line,var(--soft,#29292f))}\n' +
     '.airline-page .tech-row .d{margin-top:3px;color:var(--muted,#aaaab2);font-size:13px}\n' +
@@ -1253,27 +1246,21 @@ function airlineNewsItems(key) {
   }).slice(0, 2);
 }
 
-function airlineBoardOrder() {
-  return HOME_BOARD_SEED_ORDER.concat(HOME_UNPUBLISHED_ORDER);
+function directoryCarrierKeys(m) {
+  return HOME_BOARD_SEED_ORDER.concat(HOME_UNPUBLISHED_ORDER).slice().sort(function (ka, kb) {
+    var a = m.A.scoreAirline(ka);
+    var b = m.A.scoreAirline(kb);
+    if (!a || !b) throw new Error('Render.airlinesDirectory: unknown airline key');
+    return a.name.localeCompare(b.name);
+  });
 }
 
 function airlinesDirectory(m) {
-  var order = HomeOrder.rank(HOME_BOARD_SEED_ORDER, function (k) {
-    var row = m.A.scoreAirline(k);
-    return row && { odds: row.nextGenScore, connect: row.score };
-  }).concat(HOME_UNPUBLISHED_ORDER);
-  var rows = order.map(function (key) {
+  var keys = directoryCarrierKeys(m);
+  var rows = keys.map(function (key) {
     var a = m.A.scoreAirline(key);
-    if (!a) return '';
-    var unpublished = a.nextGenPublished === false;
-    var nextGen = unpublished
-      ? '<span class="fig" data-figure-block="nextgen">Unpublished</span>'
-      : '<span class="fig" data-figure-block="nextgen">' + homeNum(a.nextGenScore, key + '.nextGenScore') + '%</span>';
-    var streaming = '<span class="fig" data-figure-block="streaming">' +
-      homeNum(a.score, key + '.score') + '</span>';
-    return '    <li><a href="' + airlinePath(key) + '"><span><b>' + esc(a.name) +
-      '</b> <small>as_of ' + esc(a.asOf || 'Unknown') + '</small></span> ' +
-      nextGen + ' ' + streaming + '</a></li>\n';
+    if (!a) throw new Error('Render.airlinesDirectory: unknown airline key "' + key + '"');
+    return '    <li><a href="' + airlinePath(key) + '">' + esc(a.name) + '</a></li>\n';
   }).join('');
   var crumbs = [['/', 'Home'], ['/airlines/', 'Airlines']];
   var body =
@@ -1281,20 +1268,18 @@ function airlinesDirectory(m) {
     '<header class="hero" style="padding-top:14px">\n' +
     '  <span class="kicker">The forecast</span>\n' +
     '  <h1 class="ph">Airlines</h1>\n' +
-    '  <p class="lede">One page per carrier on the homepage rank list. Next-Gen and Streaming stay separate; unpublished next-gen counts render Unpublished.</p>\n' +
+    '  <p class="lede">One page per carrier on the homepage rank list.</p>\n' +
     '</header>\n\n' +
     '<section class="blk" id="directory">\n' +
     '  <div class="sec-h"><h2>Directory</h2><span class="sub">' +
-    airlineBoardOrder().length + ' carriers</span></div>\n' +
+    keys.length + ' carriers</span></div>\n' +
     '  <ul class="dir-list">\n' +
-    '    <li class="dir-head" aria-hidden="true"><span>Carrier</span> ' +
-    '<span class="fig">Next-Gen</span> <span class="fig">Streaming</span></li>\n' +
     rows + '  </ul>\n' +
     '</section>\n' +
     '</div>\n';
   return H.page({
     title: 'Airlines · WiFi Odds',
-    desc: 'Next-Gen and Streaming figures for each airline on the WifiOdds rank list.',
+    desc: 'A directory of airline pages for each carrier on the WifiOdds rank list.',
     canonical: '/airlines/', here: '/airlines/',
     updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained,
     mastheadV2: true,

@@ -1832,7 +1832,7 @@ async function main() {
    * number the page draws. The V5 go-live (28 Jul 2026) replaced the skyline
    * and the old rankBoard/bigFourBoard table with build/templates/home.html,
    * poured through Render.home() in build/lib/render.js: 4 Big-4
-   * <article class="aircard"> cards and 18 <a class="row"> board entries,
+   * <a class="aircard"> cards and 18 <a class="row"> board entries,
    * each one emitted whole (text AND every data-* attribute) by ONE helper
    * per airline (homeCard / homeRow) so the two can never read different
    * numbers for the same airline. Delta is still the case that matters: its
@@ -2211,7 +2211,7 @@ async function main() {
   /* The generated Streaming state owns an explicit public marker. It must not
    * reuse the retired coverage-floor state. Delta distinguishes the metrics:
    * the plain primary score is 48 and its separate confirmed coverage is 86%. */
-  home.split('<article class="aircard"').slice(1).forEach(function (card) {
+  home.split('<a class="aircard"').slice(1).forEach(function (card) {
     var nameMatch = /<span class="airname">([^<]+)<\/span>/.exec(card);
     var streamingMatch = /<[^>]*\bdata-streaming-view="primary"[^>]*>(\d+)(?:<sup[^>]*>[^<]*<\/sup>)?<\//.exec(card);
     var coverageMatch = /<[^>]*\bdata-streaming-coverage="confirmed"[^>]*>([^<]+)<\//.exec(card);
@@ -2250,8 +2250,8 @@ async function main() {
     ok(southwest.nextGen.pct > 0,
       'Southwest API preserves its sourced nonzero next-gen result instead of rounding it to zero',
       southwest.nextGen.pct);
-    var southwestCards = home.split('<article class="aircard"').slice(1).map(function (chunk) {
-      return chunk.slice(0, chunk.indexOf('</article>'));
+    var southwestCards = home.split('<a class="aircard"').slice(1).map(function (chunk) {
+      return chunk.slice(0, chunk.indexOf('</a>'));
     }).filter(function (chunk) {
       return /<span class="airname">Southwest<\/span>/.test(chunk);
     });
@@ -2274,7 +2274,7 @@ async function main() {
 
   /* ── Big 4 cards: name + data-nextgen attribute + the ConnectScore <b> in
    * .support must all agree with the API for the same airline. */
-  var cardRe = /<article class="aircard" data-nextgen="(-?[\d.]+)" data-streaming-score="(-?[\d.]+)" data-streaming-exact="(-?[\d.]+)" data-streaming-coverage="(-?[\d.]+)">[\s\S]*?<span class="airname">([^<]+)<\/span>[\s\S]*?data-streaming-view="primary"[^>]*>(\d+)/g;
+  var cardRe = /<a class="aircard" href="\/airlines\/[a-z]+\/" data-nextgen="(-?[\d.]+)" data-streaming-score="(-?[\d.]+)" data-streaming-exact="(-?[\d.]+)" data-streaming-coverage="(-?[\d.]+)">[\s\S]*?<span class="airname">([^<]+)<\/span>[\s\S]*?data-streaming-view="primary"[^>]*>(\d+)/g;
   var seenBig4 = 0, mCard, big4Keys = {};
   while ((mCard = cardRe.exec(home)) !== null) {
     var nextgenAttr = mCard[1], streamAttr = mCard[2], cardExact = mCard[3], cardName = mCard[5], cardScore = mCard[6];
@@ -2293,8 +2293,8 @@ async function main() {
   eq(seenBig4, 4, 'PARITY: all four Big 4 cards were checked against the API');
   eq(Object.keys(big4Keys).sort().join(','), ['american', 'delta', 'southwest', 'united'].sort().join(','),
     'PARITY: the Big 4 cards are exactly united/american/delta/southwest');
-  var unitedCard = home.split('<article class="aircard"').slice(1).map(function (chunk) {
-    return chunk.slice(0, chunk.indexOf('</article>'));
+  var unitedCard = home.split('<a class="aircard"').slice(1).map(function (chunk) {
+    return chunk.slice(0, chunk.indexOf('</a>'));
   }).filter(function (chunk) {
     return /<span class="airname">United<\/span>/.test(chunk);
   });
@@ -2318,14 +2318,13 @@ async function main() {
   ok(/data-nextgen="0" data-streaming-score="[\d.]+"[^>]*>[\s\S]{0,400}<span class="airname">Delta<\/span>/.test(home),
     'the Delta Big 4 card ranks next-gen at a real 0, not blank and not projected');
 
-/* ── all 18 board rows: one <div class="row"> per airline. The rows were
-   * delinked in the 28 Jul cut (the airline detail pages they linked to are
-   * gone), so the model key is read off the explicit data-key attribute that
-   * homeRow now emits, rather than off the old /airlines/<key>/ href. */
+/* ── all 18 board rows: one <a class="row" href="/airlines/{key}/"> per airline.
+   * The 28 Jul cut delinked these after the airline pages 301'd home. The pages
+   * are live again, so the href is restored; data-key remains the model key. */
   /* Stop at the next peer row / section delimiter, never at a customer-facing
    * metric label. The 3.1.0 migration removes ConnectScore from this surface,
    * and the later Streaming marker assertions below own the public contract. */
-  var rowRe = /<div class="row ([a-z]+)" data-key="([a-z]+)"[^>]*data-rankable="(true|false)"[^>]*data-streaming-score="(\d+)"[^>]*data-streaming-exact="(-?[\d.]+)"[^>]*data-odds="(-?[\d.]+)"[^>]*data-streaming-coverage="(-?[\d.]+)"[^>]*data-streaming-coverage-exact="(-?[\d.]+)"(?: data-streaming-rank-coverage-exact="(-?[\d.]+)")?[^>]*>/g;
+  var rowRe = /<a class="row ([a-z]+)" href="\/airlines\/([a-z]+)\/" data-key="\2"[^>]*data-rankable="(true|false)"[^>]*data-streaming-score="(\d+)"[^>]*data-streaming-exact="(-?[\d.]+)"[^>]*data-odds="(-?[\d.]+)"[^>]*data-streaming-coverage="(-?[\d.]+)"[^>]*data-streaming-coverage-exact="(-?[\d.]+)"(?: data-streaming-rank-coverage-exact="(-?[\d.]+)")?[^>]*>/g;
   var boardRows = [];
   var rowStarts = [];
   var mRow;
@@ -2477,8 +2476,8 @@ async function main() {
 
   Object.keys(big4Keys).forEach(function (key) {
     var a = apiByKey[key];
-    var cardStart = home.indexOf('<article class="aircard"', home.indexOf('<span class="airname">' + a.name + '</span>') - 500);
-    var cardEnd = home.indexOf('</article>', cardStart);
+    var cardStart = home.indexOf('<a class="aircard"', home.indexOf('<span class="airname">' + a.name + '</span>') - 500);
+    var cardEnd = home.indexOf('</a>', cardStart);
     var card = home.slice(cardStart, cardEnd);
     ['nextgen', 'streaming', 'coverage'].forEach(function (kind) {
       eq(homeEvidenceSourceText(card, 'card-' + key + '-' + kind + '-evidence'), homeExpectedSources(a),
