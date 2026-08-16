@@ -43,6 +43,10 @@ make_case incomplete-denominator-source || exit 2
 perl -0pi -e 's/(id="row-alaska-nextgen-evidence"[\s\S]*?<p class="figure-source-list">)alaskastarlinktracker\.com; /$1/' "$TMP/incomplete-denominator-source/index.html"
 expect_fail incomplete-denominator-source
 
+make_case stacked-nextgen-streaming || exit 2
+perl -0pi -e 's/(#airline-grid \.row \.metric\.primary\{[^}]*)(})/$1flex-direction:column;flex-wrap:wrap;$2/' "$TMP/stacked-nextgen-streaming/index.html"
+expect_fail stacked-nextgen-streaming
+
 make_case clean || exit 2
 RAN=$((RAN + 1))
 if (cd "$TMP/clean" && node build/homepage-visual.test.mjs --quick >/dev/null 2>&1); then
@@ -52,8 +56,8 @@ else
   FAIL=$((FAIL + 1))
 fi
 
-if [ "$RAN" -ne 5 ]; then
-  echo "FAIL control count: expected 5, ran $RAN"
+if [ "$RAN" -ne 6 ]; then
+  echo "FAIL control count: expected 6, ran $RAN"
   exit 1
 fi
 if [ "$FAIL" -ne 0 ]; then

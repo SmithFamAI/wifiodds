@@ -145,7 +145,11 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
 @media(prefers-reduced-motion:reduce){.stars,.rocket,.hero-v2 .gradient{animation:none}}
 /* Rank-list density (Backlog 56). Next-Gen stays the primary figure. Streaming
    sits on the same row as a smaller second figure. The checked date is a nowrap
-   chip so "2026-04" cannot split after the hyphen. */
+   chip so "2026-04" cannot split after the hyphen.
+   The pair cannot wrap: .metric.primary is a nowrap row. A later
+   .row-figs>.metric { flex-direction:column } used to restack them because it
+   had equal specificity and won by source order. Coverage may wrap; the pair
+   may not. */
 .checked-date{white-space:nowrap}
 #airline-grid .row,
 #airline-grid.allgrid-v2 .row{
@@ -162,23 +166,29 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
 #airline-grid .row .row-figs{
   grid-area:figs;
   display:flex;
+  flex-wrap:wrap;
   align-items:baseline;
   justify-content:flex-end;
   gap:14px;
-  min-width:0;
 }
 #airline-grid .row .metric.primary{
   display:flex;
+  flex-direction:row;
+  flex-wrap:nowrap;
   align-items:baseline;
   gap:12px;
   margin:0;
+  flex:0 0 auto;
 }
 #airline-grid .row .metric.primary .odds-only,
 #airline-grid .row .metric.primary .stream-fig{
   display:flex;
   flex-direction:column;
+  flex-wrap:nowrap;
+  flex:0 0 auto;
   align-items:flex-end;
   gap:2px;
+  white-space:nowrap;
 }
 #airline-grid .row .metric.primary .odds-only b{
   font-size:26px;
@@ -201,11 +211,12 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
   text-transform:uppercase;
   color:#8a8a93;
 }
-#airline-grid .row .row-figs>.metric{
+#airline-grid .row .row-figs>.metric:not(.primary){
   display:flex;
   flex-direction:column;
   align-items:flex-end;
   gap:2px;
+  flex:0 0 auto;
 }
 #airline-grid .row .row-figs>.metric>b{font-size:13px;line-height:1.1}
 #airline-grid .row .row-meta{
@@ -239,12 +250,16 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
     min-height:0;
     gap:4px 10px;
   }
-  #airline-grid .row .metric:last-child{
+  #airline-grid .row .row-figs>.metric:not(.primary){
     grid-column:auto;
     display:flex;
     flex-direction:column;
     padding-top:0;
     border-top:0;
+  }
+  #airline-grid .row .metric.primary{
+    flex-direction:row;
+    flex-wrap:nowrap;
   }
   #airline-grid .row .metric.primary .odds-only b{font-size:22px}
 }
