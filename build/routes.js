@@ -38,7 +38,7 @@ var ROUTES = [
   { url: '/technology/', file: 'technology/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.8' },
   { url: '/extension/', file: 'extension/index.html', kind: 'gen', changefreq: 'monthly', priority: '0.8' },
   { url: '/privacy', file: 'privacy.html', kind: 'gen', tmpl: 'privacy', changefreq: 'yearly',
-    priority: '0.3', lastmod: '2026-08-14' }
+    priority: '0.3', lastmod: '2026-08-16' }
 ];
 
 /* The 18 /airlines/{key}/ routes were removed in the 28 Jul cut. AIRLINE_KEYS
