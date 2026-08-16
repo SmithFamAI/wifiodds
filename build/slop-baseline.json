@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "build/slop-baseline.json \u2014 the prose ratchet. Written by build/slop-gate.js.",
+    "build/slop-baseline.json — the prose ratchet. Written by build/slop-gate.js.",
     "",
     "One entry per surface. A page may never score WORSE than the number here;",
     "when it scores better, this file is rewritten DOWN in the same run and the",
@@ -38,12 +38,20 @@
       "pivotUnits": 2
     },
     "README.md": {
-      "words": 1421,
-      "llmPoints": 2.5,
+      "words": 925,
+      "llmPoints": 0,
       "clichePoints": 0,
       "unsub": 0,
-      "pivotPer1000": 24.63,
-      "pivotUnits": 35
+      "pivotPer1000": 0.54,
+      "pivotUnits": 0.5
+    },
+    "STORE.md": {
+      "words": 153,
+      "llmPoints": 0,
+      "clichePoints": 0,
+      "unsub": 0,
+      "pivotPer1000": 1.63,
+      "pivotUnits": 0.25
     },
     "SURFACES.md": {
       "words": 322,
