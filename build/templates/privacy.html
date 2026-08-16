@@ -53,10 +53,9 @@
   things leave the extension, and both are named below: odds lookups to two public community
   trackers, and a daily selector file from this site. That selector request still carries your IP
   address, the way any web request does. Reading a page fetches nothing from another origin.
-  Submitting the feedback form at <a href="/feedback/">/feedback</a> posts to this origin and
-  stores the message, the email, an optional name, and any screenshots you attach. An earlier
-  version had a live United route optimizer page that called another origin while you read it; it
-  was removed on 29 Jul 2026.</p>
+  Submitting the feedback form at <a href="/feedback/">/feedback</a> posts to this origin. What
+  that post stores is named in §6. An earlier version had a live United route optimizer page that
+  called another origin while you read it; it was removed on 29 Jul 2026.</p>
 </div>
 
 <section class="blk pol">
@@ -108,8 +107,7 @@
   <p>Every page is prerendered, so it arrives holding its numbers and fetches nothing while you
   read it. Nothing on the site calls another origin at read time. The feedback form at
   <a href="/feedback/">/feedback</a> posts to <b>/api/feedback</b> on this origin when you submit
-  it. That post stores your message and email, a name if you typed one, and screenshots if you
-  attached them.</p>
+  it. What that post stores is named in §6.</p>
 </section>
 
 <section class="blk pol" id="offorigin">
@@ -145,8 +143,10 @@
   were removed. Those URLs now redirect to the home page. This site does not offer a form for field reports.</p>
   <p>There is a product feedback form at <a href="/feedback/">/feedback</a>. Submitting it stores
   your message and email on this origin, a name if you typed one, and screenshots if you attached
-  them. A copy is mailed to the email you entered only if you ticked that box. Jeremy is not mailed
-  on every submission.</p>
+  them. It also stores the two checkbox flags (send me a copy, and whether the developer may email
+  follow-up questions), a hashed IP, and a rate-limit bucket keyed by that hash. A copy is mailed
+  to the email you entered only if you ticked that box. Jeremy is not mailed on every
+  submission.</p>
   <p>A leftover intake Worker still answers <b>/api/report</b>. GET returns 405. No current page
   posts to it. Do not send personal information there. Product feedback uses <b>/api/feedback</b>.</p>
 </section>
@@ -212,11 +212,13 @@
   <h2>When this policy changes</h2>
   <p>The effective date at the top changes with it, and the version it replaced stays in the public
   git history of the repository below. This revision, on 16 Aug 2026, added the product feedback
-  form at /feedback. The same day rewrote §7 so the table matches Chrome Web Store version 3.0.2:
-  always-on content_scripts, the one host_permissions origin, optional grants including
-  www.google.com, and the alarms and notifications permissions. Alaska tracker and wifiodds.com
-  fetches stay in §2 as data flows; they are not declared Chrome permissions. The leftover
-  /api/report Worker is still not a public form. The 14 Aug 2026 revision rewrote §2 and §6 so the
+  form at /feedback and named what that form stores: message, email, optional name, optional
+  screenshots, the two checkbox flags, a hashed IP, and rate-limit buckets. The same day rewrote
+  §7 so the table matches Chrome Web Store version 3.0.2: always-on content_scripts, the one
+  host_permissions origin, optional grants including www.google.com, and the alarms and
+  notifications permissions. Alaska tracker and wifiodds.com fetches stay in §2 as data flows;
+  they are not declared Chrome permissions. The leftover /api/report Worker is still not a public
+  form. The 14 Aug 2026 revision rewrote §2 and §6 so the
   page matches the product: there is no public report form, local extension storage is named, and
   the daily selector fetch is not described as collecting nothing. The 4 Aug 2026 revision rewrote
   §6 in plain language while a form still existed. The 29 Jul 2026 revision rewrote §3, §4 and §5

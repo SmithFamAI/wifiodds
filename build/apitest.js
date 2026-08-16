@@ -2045,6 +2045,9 @@ async function main() {
     'A leftover intake Worker still answers',
     'GET returns 405',
     '/api/feedback',
+    'hashed IP',
+    'rate-limit bucket',
+    'two checkbox flags',
     'chrome.storage.local',
     'Trip Guardian flights you asked it to',
     'That request carries nothing about you beyond what any web',
@@ -2064,7 +2067,8 @@ async function main() {
     'Nothing personal is collected',
     'united-starlink-companion',
     'There is no public report form',
-    'The website itself asks nobody'
+    'The website itself asks nobody',
+    'Nothing else is stored'
   ].forEach(function (copy) {
     ok(privacy.indexOf(copy) === -1, 'privacy cleanup: stale intake or storage framing is absent', copy);
   });
@@ -2089,6 +2093,8 @@ async function main() {
     'feedback page uses the specified follow-up label');
   ok(!/honest/i.test(renderedText(feedbackPage)), 'feedback page copy does not say honest');
   ok(!/\u2014/.test(renderedText(feedbackPage)), 'feedback page visible copy has no em dash');
+  ok(renderedText(feedbackPage).indexOf('Nothing else is stored') === -1,
+    'feedback page does not claim nothing else is stored');
 
   var notFoundPage = fs.readFileSync(path.join(ROOT, '404.html'), 'utf8');
   ['Page not found', 'The address may have changed, or the page may no longer exist.',
