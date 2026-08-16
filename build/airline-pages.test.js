@@ -83,6 +83,16 @@ assert.ok(fs.existsSync(path.join(ROOT, 'united', 'data.json')),
 var directory = htmlOf('airlines/index.html');
 var dirText = visible(directory);
 assert.ok(dirText.indexOf('ConnectScore') === -1, 'directory does not revive ConnectScore');
+var dirSection = (/<section class="blk" id="directory"[\s\S]*?<\/section>/.exec(directory) || [''])[0];
+var dirSectionText = visible(dirSection);
+assert.ok(dirSection, 'directory has a directory section');
+assert.ok(dirSectionText.indexOf('Next-Gen') === -1, 'directory is not a Next-Gen rank table');
+assert.ok(dirSectionText.indexOf('Streaming') === -1, 'directory is not a Streaming rank table');
+assert.ok(dirSection.indexOf('data-figure-block') === -1, 'directory does not reprint homepage figures');
+assert.ok(directory.indexOf('class="view-switch') === -1,
+  'directory has no Next-Gen/Streaming picker');
+assert.ok(directory.indexOf('class="aircard"') === -1, 'directory does not clone Big 4 cards');
+assert.ok(directory.indexOf('id="airline-grid"') === -1, 'directory does not clone the homepage rank grid');
 assert.ok(directory.indexOf('class="sitebar"') !== -1, 'directory reuses the live masthead');
 assert.ok(directory.indexOf('<footer class="site">') !== -1, 'directory reuses the live footer');
 assert.ok(directory.indexOf('href="/airlines/"') !== -1 || directory.indexOf('>Airlines<') !== -1,
@@ -93,17 +103,30 @@ assert.ok(/<a href="\/airlines\/"[^>]*>Airlines<\/a>/.test(dirNav),
 var dirFooter = (/<footer class="site">[\s\S]*?<\/footer>/.exec(directory) || [''])[0];
 assert.ok(/<a href="\/airlines\/">Airlines<\/a>/.test(dirFooter),
   'directory footer still links Airlines to /airlines/');
-var homeNav = (/<nav id="primary-nav"[\s\S]*?<\/nav>/.exec(htmlOf('index.html')) || [''])[0];
+var home = htmlOf('index.html');
+var homeNav = (/<nav id="primary-nav"[\s\S]*?<\/nav>/.exec(home) || [''])[0];
 assert.ok(/<a href="\/airlines\/">Airlines<\/a>/.test(homeNav),
   'homepage Forecast masthead links Airlines to /airlines/');
-var homeFooter = (/<footer class="footer">[\s\S]*?<\/footer>/.exec(htmlOf('index.html')) || [''])[0];
+var homeFooter = (/<footer class="footer">[\s\S]*?<\/footer>/.exec(home) || [''])[0];
 assert.ok(/href="[^"]*\/airlines\/"[^>]*>Airlines<\/a>/.test(homeFooter),
   'homepage footer still links Airlines');
+assert.strictEqual((home.match(/<a class="row /g) || []).length, LOCKED_KEYS.length,
+  'homepage rank list has one anchor row per lock key');
+assert.ok(!/<div class="row /.test(home), 'homepage rank rows are anchors, not inert divs');
+assert.strictEqual((home.match(/<a class="aircard"/g) || []).length, 4,
+  'homepage Big 4 cards are anchors');
+assert.ok(!/<article class="aircard"/.test(home), 'homepage Big 4 cards are anchors, not articles');
+['united', 'american', 'delta', 'southwest'].forEach(function (key) {
+  assert.ok(home.indexOf('<a class="aircard" href="/airlines/' + key + '/"') !== -1,
+    'homepage Big 4 ' + key + ' card links to /airlines/' + key + '/');
+});
 LOCKED_KEYS.forEach(function (key) {
   var scored = A.scoreAirline(key);
   assert.ok(directory.indexOf('href="/airlines/' + key + '/"') !== -1,
     'directory links to /airlines/' + key + '/');
   assert.ok(dirText.indexOf(scored.name) !== -1, 'directory names ' + scored.name);
+  assert.ok(new RegExp('<a class="row [^"]+" href="/airlines/' + key + '/"').test(home),
+    'homepage rank row for ' + key + ' is an anchor to /airlines/' + key + '/');
 });
 
 LOCKED_KEYS.forEach(function (key) {
