@@ -34,6 +34,7 @@ var cp = require('child_process');
 var vm = require('vm');
 var RELEASE = require('./lib/release.js');
 var HTML = require('./lib/html.js');
+var privacyPermissions = require('./lib/privacy-permissions.js');
 
 var ROOT = path.join(__dirname, '..');
 var FN = path.join(ROOT, 'functions');
@@ -1818,7 +1819,7 @@ async function main() {
    * ConnectScore wording, while the homepage's two primary controls retain
    * their distinct subjects. This catches a partial template migration where a
    * supporting label, title, or non-home route keeps the old public name. */
-  ['/', '/methodology/', '/technology/', '/privacy'].forEach(function (route) {
+  ['/', '/methodology/', '/technology/', '/privacy', '/extension/'].forEach(function (route) {
     ok(activePageText(route).indexOf('ConnectScore') === -1,
       '3.1.0 visible terminology: ' + route + ' exposes no customer-facing ConnectScore label');
   });
@@ -1855,7 +1856,7 @@ async function main() {
   eq(HTML.EXT_VERSION, RELEASE.version, 'release ledger: shared EXT_VERSION is derived from the ledger');
   eq(require('crypto').createHash('sha256').update(fs.readFileSync(
     path.join(ROOT, 'build', 'extension-release.json'))).digest('hex'),
-  'ba9fc2f3d484cff13c2b30f9aa1fc6bb39f80501add6d49696ae8f66ec93d622',
+  '059cf20cf9f8de93cbb01dacc74b61b8f3a7db7103415650ec77b0556a951206',
   'release ledger: current 3.0.2 claims match the ledger-bound extension candidate exactly');
   eq(RELEASE.extensionCommit, '99f6b0b91a06a94e71a98ae458e22142513ff70b',
     'release ledger: current 3.0.2 claims stay bound to the shipped extension commit');
@@ -1864,12 +1865,30 @@ async function main() {
   var releaseBoundText = renderedText(extensionBuilt.slice(whatsNewStart, whatsNewEnd));
   ok(whatsNewStart >= 0 && whatsNewEnd > whatsNewStart,
     'release ledger: extension has an isolated current-release section');
-  ok(releaseBoundText.indexOf('ConnectScore') >= 0 && releaseBoundText.indexOf('Chrome Web Store version 3.0.2') >= 0,
-    '3.0.2 compatibility: ConnectScore appears only as the factual current-release behavior');
-  ok(!/Streaming score|STREAMING label/.test(releaseBoundText),
-    '3.0.2 compatibility: release-bound claims do not rename unreleased extension behavior');
+  ok(releaseBoundText.indexOf('Chrome Web Store version 3.0.2') >= 0,
+    '3.0.2 compatibility: current-release section still names the live Store version');
+  ok(releaseBoundText.indexOf('Streaming score') >= 0,
+    'extension release notes name the airline-wide metric Streaming score');
+  ok(releaseBoundText.indexOf('ConnectScore') === -1,
+    'extension release notes do not use ConnectScore as the customer name for the airline-wide metric');
+  ok(!/Store listing was rewritten|rewrote the Store listing/i.test(releaseBoundText),
+    'extension release notes do not claim the Store listing was rewritten');
   ok(extensionTemplate.indexOf('ConnectScore') === -1,
     '3.1.0 visible terminology: no extension-template copy names ConnectScore outside the 3.0.2 release ledger');
+  var customerLedger = [];
+  RELEASE.highlights.forEach(function (h) { customerLedger.push(h.home, h.full); });
+  RELEASE.allowedFeatureClaims.forEach(function (feature) {
+    customerLedger.push(feature.title, feature.question, feature.ceiling);
+    feature.steps.forEach(function (step) { customerLedger.push(step); });
+    Object.keys(feature.behaviors).forEach(function (hostId) {
+      customerLedger.push(feature.behaviors[hostId]);
+    });
+  });
+  var customerLedgerText = customerLedger.join('\n');
+  ok(customerLedgerText.indexOf('ConnectScore') === -1 && customerLedgerText.indexOf('CONNECTSCORE') === -1,
+    'release ledger customer copy names Streaming score, not ConnectScore');
+  ok(customerLedgerText.indexOf('STREAMING label') >= 0,
+    'release ledger dual-label demo names the STREAMING label');
   var fleetReference = /<details id="row-fleet">([\s\S]*?)<\/details>/.exec(extensionBuilt);
   ok(!!fleetReference, 'release-bound reference: extension page has the airline-wide score entry');
   if (fleetReference) {
@@ -1889,6 +1908,12 @@ async function main() {
       'privacy terminology: Streaming describes the site’s airline-wide score');
     ok(!/Streaming score in the popup/i.test(privacyProductText),
       'privacy terminology: does not claim an unpublished popup label');
+  }
+  try {
+    privacyPermissions.validate(privacy, 'privacy.html');
+    ok(true, 'privacy §7 matches live 3.0.2 grant kinds');
+  } catch (err) {
+    ok(false, 'privacy §7 matches live 3.0.2 grant kinds', err.message);
   }
   eq((home.match(new RegExp('v' + RELEASE.version.replace(/\./g, '\\.') +
     ' · free · cleared review ' + releaseDate, 'g')) || []).length, 1,

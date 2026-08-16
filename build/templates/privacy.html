@@ -21,20 +21,22 @@
     width:.4rem;height:.4rem;border-radius:50%;background:var(--muted)}
   .rows li b{color:var(--ink);font-weight:700}
   /* the permission table stays a table down to 390px, inside .tablescroll */
-  table.perms{width:100%;border-collapse:collapse;min-width:30rem}
+  table.perms{width:100%;border-collapse:collapse;min-width:36rem}
   table.perms th,table.perms td{text-align:left;padding:.55rem .9rem .55rem 0;
     font-size:var(--fs-small);border-bottom:1px solid var(--line-soft);vertical-align:top}
   table.perms thead th{font-size:.72rem;font-weight:600;letter-spacing:.1em;
     text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--ink)}
   table.perms td.mono{font-family:var(--mono);font-size:.82rem;color:var(--ink);
     white-space:nowrap}
+  table.perms td.kind{font-family:var(--mono);font-size:.78rem;color:var(--ink);
+    white-space:nowrap;padding-right:1.1rem}
 </style>
 <!--@body-->
 <header class="hero pol">
   <span class="kicker">Policy</span>
   <h1 class="ph">Privacy policy</h1>
   <p class="lede">This covers the <b>WiFi Odds for Flights</b> browser extension and the
-  <b>wifiodds.com</b> website. Effective <b>14 Aug 2026</b>. Earlier versions stay in the
+  <b>wifiodds.com</b> website. Effective <b>16 Aug 2026</b>. Earlier versions stay in the
   public git history of the repository linked at the foot of this page.</p>
 </header>
 
@@ -146,20 +148,44 @@
   <h2>Every permission, and the reason for it</h2>
   <div class="tablescroll">
     <table class="perms">
-      <thead><tr><th scope="col">Permission</th><th scope="col">Why the extension asks</th></tr></thead>
+      <thead><tr><th scope="col">Permission</th><th scope="col">Kind</th><th scope="col">Why the extension asks</th></tr></thead>
       <tbody>
-        <tr><td class="mono">united.com</td><td>Draw odds badges on United search results.</td></tr>
-        <tr><td class="mono">alaskaair.com</td><td>Optional and off until you grant it. The Alaska
-          content script is registered at the moment you turn it on and stops when you revoke it.</td></tr>
-        <tr><td class="mono">app.navan.com</td><td>Draw badges on Navan corporate-travel results.</td></tr>
-        <tr><td class="mono">unitedstarlinktracker.com<br>alaskastarlinktracker.com</td>
-          <td>Fetch route and flight statistics.</td></tr>
-        <tr><td class="mono">wifiodds.com</td><td>The daily selector-configuration file described in §2.</td></tr>
-        <tr><td class="mono">storage</td><td>The local cache, interface preferences, Guard trips, and
-          outcomes described in §2.</td></tr>
-        <tr><td class="mono">activeTab</td><td>Let the popup read the route of the tab you opened it on.</td></tr>
-        <tr><td class="mono">scripting</td><td>Register the optional Alaska content script, and only
-          once you have granted that permission.</td></tr>
+        <tr><td class="mono">united.com</td><td class="kind">content_scripts, always</td>
+          <td>Draw odds on United search results. This is an always-on content script, not a
+          host_permissions origin.</td></tr>
+        <tr><td class="mono">www.united.com</td><td class="kind">content_scripts, always</td>
+          <td>Same always-on United content script on the www host. Not a host_permissions
+          origin.</td></tr>
+        <tr><td class="mono">app.navan.com</td><td class="kind">content_scripts, always</td>
+          <td>Draw badges on Navan corporate-travel results. Always-on content script, not a
+          host_permissions origin.</td></tr>
+        <tr><td class="mono">alaskaair.com</td><td class="kind">optional grant</td>
+          <td>Optional and off until you grant it. After you grant it, the Alaska content script
+          is registered as usl-dyn-alaska and unregistered if you revoke it.</td></tr>
+        <tr><td class="mono">www.alaskaair.com</td><td class="kind">optional grant</td>
+          <td>Same optional Alaska grant on the www host.</td></tr>
+        <tr><td class="mono">www.google.com</td><td class="kind">optional grant</td>
+          <td>Optional and off until you grant it. Chrome asks for the www.google.com origin. The
+          content script is registered only on www.google.com/travel/* (usl-dyn-gflights) and then
+          runs only on /travel/flights.</td></tr>
+        <tr><td class="mono">unitedstarlinktracker.com</td><td class="kind">host_permissions</td>
+          <td>The only host_permissions origin. Fetch United tracker route and flight
+          statistics.</td></tr>
+        <tr><td class="mono">storage</td><td class="kind">permissions</td>
+          <td>The local cache, interface preferences, Guard trips, and outcomes described in
+          §2.</td></tr>
+        <tr><td class="mono">activeTab</td><td class="kind">permissions</td>
+          <td>Let the popup read the route of the tab you opened it on.</td></tr>
+        <tr><td class="mono">scripting</td><td class="kind">permissions</td>
+          <td>Dynamically register the optional Alaska content script (usl-dyn-alaska) and the
+          Google Flights content script (usl-dyn-gflights, www.google.com/travel/*) after each
+          grant, and unregister them if you revoke it.</td></tr>
+        <tr><td class="mono">alarms</td><td class="kind">permissions</td>
+          <td>Trip Guardian’s uslTripCheck alarm runs every 180 minutes. A second alarm refreshes
+          the daily selector file described in §2.</td></tr>
+        <tr><td class="mono">notifications</td><td class="kind">permissions</td>
+          <td>Trip Guardian notifications for aircraft-assignment updates, and a post-flight prompt
+          asking whether the WiFi worked. Both stay on this device.</td></tr>
       </tbody>
     </table>
   </div>
@@ -176,15 +202,19 @@
   <span class="kicker">§9 · Revisions</span>
   <h2>When this policy changes</h2>
   <p>The effective date at the top changes with it, and the version it replaced stays in the public
-  git history of the repository below. This revision, on 14 Aug 2026, rewrote §2 and §6 so the page
-  matches the product: there is no public report form, local extension storage is named, and the
-  daily selector fetch is not described as collecting nothing. The 4 Aug 2026 revision rewrote §6
-  in plain language while a form still existed. The 29 Jul 2026 revision rewrote §3, §4 and §5
-  because the United route optimizer page and the other United pages were removed from the site and
-  now redirect to the home page: no page calls another origin or writes to your browser now. The
-  route planning still lives in the extension, where its lookups are the ones described in §2.
-  Earlier revisions rewrote §4 and §5 when that page began prerendering its tables, and on 25 Jul
-  2026 corrected the storage claim in §5.</p>
+  git history of the repository below. This revision, on 16 Aug 2026, rewrote §7 so the table
+  matches Chrome Web Store version 3.0.2: always-on content_scripts, the one host_permissions
+  origin, optional grants including www.google.com, and the alarms and notifications permissions.
+  Alaska tracker and wifiodds.com fetches stay in §2 as data flows; they are not declared Chrome
+  permissions. The 14 Aug 2026 revision rewrote §2 and §6 so the page matches the product: there is
+  no public report form, local extension storage is named, and the daily selector fetch is not
+  described as collecting nothing. The 4 Aug 2026 revision rewrote §6 in plain language while a
+  form still existed. The 29 Jul 2026 revision rewrote §3, §4 and §5 because the United route
+  optimizer page and the other United pages were removed from the site and now redirect to the home
+  page: no page calls another origin or writes to your browser now. The route planning still lives
+  in the extension, where its lookups are the ones described in §2. Earlier revisions rewrote §4
+  and §5 when that page began prerendering its tables, and on 25 Jul 2026 corrected the storage
+  claim in §5.</p>
 </section>
 
 <section class="blk pol">
