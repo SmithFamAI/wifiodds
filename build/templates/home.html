@@ -143,6 +143,111 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
    lands past the viewport and reads as an overflow even though .hero clips it. */
 @media(max-width:700px){.rocket{right:26px;top:105px;width:42px;opacity:.75}}
 @media(prefers-reduced-motion:reduce){.stars,.rocket,.hero-v2 .gradient{animation:none}}
+/* Rank-list density (Backlog 56). Next-Gen stays the primary figure. Streaming
+   sits on the same row as a smaller second figure. The checked date is a nowrap
+   chip so "2026-04" cannot split after the hyphen. */
+.checked-date{white-space:nowrap}
+#airline-grid .row,
+#airline-grid.allgrid-v2 .row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-areas:"who figs" "meta meta";
+  align-items:center;
+  gap:4px 14px;
+  padding:10px 14px;
+  min-height:0;
+  position:relative;
+}
+#airline-grid .row .who{grid-area:who;min-width:0}
+#airline-grid .row .row-figs{
+  grid-area:figs;
+  display:flex;
+  align-items:baseline;
+  justify-content:flex-end;
+  gap:14px;
+  min-width:0;
+}
+#airline-grid .row .metric.primary{
+  display:flex;
+  align-items:baseline;
+  gap:12px;
+  margin:0;
+}
+#airline-grid .row .metric.primary .odds-only,
+#airline-grid .row .metric.primary .stream-fig{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:2px;
+}
+#airline-grid .row .metric.primary .odds-only b{
+  font-size:26px;
+  line-height:1;
+  letter-spacing:-.04em;
+}
+#airline-grid .row .metric.primary .stream-fig b,
+#airline-grid .row .metric.primary .stream-fig [data-streaming-view="primary"]{
+  font-size:15px;
+  font-weight:750;
+  line-height:1;
+  letter-spacing:-.02em;
+  text-transform:none;
+  color:#c7c7cc;
+}
+#airline-grid .row .metric.primary small,
+#airline-grid .row .row-figs .metric small{
+  font-size:9px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:#8a8a93;
+}
+#airline-grid .row .row-figs>.metric{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:2px;
+}
+#airline-grid .row .row-figs>.metric>b{font-size:13px;line-height:1.1}
+#airline-grid .row .row-meta{
+  grid-area:meta;
+  color:#c4c4cb;
+  font-size:12px;
+  line-height:1.3;
+  overflow:visible;
+}
+#airline-grid .row-meta .checked-date{
+  display:inline-block;
+  white-space:nowrap;
+  overflow:visible;
+}
+#airline-grid .row .figure-evidence{
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  border:0;
+}
+.context-stack .united-callout{display:grid}
+@media(max-width:700px){
+  #airline-grid .row,
+  #airline-grid.allgrid-v2 .row{
+    grid-template-columns:minmax(0,1fr) auto;
+    padding:10px 12px;
+    min-height:0;
+    gap:4px 10px;
+  }
+  #airline-grid .row .metric:last-child{
+    grid-column:auto;
+    display:flex;
+    flex-direction:column;
+    padding-top:0;
+    border-top:0;
+  }
+  #airline-grid .row .metric.primary .odds-only b{font-size:22px}
+}
 </style>
 <!--HOME:HEAD_EXTRA-->
 </head>
@@ -155,22 +260,6 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
     <div class="navlinks"><a href="https://wifiodds.com/methodology/">Methodology</a><a href="https://wifiodds.com/technology/">Technology</a><a href="#extension">Extension</a><a class="pill" href="#extension">Get Chrome Extension</a></div>
   </nav>
 </div>
-<!-- THE PERSISTENT VIEW SWITCH. A second .view-switch, not a moved one, and that
-     is deliberate: the page script does
-       querySelectorAll('.view-switch button[data-view]')
-     and then sets aria-pressed on EVERY button in that list inside order(), so a
-     second control is picked up and kept in sync with no JS change at all. Both
-     sets are static markup present before the script runs. If you ever make this
-     switch dynamic, it stops being wired, because that NodeList is captured once.
-     The aria-labels differ on purpose. When the bar is pinned both switches are
-     in the accessibility tree, and two groups labelled identically give a screen
-     reader user no way to tell which one they are on. -->
-<div class="wrap navswitch-wrap">
-  <div class="view-switch navswitch" role="group" aria-label="Choose WiFi view (toolbar)">
-    <button type="button" data-view="nextgen" aria-pressed="true">Next-Gen</button>
-    <button type="button" data-view="streaming" aria-pressed="false">Streaming</button>
-  </div>
-</div>
 </header>
 <main id="main">
   <header class="hero hero-v2">
@@ -181,8 +270,7 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
       <div class="eyebrow"><i class="pulse"></i>Starlink + Amazon Leo odds</div>
       <h1>What are your odds<br>of <span class="gradient">next-gen WiFi?</span></h1>
       <div class="hero-bottom-v2">
-        <div><p class="lede hero-mode-copy"><span class="nextgen-copy">The chance your airline puts you on a Starlink or Amazon Leo aircraft today.</span><span class="streaming-copy">Find airlines with <span class="gradient-word">next-gen</span> or modern <span class="streaming-word">streaming</span> WiFi and avoid the airline equivalent of dial-up.</span></p><div class="hero-ctas"><a class="pill primary" href="#all">Compare tracked airlines (18)</a><a class="pill primary" href="#extension">Live booking tool</a></div></div>
-        <div class="view-switch-wrap"><div class="view-switch" role="group" aria-label="Choose WiFi view"><button type="button" data-view="nextgen" aria-pressed="true">Next-Gen</button><button type="button" data-view="streaming" aria-pressed="false">Streaming</button></div><p class="view-note">Choose which figures to compare.</p></div>
+        <div><p class="lede">The chance your airline puts you on a Starlink or Amazon Leo aircraft today.</p><div class="hero-ctas"><a class="pill primary" href="#all">Compare tracked airlines (18)</a><a class="pill primary" href="#extension">Live booking tool</a></div></div>
       </div>
     </div>
   </header>
@@ -204,7 +292,7 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
 
   <section class="proof" id="proof">
     <div class="wrap proof-grid">
-      <div class="proof-main"><div class="proof-num"><span class="odds-only">{{P_EQUIPPED}}</span> <span class="streaming-only">{{P_STREAMFLOOR}}</span></div><div class="proof-copy"><h2><span class="odds-only">United flies the largest tracked next-gen fleet.</span><span class="streaming-only">United’s Streaming score reflects its whole fleet.</span></h2><p><span class="odds-only">{{P_EQUIPPED}} of {{P_TOTAL}} aircraft in United’s fleet are confirmed next-gen, the largest absolute count among the 18 airlines tracked here.</span><span class="streaming-only">Streaming score is a 0–100 rating across United’s whole fleet. Confirmed streaming coverage remains separate evidence.</span><span class="proof-viewhint">These figures follow the view you choose above.</span></p></div></div>
+      <div class="proof-main"><div class="proof-num"><span class="odds-only">{{P_EQUIPPED}}</span> <span class="streaming-only">{{P_STREAMFLOOR}}</span></div><div class="proof-copy"><h2><span class="odds-only">United flies the largest tracked next-gen fleet.</span><span class="streaming-only">United’s Streaming score reflects its whole fleet.</span></h2><p><span class="odds-only">{{P_EQUIPPED}} of {{P_TOTAL}} aircraft in United’s fleet are confirmed next-gen, the largest absolute count among the 18 airlines tracked here.</span><span class="streaming-only">Streaming score is a 0–100 rating across United’s whole fleet. Confirmed streaming coverage remains separate evidence.</span></p></div></div>
       <div class="proof-side"><div class="proof-facts"><div class="proof-fact"><b><span class="odds-only">{{P_INSTALLDAYS}}</span> <span class="streaming-only">{{P_EQUIPPED}}</span></b> <span><span class="odds-only">install days recorded</span><span class="streaming-only">next-gen aircraft</span></span></div><div class="proof-fact"><b><span class="odds-only">{{P_TOTAL}}</span> <span class="streaming-only">{{P_STREAMING}}</span></b> <span><span class="odds-only">aircraft tracked</span><span class="streaming-only">modern streaming aircraft</span></span></div><div class="proof-fact"><b><span class="odds-only">{{P_MAINLINE}}</span> <span class="streaming-only">{{P_LEGACY}}</span></b> <span><span class="odds-only">mainline equipped</span><span class="streaming-only">legacy-system aircraft</span></span></div><div class="proof-fact"><b><span class="odds-only">{{P_REGIONAL}}</span> <span class="streaming-only">{{P_NOWIFI}}</span></b> <span><span class="odds-only">regional equipped</span><span class="streaming-only">no-wifi aircraft</span></span></div></div></div>
     </div>
   </section>
@@ -224,53 +312,25 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
 
   <section class="section" id="all">
     <div class="wrap">
-      <div class="section-head"><div><span class="kicker">03 / All 18</span><h2>Compare all 18 tracked airlines.</h2></div><p class="section-intro"><span class="odds-only">Sorted by published next-gen odds.</span><span class="streaming-only">Sorted by Streaming score, which rates the whole fleet. Confirmed streaming coverage remains separate evidence.</span></p></div>
+      <div class="section-head"><div><span class="kicker">03 / All 18</span><h2>Compare all 18 tracked airlines.</h2></div><p class="section-intro">Sorted by published next-gen odds.</p></div>
       <details class="multi-filter" id="airline-filter"><summary><span>Filter airlines</span> <b id="filter-summary" aria-live="polite">All 18 airlines</b><i aria-hidden="true">⌄</i></summary><div class="multi-panel"><div class="multi-actions"><button type="button" id="select-all">Select all</button><button type="button" id="select-none">Select none</button></div><div class="multi-options" role="group" aria-label="Choose airlines"><label class="multi-option"><input type="checkbox" data-airline-choice value="jsx xe" checked>JSX <small>XE</small></label><label class="multi-option"><input type="checkbox" data-airline-choice value="zipair zg" checked>ZIPAIR <small>ZG</small></label><label class="multi-option"><input type="checkbox" data-airline-choice value="airbaltic bt" checked>airBaltic <small>BT</small></label><label class="multi-option"><input type="checkbox" data-airline-choice value="westjet ws" checked>WestJet <small>WS</small></label><label class="multi-option"><input type="checkbox" data-airline-choice value="hawaiian ha" checked>Hawaiian <small>HA</small></label><label class="multi-option"><input type="checkbox" data-airline-choice value="qatar airways qr" checked>Qatar Airways <small>QR</small></label><label class="multi-option"><input type="checkbox" data-airline-choice value="united ua" checked>United <small>UA</small></label><label class="multi-option"><input type="checkbox" data-airline-choice value="alaska as" checked>Alaska <small>AS</small></label><label class="multi-option"><input type="checkbox" data-airline-choice value="virgin atlantic vs" checked>Virgin Atlantic <small>VS</small></label><label class="multi-option"><input type="checkbox" data-airline-choice value="emirates ek" checked>Emirates <small>EK</small></label><label class="multi-option"><input type="checkbox" data-airline-choice value="air canada ac" checked>Air Canada <small>AC</small></label><label class="multi-option"><input type="checkbox" data-airline-choice value="british airways ba" checked>British Airways <small>BA</small></label><label class="multi-option"><input type="checkbox" data-airline-choice value="jetblue b6" checked>jetBlue <small>B6</small></label><label class="multi-option"><input type="checkbox" data-airline-choice value="american aa" checked>American <small>AA</small></label><label class="multi-option"><input type="checkbox" data-airline-choice value="delta dl" checked>Delta <small>DL</small></label><label class="multi-option"><input type="checkbox" data-airline-choice value="southwest wn" checked>Southwest <small>WN</small></label><label class="multi-option"><input type="checkbox" data-airline-choice value="air france af" checked>Air France <small>AF</small></label><label class="multi-option"><input type="checkbox" data-airline-choice value="sas sk" checked>SAS <small>SK</small></label></div></div></details><p class="filter-status" id="filter-count" aria-live="polite">18 shown</p>
       <div class="board-tools"><div class="ramp-legend" aria-label="Continuous color scale from lower to higher displayed figure"><span>Lower</span><i></i><span>Higher</span><em><b></b>Unpublished</em></div><span class="code">COLOR WIDTH = DISPLAYED FIGURE</span></div>
       <div class="allgrid allgrid-v2" id="airline-grid">
         <!--HOME:BOARD_ROWS-->
       </div>
-      <p class="board-note"><span class="odds-only"><b>Default order:</b> published next-gen odds, highest first; Streaming score breaks ties. Air France and SAS are unranked because the airlines have not published their next-gen aircraft counts.</span> <span class="streaming-only"><b>Streaming order:</b> Streaming score, highest first; confirmed coverage does not set the rank. Air France and SAS are included in this ranking. We could not verify their Confirmed streaming coverage.</span></p>
-    </div>
-  </section>
-
-  <section class="section" id="method">
-    <div class="wrap method method-v3">
-      <div class="method-copy"><span class="kicker">04 / What the numbers mean</span><h2>Choose the number that answers your question.</h2><p>Start with the chance of Starlink or Amazon Leo. Switch views to compare Streaming scores, then check confirmed coverage as supporting evidence.</p><a class="pill" href="https://wifiodds.com/methodology/">Read the methodology</a></div>
-      <div><div class="answer"><div><h3>Next-Gen</h3><p>Your chance of drawing Starlink or Amazon Leo on a random aircraft with a published system.</p></div><strong>Primary · default sort</strong></div><div class="answer"><div><h3>Streaming</h3><p>A 0–100 rating of the WiFi available today across the whole fleet, blending every fitted system and whether access is free.</p></div><strong>Primary · second view</strong></div><div class="answer"><div><h3>Confirmed streaming coverage</h3><p>The sourced share of the fleet with confirmed streaming-capable WiFi. It supports the score and does not rank airlines.</p></div><strong>Evidence · source and date</strong></div></div>
+      <p class="board-note"><b>Default order:</b> published next-gen odds, highest first; Streaming score breaks ties. Air France and SAS are unranked because the airlines have not published their next-gen aircraft counts.</p>
     </div>
   </section>
 </main>
 <footer class="footer"><div class="wrap"><div class="footer-top"><a class="brand" href="https://wifiodds.com/"><svg class="mark" viewBox="128 128 768 768" aria-hidden="true" focusable="false"><defs><linearGradient id="wo-mk-home-foot" x1="270" y1="700" x2="754" y2="700" gradientUnits="userSpaceOnUse"><stop stop-color="#29d8ff"/><stop offset="1" stop-color="#926cff"/></linearGradient></defs><path d="M292 700A320 320 0 1 1 732 700" fill="none" stroke="url(#wo-mk-home-foot)" stroke-width="68" stroke-linecap="round"/><g transform="translate(0 -24)"><rect x="267" y="405" width="176" height="134" rx="24" fill="url(#wo-mk-home-foot)"/><rect x="581" y="405" width="176" height="134" rx="24" fill="url(#wo-mk-home-foot)"/><path d="M443 472h35M546 472h35" stroke="currentColor" stroke-width="24" stroke-linecap="round"/><rect x="466" y="362" width="92" height="220" rx="38" fill="currentColor"/><circle cx="512" cy="472" r="31" fill="url(#wo-mk-home-foot)"/><path d="M449 300Q512 341 575 300Q563 251 512 251Q461 251 449 300Z" fill="url(#wo-mk-home-foot)"/></g><path d="M512 612C499 612 492 625 489 645L480 704L410 747C399 754 393 765 393 779L478 754L483 807L457 829V846L512 831L567 846V829L541 807L546 754L631 779C631 765 625 754 614 747L544 704L535 645C532 625 525 612 512 612Z" fill="currentColor"/></svg>WiFi Odds</a><div class="footlinks"><a href="https://wifiodds.com/methodology/">Methodology</a><a href="https://wifiodds.com/technology/">Technology</a><a href="https://wifiodds.com/feedback/">Feedback</a><a href="https://wifiodds.com/privacy">Privacy</a></div></div><div class="fine"><p>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> and <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a>, independent community trackers by @martinamps · every other airline from public announcements, July 2026. Streaming scores and per-flight odds are historical estimates; aircraft assignments change until departure. WiFi Odds is unofficial and unaffiliated with any airline, SpaceX, Amazon, Viasat, or the independent trackers.</p><span>No accounts · no analytics · see privacy</span></div></div></footer>
 <script>
-/* PINS THE TOOLBAR SWITCH once the hero's own switch leaves the viewport.
-   Its own IIFE on purpose: the main page script returns early on `if(!grid)return`,
-   and anything appended there would silently stop running the day #airline-grid
-   is renamed or removed. This has no dependency on the grid.
-   The observer watches the HERO switch and toggles a class on the BAR, so there
-   is one source of truth for "has the control scrolled away" and no scroll
-   handler running on every frame.
-   -90px rootMargin so the swap happens as the hero control passes under the bar
-   rather than after it has already gone, which would show a gap with no switch. */
 (function(){
-  var heroSwitch = document.querySelector('.hero .view-switch');
-  var bar = document.querySelector('.sitebar');
-  if (!heroSwitch || !bar || !('IntersectionObserver' in window)) return;
-  new IntersectionObserver(function (entries) {
-    bar.classList.toggle('pinned', !entries[0].isIntersecting);
-  }, { rootMargin: '-90px 0px 0px 0px' }).observe(heroSwitch);
-})();
-</script>
-<script>
-(function(){
-  var buttons=[].slice.call(document.querySelectorAll('.view-switch button[data-view]'));
   var grid=document.getElementById('airline-grid');
   if(!grid)return;
   var separator=grid.querySelector('.unpublished-break');
   var rows=[].slice.call(grid.querySelectorAll('.row'));
   var ranked=rows.filter(function(row){return row.dataset.rankable==='true'});
   var unranked=rows.filter(function(row){return row.dataset.rankable!=='true'});
-  var streamingRows=rows.slice();
   var bigCards=[].slice.call(document.querySelectorAll('#big4 .aircard'));
   var filter=document.getElementById('airline-filter');
   var choices=[].slice.call(filter.querySelectorAll('[data-airline-choice]'));
@@ -282,58 +342,41 @@ body[data-view="streaming"] .primary-stat{display:block;margin-bottom:20px}body[
     var t=Math.max(0,Math.min(100,value))/100;
     return [Math.round(41+(146-41)*t),Math.round(216+(108-216)*t),255].join(',');
   }
-  function updateRanks(activeRows){
-    var visibleActive=activeRows.filter(function(row){return !row.hidden});
+  function updateRanks(){
+    var visibleActive=ranked.filter(function(row){return !row.hidden});
     visibleActive.forEach(function(row,i){row.querySelector('.rank-text').textContent=String(i+1).padStart(2,'0')});
     var visibleUnranked=unranked.some(function(row){return !row.hidden});
-    separator.hidden=document.body.dataset.view==='streaming'||!visibleUnranked;
+    if(separator) separator.hidden=!visibleUnranked;
     count.textContent=rows.filter(function(row){return !row.hidden}).length+' shown';
   }
   function applyFilter(){
     var selected=new Set(choices.filter(function(choice){return choice.checked}).map(function(choice){return choice.value}));
     rows.forEach(function(row){row.hidden=!selected.has(row.dataset.name)});
     summary.textContent=selected.size===choices.length?'All 18 airlines':selected.size===0?'No airlines selected':selected.size+' airlines selected';
-    updateRanks(document.body.dataset.view==='streaming'?streamingRows:ranked);
+    updateRanks();
   }
-  function order(view){
-    document.body.dataset.view=view;
-    grid.classList.toggle('streaming',view==='streaming');
-    buttons.forEach(function(button){button.setAttribute('aria-pressed',button.dataset.view===view?'true':'false')});
-    var activeRows=view==='streaming'?streamingRows:ranked;
-    activeRows.sort(function(a,b){
-      if(view==='streaming'){
-        var exact=(+b.dataset.streamingExact)-(+a.dataset.streamingExact);
-        if(exact)return exact;
-        var coverage=(+b.dataset.streamingRankCoverageExact)-(+a.dataset.streamingRankCoverageExact);
-        if(coverage)return coverage;
-        return a.dataset.name.localeCompare(b.dataset.name);
-      }
-      var odds=(+b.dataset.odds)-(+a.dataset.odds);
-      return odds||((+b.dataset.score)-(+a.dataset.score));
-    });
-    activeRows.forEach(function(row){
-      var value=view==='streaming'?+row.dataset.streamingScore:+row.dataset.odds;
+  function paint(){
+    ranked.forEach(function(row){
+      var value=+row.dataset.odds;
       row.style.setProperty('--heat',String(value));
       row.style.setProperty('--ramp-rgb',ramp(value));
       row.classList.remove('heat-good','heat-mixed','heat-long');
       row.classList.add('heat-ramp');
-      grid.insertBefore(row,separator);
     });
     bigCards.forEach(function(card){
-      var value=+(view==='streaming'?card.dataset.streamingScore:card.dataset.nextgen);
+      var value=+card.dataset.nextgen;
       card.style.setProperty('--ramp-rgb',ramp(value));
-      card.querySelector('.band i').style.width=value+'%';
+      var band=card.querySelector('.band i');
+      if(band) band.style.width=value+'%';
     });
-    if(view!=='streaming')unranked.forEach(function(row){grid.appendChild(row)});
-    updateRanks(activeRows);
+    updateRanks();
   }
-  buttons.forEach(function(button){button.addEventListener('click',function(){order(button.dataset.view)})});
   choices.forEach(function(choice){choice.addEventListener('change',applyFilter)});
   selectAll.addEventListener('click',function(){choices.forEach(function(choice){choice.checked=true});applyFilter()});
   selectNone.addEventListener('click',function(){choices.forEach(function(choice){choice.checked=false});applyFilter()});
   filter.addEventListener('keydown',function(event){if(event.key==='Escape'){filter.open=false;filter.querySelector('summary').focus()}});
   document.addEventListener('click',function(event){if(filter.open&&!filter.contains(event.target))filter.open=false});
-  order('nextgen');
+  paint();
 })();
 </script>
 </body>

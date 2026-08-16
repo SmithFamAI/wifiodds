@@ -1841,30 +1841,27 @@ async function main() {
    * connectScore, and the API must agree about both numbers. */
   var home = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 
-  /* The migration is customer-facing: every active rendered route must retire
-   * ConnectScore wording, while the homepage's two primary controls retain
-   * their distinct subjects. This catches a partial template migration where a
-   * supporting label, title, or non-home route keeps the old public name. */
+  /* Rank-list density (Backlog 56): Next-Gen is the card primary. Streaming is
+   * a second figure on the same row. The page-level view toggle is gone. */
   ['/', '/methodology/', '/technology/', '/privacy', '/extension/', '/feedback/'].forEach(function (route) {
     ok(activePageText(route).indexOf('ConnectScore') === -1,
       '3.1.0 visible terminology: ' + route + ' exposes no customer-facing ConnectScore label');
   });
-  ok(/<button\b[^>]*\bdata-view="nextgen"[^>]*>Next-Gen<\/button>/.test(home),
-    '3.1.0 homepage primary control says Next-Gen, not the old next-gen odds label');
-  ok(/<button\b[^>]*\bdata-view="streaming"[^>]*>Streaming<\/button>/.test(home),
-    '3.1.0 homepage primary control says Streaming, not the old streaming-or-better coverage label');
+  ok(!/<button\b[^>]*\bdata-view="(?:nextgen|streaming)"/.test(home),
+    'homepage has no page-level Next-Gen/Streaming toggle');
+  ok(home.indexOf('Choose the number that answers your question.') === -1,
+    'homepage dropped the page-level choose-the-number block');
+  ok(/\.checked-date\{white-space:nowrap\}/.test(home),
+    'rank-card checked dates use nowrap so 2026-MM cannot split after the hyphen');
   ok(activePageText('/').indexOf('Confirmed streaming coverage') >= 0,
     '3.1.0 homepage labels the supporting percentage Confirmed streaming coverage');
   var boardNote = /<p class="board-note">([\s\S]*?)<\/p>/.exec(home);
   ok(!!boardNote, 'homepage has one customer-facing board-order note');
   if (boardNote) {
-    ok(/<span class="odds-only">[\s\S]*?Air France and SAS are unranked because the airlines have not published their next-gen aircraft counts\.<\/span>/.test(boardNote[1]),
-      'Next-Gen board note explains why Air France and SAS are unranked');
-    ok(/<span class="streaming-only">[\s\S]*?Air France and SAS are included in this ranking\. We could not verify their Confirmed streaming coverage\.<\/span>/.test(boardNote[1]),
-      'Streaming board note says Air France and SAS rank while coverage remains unknown');
-    var alwaysVisibleBoardNote = boardNote[1].replace(/<span class="(?:odds-only|streaming-only)">[\s\S]*?<\/span>/g, '');
-    ok(!/Air France|SAS|unranked|could not verify/i.test(alwaysVisibleBoardNote),
-      'board note keeps view-specific claims inside the matching view');
+    ok(/Air France and SAS are unranked because the airlines have not published their next-gen aircraft counts/.test(boardNote[1]),
+      'board note explains why Air France and SAS are unranked');
+    ok(!/Switch views|Choose the number|Choose which figures/i.test(boardNote[1]),
+      'board note does not restore the retired page-level toggle copy');
   }
 
   /* The store listing, not the extension manifest, decides what public site
@@ -1962,15 +1959,8 @@ async function main() {
     'Google Flights never reorders',
     'United fleet checked',
     'How WiFi Odds works on booking pages',
-    'Choose which figures to compare.',
-    // Corrected 11 Aug 2026. The previous literal asserted "American, Delta, and
-    // Southwest are at 0% today" — false for Southwest, which the same page
-    // reports as 1 of 803. The claim was pinned here as well as in the template,
-    // so the test held the falsehood in place. Keep this figure-free: the Big-4
-    // cards carry the sourced counts.
     'United has next-gen aircraft flying. American, Delta, and Southwest have almost none.',
     'Compare all 18 tracked airlines.',
-    'Choose the number that answers your question.',
     'Airlines without published counts',
     'Best WiFi choice now explains when no flight wins.'
   ].forEach(function (copy) {
@@ -1991,6 +1981,8 @@ async function main() {
     'United has the largest next-gen fleet actually flying.',
     'Ranking all 18 airlines we currently track.',
     'Two views. Two honest answers.',
+    'Choose the number that answers your question.',
+    'Choose which figures to compare.',
     'separate group by design',
     'the rest of the fleet is genuinely unknown'
   ].forEach(function (copy) {
@@ -2348,9 +2340,8 @@ async function main() {
    * their Next-Gen count is unpublished. */
   ok(/data-streaming-exact=/.test(home),
     'homepage rows expose the exact Streaming value used for rank order');
-  ok(/var streamingRows=rows\.slice\(\)/.test(home) && /dataset\.streamingExact/.test(home) &&
-    /dataset\.streamingRankCoverageExact/.test(home) && /dataset\.name\.localeCompare/.test(home),
-    'homepage Streaming control ranks all rows by the exact Streaming value');
+  ok(!/var streamingRows=rows\.slice\(\)/.test(home) && !/<button\b[^>]*\bdata-view="streaming"/.test(home),
+    'homepage no longer ships a page-level Streaming sort control');
   var exactApiOrder = all.airlines.slice().sort(function (a, b) {
     if (b.streamingScoreExact !== a.streamingScoreExact) return b.streamingScoreExact - a.streamingScoreExact;
     var bc = b.wholeFleet.coveragePct, ac = a.wholeFleet.coveragePct;
@@ -2419,6 +2410,10 @@ async function main() {
     /* every baked numeric attribute is finite — never NaN, never blank */
     ok(isFinite(r.score) && isFinite(r.exact) && isFinite(r.odds) && isFinite(r.coverage) && isFinite(r.coverageExact),
       r.key + ' row carries finite Streaming score, exact rank, odds, and coverage values', [r.score, r.exact, r.odds, r.coverage, r.coverageExact]);
+    ok(/class="row-meta"[\s\S]*class="checked-date">checked 2026-\d{2}/.test(r.inner),
+      r.key + ' row shows a nowrap checked-date chip with the modelled month');
+    ok(/data-streaming-view="primary"/.test(r.inner),
+      r.key + ' row keeps Streaming as a second figure on the card');
     if (r.rankable) {
       eq(r.odds, a.nextGen.pct, 'PARITY: ' + r.key + ' row data-odds == API nextGen.pct');
       /* The default visible value follows data-odds. The activated Streaming
@@ -2466,7 +2461,7 @@ async function main() {
     if (!row || !a) return;
     ok(/Confirmed streaming coverage · Reported ·/.test(row.inner),
       key + ': Confirmed streaming coverage carries its Reported tier');
-    ok(/· checked 2026-\d{2}/.test(row.inner),
+    ok(/checked 2026-\d{2}/.test(row.inner),
       key + ': Confirmed streaming coverage carries a checked date');
   });
 
@@ -2499,12 +2494,9 @@ async function main() {
       key + ': Streaming view includes the airline in its exact rank order');
   });
 
-  /* both toggle orders match the model's ordering. The client script
-   * (unchanged, byte-identical to the approved mockup) re-sorts on click
-   * using Array#sort, which is required-stable in every engine this site
-   * supports, so a build-time re-sort of the RAW ROW ORDER is exactly what
-   * the browser will do — no browser needed to check the ordering rule
-   * itself (Playwright separately checks the live click). */
+  /* Raw next-gen row order matches the model's odds-desc / score-tiebreak.
+   * Streaming remains a second figure on each card; it no longer has a page-level
+   * sort toggle. Attribute-level Streaming order is still checked above. */
   var ranked = boardRows.filter(function (r) { return r.rankable; });
   function stableSortedBy(arr, keyFn) {
     return arr.map(function (v, i) { return [v, i]; })
