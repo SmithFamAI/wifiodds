@@ -12,8 +12,8 @@
  *   RESEND_API_KEY       only used if the submitter asked for a copy
  *   RESEND_FROM          verified sender, same condition
  *
- * A copy goes to the submitter only when they ticked that box. Jeremy is not
- * mailed on every row. The feed is how new rows show up.
+ * A copy goes to the submitter only when they ticked that box. The feed is how
+ * new rows show up.
  */
 
 import { DOCS, ORIGIN, SOURCES, json } from './api.mjs';
