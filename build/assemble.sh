@@ -75,3 +75,11 @@ fi
 
 COUNT="$(wc -l < "$PATHS" | tr -d ' ')"
 echo "assemble OK: $COUNT allow-listed files copied to dist/; every other repo path is unpublished"
+
+# Pages Functions are not in dist/. Wrangler still bundles functions/ from the
+# repo, and a relative import that walks past functions/ fails that bundle
+# after assemble has already printed OK. Check the same tree wrangler will see.
+echo ""
+echo "── functions import resolve ──────────────────────────────"
+node "$ROOT/build/functions-import-resolve.test.js" \
+  || fail "functions relative imports do not resolve under functions/_lib. Wrangler cannot build Pages Functions from functions/."

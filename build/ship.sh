@@ -99,6 +99,9 @@ fi
 if ! node build/privacy-permissions.test.js; then
   fail "build/privacy-permissions.test.js exited non-zero. Privacy §7 may list undeclared hosts as permissions, or a planted 3.0.2 grant-kind defect escaped." 98
 fi
+if ! node build/functions-import-resolve.test.js; then
+  fail "build/functions-import-resolve.test.js exited non-zero. Pages Functions relative imports walk out of functions/ or miss functions/_lib/feedback.mjs." 98
+fi
 if ! bash test/revert-data-deploy.test.sh; then
   fail "test/revert-data-deploy.test.sh exited non-zero. Rollback integration may bypass its registered worktree." 98
 fi
