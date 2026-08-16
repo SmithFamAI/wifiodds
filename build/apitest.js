@@ -2525,11 +2525,12 @@ async function main() {
     'airBaltic left the top three when next-gen odds moved to the whole-fleet denominator (round 18 P0-02): ' +
     'it is 28 of 55, a 51% floor, no longer tied with the two genuinely fleetwide carriers');
 
-  /* round 18 P1-02: the required IA — Methodology · Technology · Extension — must
-     be the PRIMARY nav on EVERY survivor, not only the interiors. The homepage
-     shipped with in-page anchors (United fleet / Big 4 / All 18) as its masthead
-     and no top-level link to either new page. This reads the first <nav> on each
-     survivor and requires all three destinations inside it.
+  /* round 18 P1-02: the required IA — Methodology · Technology · Airlines ·
+     Extension — must be the PRIMARY nav on EVERY survivor, not only the
+     interiors. The homepage shipped with in-page anchors (United fleet / Big 4
+     / All 18) as its masthead and no top-level link to either new page. This
+     reads the first <nav> on each survivor and requires those destinations
+     inside it.
 
      1 Aug 2026: this guard accepted `#extension`, the homepage section, as the
      Extension destination, and its route list omitted extension/index.html — so
@@ -2537,14 +2538,18 @@ async function main() {
      and /extension/ sat behind a single inbound link site-wide. The destination
      is now the route, and the negative assertion below is what makes that
      binding: requiring the route while still permitting the anchor would pass on
-     a nav carrying both. */
+     a nav carrying both.
+
+     16 Aug 2026: /airlines/ is a live directory. The header has to name it the
+     same way the footer already does; the sitemap already lists it. */
   ['index.html', 'methodology/index.html', 'technology/index.html', 'extension/index.html',
-    'feedback/index.html', 'privacy.html', '404.html'].forEach(function (rel) {
+    'feedback/index.html', 'privacy.html', '404.html', 'airlines/index.html'].forEach(function (rel) {
     var f = path.join(ROOT, rel);
     if (!fs.existsSync(f)) return;
     var masthead = (/<nav\b[\s\S]*?<\/nav>/.exec(fs.readFileSync(f, 'utf8')) || [''])[0];
     ok(/href="[^"]*\/methodology\/"/.test(masthead), rel + ': masthead nav links Methodology');
     ok(/href="[^"]*\/technology\/"/.test(masthead), rel + ': masthead nav links Technology');
+    ok(/href="[^"]*\/airlines\/"/.test(masthead), rel + ': masthead nav links Airlines');
     ok(/href="[^"]*\/extension\/"/.test(masthead), rel + ': masthead nav links Extension');
     ok(/href="[^"]*\/feedback\/"/.test(masthead), rel + ': masthead nav links Feedback');
     ok(!/href="[^"]*#extension"/.test(masthead), rel + ': masthead Extension is the route, not the homepage anchor');
