@@ -6,6 +6,8 @@ const path = require('path');
 const crypto = require('crypto');
 
 const ROOT = path.resolve(__dirname, '..');
+const TRACKER_ORIGIN = 'https://unitedstarlinktracker.com';
+
 function sha(value) { return crypto.createHash('sha256').update(value).digest('hex'); }
 function json(value, label) {
   try { return JSON.parse(value.toString('utf8')); }
@@ -35,6 +37,43 @@ function localExpected() {
     ogSha: sha(fs.readFileSync(path.join(ROOT, 'assets/og.png')))
   };
 }
+
+/* Owner ruling 16 Aug 2026: unitedstarlinktracker.com is the United number.
+   A lagging Cloudflare Pages sample of yesterday's /united/data.json is not
+   a failed deploy and must not by itself trigger revert. Reckless remains
+   publishing a count the tracker does not support. */
+function parseUnitedTrackerCount(html) {
+  const source = String(html);
+  const meta = source.match(/<meta\s+name=["']description["']\s+content=["']([\d,]+)\s+of\s+([\d,]+)\s+United aircraft have Starlink today/i);
+  const pair = meta || source
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&(?:#x27|apos);/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .match(/([\d,]+)\s+of\s+([\d,]+)\s+United(?: Airlines)? aircraft[\s\S]{0,120}have Starlink/i);
+  if (!pair) throw new Error('United tracker count is missing');
+  const equipped = Number(pair[1].replace(/,/g, ''));
+  const total = Number(pair[2].replace(/,/g, ''));
+  if (!Number.isInteger(equipped) || !Number.isInteger(total) || equipped < 0 || total <= 0 || equipped > total) {
+    throw new Error('United tracker count is invalid: ' + equipped + '/' + total);
+  }
+  return { equipped: equipped, total: total };
+}
+
+function unitedPagesLag(served, expected) {
+  if (!served || !served.fleet) return false;
+  const asOf = served.measurementAsOf || served.updated;
+  const expAsOf = expected.united && expected.united.measurementAsOf;
+  if (typeof asOf !== 'string' || typeof expAsOf !== 'string' || asOf >= expAsOf) return false;
+  const equipped = served.fleet.equipped;
+  const total = served.fleet.total;
+  if (!Number.isInteger(equipped) || !Number.isInteger(total) || total <= 0 || equipped < 0 || equipped > total) {
+    return false;
+  }
+  return true;
+}
+
 async function get(base, fixture, route, sample) {
   if (fixture) {
     const rel = route === '/' ? 'index.html' : route.replace(/^\//, '');
@@ -54,6 +93,23 @@ async function get(base, fixture, route, sample) {
     return { error: error.message };
   } finally { clearTimeout(timer); }
 }
+
+async function readTracker(fixture, trackerPath) {
+  if (trackerPath) {
+    if (!fs.existsSync(trackerPath)) throw new Error('tracker fixture missing: ' + trackerPath);
+    return parseUnitedTrackerCount(fs.readFileSync(trackerPath, 'utf8'));
+  }
+  if (fixture) {
+    const file = path.join(fixture, 'tracker.html');
+    if (!fs.existsSync(file)) throw new Error('fixture missing tracker.html');
+    return parseUnitedTrackerCount(fs.readFileSync(file, 'utf8'));
+  }
+  const response = await get(TRACKER_ORIGIN, null, '/', 0);
+  if (response.error) throw new Error('United tracker: ' + response.error);
+  if (!response.ok) throw new Error('United tracker: HTTP ' + response.status);
+  return parseUnitedTrackerCount(response.body.toString('utf8'));
+}
+
 function checkApi(fails, key, body, expected) {
   let payload;
   try { payload = json(body, key + ' API'); }
@@ -82,6 +138,14 @@ async function sample(base, fixture, expected, n) {
   if (fails.length) return fails;
 
   const servedUnited = json(values[0].body, 'served United data');
+  if (unitedPagesLag(servedUnited, expected)) {
+    console.log('sample ' + n + ' LAG United Pages still serving ' +
+      servedUnited.fleet.equipped + '/' + servedUnited.fleet.total +
+      ' as of ' + (servedUnited.measurementAsOf || servedUnited.updated) +
+      '; reviewed artifact is ' + expected.united.fleet.equipped + '/' +
+      expected.united.fleet.total + ' as of ' + expected.united.measurementAsOf);
+    return [];
+  }
   if (sha(values[0].body) !== sha(expected.unitedBytes)) fails.push('United body differs from the reviewed artifact');
   if (servedUnited.fleet.equipped !== expected.united.fleet.equipped || servedUnited.fleet.total !== expected.united.fleet.total) {
     fails.push('United count=' + servedUnited.fleet.equipped + '/' + servedUnited.fleet.total + ', expected ' +
@@ -102,23 +166,33 @@ async function sample(base, fixture, expected, n) {
 async function main() {
   const base = arg('--base-url', 'https://wifiodds.com');
   const fixture = arg('--fixture-dir', null);
+  const trackerPath = arg('--tracker-html', null);
   const samples = Number(arg('--samples', fixture ? '1' : '4'));
   if (!Number.isInteger(samples) || samples < 1) throw new Error('--samples must be a positive integer');
   const expected = localExpected();
+  const tracker = await readTracker(fixture, trackerPath);
+  if (tracker.equipped !== expected.united.fleet.equipped || tracker.total !== expected.united.fleet.total) {
+    console.error('tracker FAIL unitedstarlinktracker.com shows ' + tracker.equipped + '/' + tracker.total +
+      ', reviewed artifact is ' + expected.united.fleet.equipped + '/' + expected.united.fleet.total);
+    process.exit(1);
+  }
+  console.log('tracker PASS ' + tracker.equipped + '/' + tracker.total);
   let failed = 0;
   for (let i = 1; i <= samples; i++) {
     const failures = await sample(base, fixture, expected, i);
     if (failures.length) {
       failed++;
       failures.forEach(function (failure) { console.error('sample ' + i + ' FAIL ' + failure); });
-    } else console.log('sample ' + i + ' PASS');
+    } else {
+      console.log('sample ' + i + ' PASS');
+    }
     if (!fixture && i < samples) await new Promise(function (resolve) { setTimeout(resolve, 3000); });
   }
   if (failed) process.exit(1);
-  console.log('verify-data-deploy: ' + samples + ' sample(s) match the reviewed build');
+  console.log('verify-data-deploy: ' + samples + ' sample(s) accepted; tracker agrees with the reviewed United count');
 }
 
-module.exports = { rowOrder };
+module.exports = { rowOrder, parseUnitedTrackerCount, unitedPagesLag };
 if (require.main === module) main().catch(function (error) {
   console.error('verify-data-deploy: ' + error.message);
   process.exit(2);
