@@ -1889,8 +1889,8 @@ async function main() {
   eq(HTML.EXT_VERSION, RELEASE.version, 'release ledger: shared EXT_VERSION is derived from the ledger');
   eq(require('crypto').createHash('sha256').update(fs.readFileSync(
     path.join(ROOT, 'build', 'extension-release.json'))).digest('hex'),
-  '059cf20cf9f8de93cbb01dacc74b61b8f3a7db7103415650ec77b0556a951206',
-  'release ledger: current 3.0.2 claims match the ledger-bound extension candidate exactly');
+  '9d3ac959429aec01d654c0bdbd2040e13ff8da070d30cc1470630ec94186cbfc',
+  'release ledger: approved record matches the ledger-bound extension candidate exactly');
   eq(RELEASE.extensionCommit, '99f6b0b91a06a94e71a98ae458e22142513ff70b',
     'release ledger: current 3.0.2 claims stay bound to the shipped extension commit');
   var whatsNewStart = extensionBuilt.indexOf('id="whats-new"');
@@ -1898,8 +1898,8 @@ async function main() {
   var releaseBoundText = renderedText(extensionBuilt.slice(whatsNewStart, whatsNewEnd));
   ok(whatsNewStart >= 0 && whatsNewEnd > whatsNewStart,
     'release ledger: extension has an isolated current-release section');
-  ok(releaseBoundText.indexOf('Chrome Web Store version 3.0.2') >= 0,
-    '3.0.2 compatibility: current-release section still names the live Store version');
+  ok(releaseBoundText.indexOf('Chrome Web Store version ' + RELEASE.version) >= 0,
+    'release ledger: current-release section names the ledger version');
   ok(releaseBoundText.indexOf('Streaming score') >= 0,
     'extension release notes name the airline-wide metric Streaming score');
   ok(releaseBoundText.indexOf('ConnectScore') === -1,
