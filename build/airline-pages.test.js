@@ -64,7 +64,7 @@ function sectionIds(html) {
   return ids;
 }
 
-assert.strictEqual(RELEASE.version, '3.0.2', 'Live Store version stays 3.0.2');
+assert.strictEqual(RELEASE.version, '3.1.1', 'Live Store version stays 3.1.1');
 assert.deepStrictEqual(R.AIRLINE_KEYS, LOCKED_KEYS, 'AIRLINE_KEYS match the 18 lock keys');
 
 var dirRoute = R.ROUTES.filter(function (r) { return r.url === '/airlines/'; })[0];
@@ -121,6 +121,14 @@ assert.ok(/min-height:78px/.test(directory), 'directory keeps Home chrome 78px')
 assert.ok(/\.sitebar a\.brand[^{]*\{[^}]*text-decoration:none/.test(directory),
   'directory brand is not underlined');
 assert.ok(dirText.indexOf('3.1.1') !== -1, 'directory labels live Store 3.1.1');
+assert.ok(directory.indexOf('No published-system row on the live page') === -1,
+  'directory cards do not print the operator leftover restnote');
+assert.ok(directory.indexOf('That leftover is Unpublished, not 0.') === -1,
+  'directory cards do not print leftover Unpublished copy');
+assert.ok(directory.indexOf('No published-system leftovers on a live page stay Unpublished here') === -1,
+  'directory closer does not print the operator leftover sentence');
+assert.ok(directory.indexOf('A missing count is Unpublished, not 0.') !== -1,
+  'directory keeps the traveler Unpublished-not-0 line');
 function dirRow(html, key) {
   var needle = '<a class="row" href="/airlines/' + key + '/">';
   var i = html.indexOf(needle);

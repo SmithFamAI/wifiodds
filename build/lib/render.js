@@ -1451,12 +1451,10 @@ function directoryRow(m, key, rank) {
     countHtml: streamUnsourced ? '' : num(streamCount),
     pct: streamPct
   });
-  var restnote;
+  var restnote = '';
   if (buckets.unresolved > 0 && total) {
-    restnote = '<p class="restnote">No published system: ' + num(buckets.unresolved) +
-      ' · ' + esc(airlineSharePct(buckets.unresolved, total)) + '%. Unknown is not zero.</p>';
-  } else {
-    restnote = '<p class="restnote muted">No published-system row on the live page. That leftover is Unpublished, not 0.</p>';
+    restnote = '  <p class="restnote">No published system: ' + num(buckets.unresolved) +
+      ' · ' + esc(airlineSharePct(buckets.unresolved, total)) + '%. Unknown is not zero.</p>\n';
   }
   return '<a class="row" href="' + airlinePath(key) + '">\n' +
     '  <div class="id">\n' +
@@ -1469,7 +1467,7 @@ function directoryRow(m, key, rank) {
     '  <div class="pair">\n' +
     nextMini + streamMini +
     '  </div>\n' +
-    '  ' + restnote + '\n' +
+    restnote +
     '</a>\n';
 }
 
@@ -1512,7 +1510,7 @@ function airlinesDirectory(m) {
     rows +
     '  </div>\n' +
     '</section>\n' +
-    '<p class="note"><b>Unknown is not zero.</b> Air France and SAS have not published a next-gen aircraft count. American, Delta, and jetBlue publish 0 flying. Those are different states. No published-system leftovers on a live page stay Unpublished here. Live Store is 3.1.1.</p>\n' +
+    '<p class="note"><b>Unknown is not zero.</b> Air France and SAS have not published a next-gen aircraft count. American, Delta, and jetBlue publish 0 flying. Those are different states. Live Store is 3.1.1.</p>\n' +
     '</div>\n';
   return H.page({
     title: 'Airlines · WiFi Odds',
