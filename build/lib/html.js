@@ -409,8 +409,10 @@ function masthead(here, suffix, updated, refreshAttemptedOn, wasRetained) {
  * on Privacy (--paper/--card) without a second palette. */
 var MASTHEAD_CSS =
   '.sitebar{background:var(--bg,var(--paper,#050505))}' +
-  '.sitebar .masthead{display:flex;align-items:center;justify-content:space-between;gap:16px;' +
-  'min-height:78px;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);' +
+  '.sitebar .wrap.masthead{display:flex;align-items:center;justify-content:space-between;gap:16px;' +
+  'width:min(1240px,calc(100% - 48px));max-width:none;margin-left:auto;margin-right:auto;' +
+  'min-height:78px;box-sizing:border-box;' +
+  'padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);' +
   'border-bottom:1px solid var(--line,var(--soft,#29292f))}' +
   '.sitebar .brand{display:flex;align-items:center;gap:10px;min-height:44px;font-weight:850;' +
   'letter-spacing:-.04em;font-size:20px;color:var(--ink,#fff)}' +
@@ -433,8 +435,8 @@ var MASTHEAD_CSS =
   '@media(min-width:881px){.sitebar{position:sticky;top:0;z-index:40}}' +
   '@media(max-width:880px){' +
   '.sitebar{position:static}' +
-  '.sitebar .masthead{flex-wrap:wrap;min-height:68px;height:auto;row-gap:0;' +
-  'width:min(var(--max,1240px),calc(100% - 48px))}' +
+  '.sitebar .wrap.masthead{flex-wrap:wrap;min-height:68px;height:auto;row-gap:0;' +
+  'width:min(1240px,calc(100% - 48px))}' +
   '.sitebar .primary-nav{flex-basis:100%;order:3;flex-direction:column;align-items:stretch;gap:0;' +
   'border-top:1px solid var(--line-soft,var(--line,var(--soft,#29292f)));padding-top:8px;margin-top:8px}' +
   '.sitebar .primary-nav>a{min-height:48px;padding:0 12px;border-radius:9px}' +
@@ -449,7 +451,7 @@ var MASTHEAD_CSS =
   '.sitebar.is-enhanced.nav-open .nav-toggle .ico-menu{display:none}' +
   '.sitebar.is-enhanced.nav-open .nav-toggle .ico-close{display:block}' +
   '}' +
-  '@media(max-width:768px){.sitebar .masthead{width:min(var(--max,1240px),calc(100% - 48px))}}' +
+  '@media(max-width:768px){.sitebar .wrap.masthead{width:min(1240px,calc(100% - 48px))}}' +
   /* ROUND 9, 1 Aug 2026 — 440 -> 700, and the number has to match `.wrap`.
      Every page's content container (`.wrap`, and `.xw` on /extension/) drops
      from a 24px side inset to a 16px one at `max-width:700px`. This rule dropped
@@ -460,9 +462,9 @@ var MASTHEAD_CSS =
      same 8px step, and 440 and 701 both align. Fixing it in the shared component
      is the whole point — patching one route would make that route the odd one.
      The `min()` shape matches `.wrap` exactly rather than a bare calc(). */
-  '@media(max-width:700px){.sitebar .masthead{width:min(var(--max,1240px),calc(100% - 32px))}}' +
+  '@media(max-width:700px){.sitebar .wrap.masthead{width:min(1240px,calc(100% - 32px))}}' +
   '@media(max-width:430px){.sitebar.is-enhanced .mobile-cta{font-size:12px;padding:0 12px}}' +
-  '@media(max-width:390px){.sitebar .masthead{width:calc(100% - 32px)}.sitebar .brand{font-size:18px}}';
+  '@media(max-width:390px){.sitebar .wrap.masthead{width:calc(100% - 32px)}.sitebar .brand{font-size:18px}}';
 
 var MASTHEAD_JS =
   '(function(){var b=document.querySelector(".sitebar[data-masthead]");if(!b)return;' +
@@ -718,12 +720,10 @@ function page(o) {
     /* First focusable thing on every page, and invisible until it has focus. */
     '<a class="skip" href="#main-content">Skip to content</a>\n' +
     (o.preWrap || '') +
-    /* round 18 P1-02: the survivor pages carry the unified disclosure masthead.
-       o.mastheadV2 opts a route into it; otherwise the classic masthead (with
-       its datechip) is unchanged for any route still using page(). */
-    (o.mastheadV2
-      ? mastheadV2(o.here)
-      : masthead(o.here, o.suffix, o.updated, o.refreshAttemptedOn, o.wasRetained)) +
+    /* Owner 16 Aug 2026: one shared header on every public page. Classic
+       masthead() stays exported and unused. Airline/Feedback/404 consume this
+       same component; they do not keep a second bar. */
+    mastheadV2(o.here) +
     '<div class="wrap">\n' +
     subnav(o.section, o.canonical, o.suffix) +
     /* <main> starts AFTER the subnav so the skip link actually skips the
