@@ -243,6 +243,23 @@ var alaska = htmlOf('airlines/alaska/index.html');
 assert.ok(/alaskastarlinktracker\.com/.test(alaska),
   'Alaska names the public tracker it follows');
 
+['alaska', 'delta', 'southwest', 'american', 'jetblue', 'emirates', 'aircanada',
+  'britishairways', 'jsx', 'zipair', 'hawaiian', 'virginatlantic'].forEach(function (key) {
+  var html = htmlOf('airlines/' + key + '/index.html');
+  assert.ok(html.indexOf('class="rest-row unknown-row"') === -1,
+    key + ' sourced fleet with no unresolved tails does not print unknown 0/0%');
+});
+var unitedUnknown = (/class="rest-row unknown-row"[\s\S]*?<\/div>\s*<\/div>/.exec(united) || [''])[0];
+assert.ok(unitedUnknown.indexOf('class="rest-row unknown-row"') !== -1,
+  'United keeps the unknown row when unresolved is 196');
+assert.ok(/196/.test(unitedUnknown) && /11%/.test(unitedUnknown),
+  'United unknown row still prints 196 / 11%');
+['airfrance', 'sas', 'westjet', 'airbaltic', 'qatar'].forEach(function (key) {
+  var html = htmlOf('airlines/' + key + '/index.html');
+  assert.ok(html.indexOf('class="rest-row unknown-row"') !== -1,
+    key + ' keeps the unknown row when unresolved is above zero');
+});
+
 var sasPage = htmlOf('airlines/sas/index.html');
 var sasScore = A.scoreAirline('sas');
 assert.strictEqual(sasScore.score, 0, 'SAS Streaming stays the published 0');

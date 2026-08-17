@@ -1662,13 +1662,14 @@ function airlineSubpage(m, key) {
     '        <span class="n">' + restNoWifi.n + '</span>\n' +
     (restNoWifi.share ? '        <span class="share">' + restNoWifi.share + '</span>\n' : '') +
     '      </div>\n' +
+    ((sourced && !(buckets.unresolved > 0)) ? '' :
     '      <div class="rest-row unknown-row">\n' +
     '        <div><b>No published system</b> <small>Unknown is not zero.' +
     (sourced ? ' These aircraft have no system on the record.' : '') +
     '</small></div>\n' +
     '        <span class="n">' + restUnknown.n + '</span>\n' +
     (restUnknown.share ? '        <span class="share">' + restUnknown.share + '</span>\n' : '') +
-    '      </div>\n' +
+    '      </div>\n') +
     '    </div>\n' +
     '    <p class="note">' + restNote + '</p>\n' +
     '  </section>\n\n' +
