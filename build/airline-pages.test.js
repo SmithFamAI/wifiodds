@@ -105,6 +105,13 @@ assert.ok(fs.existsSync(path.join(ROOT, 'united', 'data.json')),
 var directory = htmlOf('airlines/index.html');
 var dirText = visible(directory);
 assert.ok(dirText.indexOf('ConnectScore') === -1, 'directory does not revive ConnectScore');
+assert.ok(directory.indexOf('<h1 class="ph">Airlines</h1>') !== -1,
+  'directory title uses the shared public display treatment');
+assert.ok(!/\.dir-page h1\{[^}]*font-size/.test(directory),
+  'directory CSS does not override the shared title scale');
+var feedback = htmlOf('feedback/index.html');
+assert.ok(feedback.indexOf('<h1 class="ph">Feedback</h1>') !== -1,
+  'feedback title keeps the shared public display treatment');
 var dirSection = (/<section class="blk" id="directory"[\s\S]*?<\/section>/.exec(directory) || [''])[0];
 var dirSectionText = visible(dirSection);
 assert.ok(dirSection, 'directory has a directory section');
