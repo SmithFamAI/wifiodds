@@ -650,13 +650,10 @@ function home(m) {
     .replace('<!--HOME:WHATSNEW-->', homeReleaseWhatsNew())
     .replace('<!--HOME:CWS_BADGE-->', homeCwsBadge())
     .replace('<!--HOME:RELEASE_META-->', homeReleaseMeta())
-    /* round 18 P1-02: swap the homepage's own inline masthead for the one
-       unified disclosure component every survivor page shares. A function
-       replacement, so the SVG mark and CTA URL inside it are never scanned as
-       String#replace substitution patterns. */
-    .replace(/<header class="sitebar">[\s\S]*?<\/header>/, function () { return H.mastheadV2('/'); });
-  if (/<header class="sitebar">\s*\n?<div class="wrap">\s*\n?\s*<nav class="nav"/.test(out)) {
-    throw new Error('Render.home: the inline masthead was not replaced by the unified component.');
+    /* Owner 16 Aug 2026: templates carry <!--SITE_HEADER-->, not a second nav. */
+    .replace('<!--SITE_HEADER-->', function () { return H.mastheadV2('/'); });
+  if (out.indexOf('<!--SITE_HEADER-->') !== -1 || /<header class="sitebar">\s*\n?<div class="wrap">\s*\n?\s*<nav class="nav"/.test(out)) {
+    throw new Error('Render.home: the shared header marker was not replaced by the unified component.');
   }
 
   /* round 18 P0-01: the proof block + united-callout figures were hard-coded
@@ -3134,17 +3131,11 @@ function assertOneDocument(out, label, marker) {
 function wholeDocument(name, canonical, label, marker, transform) {
   var tpl = FS.readFileSync(PATH.join(__dirname, '..', 'templates', name + '.html'), 'utf8');
   if (transform) tpl = transform(tpl);
-  /* round 18 P1-02: swap the template's own inline masthead (which hid the three
-     location links below 900px) for the shared disclosure component, so all four
-     survivor pages carry one button/ARIA contract. Function replacement keeps
-     the SVG mark and CTA URL out of String#replace's substitution scanner. */
-  var MAST_RE = /<header><div class="wrap"><nav class="nav" aria-label="Main navigation">[\s\S]*?<\/header>/;
-  if (MAST_RE.test(tpl)) {
-    tpl = tpl.replace(MAST_RE, function () { return H.mastheadV2(canonical); });
-  } else {
-    throw new Error('Render.' + label + ': could not find the inline masthead to replace with the ' +
-      'unified component. The template structure changed.');
+  /* Owner 16 Aug 2026: one shared header. Templates must not keep a second nav. */
+  if (tpl.split('<!--SITE_HEADER-->').length !== 2) {
+    throw new Error('Render.' + label + ': expected exactly one <!--SITE_HEADER--> marker.');
   }
+  tpl = tpl.replace('<!--SITE_HEADER-->', function () { return H.mastheadV2(canonical); });
   var head = docHead(tpl, canonical, label);
   /* FUNCTION REPLACEMENT, not a string. The injected block carries a data: URI
      favicon and an inline theme-boot script; a literal `$&` or `$'` anywhere in
@@ -3597,7 +3588,7 @@ function notFound(m) {
     '</header>\n\n';
   return H.page({
     title: 'Page not found · WiFi Odds', desc: 'That page does not exist on wifiodds.com.',
-    canonical: '/404.html', here: '/', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained, body: body,
+    canonical: '/404.html', here: '/404.html', updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained, body: body,
     jsonld: []
   });
 }

@@ -135,4 +135,5 @@ url                        links
 /airlines/american/        2
 /airlines/delta/           2
 /airlines/jetblue/         2
+/404.html                  2
 ```
