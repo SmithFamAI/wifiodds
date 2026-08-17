@@ -410,16 +410,22 @@ function masthead(here, suffix, updated, refreshAttemptedOn, wasRetained) {
  * on Privacy (--paper/--card) without a second palette. */
 var MASTHEAD_CSS =
   '.sitebar{background:var(--bg,var(--paper,#050505))}' +
+  /* The Home copy, scoped to the copied header (PR 19 finding). Interior pages
+     load assets/site.css, whose global `a{text-decoration:underline}` restyled
+     the bar; Home's own global is `a{color:inherit;text-decoration:none}`.
+     The :hover reset is load-bearing too: site.css `a:hover` ties `.sitebar a`
+     at (0,1,1) and only source order breaks the tie today. Do not rely on it. */
+  '.sitebar a{color:inherit;text-decoration:none}' +
+  '.sitebar a:hover{text-decoration:none}' +
   '.sitebar .mh{display:flex;align-items:center;justify-content:space-between;gap:16px;' +
   'min-height:78px;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);' +
   'border-bottom:1px solid var(--line,var(--soft,#29292f))}' +
   '.sitebar .brand{display:flex;align-items:center;gap:10px;min-height:44px;font-weight:850;' +
   'letter-spacing:-.04em;font-size:20px;color:var(--ink,#fff)}' +
-  '.sitebar a{color:inherit;text-decoration:none}' +
   '.sitebar .brand,.sitebar a.brand{text-decoration:none}' +
   '.sitebar .brand svg,.sitebar .brand .mk,.sitebar .brand .mark{width:21px;height:21px;flex:none;color:var(--cyan,#29d8ff)}' +
   '.sitebar .primary-nav{display:flex;align-items:center;gap:28px;color:var(--nav-muted,#c7c7cc);font-size:14px}' +
-  '.sitebar .primary-nav>a{display:flex;align-items:center;min-height:44px;text-transform:none;letter-spacing:normal}' +
+  '.sitebar .primary-nav>a{display:flex;align-items:center;min-height:44px;text-decoration:none;text-transform:none;letter-spacing:normal}' +
   '.sitebar .primary-nav>a:not(.pill):hover,.sitebar .primary-nav>a[aria-current="page"]{color:var(--ink,#fff)}' +
   '.sitebar .pill{display:inline-flex;align-items:center;justify-content:center;min-height:44px;' +
   'padding:0 18px;border:0;border-radius:999px;font-weight:750;font-size:14px;color:#050505;' +
