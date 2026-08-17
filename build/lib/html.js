@@ -409,7 +409,21 @@ function masthead(here, suffix, updated, refreshAttemptedOn, wasRetained) {
  * same block works on the dark content pages (--bg/--panel/--line/--cyan) and
  * on Privacy (--paper/--card) without a second palette. */
 var MASTHEAD_CSS =
-  '.sitebar{background:var(--bg,var(--paper,#050505))}' +
+  /* site.css opens every page on a 4px sky border-top. Home has none, so on
+     every route that loads site.css the bar sat at offsetTop 4 while Home sat
+     at 0 — measured 17 Aug 2026 at 1280 on /airlines/, /feedback/, /privacy.
+     The copied Home bar owns the page's top edge wherever it is present.
+     `html body` at (0,0,2) outranks site.css `body` at (0,0,1); a bare `body`
+     here would tie and win on source order alone, and order is not a fence. */
+  'html body{border-top:0}' +
+  /* Self-owned box model and type. Home and site.css both declare border-box
+     and an Inter-first stack today, but "both currently agree" is an
+     agreement a page stylesheet can end; the bar inherits neither. The stack
+     is Home's own (home.html body), so this is a no-op on Home by
+     construction. */
+  '.sitebar,.sitebar *{box-sizing:border-box}' +
+  '.sitebar{background:var(--bg,var(--paper,#050505));' +
+  'font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}' +
   /* The Home copy, scoped to the copied header (PR 19 finding). Interior pages
      load assets/site.css, whose global `a{text-decoration:underline}` restyled
      the bar; Home's own global is `a{color:inherit;text-decoration:none}`.
@@ -417,8 +431,19 @@ var MASTHEAD_CSS =
      at (0,1,1) and only source order breaks the tie today. Do not rely on it. */
   '.sitebar a{color:inherit;text-decoration:none}' +
   '.sitebar a:hover{text-decoration:none}' +
-  '.sitebar .mh{display:flex;align-items:center;justify-content:space-between;gap:16px;' +
-  'min-height:78px;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);' +
+  /* THE GEOMETRY IS THE COMPONENT'S OWN — the 17 Aug 2026 placement fix. The
+     wrapper carried class `wrap` and no desktop width of its own, so each
+     page's .wrap rules decided where the bar sat: site.css (77.5rem max +
+     1.25rem pads) held airline pages ~11px and 4px off Home, feedback and
+     privacy's .wrap{max-width:52rem} squeezed the whole menu 198px left, and
+     /extension/'s --max:1180px pulled it 18.5px. width/margin below are
+     Home's own formula (home.html: .wrap{width:min(var(--max),
+     calc(100% - 48px));margin:auto}, --max:1240px) with the token RESOLVED:
+     var(--max) here would hand the bar back to any page that sets the token,
+     which is exactly how /extension/ moved it. Literal or bust. */
+  '.sitebar .mh-wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;' +
+  'min-height:78px;width:min(1240px,calc(100% - 48px));margin:auto;' +
+  'padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);' +
   'border-bottom:1px solid var(--line,var(--soft,#29292f))}' +
   '.sitebar .brand{display:flex;align-items:center;gap:10px;min-height:44px;font-weight:850;' +
   'letter-spacing:-.04em;font-size:20px;color:var(--ink,#fff)}' +
@@ -427,8 +452,12 @@ var MASTHEAD_CSS =
   '.sitebar .primary-nav{display:flex;align-items:center;gap:28px;color:var(--nav-muted,#c7c7cc);font-size:14px}' +
   '.sitebar .primary-nav>a{display:flex;align-items:center;min-height:44px;text-decoration:none;text-transform:none;letter-spacing:normal}' +
   '.sitebar .primary-nav>a:not(.pill):hover,.sitebar .primary-nav>a[aria-current="page"]{color:var(--ink,#fff)}' +
+  /* margin:0 is a fence, not decoration: site.css `.pill` carries
+     margin:.12rem .35rem .12rem 0, and any property this rule leaves unset is
+     a property a page sheet still controls — that stray right margin was part
+     of the measured pill drift on the site.css routes. */
   '.sitebar .pill{display:inline-flex;align-items:center;justify-content:center;min-height:44px;' +
-  'padding:0 18px;border:0;border-radius:999px;font-weight:750;font-size:14px;color:#050505;' +
+  'margin:0;padding:0 18px;border:0;border-radius:999px;font-weight:750;font-size:14px;color:#050505;' +
   'background:linear-gradient(105deg,var(--cyan,#29d8ff),#7cc9ff 48%,var(--violet,#926cff))}' +
   '.sitebar .mobile-actions{display:flex;align-items:center;gap:8px}' +
   '.sitebar .mobile-cta{display:none}' +
@@ -442,8 +471,11 @@ var MASTHEAD_CSS =
   '@media(min-width:881px){.sitebar{position:sticky;top:0;z-index:40}}' +
   '@media(max-width:880px){' +
   '.sitebar{position:static}' +
-  '.sitebar .mh{flex-wrap:wrap;min-height:68px;height:auto;row-gap:0;' +
-  'width:min(var(--max,1240px),calc(100% - 48px))}' +
+  /* No width here: the base .mh-wrap rule owns it at every viewport. This
+     block and a duplicate at 768px used to re-state the 48px-gutter formula
+     because the base rule had no width at all and the page's .wrap only
+     reached down to here. */
+  '.sitebar .mh-wrap{flex-wrap:wrap;min-height:68px;height:auto;row-gap:0}' +
   '.sitebar .primary-nav{flex-basis:100%;order:3;flex-direction:column;align-items:stretch;gap:0;' +
   'border-top:1px solid var(--line-soft,var(--line,var(--soft,#29292f)));padding-top:8px;margin-top:8px}' +
   '.sitebar .primary-nav>a{min-height:48px;padding:0 12px;border-radius:9px}' +
@@ -458,7 +490,6 @@ var MASTHEAD_CSS =
   '.sitebar.is-enhanced.nav-open .nav-toggle .ico-menu{display:none}' +
   '.sitebar.is-enhanced.nav-open .nav-toggle .ico-close{display:block}' +
   '}' +
-  '@media(max-width:768px){.sitebar .mh{width:min(var(--max,1240px),calc(100% - 48px))}}' +
   /* ROUND 9, 1 Aug 2026 — 440 -> 700, and the number has to match `.wrap`.
      Every page's content container (`.wrap`, and `.xw` on /extension/) drops
      from a 24px side inset to a 16px one at `max-width:700px`. This rule dropped
@@ -469,9 +500,9 @@ var MASTHEAD_CSS =
      same 8px step, and 440 and 701 both align. Fixing it in the shared component
      is the whole point — patching one route would make that route the odd one.
      The `min()` shape matches `.wrap` exactly rather than a bare calc(). */
-  '@media(max-width:700px){.sitebar .mh{width:min(var(--max,1240px),calc(100% - 32px))}}' +
+  '@media(max-width:700px){.sitebar .mh-wrap{width:min(1240px,calc(100% - 32px))}}' +
   '@media(max-width:430px){.sitebar.is-enhanced .mobile-cta{font-size:12px;padding:0 12px}}' +
-  '@media(max-width:390px){.sitebar .mh{width:calc(100% - 32px)}.sitebar .brand{font-size:18px}}';
+  '@media(max-width:390px){.sitebar .mh-wrap{width:calc(100% - 32px)}.sitebar .brand{font-size:18px}}';
 
 var MASTHEAD_JS =
   '(function(){var b=document.querySelector(".sitebar[data-masthead]");if(!b)return;' +
@@ -498,14 +529,21 @@ var MASTHEAD_JS =
  * so the label and the destination agree everywhere and the page can mark
  * itself current. */
 function mastheadV2(here) {
-  /* Wrapper is .mh, not .masthead. Interior pages load assets/site.css, whose
-     classic .masthead rules (140px min-height, uppercase links) still match
-     the copied Home markup if the old class name is reused. Isolating the
-     class is the product: do not restyle .masthead in site.css to look like
-     Home. */
+  /* Wrapper is .mh-wrap: ONE class, unique to this component. It was
+     `wrap mh` until 17 Aug 2026, and the shared `wrap` token was the defect:
+     the same markup measured four different bars at 1280 because every page's
+     own .wrap rules sized it — site.css (77.5rem max + 1.25rem pads) on the
+     airline pages, --max:1180px on /extension/, max-width:52rem on /feedback/
+     and /privacy, and Home's 1240/48 formula only on the three routes that
+     matched. Same lesson as .mh vs .masthead before it (site.css's classic
+     .masthead rules — 140px min-height, uppercase links — still match copied
+     markup that reuses the old name): a class a page stylesheet also owns is
+     a bar a page stylesheet can move. The geometry now lives in MASTHEAD_CSS
+     under the unique class. Do not add `wrap` (or any class a page sheet
+     styles) back here, and do not restyle .mh-wrap outside this file. */
   function cur(path) { return here === path ? ' aria-current="page"' : ''; }
   return '<header class="sitebar" data-masthead>\n' +
-    '  <div class="wrap mh">\n' +
+    '  <div class="mh-wrap">\n' +
     '    <a class="brand" href="/" aria-label="WiFi Odds home">' + markSvg('mhv2', 21) + 'WiFi&nbsp;Odds</a>\n' +
     '    <div class="mobile-actions">\n' +
     '      <a class="pill primary mobile-cta" href="' + EXT + '" target="_blank" rel="noopener">Add to Chrome</a>\n' +
@@ -531,6 +569,9 @@ function mastheadV2(here) {
     '<script>' + MASTHEAD_JS + '</script>\n';
 }
 
+/* Visible breadcrumbs left every route on 17 Aug 2026 — see the note in
+   page(). Kept exported for leftover classic HTML / tests, same deal as
+   masthead(). */
 function crumb(items) {
   if (!items || !items.length) return '';
   var out = items.map(function (it, i) {
@@ -744,17 +785,21 @@ function page(o) {
        banner landmarks. <main> has no default box styling, so this is a
        null visual diff. */
     '<main id="main-content">\n' +
-    /* .ph-top pairs the breadcrumb with the page-head "as of" date chip
-       (interior-system-v1.html's `.asof`) on one row, generically for every
-       route that passes a crumb — no per-page rewrite needed, since `updated`
-       already reaches page() for the masthead/footer datechips. A route with
-       no crumb (404) gets neither, same as before. asofChip: false skips the
-       chip: `updated` is checked_at (the job), not the date the figures were
-       true, and printing it as "Data effective" would copy the check day onto
-       the fact. */
-    (o.crumb ? '<div class="ph-top">' + crumb(o.crumb) +
-      (o.updated && o.asofChip !== false ? '<span class="asof"><i></i>Data effective <b>' +
-        esc(chipDate(o.updated)) + '</b></span>' : '') + '</div>\n' : '') +
+    /* .ph-top used to pair a visible Home→ breadcrumb with the page-head
+       "as of" chip. The crumb is gone (17 Aug 2026 owner GO): under the
+       copied Home bar it read as a second masthead line on /airlines/, the
+       airline pages and /feedback/, while the reference routes — Home,
+       Methodology, Technology — carry nothing there. A route's BreadcrumbList
+       JSON-LD stays: machine path, no pixels. The chip keeps its exact old
+       presence rule (a crumb route with `updated`, minus asofChip:false), so
+       no route gains or loses its freshness stamp with the trail. asofChip:
+       false still means: `updated` is checked_at (the job), not the date the
+       figures were true, and printing it as "Data effective" would copy the
+       check day onto the fact. */
+    (o.crumb && o.updated && o.asofChip !== false
+      ? '<div class="ph-top"><span class="asof"><i></i>Data effective <b>' +
+        esc(chipDate(o.updated)) + '</b></span></div>\n'
+      : '') +
     o.body +
     '</main>\n' +
     footer(o.updated, o.refreshAttemptedOn, o.wasRetained) +

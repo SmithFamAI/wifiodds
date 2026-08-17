@@ -12,7 +12,8 @@ var page = H.page({title:'t',desc:'d',canonical:'/404.html',here:'/',updated:'20
 
 function checkHtml(html, label) {
   assert.ok(html.indexOf('class="sitebar" data-masthead') !== -1, label + ' contains class="sitebar" data-masthead');
-  assert.ok(html.indexOf('class="wrap mh"') !== -1, label + ' inner wrapper is class="wrap mh"');
+  assert.ok(html.indexOf('class="mh-wrap"') !== -1, label + ' inner wrapper is class="mh-wrap"');
+  assert.ok(html.indexOf('class="wrap mh"') === -1, label + ' does not contain class="wrap mh"');
   assert.ok(html.indexOf('class="wrap masthead"') === -1, label + ' does not contain class="wrap masthead"');
 }
 
@@ -41,10 +42,44 @@ assert.ok(css.indexOf('.sitebar a:hover{text-decoration:none}') !== -1,
 assert.ok(css.indexOf('min-height:44px;text-decoration:none') !== -1,
   'primary-nav links carry their own text-decoration:none');
 
+/* 17 Aug 2026 placement lock. The bar owns its own geometry: Home's wrap
+ * formula as literals on the unique wrapper class, so no page's .wrap,
+ * --max token, .pill margin, or body border can move brand/nav/pill.
+ * The var(--max) assertion is the token leak that let /extension/ pull the
+ * bar 18.5px: a custom property read is a page-settable input, and the
+ * geometry must have none. (Colour tokens stay page-settable on purpose —
+ * the same bar sits on dark content pages and on Privacy.) */
+assert.ok(css.indexOf('.sitebar .mh-wrap{') !== -1, 'CSS styles the unique wrapper class');
+assert.ok(css.indexOf('width:min(1240px,calc(100% - 48px));margin:auto') !== -1,
+  'the wrapper carries Home\'s own width/margin formula as literals');
+assert.ok(css.indexOf('var(--max') === -1, 'geometry reads no page-settable --max token');
+assert.ok(css.indexOf('html body{border-top:0}') !== -1,
+  'CSS retires site.css\'s 4px body border on bar pages (offsetTop 4 vs Home 0)');
+assert.ok(css.indexOf('.sitebar,.sitebar *{box-sizing:border-box}') !== -1,
+  'CSS fences box-sizing');
+assert.ok(css.indexOf('margin:0;padding:0 18px;border:0') !== -1,
+  'pill fences the margin site.css .pill would otherwise supply');
+
+/* 17 Aug 2026 crumb kill. The visible Home→ trail under the bar is gone
+ * from every route; BreadcrumbList JSON-LD (passed via jsonld) stays. The
+ * "Data effective" chip keeps its exact old presence rule: crumb route with
+ * updated, minus asofChip:false. */
+var crumbPage = H.page({title:'t',desc:'d',canonical:'/airlines/',here:'/airlines/',
+  updated:'2026-08-17', crumb:[['/', 'Home'], ['/airlines/', 'Airlines']]});
+assert.ok(crumbPage.indexOf('<nav class="crumb"') === -1,
+  'a crumb route renders no visible breadcrumb');
+assert.ok(crumbPage.indexOf('Data effective') !== -1,
+  'a crumb route with updated keeps its Data effective chip');
+var noChipPage = H.page({title:'t',desc:'d',canonical:'/airlines/sas/',here:'/airlines/',
+  updated:'2026-08-17', asofChip:false, crumb:[['/', 'Home'], ['SAS', 'SAS']]});
+assert.ok(noChipPage.indexOf('<nav class="crumb"') === -1 &&
+  noChipPage.indexOf('ph-top') === -1,
+  'a crumb route with asofChip:false renders neither trail nor row');
+
 /* Built pages are tracked files and can drift from the generator when a commit
- * skips the rebuild — that exact shape shipped on this branch: the generator
- * gained the reset while every built page kept the old bar, so the fix never
- * reached a reader. Sweep what would actually be served, not only the emitter. */
+ * skips the rebuild — that exact shape shipped on PR 19: the generator gained
+ * the reset while every built page kept the old bar, so the fix never reached
+ * a reader. Sweep what would actually be served, not only the emitter. */
 var root = path.join(__dirname, '..');
 var swept = 0;
 R.ROUTES.concat(R.UNLISTED).forEach(function (r) {
@@ -54,8 +89,14 @@ R.ROUTES.concat(R.UNLISTED).forEach(function (r) {
     r.file + ' carries the scoped link reset');
   assert.ok(body.indexOf('.sitebar a:hover{text-decoration:none}') !== -1,
     r.file + ' carries the scoped hover reset');
-  assert.ok(body.indexOf('class="wrap mh"') !== -1, r.file + ' uses class="wrap mh"');
+  assert.ok(body.indexOf('class="mh-wrap"') !== -1, r.file + ' uses class="mh-wrap"');
+  assert.ok(body.indexOf('width:min(1240px,calc(100% - 48px));margin:auto') !== -1,
+    r.file + ' carries the self-owned bar geometry');
+  assert.ok(body.indexOf('html body{border-top:0}') !== -1,
+    r.file + ' carries the body border retirement');
+  assert.ok(body.indexOf('class="wrap mh"') === -1, r.file + ' does not use class="wrap mh"');
   assert.ok(body.indexOf('class="wrap masthead"') === -1, r.file + ' does not use class="wrap masthead"');
+  assert.ok(body.indexOf('<nav class="crumb"') === -1, r.file + ' renders no visible breadcrumb');
   swept++;
 });
 assert.ok(swept >= 26, 'swept ' + swept + ' built pages; expected at least 26');
