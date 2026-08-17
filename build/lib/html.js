@@ -415,6 +415,7 @@ var MASTHEAD_CSS =
   'border-bottom:1px solid var(--line,var(--soft,#29292f))}' +
   '.sitebar .brand{display:flex;align-items:center;gap:10px;min-height:44px;font-weight:850;' +
   'letter-spacing:-.04em;font-size:20px;color:var(--ink,#fff)}' +
+  '.sitebar a{color:inherit;text-decoration:none}' +
   '.sitebar .brand,.sitebar a.brand{text-decoration:none}' +
   '.sitebar .brand svg,.sitebar .brand .mk,.sitebar .brand .mark{width:21px;height:21px;flex:none;color:var(--cyan,#29d8ff)}' +
   '.sitebar .primary-nav{display:flex;align-items:center;gap:28px;color:var(--nav-muted,#c7c7cc);font-size:14px}' +
