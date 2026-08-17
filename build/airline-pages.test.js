@@ -28,15 +28,37 @@ function visible(html) {
     .trim();
 }
 
+function figureBlock(html, name) {
+  var token = 'data-figure-block="' + name + '"';
+  var i = html.indexOf(token);
+  assert.ok(i !== -1, name + ' figure block is present');
+  var open = html.lastIndexOf('<', i);
+  var tag = /^<([a-zA-Z0-9]+)\b/.exec(html.slice(open));
+  assert.ok(tag, name + ' opening tag');
+  var re = new RegExp('</?' + tag[1] + '\\b[^>]*>', 'gi');
+  var slice = html.slice(open);
+  var depth = 0;
+  var end = -1;
+  var m;
+  while ((m = re.exec(slice))) {
+    if (m[0].charAt(1) === '/') {
+      depth -= 1;
+      if (depth === 0) { end = m.index + m[0].length; break; }
+    } else if (!/\/>$/.test(m[0])) {
+      depth += 1;
+    }
+  }
+  assert.ok(end > 0, name + ' closing tag');
+  return visible(slice.slice(0, end));
+}
+
 function nextGenStat(html) {
-  var m = /data-figure-block="nextgen"[\s\S]*?<\/div>\s*<\/div>/.exec(html);
-  assert.ok(m, 'next-gen stat block is present');
-  return visible(m[0]);
+  return figureBlock(html, 'nextgen');
 }
 
 function sectionIds(html) {
   var ids = [];
-  var re = /<section class="blk" id="([^"]+)"/g;
+  var re = /<section\b[^>]*\bid="([^"]+)"/g;
   var m;
   while ((m = re.exec(html))) ids.push(m[1]);
   return ids;
@@ -158,8 +180,8 @@ LOCKED_KEYS.forEach(function (key) {
   assert.ok(!/\.\s+[a-z]/.test(footnote[1]),
     key + ' footnote does not start the free-status sentence in lowercase');
   assert.deepStrictEqual(sectionIds(html).slice(0, 3),
-    ['snapshot', 'tech-on-board', 'rollout'],
-    key + ' section order is snapshot, tech on board, rollout');
+    ['what', 'rest', 'rollout'],
+    key + ' section order is what, rest of fleet, rollout');
 
   if (scored.nextGenPublished === false) {
     var ng = nextGenStat(html);
@@ -199,6 +221,23 @@ assert.ok(united.indexOf('data-date="published_at">' + unitedChecked) === -1,
   'United does not mark the check day as published_at');
 assert.ok(!/Starlink[\s\S]{0,280}published_at/.test(united),
   'United Starlink row does not label a date published_at');
+var unitedNg = figureBlock(united, 'nextgen');
+var unitedStream = figureBlock(united, 'streaming');
+assert.ok(/523/.test(unitedNg) && /29%/.test(unitedNg),
+  'United Next-Gen prints 523 and 29% on the same card');
+assert.ok(/1,?083/.test(unitedStream) && /60%/.test(unitedStream),
+  'United Streaming prints 1,083 and 60% on the same card');
+assert.ok(united.indexOf('data-figure-block="viasat"') === -1,
+  'United has no Viasat figure block');
+assert.ok(!/<span class="card-name">Viasat<\/span>/.test(united),
+  'United has no Viasat hero card');
+var unitedRest = (/id="rest"[\s\S]*?<\/section>/.exec(united) || [''])[0];
+assert.ok(/407/.test(unitedRest) && /131/.test(unitedRest) && /196/.test(unitedRest),
+  'United rest-of-fleet prints 407 / 131 / 196');
+assert.ok(/22%/.test(unitedRest) && /7%/.test(unitedRest) && /11%/.test(unitedRest),
+  'United rest-of-fleet prints 22% / 7% / 11%');
+assert.ok(/182 \/ 1,144/.test(united) && /341 \/ 673/.test(united),
+  'United rollout prints 182 / 1,144 and 341 / 673');
 
 var alaska = htmlOf('airlines/alaska/index.html');
 assert.ok(/alaskastarlinktracker\.com/.test(alaska),
@@ -208,8 +247,8 @@ var sasPage = htmlOf('airlines/sas/index.html');
 var sasScore = A.scoreAirline('sas');
 assert.strictEqual(sasScore.score, 0, 'SAS Streaming stays the published 0');
 assert.ok(nextGenStat(sasPage).indexOf('Unpublished') !== -1);
-var sasStream = /data-figure-block="streaming"[\s\S]*?<\/div>\s*<\/div>/.exec(sasPage);
-assert.ok(sasStream && visible(sasStream[0]).indexOf('0') !== -1,
+var sasStream = figureBlock(sasPage, 'streaming');
+assert.ok(sasStream.indexOf('0') !== -1,
   'SAS Streaming 0 is still printed');
 
 var homeCss = htmlOf(path.join('build', 'templates', 'home.html'));

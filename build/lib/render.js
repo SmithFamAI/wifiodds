@@ -1208,18 +1208,75 @@ function airlinePage(m, key) {
  * Forecast shell, one family, fixed section order. Scoped CSS only. Does not
  * restyle homepage rank cards. */ 
 function airlineScopedCss() {
-  return '<style id="airline-scoped">\n' +
-    '.airline-page .dir-list{margin:0;padding:0;list-style:none;' +
-    'border-top:1px solid var(--line,var(--soft,#29292f))}\n' +
-    '.airline-page .dir-list a{display:block;padding:10px 0;' +
-    'border-bottom:1px solid var(--line,var(--soft,#29292f))}\n' +
-    '.airline-page .tech-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;' +
-    'padding:12px 0;border-bottom:1px solid var(--line,var(--soft,#29292f))}\n' +
-    '.airline-page .tech-row .d{margin-top:3px;color:var(--muted,#aaaab2);font-size:13px}\n' +
-    '.airline-page .tech-row .n{font-variant-numeric:tabular-nums}\n' +
-    '.airline-page .tech-row small{margin-left:8px;color:var(--muted,#aaaab2);font-size:11px;' +
-    'letter-spacing:.04em;text-transform:uppercase}\n' +
-    '</style>\n';
+  return '<style id="airline-scoped">\n' + [
+    '.airline-page .dir-list{margin:0;padding:0;list-style:none;border-top:1px solid var(--line,var(--soft,#29292f))}',
+    '.airline-page .dir-list a{display:block;padding:10px 0;min-height:44px;border-bottom:1px solid var(--line,var(--soft,#29292f))}',
+    '.airline-page.airline-sub{padding:8px 0 48px}',
+    '.airline-page.airline-sub .kicker{display:block;color:var(--cyan,#29d8ff);font:800 11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px}',
+    '.airline-page.airline-sub h1.ph{font-size:clamp(40px,6vw,72px);line-height:.92;letter-spacing:-.06em;margin:0 0 12px;font-weight:800}',
+    '.airline-page.airline-sub .lede{margin:0 0 18px;color:#b9b9c0;font-size:18px;line-height:1.45;max-width:46rem}',
+    '.airline-page.airline-sub .footnote{margin:0 0 16px;color:#8a8a93;font-size:13px;line-height:1.45;max-width:46rem}',
+    '.airline-page.airline-sub .asof{color:#777781;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;margin:0 0 28px}',
+    '.airline-page .pair{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line,#29292f);border-radius:20px;overflow:hidden;background:var(--panel,#0d0d0f);margin:0 0 18px}',
+    '.airline-page .card{display:block;min-width:0;padding:26px 26px 22px;position:relative;color:inherit;min-height:44px}',
+    '.airline-page .card:focus-visible{outline:3px solid var(--cyan,#29d8ff);outline-offset:-3px;z-index:1}',
+    '.airline-page .card:hover{background:#141419}',
+    '.airline-page .card-next{border-right:1px solid var(--line,#29292f)}',
+    '.airline-page .card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:28px}',
+    '.airline-page .card-name{font-size:18px;font-weight:800;letter-spacing:-.03em}',
+    '.airline-page .card-code{font:11px ui-monospace,SFMono-Regular,Menlo,monospace;color:#94949d}',
+    '.airline-page .figs{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}',
+    '.airline-page .count{display:flex;align-items:flex-end;gap:10px}',
+    '.airline-page .count b{font-size:clamp(48px,6vw,76px);line-height:.72;letter-spacing:-.08em;font-variant-numeric:tabular-nums;font-weight:850}',
+    '.airline-page .card-unpub .count b{font-size:clamp(22px,3.6vw,36px);line-height:1;letter-spacing:-.04em}',
+    '.airline-page .count span{font:700 10px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted,#a6a6ad);text-transform:uppercase;line-height:1.25;padding-bottom:4px}',
+    '.airline-page .pct{text-align:right}',
+    '.airline-page .pct b{display:block;font-size:clamp(28px,3.4vw,40px);line-height:.8;letter-spacing:-.05em;font-variant-numeric:tabular-nums}',
+    '.airline-page .pct span{display:block;margin-top:8px;font:700 10px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted,#a6a6ad);text-transform:uppercase;letter-spacing:.08em}',
+    '.airline-page .card-next .count b,.airline-page .card-next .pct b{color:var(--cyan,#29d8ff)}',
+    '.airline-page .card-stream .count b,.airline-page .card-stream .pct b{color:var(--violet,#926cff)}',
+    '.airline-page .fleet-band{height:4px;border-radius:99px;margin:22px 0 16px;background:var(--line,#29292f);overflow:hidden}',
+    '.airline-page .fleet-band i{display:block;height:100%;border-radius:inherit;width:0}',
+    '.airline-page .card-next .fleet-band i{background:linear-gradient(90deg,var(--cyan,#29d8ff),#7cc9ff)}',
+    '.airline-page .card-stream .fleet-band i{background:linear-gradient(90deg,var(--violet,#926cff),#b398ff)}',
+    '.airline-page .why{margin:0;color:#c4c4cb;font-size:14px;line-height:1.45;max-width:36rem}',
+    '.airline-page .evidence{margin:10px 0 0;color:#8a8a93;font-size:12px;line-height:1.45}',
+    '.airline-page .mean{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0 0 42px}',
+    '.airline-page .mean article{background:var(--panel,#0d0d0f);border:1px solid var(--line,#29292f);border-radius:16px;padding:20px 22px}',
+    '.airline-page .mean h2{margin:0 0 8px;font-size:15px;letter-spacing:-.02em}',
+    '.airline-page .mean p{margin:0;color:#b9b9c1;font-size:14px;line-height:1.5}',
+    '.airline-page .mean b{color:#fff;font-weight:700}',
+    '.airline-page .rest{margin:0 0 42px}',
+    '.airline-page .rest h2,.airline-page .roll h2{font-size:clamp(28px,3.5vw,40px);letter-spacing:-.045em;margin:0 0 10px}',
+    '.airline-page .rest .intro,.airline-page .roll p{margin:0 0 18px;color:#b9b9c0;font-size:16px;line-height:1.5;max-width:46rem}',
+    '.airline-page .rest-list{border:1px solid var(--line,#29292f);border-radius:16px;overflow:hidden;background:var(--panel,#0d0d0f)}',
+    '.airline-page .rest-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;min-height:56px;padding:12px 18px;border-bottom:1px solid var(--line,#29292f)}',
+    '.airline-page .rest-row:last-child{border-bottom:0}',
+    '.airline-page .rest-row:hover{background:#141419}',
+    '.airline-page .rest-row b{font-size:14px;letter-spacing:-.02em}',
+    '.airline-page .rest-row small{display:block;margin-top:3px;color:#8a8a93;font-size:12px;line-height:1.35;font-weight:400}',
+    '.airline-page .rest-row .n{font-size:20px;letter-spacing:-.04em;font-variant-numeric:tabular-nums;font-weight:750}',
+    '.airline-page .rest-row .share{color:#aaaab2;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;text-align:right}',
+    '.airline-page .rest-row.unknown-row{box-shadow:inset 3px 0 var(--unknown,#85858e)}',
+    '.airline-page .rest-row.unknown-row .n{color:var(--unknown,#85858e)}',
+    '.airline-page .note{margin:14px 0 0;color:#8a8a93;font-size:13px;line-height:1.5;max-width:46rem}',
+    '.airline-page .roll{margin:0 0 24px}',
+    '.airline-page .split{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line,#29292f);border-radius:16px;overflow:hidden;background:var(--panel,#0d0d0f)}',
+    '.airline-page .split div{padding:20px 22px}',
+    '.airline-page .split div:first-child{border-right:1px solid var(--line,#29292f)}',
+    '.airline-page .split b{display:block;font-size:28px;letter-spacing:-.05em;font-variant-numeric:tabular-nums}',
+    '.airline-page .split span{color:#8a8a93;font-size:12px}',
+    '.airline-page .support{margin-top:28px;padding:16px 18px;border:1px solid var(--line,#29292f);border-radius:14px;background:linear-gradient(100deg,rgba(41,216,255,.07),rgba(146,108,255,.05));color:#c4c4cb;font-size:13px;line-height:1.5}',
+    '.airline-page .support b{color:#fff}',
+    '@media(max-width:880px){',
+    '.airline-page .pair,.airline-page .mean,.airline-page .split{grid-template-columns:1fr}',
+    '.airline-page .card-next{border-right:0;border-bottom:1px solid var(--line,#29292f)}',
+    '.airline-page .split div:first-child{border-right:0;border-bottom:1px solid var(--line,#29292f)}',
+    '.airline-page .rest-row{grid-template-columns:minmax(0,1fr) auto;min-height:64px}',
+    '.airline-page .rest-row .share{grid-column:2;grid-row:1}',
+    '}',
+    '@media(max-width:430px){.airline-page.airline-sub h1.ph{font-size:40px}}'
+  ].join('\n') + '\n</style>\n';
 }
 
 function airlinePath(key) { return '/airlines/' + key + '/'; }
@@ -1322,6 +1379,86 @@ function airlineTechRows(a, checkedAt) {
   return html;
 }
 
+/* Same partition as homeProofBuckets(), applied to one scored airline's
+   segments. Streaming CARD count is nextGen + streaming (floorCertain).
+   Unknown is not zero: no segments means unsourced counts, not a 0. */
+function airlineFleetBuckets(m, a) {
+  var thresh = m.A.STREAMING_MIN_Q;
+  var segs = a.segments || [];
+  var b = {
+    nextGen: 0,
+    streaming: 0,
+    legacy: 0,
+    noWifi: 0,
+    unresolved: a.unresolved || 0,
+    sourced: segs.length > 0,
+    nextGenLabels: [],
+    streamingLabels: [],
+    legacyLabels: []
+  };
+  segs.forEach(function (s) {
+    if (s.nextGen) {
+      b.nextGen += s.n;
+      b.nextGenLabels.push(s);
+    } else if (s.qMin >= thresh) {
+      b.streaming += s.n;
+      b.streamingLabels.push(s);
+    } else if (s.qMax > 0) {
+      b.legacy += s.n;
+      b.legacyLabels.push(s);
+    } else {
+      b.noWifi += s.n;
+    }
+  });
+  var known = a.known || 0;
+  b.total = (typeof a.fleet === 'number' && a.fleet > 0) ? a.fleet : (known + b.unresolved);
+  b.floorCertain = b.nextGen + b.streaming;
+  if (b.sourced && b.total > 0) {
+    var sum = b.nextGen + b.streaming + b.legacy + b.noWifi + b.unresolved;
+    if (sum !== b.total) {
+      throw new Error('Render.airlineSubpage: ' + a.key + ' fleet buckets do not reconstruct the fleet — ' +
+        b.nextGen + ' next-gen + ' + b.streaming + ' streaming + ' + b.legacy + ' legacy + ' +
+        b.noWifi + ' no-wifi + ' + b.unresolved + ' unresolved = ' + sum + ', but total is ' + b.total + '.');
+    }
+  }
+  return b;
+}
+
+function airlineSharePct(n, total) {
+  if (!total) return null;
+  return homeFmtPct((n / total) * 100);
+}
+
+function airlineRestGloss(labels, fallback) {
+  if (labels.length === 1 && /panasonic/i.test(labels[0].systemLabel || '')) {
+    return 'Cabin systems that are not the streaming bucket. Panasonic as a gloss, not the lead.';
+  }
+  return fallback;
+}
+
+function airlineFigureCard(opts) {
+  var unpublished = !!opts.unpublished;
+  var cls = 'card ' + opts.cardClass + (unpublished ? ' card-unpub' : '');
+  var code = opts.code ? '<span class="card-code">' + esc(opts.code) + '</span>' : '<span class="card-code"></span>';
+  var countInner = unpublished
+    ? '<b>Unpublished</b>'
+    : '<b>' + opts.countHtml + '</b> <span>aircraft</span>';
+  var pctHtml = unpublished || !opts.pct
+    ? ''
+    : '<div class="pct"><b>' + esc(opts.pct) + '%</b> <span>of fleet</span></div>';
+  var bandHtml = unpublished || !opts.pct ? '' : '        <div class="fleet-band" aria-hidden="true"><i style="width:' + esc(String(opts.pct)) + '%"></i></div>\n';
+  return '      <a class="' + cls + '" href="#what" data-figure-block="' + opts.block + '">\n' +
+    '        <div class="card-head"><span class="card-name">' + esc(opts.name) + '</span> ' + code + '</div>\n' +
+    '        <div class="figs">\n' +
+    '          <div class="count">' + countInner + '</div>\n' +
+    (pctHtml ? '          ' + pctHtml + '\n' : '') +
+    '        </div>\n' +
+    '        <p class="evidence">' + opts.evidence + '</p>\n' +
+    bandHtml +
+    '        <p class="why">' + opts.why + '</p>\n' +
+    '      </a>\n';
+}
+
 function airlineSubpage(m, key) {
   var e = m.A.WIFI_AIRLINES[key];
   var a = m.A.scoreAirline(key);
@@ -1329,86 +1466,102 @@ function airlineSubpage(m, key) {
   var path = airlinePath(key);
   var crumbs = [['/', 'Home'], ['/airlines/', 'Airlines'], [path, a.name]];
   var sf = homeStreamingFloor(m, a);
+  var buckets = airlineFleetBuckets(m, a);
   var unpublished = a.nextGenPublished === false;
-  var equippedUnpub = a.equippedPublished === false;
   var asOf = a.asOf || null;
   var checkedAt = m.updated;
   var checkedAtHtml = '<span data-date="checked_at">' + esc(checkedAt) + '</span>';
+  var asOfHtml = '<b data-date="as_of">' + esc(asOf || 'Unknown') + '</b>';
+  var total = buckets.total;
+  var sourced = buckets.sourced;
+  var streamUnsourced = !sourced;
+  var ngPct = (!unpublished && sourced && total) ? String(homeNum(a.nextGenScore, key + '.nextGenScore')) : null;
+  var streamPct = (!streamUnsourced && total) ? homeFmtPct(sf.pct) : null;
+  var streamCount = sourced ? buckets.floorCertain : null;
 
-  var nextGenFig = unpublished
-    ? '<b>Unpublished</b>'
-    : '<b>' + homeNum(a.nextGenScore, key + '.nextGenScore') + '%</b>';
-  var nextGenNote = unpublished
-    ? 'Next-gen count Unpublished.'
-    : esc(homeOddsLabel(a));
-
-  var streamFig = '<b>' + homeNum(a.score, key + '.score') + '</b>';
-
-  var fleetFig;
-  var fleetNote;
-  if (!a.fleet) {
-    fleetFig = '<b>Fleetwide</b>';
-    fleetNote = esc(homeSysLabel(a));
-  } else if (equippedUnpub) {
-    fleetFig = '<b>Unpublished</b>';
-    fleetNote = num(a.fleet) + ' aircraft; equipped count Unpublished.';
-  } else {
-    fleetFig = '<b>' + num(a.equipped) + '</b><small> / ' + num(a.fleet) + '</small>';
-    fleetNote = num(a.equipped) + ' of ' + num(a.fleet) + ' aircraft next-gen today.';
-  }
-
-  var coverageFig;
-  var coverageNote;
+  var ngCode = unpublished ? '' : (buckets.nextGenLabels.length && buckets.nextGenLabels.every(function (s) {
+    return /starlink/i.test(s.systemLabel || '');
+  }) ? 'Starlink today' : (ngPct === '0' ? 'None flying' : 'Next-gen today'));
+  var ngWhy = unpublished
+    ? 'This airline has not published a next-gen aircraft count. Starlink is the only next-gen system in the air today. Amazon Leo is not flying yet.'
+    : (buckets.nextGen > 0
+      ? 'Starlink only today. Amazon Leo is not flying yet. This is your chance of boarding one of these aircraft.'
+      : 'Starlink is the only next-gen system in the air today. Amazon Leo is not flying yet. This fleet has no published next-gen aircraft in service.');
+  var ngEvidence;
   if (unpublished) {
-    coverageFig = '<b>Unknown</b>';
-    coverageNote = 'Confirmed streaming coverage is Unpublished for this fleet.';
+    ngEvidence = 'Next-gen aircraft count Unpublished. Not a measured zero. as_of ' + asOfHtml +
+      ', checked_at ' + checkedAtHtml + '.';
+  } else if (!sourced) {
+    ngEvidence = 'Next-gen aircraft count Unpublished. No sourced segment list. as_of ' + asOfHtml +
+      ', checked_at ' + checkedAtHtml + '.';
   } else {
-    coverageFig = '<b>' + esc(homeFmtPct(sf.pct)) + '%</b>';
-    coverageNote = sf.uncertain
-      ? esc(homeTierNote(a, sf) || 'remainder Unknown')
-      : 'Confirmed streaming coverage.';
+    ngEvidence = num(buckets.nextGen) + ' of ' + num(total) + ' · modelled · as_of ' + asOfHtml;
+    if (a.tracker) ngEvidence += ' · ' + esc(a.tracker);
+    if (key === 'united') ngEvidence += ' and united/data.json';
+    ngEvidence += ', checked_at ' + checkedAtHtml + '.';
   }
 
-  var lede = esc(a.name);
-  if (unpublished) {
-    lede += ' has not published a next-gen aircraft count. Next-Gen is Unpublished. ' +
-      'Streaming score ' + a.score + '.';
+  var streamWhy = 'Usable wifi, video included. Next-gen is inside this count. It is not a second, matching number.';
+  var streamEvidence;
+  if (streamUnsourced) {
+    streamEvidence = 'Streaming aircraft count Unpublished. No sourced segment list to turn a percentage into a count. as_of ' +
+      asOfHtml + ', checked_at ' + checkedAtHtml + '.';
   } else {
-    lede += ' Next-Gen ' + a.nextGenScore + '%. Streaming score ' + a.score + '.';
-    if (!a.fleet) lede += ' Fleetwide coverage.';
-    else if (equippedUnpub) lede += ' Equipped count Unpublished across ' + num(a.fleet) + ' aircraft.';
-    else lede += ' ' + num(a.equipped) + ' of ' + num(a.fleet) + ' aircraft next-gen today.';
+    streamEvidence = num(streamCount) + ' of ' + num(total) + ' · ' + esc(streamPct) +
+      '% confirmed coverage · count is ' + num(buckets.nextGen) + ' next-gen plus ' +
+      num(buckets.streaming) + ' other streaming-capable aircraft, as_of ' + asOfHtml +
+      ', checked_at ' + checkedAtHtml + '.';
   }
 
-  var trackerBody;
-  if (a.tracker) {
-    trackerBody = P.srcLine('reported',
-      'Per-tail counts from <a href="https://' + esc(a.tracker) + '" target="_blank" rel="noopener">' +
-      esc(a.tracker) + '</a> (@martinamps), checked_at ' + checkedAtHtml + '.');
+  var lede = 'Count and percent share each Forecast-style card. Next-Gen and Streaming answer different questions.';
+
+  var asofLine = 'Data current as of ' + asOfHtml;
+  asofLine += ' · fleet checked ' + checkedAtHtml;
+  if (total) asofLine += ' · ' + num(total) + ' aircraft';
+
+  var ngMeans;
+  if (unpublished || !sourced) {
+    ngMeans = 'Starlink is the only next-gen system in the air today. The next-gen aircraft count is <b>Unpublished</b>. Per-flight odds on a booking site are a different question from this airline-wide share.';
   } else {
-    trackerBody = P.srcLine('reported',
-      'Fleet state compiled from public ' + esc(a.name) + ' announcements, as_of ' +
-      '<span data-date="as_of">' + esc(asOf || 'Unknown') + '</span>' +
-      '. Quality weights from Ookla Speedtest Intelligence, published_at ' +
-      '<span data-date="published_at">2026-04-28</span>, checked_at ' +
-      checkedAtHtml + '.');
+    ngMeans = 'Starlink is the only next-gen system in the air today. <b>' + num(buckets.nextGen) +
+      ' aircraft, ' + esc(ngPct) + '%</b> of the ' + esc(a.name) +
+      ' fleet. Per-flight odds on a booking site are a different question from this airline-wide share.';
+  }
+
+  var streamMeans;
+  if (streamUnsourced) {
+    streamMeans = 'Aircraft where video works. The streaming aircraft count is <b>Unpublished</b>. This card shows coverage, not a quality score.';
+  } else {
+    streamMeans = 'Aircraft where video works. <b>' + num(streamCount) + ' aircraft, ' + esc(streamPct) +
+      '%</b>. That includes the ' + num(buckets.nextGen) + ' next-gen tails plus ' +
+      num(buckets.streaming) + ' with older satellite wifi that still streams. This card shows coverage, not a quality score.';
+  }
+
+  function restCount(n, share) {
+    if (!sourced) return { n: 'Unpublished', share: '' };
+    return { n: num(n), share: share ? share + '%' : '' };
+  }
+  var restLegacy = restCount(buckets.legacy, sourced ? airlineSharePct(buckets.legacy, total) : null);
+  var restNoWifi = restCount(buckets.noWifi, sourced ? airlineSharePct(buckets.noWifi, total) : null);
+  var restUnknown = restCount(buckets.unresolved, sourced ? airlineSharePct(buckets.unresolved, total) : null);
+  var restNote;
+  if (sourced && total) {
+    var leftover = buckets.legacy + buckets.noWifi + buckets.unresolved;
+    restNote = num(buckets.legacy) + ' + ' + num(buckets.noWifi) + ' + ' + num(buckets.unresolved) +
+      ' = ' + num(leftover) + ' aircraft not in the Streaming card. ' +
+      num(buckets.floorCertain) + ' + ' + num(leftover) + ' = ' + num(total) + '.';
+  } else {
+    restNote = 'Unknown is not zero. Unsourced rest-of-fleet counts stay Unpublished.';
   }
 
   var split = a.nextGenSplit;
   var splitHtml = '';
   if (split && split.state === 'value' && split.mainline && split.regional) {
-    splitHtml = '  <h3>Mainline and regional</h3>\n' +
-      '  <p class="sec-lede">The public tracker splits United Starlink tails into mainline and regional. ' +
-      'Other systems are not broken out.</p>\n' +
-      '  <div class="stats">\n' +
-      '    <div class="stat rv"><div class="n">' + num(split.mainline.n) + '<small> / ' +
-      num(split.mainline.of) + '</small></div><div class="l">Mainline</div>' +
-      '<div class="d">' + num(split.mainline.n) + ' of ' + num(split.mainline.of) +
-      ' mainline aircraft.</div></div>\n' +
-      '    <div class="stat rv"><div class="n">' + num(split.regional.n) + '<small> / ' +
-      num(split.regional.of) + '</small></div><div class="l">Regional</div>' +
-      '<div class="d">' + num(split.regional.n) + ' of ' + num(split.regional.of) +
-      ' regional aircraft.</div></div>\n' +
+    splitHtml =
+      '  <p>Public tracker splits ' + esc(a.name) + ' Starlink tails into mainline and regional. Other systems are not broken out that way.</p>\n' +
+      '  <div class="split">\n' +
+      '    <div><b>' + num(split.mainline.n) + ' / ' + num(split.mainline.of) + '</b> <span>Mainline next-gen</span></div>\n' +
+      '    <div><b>' + num(split.regional.n) + ' / ' + num(split.regional.of) + '</b> <span>Regional next-gen</span></div>\n' +
       '  </div>\n' +
       P.srcLine('reported', 'united/data.json, daily pull from unitedstarlinktracker.com, checked_at ' +
         checkedAtHtml + '.');
@@ -1435,53 +1588,100 @@ function airlineSubpage(m, key) {
     rolloutBits += '  <h3>Dated notes</h3>\n' + newsHtml;
   }
   if (!rolloutBits) {
-    rolloutBits = '  <p>No dated rollout note beyond the snapshot.</p>\n';
+    rolloutBits = '  <p>No dated rollout split beyond the snapshot on this page.</p>\n';
+  }
+
+  var ngCard = airlineFigureCard({
+    block: 'nextgen',
+    cardClass: 'card-next',
+    name: 'Next-Gen',
+    code: ngCode,
+    unpublished: unpublished || !sourced,
+    countHtml: sourced ? num(buckets.nextGen) : '',
+    pct: ngPct,
+    why: ngWhy,
+    evidence: ngEvidence
+  });
+  var streamCard = airlineFigureCard({
+    block: 'streaming',
+    cardClass: 'card-stream',
+    name: 'Streaming',
+    code: 'Video works',
+    unpublished: streamUnsourced,
+    countHtml: sourced ? num(streamCount) : '',
+    pct: streamPct,
+    why: streamWhy,
+    evidence: streamEvidence
+  });
+
+  var desc;
+  if (unpublished || !sourced) {
+    desc = a.name + ' next-gen aircraft count is Unpublished.';
+    if (streamUnsourced) desc += ' Streaming aircraft count is Unpublished.';
+    else desc += ' Streaming ' + streamCount + ' aircraft (' + streamPct + '% of fleet).';
+    desc += ' as_of ' + (asOf || 'Unknown') + ', checked_at ' + checkedAt + '.';
+  } else {
+    desc = a.name + ' Next-Gen ' + buckets.nextGen + ' aircraft (' + ngPct +
+      '%), Streaming ' + streamCount + ' aircraft (' + streamPct + '% of fleet), as_of ' +
+      (asOf || 'Unknown') + ', checked_at ' + checkedAt + '.';
   }
 
   var body =
-    '<div class="airline-page">\n' +
-    '<header class="hero" style="padding-top:14px">\n' +
-    '  <span class="kicker">The forecast</span>\n' +
+    '<div class="airline-page airline-sub">\n' +
+    '  <span class="kicker">Airline page</span>\n' +
     '  <h1 class="ph">' + esc(a.name) + '</h1>\n' +
     '  <p class="lede">' + lede + '</p>\n' +
     '  <p class="footnote">' + esc(capFirst(P.freeText(e.free))) + '.</p>\n' +
-    trackerBody +
-    '</header>\n\n' +
-    '<section class="blk" id="snapshot">\n' +
-    '  <div class="sec-h"><h2>Snapshot</h2><span class="sub">Data current as of <b data-date="as_of">' +
-    esc(asOf || 'Unknown') + '</b></span></div>\n' +
-    '  <div class="stats">\n' +
-    '    <div class="stat rv" data-figure-block="nextgen"><div class="n">' + nextGenFig +
-    '</div><div class="l">Next-Gen</div><div class="d">' + nextGenNote + '</div></div>\n' +
-    '    <div class="stat rv" data-figure-block="streaming"><div class="n">' + streamFig +
-    '</div><div class="l">Streaming</div><div class="d">Whole-fleet Streaming score.</div></div>\n' +
-    '    <div class="stat rv" data-figure-block="fleet"><div class="n">' + fleetFig +
-    '</div><div class="l">Aircraft</div><div class="d">' + fleetNote + '</div></div>\n' +
-    '    <div class="stat rv" data-figure-block="coverage"><div class="n">' + coverageFig +
-    '</div><div class="l">Coverage</div><div class="d">' + coverageNote + '</div></div>\n' +
-    '  </div>\n' +
-    '</section>\n\n' +
-    '<section class="blk" id="tech-on-board">\n' +
-    '  <div class="sec-h"><h2>Tech on board</h2></div>\n' +
-    airlineTechRows(a, checkedAt) +
-    '</section>\n\n' +
-    '<section class="blk" id="rollout">\n' +
-    '  <div class="sec-h"><h2>Rollout</h2></div>\n' +
+    '  <p class="asof">' + asofLine + '</p>\n\n' +
+    '  <div class="pair">\n' +
+    ngCard +
+    streamCard +
+    '  </div>\n\n' +
+    '  <section class="mean" id="what">\n' +
+    '    <article>\n' +
+    '      <h2>What Next-Gen means</h2>\n' +
+    '      <p>' + ngMeans + '</p>\n' +
+    '    </article>\n' +
+    '    <article>\n' +
+    '      <h2>What Streaming means</h2>\n' +
+    '      <p>' + streamMeans + '</p>\n' +
+    '    </article>\n' +
+    '  </section>\n\n' +
+    '  <section class="rest" id="rest" aria-labelledby="rest-h">\n' +
+    '    <h2 id="rest-h">The rest of the fleet</h2>\n' +
+    '    <p class="intro">After next-gen and streaming, the leftover is older onboard wifi, no wifi, or no published system. Older satellite wifi that still streams is already in the Streaming card, not a vendor tile here.</p>\n' +
+    '    <div class="rest-list">\n' +
+    '      <div class="rest-row">\n' +
+    '        <div><b>Older onboard wifi</b> <small>' + esc(airlineRestGloss(buckets.legacyLabels,
+      'Cabin systems that are not the streaming bucket.')) + '</small></div>\n' +
+    '        <span class="n">' + restLegacy.n + '</span>\n' +
+    (restLegacy.share ? '        <span class="share">' + restLegacy.share + '</span>\n' : '') +
+    '      </div>\n' +
+    '      <div class="rest-row">\n' +
+    '        <div><b>No wifi</b> <small>Published as unequipped.</small></div>\n' +
+    '        <span class="n">' + restNoWifi.n + '</span>\n' +
+    (restNoWifi.share ? '        <span class="share">' + restNoWifi.share + '</span>\n' : '') +
+    '      </div>\n' +
+    '      <div class="rest-row unknown-row">\n' +
+    '        <div><b>No published system</b> <small>Unknown is not zero.' +
+    (sourced ? ' These aircraft have no system on the record.' : '') +
+    '</small></div>\n' +
+    '        <span class="n">' + restUnknown.n + '</span>\n' +
+    (restUnknown.share ? '        <span class="share">' + restUnknown.share + '</span>\n' : '') +
+    '      </div>\n' +
+    '    </div>\n' +
+    '    <p class="note">' + restNote + '</p>\n' +
+    '  </section>\n\n' +
+    '  <section class="roll" id="rollout" aria-labelledby="roll-h">\n' +
+    '    <h2 id="roll-h">Rollout</h2>\n' +
     rolloutBits +
-    '</section>\n\n' +
-    '<section class="blk">\n' +
-    '  <div class="cta-row"><a class="btn" href="/airlines/">Airline directory</a>' +
-    '<a class="btn ghost" href="/#all">Homepage rank list</a></div>\n' +
-    '</section>\n' +
+    '  </section>\n\n' +
+    '  <p class="support"><b>Not on this page:</b> The retired 0-100 score or its name. Vendor tiles as the opening grid. Streaming-capable older-satellite aircraft sit inside the Streaming card.</p>\n' +
     '</div>\n';
 
   return H.page({
     title: a.name + ' WiFi · WiFi Odds',
-    desc: unpublished
-      ? a.name + ' next-gen aircraft count is Unpublished. Streaming score ' + a.score +
-        ', as_of ' + (asOf || 'Unknown') + ', checked_at ' + checkedAt + '.'
-      : a.name + ' Next-Gen ' + a.nextGenScore + '%, Streaming score ' + a.score +
-        ', as_of ' + (asOf || 'Unknown') + ', checked_at ' + checkedAt + '.',
+    desc: desc,
     canonical: path, here: path,
     updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained,
     mastheadV2: true,

@@ -24,11 +24,72 @@
 <link rel="stylesheet" href="/assets/site.css?v=ef07b265">
 <style id="airline-scoped">
 .airline-page .dir-list{margin:0;padding:0;list-style:none;border-top:1px solid var(--line,var(--soft,#29292f))}
-.airline-page .dir-list a{display:block;padding:10px 0;border-bottom:1px solid var(--line,var(--soft,#29292f))}
-.airline-page .tech-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:12px 0;border-bottom:1px solid var(--line,var(--soft,#29292f))}
-.airline-page .tech-row .d{margin-top:3px;color:var(--muted,#aaaab2);font-size:13px}
-.airline-page .tech-row .n{font-variant-numeric:tabular-nums}
-.airline-page .tech-row small{margin-left:8px;color:var(--muted,#aaaab2);font-size:11px;letter-spacing:.04em;text-transform:uppercase}
+.airline-page .dir-list a{display:block;padding:10px 0;min-height:44px;border-bottom:1px solid var(--line,var(--soft,#29292f))}
+.airline-page.airline-sub{padding:8px 0 48px}
+.airline-page.airline-sub .kicker{display:block;color:var(--cyan,#29d8ff);font:800 11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px}
+.airline-page.airline-sub h1.ph{font-size:clamp(40px,6vw,72px);line-height:.92;letter-spacing:-.06em;margin:0 0 12px;font-weight:800}
+.airline-page.airline-sub .lede{margin:0 0 18px;color:#b9b9c0;font-size:18px;line-height:1.45;max-width:46rem}
+.airline-page.airline-sub .footnote{margin:0 0 16px;color:#8a8a93;font-size:13px;line-height:1.45;max-width:46rem}
+.airline-page.airline-sub .asof{color:#777781;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;margin:0 0 28px}
+.airline-page .pair{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line,#29292f);border-radius:20px;overflow:hidden;background:var(--panel,#0d0d0f);margin:0 0 18px}
+.airline-page .card{display:block;min-width:0;padding:26px 26px 22px;position:relative;color:inherit;min-height:44px}
+.airline-page .card:focus-visible{outline:3px solid var(--cyan,#29d8ff);outline-offset:-3px;z-index:1}
+.airline-page .card:hover{background:#141419}
+.airline-page .card-next{border-right:1px solid var(--line,#29292f)}
+.airline-page .card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:28px}
+.airline-page .card-name{font-size:18px;font-weight:800;letter-spacing:-.03em}
+.airline-page .card-code{font:11px ui-monospace,SFMono-Regular,Menlo,monospace;color:#94949d}
+.airline-page .figs{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.airline-page .count{display:flex;align-items:flex-end;gap:10px}
+.airline-page .count b{font-size:clamp(48px,6vw,76px);line-height:.72;letter-spacing:-.08em;font-variant-numeric:tabular-nums;font-weight:850}
+.airline-page .card-unpub .count b{font-size:clamp(22px,3.6vw,36px);line-height:1;letter-spacing:-.04em}
+.airline-page .count span{font:700 10px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted,#a6a6ad);text-transform:uppercase;line-height:1.25;padding-bottom:4px}
+.airline-page .pct{text-align:right}
+.airline-page .pct b{display:block;font-size:clamp(28px,3.4vw,40px);line-height:.8;letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+.airline-page .pct span{display:block;margin-top:8px;font:700 10px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted,#a6a6ad);text-transform:uppercase;letter-spacing:.08em}
+.airline-page .card-next .count b,.airline-page .card-next .pct b{color:var(--cyan,#29d8ff)}
+.airline-page .card-stream .count b,.airline-page .card-stream .pct b{color:var(--violet,#926cff)}
+.airline-page .fleet-band{height:4px;border-radius:99px;margin:22px 0 16px;background:var(--line,#29292f);overflow:hidden}
+.airline-page .fleet-band i{display:block;height:100%;border-radius:inherit;width:0}
+.airline-page .card-next .fleet-band i{background:linear-gradient(90deg,var(--cyan,#29d8ff),#7cc9ff)}
+.airline-page .card-stream .fleet-band i{background:linear-gradient(90deg,var(--violet,#926cff),#b398ff)}
+.airline-page .why{margin:0;color:#c4c4cb;font-size:14px;line-height:1.45;max-width:36rem}
+.airline-page .evidence{margin:10px 0 0;color:#8a8a93;font-size:12px;line-height:1.45}
+.airline-page .mean{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0 0 42px}
+.airline-page .mean article{background:var(--panel,#0d0d0f);border:1px solid var(--line,#29292f);border-radius:16px;padding:20px 22px}
+.airline-page .mean h2{margin:0 0 8px;font-size:15px;letter-spacing:-.02em}
+.airline-page .mean p{margin:0;color:#b9b9c1;font-size:14px;line-height:1.5}
+.airline-page .mean b{color:#fff;font-weight:700}
+.airline-page .rest{margin:0 0 42px}
+.airline-page .rest h2,.airline-page .roll h2{font-size:clamp(28px,3.5vw,40px);letter-spacing:-.045em;margin:0 0 10px}
+.airline-page .rest .intro,.airline-page .roll p{margin:0 0 18px;color:#b9b9c0;font-size:16px;line-height:1.5;max-width:46rem}
+.airline-page .rest-list{border:1px solid var(--line,#29292f);border-radius:16px;overflow:hidden;background:var(--panel,#0d0d0f)}
+.airline-page .rest-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;min-height:56px;padding:12px 18px;border-bottom:1px solid var(--line,#29292f)}
+.airline-page .rest-row:last-child{border-bottom:0}
+.airline-page .rest-row:hover{background:#141419}
+.airline-page .rest-row b{font-size:14px;letter-spacing:-.02em}
+.airline-page .rest-row small{display:block;margin-top:3px;color:#8a8a93;font-size:12px;line-height:1.35;font-weight:400}
+.airline-page .rest-row .n{font-size:20px;letter-spacing:-.04em;font-variant-numeric:tabular-nums;font-weight:750}
+.airline-page .rest-row .share{color:#aaaab2;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;text-align:right}
+.airline-page .rest-row.unknown-row{box-shadow:inset 3px 0 var(--unknown,#85858e)}
+.airline-page .rest-row.unknown-row .n{color:var(--unknown,#85858e)}
+.airline-page .note{margin:14px 0 0;color:#8a8a93;font-size:13px;line-height:1.5;max-width:46rem}
+.airline-page .roll{margin:0 0 24px}
+.airline-page .split{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line,#29292f);border-radius:16px;overflow:hidden;background:var(--panel,#0d0d0f)}
+.airline-page .split div{padding:20px 22px}
+.airline-page .split div:first-child{border-right:1px solid var(--line,#29292f)}
+.airline-page .split b{display:block;font-size:28px;letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+.airline-page .split span{color:#8a8a93;font-size:12px}
+.airline-page .support{margin-top:28px;padding:16px 18px;border:1px solid var(--line,#29292f);border-radius:14px;background:linear-gradient(100deg,rgba(41,216,255,.07),rgba(146,108,255,.05));color:#c4c4cb;font-size:13px;line-height:1.5}
+.airline-page .support b{color:#fff}
+@media(max-width:880px){
+.airline-page .pair,.airline-page .mean,.airline-page .split{grid-template-columns:1fr}
+.airline-page .card-next{border-right:0;border-bottom:1px solid var(--line,#29292f)}
+.airline-page .split div:first-child{border-right:0;border-bottom:1px solid var(--line,#29292f)}
+.airline-page .rest-row{grid-template-columns:minmax(0,1fr) auto;min-height:64px}
+.airline-page .rest-row .share{grid-column:2;grid-row:1}
+}
+@media(max-width:430px){.airline-page.airline-sub h1.ph{font-size:40px}}
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://wifiodds.com/"},{"@type":"ListItem","position":2,"name":"Airlines","item":"https://wifiodds.com/airlines/"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"Airline inflight WiFi directory","url":"https://wifiodds.com/airlines/","dateModified":"2026-08-16","isPartOf":{"@id":"https://wifiodds.com/#site"}}</script>
