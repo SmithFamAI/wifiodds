@@ -1303,45 +1303,225 @@ function airlineNewsItems(key) {
   }).slice(0, 2);
 }
 
+function directoryScopedCss() {
+  /* Directory-only. Do not restyle .sitebar / .masthead / .brand / nav.
+     Home chrome stays 78px mixed-case. Brand underline is a one-line
+     exception below, matching the Review-AGREED mock. */
+  return '' +
+    '.dir-page a{color:inherit;text-decoration:none}' +
+    '.dir-page .kicker{display:block;color:var(--cyan,#29d8ff);font:800 11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px}' +
+    '.dir-page h1{font-size:clamp(40px,6vw,72px);line-height:.92;letter-spacing:-.06em;margin:0 0 12px;font-weight:800}' +
+    '.dir-page .lede{margin:0 0 22px;color:#b9b9c0;font-size:18px;line-height:1.45;max-width:46rem}' +
+    '.dir-page .asof{color:#777781;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;margin:0 0 22px}' +
+    '.dir-page .stats{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 28px}' +
+    '.dir-page .chip{display:inline-flex;align-items:baseline;gap:8px;min-height:44px;padding:8px 14px;border:1px solid var(--line,#29292f);border-radius:12px;background:var(--panel,#0d0d0f)}' +
+    '.dir-page .chip b{font-size:18px;letter-spacing:-.04em;font-variant-numeric:tabular-nums}' +
+    '.dir-page .chip span{font:700 10px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted,#a6a6ad);text-transform:uppercase;letter-spacing:.08em}' +
+    '.dir-page .chip.next b{color:var(--cyan,#29d8ff)}' +
+    '.dir-page .chip.stream b{color:var(--violet,#926cff)}' +
+    '.dir-page .chip.unpub b{color:var(--unknown,#85858e)}' +
+    '.dir-page .legend{display:flex;flex-wrap:wrap;gap:16px;margin:0 0 18px;color:#8a8a93;font-size:13px}' +
+    '.dir-page .legend i{display:inline-block;width:10px;height:10px;border-radius:99px;margin-right:6px;vertical-align:middle}' +
+    '.dir-page .legend .c{background:var(--cyan,#29d8ff)}' +
+    '.dir-page .legend .v{background:var(--violet,#926cff)}' +
+    '.dir-page .legend .u{background:var(--unknown,#85858e)}' +
+    '.dir-page .dir-head{display:flex;justify-content:space-between;align-items:end;gap:16px;margin:0 0 12px}' +
+    '.dir-page .dir-head h2{margin:0;font-size:clamp(22px,2.4vw,32px);letter-spacing:-.04em}' +
+    '.dir-page .dir-head p{margin:0;color:#8a8a93;font-size:13px}' +
+    '.dir-page .list{display:flex;flex-direction:column;gap:12px}' +
+    '.dir-page .row{display:grid;grid-template-columns:minmax(180px,.9fr) minmax(0,1.6fr);gap:16px 20px;padding:18px 18px 14px;border:1px solid var(--line,#29292f);border-radius:18px;background:var(--panel,#0d0d0f);color:inherit}' +
+    '.dir-page .row:hover{background:#141419;border-color:#3a3a42}' +
+    '.dir-page .row:focus-visible{outline:3px solid var(--cyan,#29d8ff);outline-offset:2px}' +
+    '.dir-page .id{display:flex;gap:12px;align-items:flex-start;min-width:0}' +
+    '.dir-page .rank{font:700 11px ui-monospace,SFMono-Regular,Menlo,monospace;color:#777781;padding-top:6px;min-width:1.6em}' +
+    '.dir-page .nm{display:block;font-size:22px;letter-spacing:-.04em;font-weight:800}' +
+    '.dir-page .meta{display:block;margin-top:4px;color:#8a8a93;font:12px ui-monospace,SFMono-Regular,Menlo,monospace}' +
+    '.dir-page .pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:0}' +
+    '.dir-page .mini{padding:14px 14px 12px;border:1px solid var(--line,#29292f);border-radius:14px;background:#0a0a0c;min-width:0}' +
+    '.dir-page .lab{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:10px;font-size:13px;font-weight:800;letter-spacing:-.02em}' +
+    '.dir-page .code{font:11px ui-monospace,SFMono-Regular,Menlo,monospace;color:#94949d;font-weight:500}' +
+    '.dir-page .figs{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}' +
+    '.dir-page .figs strong{font-size:clamp(22px,2.4vw,34px);line-height:.85;letter-spacing:-.06em;font-variant-numeric:tabular-nums;font-weight:850}' +
+    '.dir-page .figs em{font-style:normal;font-size:clamp(16px,1.6vw,22px);letter-spacing:-.04em;font-variant-numeric:tabular-nums;font-weight:750}' +
+    '.dir-page .mini.next strong,.dir-page .mini.next em{color:var(--cyan,#29d8ff)}' +
+    '.dir-page .mini.stream strong,.dir-page .mini.stream em{color:var(--violet,#926cff)}' +
+    '.dir-page .mini.unpub strong,.dir-page .mini.unpub em{color:var(--unknown,#85858e);font-size:clamp(16px,1.8vw,22px);letter-spacing:-.03em}' +
+    '.dir-page .sub{margin-top:6px;color:#8a8a93;font:10px ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;letter-spacing:.06em}' +
+    '.dir-page .band{height:4px;border-radius:99px;margin-top:12px;background:var(--line,#29292f);overflow:hidden}' +
+    '.dir-page .band i{display:block;height:100%;border-radius:inherit}' +
+    '.dir-page .mini.next .band i{background:linear-gradient(90deg,var(--cyan,#29d8ff),#7cc9ff)}' +
+    '.dir-page .mini.stream .band i{background:linear-gradient(90deg,var(--violet,#926cff),#b398ff)}' +
+    '.dir-page .mini.unpub .band i{width:0;background:var(--unknown,#85858e)}' +
+    '.dir-page .restnote{grid-column:1/-1;margin:0;color:#9a9aa3;font-size:12px;line-height:1.4}' +
+    '.dir-page .restnote.muted{color:#6e6e76}' +
+    '.dir-page .note{margin:28px 0 0;padding:16px 18px;border:1px solid var(--line,#29292f);border-radius:14px;background:linear-gradient(100deg,rgba(41,216,255,.07),rgba(146,108,255,.05));color:#c4c4cb;font-size:13px;line-height:1.5;max-width:52rem}' +
+    '.dir-page .note b{color:#fff}' +
+    '@media (max-width: 1440px){' +
+    '.dir-page .row{grid-template-columns:minmax(180px,.9fr) minmax(0,1.6fr)}' +
+    '}' +
+    '@media (max-width: 980px){' +
+    '.dir-page .row{grid-template-columns:1fr}' +
+    '}' +
+    '@media (max-width: 880px){' +
+    '.dir-page .pair{grid-template-columns:1fr}' +
+    '}' +
+    '@media (max-width: 390px){' +
+    '.dir-page h1{font-size:36px}' +
+    '.dir-page .lede{font-size:16px}' +
+    '.dir-page .row{padding:14px 12px 12px;border-radius:14px}' +
+    '.dir-page .nm{font-size:20px}' +
+    '.dir-page .figs strong{font-size:26px}' +
+    '.dir-page .stats{gap:8px}' +
+    '.dir-page .chip{padding:8px 10px}' +
+    '}' +
+    '.sitebar a.brand,.sitebar a.brand:hover,.sitebar a.brand:focus{text-decoration:none;color:var(--ink,#fff)}';
+}
+
 function directoryCarrierKeys(m) {
-  return HOME_BOARD_SEED_ORDER.concat(HOME_UNPUBLISHED_ORDER).slice().sort(function (ka, kb) {
+  /* Published Next-Gen share, highest first. Unpublished stays unranked
+     (HOME_UNPUBLISHED_ORDER, after the published list). Seed order is the
+     tie-break so JSX stays ahead of ZIPAIR at 100/100. */
+  var published = HOME_BOARD_SEED_ORDER.slice().sort(function (ka, kb) {
     var a = m.A.scoreAirline(ka);
     var b = m.A.scoreAirline(kb);
     if (!a || !b) throw new Error('Render.airlinesDirectory: unknown airline key');
+    var sa = homeNum(a.nextGenScore, ka + '.nextGenScore');
+    var sb = homeNum(b.nextGenScore, kb + '.nextGenScore');
+    if (sb !== sa) return sb - sa;
+    var ia = HOME_BOARD_SEED_ORDER.indexOf(ka);
+    var ib = HOME_BOARD_SEED_ORDER.indexOf(kb);
+    if (ia !== ib) return ia - ib;
     return a.name.localeCompare(b.name);
   });
+  HOME_UNPUBLISHED_ORDER.forEach(function (k) {
+    if (!m.A.scoreAirline(k)) throw new Error('Render.airlinesDirectory: unknown airline key "' + k + '"');
+  });
+  return published.concat(HOME_UNPUBLISHED_ORDER);
+}
+
+function directoryMini(opts) {
+  var unpublished = !!opts.unpublished;
+  var cls = 'mini ' + opts.kind + (unpublished ? ' unpub' : '');
+  var figs = unpublished
+    ? '<strong>Unpublished</strong> <em></em>'
+    : '<strong>' + opts.countHtml + '</strong> <em>' + esc(opts.pct) + '%</em>';
+  var sub = unpublished ? 'Not a measured zero' : 'aircraft · of fleet';
+  var width = unpublished ? '0' : esc(String(opts.pct));
+  return '    <div class="' + cls + '">\n' +
+    '      <div class="lab"><span>' + esc(opts.name) + '</span> <span class="code">' + esc(opts.code) + '</span></div>\n' +
+    '      <div class="figs">' + figs + '</div>\n' +
+    '      <div class="sub">' + sub + '</div>\n' +
+    '      <div class="band" aria-hidden="true"><i style="width:' + width + '%"></i></div>\n' +
+    '    </div>\n';
+}
+
+function directoryRow(m, key, rank) {
+  var a = m.A.scoreAirline(key);
+  if (!a) throw new Error('Render.airlinesDirectory: unknown airline key "' + key + '"');
+  var buckets = airlineFleetBuckets(m, a);
+  var sf = homeStreamingFloor(m, a);
+  var unpublished = a.nextGenPublished === false;
+  var sourced = buckets.sourced;
+  var streamUnsourced = !sourced;
+  var total = buckets.total;
+  var asOf = a.asOf || 'Unknown';
+  var ngPct = (!unpublished && sourced && total) ? String(homeNum(a.nextGenScore, key + '.nextGenScore')) : null;
+  var streamPct = (!streamUnsourced && total) ? homeFmtPct(sf.pct) : null;
+  var streamCount = sourced ? buckets.floorCertain : null;
+  var ngCode = unpublished ? 'Unpublished' : (buckets.nextGenLabels.length && buckets.nextGenLabels.every(function (s) {
+    return /starlink/i.test(s.systemLabel || '');
+  }) ? 'Starlink today' : (ngPct === '0' ? 'None flying' : 'Next-gen today'));
+  var rankHtml = rank < 10 ? '0' + rank : String(rank);
+  var meta = (a.code ? esc(a.code) + ' · ' : '') +
+    (total ? num(total) + ' aircraft' : 'fleet Unpublished') +
+    ' · as of ' + esc(asOf);
+  var nextMini = directoryMini({
+    kind: 'next',
+    name: 'Next-Gen',
+    unpublished: unpublished || !sourced,
+    code: ngCode,
+    countHtml: sourced ? num(buckets.nextGen) : '',
+    pct: ngPct
+  });
+  var streamMini = directoryMini({
+    kind: 'stream',
+    name: 'Streaming',
+    unpublished: streamUnsourced,
+    code: streamUnsourced ? 'Unpublished' : 'Video works',
+    countHtml: streamUnsourced ? '' : num(streamCount),
+    pct: streamPct
+  });
+  var restnote;
+  if (buckets.unresolved > 0 && total) {
+    restnote = '<p class="restnote">No published system: ' + num(buckets.unresolved) +
+      ' · ' + esc(airlineSharePct(buckets.unresolved, total)) + '%. Unknown is not zero.</p>';
+  } else {
+    restnote = '<p class="restnote muted">No published-system row on the live page. That leftover is Unpublished, not 0.</p>';
+  }
+  return '<a class="row" href="' + airlinePath(key) + '">\n' +
+    '  <div class="id">\n' +
+    '    <span class="rank">' + rankHtml + '</span>\n' +
+    '    <div>\n' +
+    '      <b class="nm">' + esc(a.name) + '</b>\n' +
+    '      <span class="meta">' + meta + '</span>\n' +
+    '    </div>\n' +
+    '  </div>\n' +
+    '  <div class="pair">\n' +
+    nextMini + streamMini +
+    '  </div>\n' +
+    '  ' + restnote + '\n' +
+    '</a>\n';
 }
 
 function airlinesDirectory(m) {
   var keys = directoryCarrierKeys(m);
-  var rows = keys.map(function (key) {
+  var publishedNg = 0;
+  var unpublishedNg = 0;
+  var publishedStream = 0;
+  keys.forEach(function (key) {
     var a = m.A.scoreAirline(key);
-    if (!a) throw new Error('Render.airlinesDirectory: unknown airline key "' + key + '"');
-    return '    <li><a href="' + airlinePath(key) + '">' + esc(a.name) + '</a></li>\n';
-  }).join('');
+    var buckets = airlineFleetBuckets(m, a);
+    if (a.nextGenPublished === false) unpublishedNg += 1;
+    else publishedNg += 1;
+    if (buckets.sourced) publishedStream += 1;
+  });
+  var rows = keys.map(function (key, i) {
+    return directoryRow(m, key, i + 1);
+  }).join('\n');
   var crumbs = [['/', 'Home'], ['/airlines/', 'Airlines']];
+  var checked = esc(m.updated);
   var body =
-    '<div class="airline-page">\n' +
-    '<header class="hero" style="padding-top:14px">\n' +
-    '  <span class="kicker">The forecast</span>\n' +
-    '  <h1 class="ph">Airlines</h1>\n' +
-    '  <p class="lede">One page per carrier on the homepage rank list.</p>\n' +
-    '</header>\n\n' +
+    '<div class="dir-page">\n' +
+    '<span class="kicker">Airlines directory</span>\n' +
+    '<h1>Airlines</h1>\n' +
+    '<p class="lede">Next-Gen and Streaming as count and percent, the same two cards as each carrier page. A missing count is Unpublished. It is not 0.</p>\n' +
+    '<p class="asof">Fleet checked <span data-date="checked_at">' + checked + '</span> · Store 3.1.1</p>\n' +
+    '<div class="stats" aria-label="Directory totals">\n' +
+    '  <div class="chip"><b>' + keys.length + '</b> <span>carriers</span></div>\n' +
+    '  <div class="chip next"><b>' + publishedNg + '</b> <span>Next-Gen published</span></div>\n' +
+    '  <div class="chip unpub"><b>' + unpublishedNg + '</b> <span>Next-Gen unpublished</span></div>\n' +
+    '  <div class="chip stream"><b>' + publishedStream + '</b> <span>Streaming published</span></div>\n' +
+    '</div>\n' +
+    '<p class="legend"><span><i class="c"></i>Next-Gen · Starlink today</span><span><i class="v"></i>Streaming · video works</span><span><i class="u"></i>Unpublished · not zero</span></p>\n' +
+    '<div class="dir-head">\n' +
+    '  <h2>' + keys.length + ' carriers</h2>\n' +
+    '  <p>Published Next-Gen share, highest first. Unpublished stays unranked.</p>\n' +
+    '</div>\n' +
     '<section class="blk" id="directory">\n' +
-    '  <div class="sec-h"><h2>Directory</h2><span class="sub">' +
-    keys.length + ' carriers</span></div>\n' +
-    '  <ul class="dir-list">\n' +
-    rows + '  </ul>\n' +
+    '  <div class="list" role="list">\n' +
+    rows +
+    '  </div>\n' +
     '</section>\n' +
+    '<p class="note"><b>Unknown is not zero.</b> Air France and SAS have not published a next-gen aircraft count. American, Delta, and jetBlue publish 0 flying. Those are different states. No published-system leftovers on a live page stay Unpublished here. Live Store is 3.1.1.</p>\n' +
     '</div>\n';
   return H.page({
     title: 'Airlines · WiFi Odds',
-    desc: 'A directory of airline pages for each carrier on the WifiOdds rank list.',
+    desc: 'Next-Gen and Streaming as count and percent for each carrier. A missing count is Unpublished, not 0.',
     canonical: '/airlines/', here: '/airlines/',
     updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained,
     mastheadV2: true,
     crumb: crumbs,
-    extraHead: airlineScopedCss(),
+    extraHead: '<style>' + directoryScopedCss() + '</style>\n',
     body: body,
     jsonld: [crumbLd(crumbs), {
       '@context': 'https://schema.org', '@type': 'CollectionPage',
