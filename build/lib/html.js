@@ -259,9 +259,10 @@ function chipDate(iso) {
  * not a store link: the store surfaces are Google's badge, twice on the
  * homepage, plus United's #plugin block, and the masthead is not one of them. */
 var NAV = [
-  /* Classic masthead (404.html). Survivor pages use mastheadV2. The directory
-     sits with Methodology and Technology so the 404 nav, V2 nav, footer, and
-     the existing sitemap all name /airlines/. Do not invent a second sitemap. */
+  /* Classic masthead is opt-out only. Public pages copy the homepage header
+     (mastheadV2). The directory sits with Methodology and Technology so the
+     404 nav, V2 nav, footer, and the existing sitemap all name /airlines/.
+     Do not invent a second sitemap. */
   ['/methodology/', 'Methodology'],
   ['/technology/', 'Technology'],
   ['/airlines/', 'Airlines']
@@ -362,10 +363,10 @@ function masthead(here, suffix, updated, refreshAttemptedOn, wasRetained) {
     /* The Extension link names the /extension/ route. It pointed at the
        homepage's own #extension section until 1 Aug 2026, which left the route
        reachable from one page site-wide; see the note on mastheadV2 below.
-       This masthead is NOT dead code — every route that does not set
-       `mastheadV2: true` renders it, which today is 404.html, and a fix applied
-       only to mastheadV2 leaves that page pointing at the old anchor. The
-       apitest IA guard now covers 404.html and will say so.
+       Classic masthead() stays exported for leftover classic HTML / tests.
+       H.page() does not call it: every public route gets the copied Home
+       header (mastheadV2). A fix applied only to this bar would miss every
+       live page. The apitest IA guard covers 404.html and will say so.
        The pill beside it is the ONE new store pitch this port adds to the
        masthead, matching the homepage's own `.pill.primary`; its href is EXT,
        never a literal store URL, so a store-side path change only has to be
@@ -409,14 +410,22 @@ function masthead(here, suffix, updated, refreshAttemptedOn, wasRetained) {
  * on Privacy (--paper/--card) without a second palette. */
 var MASTHEAD_CSS =
   '.sitebar{background:var(--bg,var(--paper,#050505))}' +
-  '.sitebar .masthead{display:flex;align-items:center;justify-content:space-between;gap:16px;' +
+  /* The Home copy, scoped to the copied header (PR 19 finding). Interior pages
+     load assets/site.css, whose global `a{text-decoration:underline}` restyled
+     the bar; Home's own global is `a{color:inherit;text-decoration:none}`.
+     The :hover reset is load-bearing too: site.css `a:hover` ties `.sitebar a`
+     at (0,1,1) and only source order breaks the tie today. Do not rely on it. */
+  '.sitebar a{color:inherit;text-decoration:none}' +
+  '.sitebar a:hover{text-decoration:none}' +
+  '.sitebar .mh{display:flex;align-items:center;justify-content:space-between;gap:16px;' +
   'min-height:78px;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);' +
   'border-bottom:1px solid var(--line,var(--soft,#29292f))}' +
   '.sitebar .brand{display:flex;align-items:center;gap:10px;min-height:44px;font-weight:850;' +
   'letter-spacing:-.04em;font-size:20px;color:var(--ink,#fff)}' +
+  '.sitebar .brand,.sitebar a.brand{text-decoration:none}' +
   '.sitebar .brand svg,.sitebar .brand .mk,.sitebar .brand .mark{width:21px;height:21px;flex:none;color:var(--cyan,#29d8ff)}' +
   '.sitebar .primary-nav{display:flex;align-items:center;gap:28px;color:var(--nav-muted,#c7c7cc);font-size:14px}' +
-  '.sitebar .primary-nav>a{display:flex;align-items:center;min-height:44px}' +
+  '.sitebar .primary-nav>a{display:flex;align-items:center;min-height:44px;text-decoration:none;text-transform:none;letter-spacing:normal}' +
   '.sitebar .primary-nav>a:not(.pill):hover,.sitebar .primary-nav>a[aria-current="page"]{color:var(--ink,#fff)}' +
   '.sitebar .pill{display:inline-flex;align-items:center;justify-content:center;min-height:44px;' +
   'padding:0 18px;border:0;border-radius:999px;font-weight:750;font-size:14px;color:#050505;' +
@@ -433,7 +442,7 @@ var MASTHEAD_CSS =
   '@media(min-width:881px){.sitebar{position:sticky;top:0;z-index:40}}' +
   '@media(max-width:880px){' +
   '.sitebar{position:static}' +
-  '.sitebar .masthead{flex-wrap:wrap;min-height:68px;height:auto;row-gap:0;' +
+  '.sitebar .mh{flex-wrap:wrap;min-height:68px;height:auto;row-gap:0;' +
   'width:min(var(--max,1240px),calc(100% - 48px))}' +
   '.sitebar .primary-nav{flex-basis:100%;order:3;flex-direction:column;align-items:stretch;gap:0;' +
   'border-top:1px solid var(--line-soft,var(--line,var(--soft,#29292f)));padding-top:8px;margin-top:8px}' +
@@ -449,7 +458,7 @@ var MASTHEAD_CSS =
   '.sitebar.is-enhanced.nav-open .nav-toggle .ico-menu{display:none}' +
   '.sitebar.is-enhanced.nav-open .nav-toggle .ico-close{display:block}' +
   '}' +
-  '@media(max-width:768px){.sitebar .masthead{width:min(var(--max,1240px),calc(100% - 48px))}}' +
+  '@media(max-width:768px){.sitebar .mh{width:min(var(--max,1240px),calc(100% - 48px))}}' +
   /* ROUND 9, 1 Aug 2026 — 440 -> 700, and the number has to match `.wrap`.
      Every page's content container (`.wrap`, and `.xw` on /extension/) drops
      from a 24px side inset to a 16px one at `max-width:700px`. This rule dropped
@@ -460,9 +469,9 @@ var MASTHEAD_CSS =
      same 8px step, and 440 and 701 both align. Fixing it in the shared component
      is the whole point — patching one route would make that route the odd one.
      The `min()` shape matches `.wrap` exactly rather than a bare calc(). */
-  '@media(max-width:700px){.sitebar .masthead{width:min(var(--max,1240px),calc(100% - 32px))}}' +
+  '@media(max-width:700px){.sitebar .mh{width:min(var(--max,1240px),calc(100% - 32px))}}' +
   '@media(max-width:430px){.sitebar.is-enhanced .mobile-cta{font-size:12px;padding:0 12px}}' +
-  '@media(max-width:390px){.sitebar .masthead{width:calc(100% - 32px)}.sitebar .brand{font-size:18px}}';
+  '@media(max-width:390px){.sitebar .mh{width:calc(100% - 32px)}.sitebar .brand{font-size:18px}}';
 
 var MASTHEAD_JS =
   '(function(){var b=document.querySelector(".sitebar[data-masthead]");if(!b)return;' +
@@ -489,9 +498,14 @@ var MASTHEAD_JS =
  * so the label and the destination agree everywhere and the page can mark
  * itself current. */
 function mastheadV2(here) {
+  /* Wrapper is .mh, not .masthead. Interior pages load assets/site.css, whose
+     classic .masthead rules (140px min-height, uppercase links) still match
+     the copied Home markup if the old class name is reused. Isolating the
+     class is the product: do not restyle .masthead in site.css to look like
+     Home. */
   function cur(path) { return here === path ? ' aria-current="page"' : ''; }
   return '<header class="sitebar" data-masthead>\n' +
-    '  <div class="wrap masthead">\n' +
+    '  <div class="wrap mh">\n' +
     '    <a class="brand" href="/" aria-label="WiFi Odds home">' + markSvg('mhv2', 21) + 'WiFi&nbsp;Odds</a>\n' +
     '    <div class="mobile-actions">\n' +
     '      <a class="pill primary mobile-cta" href="' + EXT + '" target="_blank" rel="noopener">Add to Chrome</a>\n' +
@@ -718,12 +732,9 @@ function page(o) {
     /* First focusable thing on every page, and invisible until it has focus. */
     '<a class="skip" href="#main-content">Skip to content</a>\n' +
     (o.preWrap || '') +
-    /* round 18 P1-02: the survivor pages carry the unified disclosure masthead.
-       o.mastheadV2 opts a route into it; otherwise the classic masthead (with
-       its datechip) is unchanged for any route still using page(). */
-    (o.mastheadV2
-      ? mastheadV2(o.here)
-      : masthead(o.here, o.suffix, o.updated, o.refreshAttemptedOn, o.wasRetained)) +
+    /* Copied homepage header on every H.page route. Classic masthead() stays
+       in this file for leftover classic HTML / tests; page() does not call it. */
+    mastheadV2(o.here) +
     '<div class="wrap">\n' +
     subnav(o.section, o.canonical, o.suffix) +
     /* <main> starts AFTER the subnav so the skip link actually skips the
