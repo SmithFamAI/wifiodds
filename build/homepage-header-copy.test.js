@@ -60,16 +60,18 @@ assert.ok(css.indexOf('.sitebar,.sitebar *{box-sizing:border-box}') !== -1,
 assert.ok(css.indexOf('margin:0;padding:0 18px;border:0') !== -1,
   'pill fences the margin site.css .pill would otherwise supply');
 
-/* 17 Aug 2026 crumb kill. The visible Home→ trail under the bar is gone
+/* 17 Aug 2026 chip kill. The visible Home→ trail under the bar is gone
  * from every route; BreadcrumbList JSON-LD (passed via jsonld) stays. The
- * "Data effective" chip keeps its exact old presence rule: crumb route with
- * updated, minus asofChip:false. */
+ * "Data effective" chip is gone too (owner GO: kill Date effective chip,
+ * not header include). */
 var crumbPage = H.page({title:'t',desc:'d',canonical:'/airlines/',here:'/airlines/',
   updated:'2026-08-17', crumb:[['/', 'Home'], ['/airlines/', 'Airlines']]});
 assert.ok(crumbPage.indexOf('<nav class="crumb"') === -1,
   'a crumb route renders no visible breadcrumb');
-assert.ok(crumbPage.indexOf('Data effective') !== -1,
-  'a crumb route with updated keeps its Data effective chip');
+assert.ok(crumbPage.indexOf('Data effective') === -1,
+  'a crumb route with updated has no Data effective chip');
+assert.ok(crumbPage.indexOf('ph-top') === -1,
+  'a crumb route with updated has no ph-top row');
 var noChipPage = H.page({title:'t',desc:'d',canonical:'/airlines/sas/',here:'/airlines/',
   updated:'2026-08-17', asofChip:false, crumb:[['/', 'Home'], ['SAS', 'SAS']]});
 assert.ok(noChipPage.indexOf('<nav class="crumb"') === -1 &&
@@ -97,6 +99,8 @@ R.ROUTES.concat(R.UNLISTED).forEach(function (r) {
   assert.ok(body.indexOf('class="wrap mh"') === -1, r.file + ' does not use class="wrap mh"');
   assert.ok(body.indexOf('class="wrap masthead"') === -1, r.file + ' does not use class="wrap masthead"');
   assert.ok(body.indexOf('<nav class="crumb"') === -1, r.file + ' renders no visible breadcrumb');
+  assert.ok(body.indexOf('Data effective') === -1, r.file + ' has no Data effective chip');
+  assert.ok(body.indexOf('<div class="ph-top">') === -1, r.file + ' has no ph-top row');
   swept++;
 });
 assert.ok(swept >= 26, 'swept ' + swept + ' built pages; expected at least 26');

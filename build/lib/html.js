@@ -785,21 +785,11 @@ function page(o) {
        banner landmarks. <main> has no default box styling, so this is a
        null visual diff. */
     '<main id="main-content">\n' +
-    /* .ph-top used to pair a visible Home→ breadcrumb with the page-head
-       "as of" chip. The crumb is gone (17 Aug 2026 owner GO): under the
-       copied Home bar it read as a second masthead line on /airlines/, the
-       airline pages and /feedback/, while the reference routes — Home,
-       Methodology, Technology — carry nothing there. A route's BreadcrumbList
-       JSON-LD stays: machine path, no pixels. The chip keeps its exact old
-       presence rule (a crumb route with `updated`, minus asofChip:false), so
-       no route gains or loses its freshness stamp with the trail. asofChip:
-       false still means: `updated` is checked_at (the job), not the date the
-       figures were true, and printing it as "Data effective" would copy the
-       check day onto the fact. */
-    (o.crumb && o.updated && o.asofChip !== false
-      ? '<div class="ph-top"><span class="asof"><i></i>Data effective <b>' +
-        esc(chipDate(o.updated)) + '</b></span></div>\n'
-      : '') +
+    /* 17 Aug 2026 owner GO: kill Date effective chip, not header include.
+       The page-head stamp is gone. BreadcrumbList JSON-LD stays: machine
+       path, no pixels. asofChip callers stay as-is; chipDate stays for the
+       homepage datestamp. */
+    '' +
     o.body +
     '</main>\n' +
     footer(o.updated, o.refreshAttemptedOn, o.wasRetained) +
