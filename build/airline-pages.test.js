@@ -108,13 +108,71 @@ assert.ok(dirText.indexOf('ConnectScore') === -1, 'directory does not revive Con
 var dirSection = (/<section class="blk" id="directory"[\s\S]*?<\/section>/.exec(directory) || [''])[0];
 var dirSectionText = visible(dirSection);
 assert.ok(dirSection, 'directory has a directory section');
-assert.ok(dirSectionText.indexOf('Next-Gen') === -1, 'directory is not a Next-Gen rank table');
-assert.ok(dirSectionText.indexOf('Streaming') === -1, 'directory is not a Streaming rank table');
+assert.ok(dirSectionText.indexOf('Next-Gen') !== -1, 'directory prints Next-Gen on each row');
+assert.ok(dirSectionText.indexOf('Streaming') !== -1, 'directory prints Streaming on each row');
 assert.ok(dirSection.indexOf('data-figure-block') === -1, 'directory does not reprint homepage figures');
 assert.ok(directory.indexOf('class="view-switch') === -1,
   'directory has no Next-Gen/Streaming picker');
 assert.ok(directory.indexOf('class="aircard"') === -1, 'directory does not clone Big 4 cards');
 assert.ok(directory.indexOf('id="airline-grid"') === -1, 'directory does not clone the homepage rank grid');
+assert.ok(/max-width:\s*1440px/.test(directory), 'directory CSS names 1440');
+assert.ok(/max-width:\s*390px/.test(directory), 'directory CSS names 390');
+assert.ok(/min-height:78px/.test(directory), 'directory keeps Home chrome 78px');
+assert.ok(/\.sitebar a\.brand[^{]*\{[^}]*text-decoration:none/.test(directory),
+  'directory brand is not underlined');
+assert.ok(dirText.indexOf('3.1.1') !== -1, 'directory labels live Store 3.1.1');
+function dirRow(html, key) {
+  var needle = '<a class="row" href="/airlines/' + key + '/">';
+  var i = html.indexOf(needle);
+  assert.ok(i !== -1, key + ' has a directory row');
+  var slice = html.slice(i);
+  var end = slice.indexOf('</a>');
+  assert.ok(end > 0, key + ' directory row closes');
+  return slice.slice(0, end + 4);
+}
+function dirMini(row, kind) {
+  var token = 'class="mini ' + kind;
+  var i = row.indexOf(token);
+  assert.ok(i !== -1, kind + ' mini opens');
+  var open = row.lastIndexOf('<div', i);
+  var slice = row.slice(open);
+  var re = /<\/?div\b/g;
+  var depth = 0;
+  var m;
+  var end = -1;
+  while ((m = re.exec(slice))) {
+    if (m[0].charAt(1) === '/') {
+      depth -= 1;
+      if (depth === 0) { end = m.index + m[0].length; break; }
+    } else {
+      depth += 1;
+    }
+  }
+  assert.ok(end > 0, kind + ' mini closes');
+  return slice.slice(0, end);
+}
+var unitedRow = dirRow(directory, 'united');
+var unitedNext = dirMini(unitedRow, 'next');
+var unitedStream = dirMini(unitedRow, 'stream');
+assert.ok(/<strong>523<\/strong>/.test(unitedNext) && /<em>29%<\/em>/.test(unitedNext),
+  'United Next-Gen is 523 / 29%');
+assert.ok(/<strong>1,083<\/strong>/.test(unitedStream) && /<em>60%<\/em>/.test(unitedStream),
+  'United Streaming is 1,083 / 60%');
+['airfrance', 'sas'].forEach(function (key) {
+  var row = dirRow(directory, key);
+  var next = dirMini(row, 'next');
+  assert.ok(/Unpublished/.test(next), key + ' Next-Gen is Unpublished');
+  assert.ok(!/<strong>0<\/strong>/.test(next), key + ' Next-Gen is not a measured zero');
+  assert.ok(/Not a measured zero/.test(next), key + ' says not a measured zero');
+});
+['american', 'delta', 'jetblue'].forEach(function (key) {
+  var row = dirRow(directory, key);
+  var next = dirMini(row, 'next');
+  assert.ok(/<strong>0<\/strong>/.test(next) && /<em>0%<\/em>/.test(next),
+    key + ' Next-Gen is published 0');
+  assert.ok(/None flying/.test(next), key + ' Next-Gen code is None flying');
+  assert.ok(!/Unpublished/.test(next), key + ' Next-Gen is not Unpublished');
+});
 assert.ok(directory.indexOf('class="sitebar"') !== -1, 'directory reuses the live masthead');
 assert.ok(directory.indexOf('<footer class="site">') !== -1, 'directory reuses the live footer');
 assert.ok(directory.indexOf('href="/airlines/"') !== -1 || directory.indexOf('>Airlines<') !== -1,
