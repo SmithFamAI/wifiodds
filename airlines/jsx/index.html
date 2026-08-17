@@ -6,12 +6,12 @@
 <script>(function(){var r=document.documentElement;r.classList.add("js");r.classList.add("dark");})();</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='128 128 768 768'%3E%3Cdefs%3E%3ClinearGradient id='fnRamp' x1='270' y1='700' x2='754' y2='700' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%2329d8ff'/%3E%3Cstop offset='1' stop-color='%23926cff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='128' y='128' width='768' height='768' rx='160' fill='%23050505'/%3E%3Cpath d='M292 700A320 320 0 1 1 732 700' fill='none' stroke='url(%23fnRamp)' stroke-width='68' stroke-linecap='round'/%3E%3Cg transform='translate(0 -24)'%3E%3Crect x='267' y='405' width='176' height='134' rx='24' fill='url(%23fnRamp)'/%3E%3Crect x='581' y='405' width='176' height='134' rx='24' fill='url(%23fnRamp)'/%3E%3Cpath d='M443 472h35M546 472h35' stroke='%23f7f7f8' stroke-width='24' stroke-linecap='round'/%3E%3Crect x='466' y='362' width='92' height='220' rx='38' fill='%23f7f7f8'/%3E%3Ccircle cx='512' cy='472' r='31' fill='url(%23fnRamp)'/%3E%3Cpath d='M449 300Q512 341 575 300Q563 251 512 251Q461 251 449 300Z' fill='url(%23fnRamp)'/%3E%3C/g%3E%3Cpath d='M512 612C499 612 492 625 489 645L480 704L410 747C399 754 393 765 393 779L478 754L483 807L457 829V846L512 831L567 846V829L541 807L546 754L631 779C631 765 625 754 614 747L544 704L535 645C532 625 525 612 512 612Z' fill='%23f7f7f8'/%3E%3C/svg%3E">
 <title>JSX WiFi · WiFi Odds</title>
-<meta name="description" content="JSX Next-Gen 100%, Streaming score 100, as_of 2026-04, checked_at 2026-08-16.">
+<meta name="description" content="JSX Next-Gen 56 aircraft (100%), Streaming 56 aircraft (100% of fleet), as_of 2026-04, checked_at 2026-08-16.">
 <link rel="canonical" href="https://wifiodds.com/airlines/jsx/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="WiFi Odds">
 <meta property="og:title" content="JSX WiFi · WiFi Odds">
-<meta property="og:description" content="JSX Next-Gen 100%, Streaming score 100, as_of 2026-04, checked_at 2026-08-16.">
+<meta property="og:description" content="JSX Next-Gen 56 aircraft (100%), Streaming 56 aircraft (100% of fleet), as_of 2026-04, checked_at 2026-08-16.">
 <meta property="og:url" content="https://wifiodds.com/airlines/jsx/">
 <meta property="og:image" content="https://wifiodds.com/assets/og.png?v=0338b16e">
 <meta property="og:image:width" content="1200">
@@ -19,16 +19,77 @@
 <meta property="og:image:alt" content="WiFi Odds · what are your odds of next-gen WiFi? Starlink and Amazon Leo odds across 18 airlines.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="JSX WiFi · WiFi Odds">
-<meta name="twitter:description" content="JSX Next-Gen 100%, Streaming score 100, as_of 2026-04, checked_at 2026-08-16.">
+<meta name="twitter:description" content="JSX Next-Gen 56 aircraft (100%), Streaming 56 aircraft (100% of fleet), as_of 2026-04, checked_at 2026-08-16.">
 <meta name="twitter:image" content="https://wifiodds.com/assets/og.png?v=0338b16e">
 <link rel="stylesheet" href="/assets/site.css?v=ef07b265">
 <style id="airline-scoped">
 .airline-page .dir-list{margin:0;padding:0;list-style:none;border-top:1px solid var(--line,var(--soft,#29292f))}
-.airline-page .dir-list a{display:block;padding:10px 0;border-bottom:1px solid var(--line,var(--soft,#29292f))}
-.airline-page .tech-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:12px 0;border-bottom:1px solid var(--line,var(--soft,#29292f))}
-.airline-page .tech-row .d{margin-top:3px;color:var(--muted,#aaaab2);font-size:13px}
-.airline-page .tech-row .n{font-variant-numeric:tabular-nums}
-.airline-page .tech-row small{margin-left:8px;color:var(--muted,#aaaab2);font-size:11px;letter-spacing:.04em;text-transform:uppercase}
+.airline-page .dir-list a{display:block;padding:10px 0;min-height:44px;border-bottom:1px solid var(--line,var(--soft,#29292f))}
+.airline-page.airline-sub{padding:8px 0 48px}
+.airline-page.airline-sub .kicker{display:block;color:var(--cyan,#29d8ff);font:800 11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px}
+.airline-page.airline-sub h1.ph{font-size:clamp(40px,6vw,72px);line-height:.92;letter-spacing:-.06em;margin:0 0 12px;font-weight:800}
+.airline-page.airline-sub .lede{margin:0 0 18px;color:#b9b9c0;font-size:18px;line-height:1.45;max-width:46rem}
+.airline-page.airline-sub .footnote{margin:0 0 16px;color:#8a8a93;font-size:13px;line-height:1.45;max-width:46rem}
+.airline-page.airline-sub .asof{color:#777781;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;margin:0 0 28px}
+.airline-page .pair{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line,#29292f);border-radius:20px;overflow:hidden;background:var(--panel,#0d0d0f);margin:0 0 18px}
+.airline-page .card{display:block;min-width:0;padding:26px 26px 22px;position:relative;color:inherit;min-height:44px}
+.airline-page .card:focus-visible{outline:3px solid var(--cyan,#29d8ff);outline-offset:-3px;z-index:1}
+.airline-page .card:hover{background:#141419}
+.airline-page .card-next{border-right:1px solid var(--line,#29292f)}
+.airline-page .card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:28px}
+.airline-page .card-name{font-size:18px;font-weight:800;letter-spacing:-.03em}
+.airline-page .card-code{font:11px ui-monospace,SFMono-Regular,Menlo,monospace;color:#94949d}
+.airline-page .figs{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.airline-page .count{display:flex;align-items:flex-end;gap:10px}
+.airline-page .count b{font-size:clamp(48px,6vw,76px);line-height:.72;letter-spacing:-.08em;font-variant-numeric:tabular-nums;font-weight:850}
+.airline-page .card-unpub .count b{font-size:clamp(22px,3.6vw,36px);line-height:1;letter-spacing:-.04em}
+.airline-page .count span{font:700 10px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted,#a6a6ad);text-transform:uppercase;line-height:1.25;padding-bottom:4px}
+.airline-page .pct{text-align:right}
+.airline-page .pct b{display:block;font-size:clamp(28px,3.4vw,40px);line-height:.8;letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+.airline-page .pct span{display:block;margin-top:8px;font:700 10px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted,#a6a6ad);text-transform:uppercase;letter-spacing:.08em}
+.airline-page .card-next .count b,.airline-page .card-next .pct b{color:var(--cyan,#29d8ff)}
+.airline-page .card-stream .count b,.airline-page .card-stream .pct b{color:var(--violet,#926cff)}
+.airline-page .fleet-band{height:4px;border-radius:99px;margin:22px 0 16px;background:var(--line,#29292f);overflow:hidden}
+.airline-page .fleet-band i{display:block;height:100%;border-radius:inherit;width:0}
+.airline-page .card-next .fleet-band i{background:linear-gradient(90deg,var(--cyan,#29d8ff),#7cc9ff)}
+.airline-page .card-stream .fleet-band i{background:linear-gradient(90deg,var(--violet,#926cff),#b398ff)}
+.airline-page .why{margin:0;color:#c4c4cb;font-size:14px;line-height:1.45;max-width:36rem}
+.airline-page .evidence{margin:10px 0 0;color:#8a8a93;font-size:12px;line-height:1.45}
+.airline-page .mean{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0 0 42px}
+.airline-page .mean article{background:var(--panel,#0d0d0f);border:1px solid var(--line,#29292f);border-radius:16px;padding:20px 22px}
+.airline-page .mean h2{margin:0 0 8px;font-size:15px;letter-spacing:-.02em}
+.airline-page .mean p{margin:0;color:#b9b9c1;font-size:14px;line-height:1.5}
+.airline-page .mean b{color:#fff;font-weight:700}
+.airline-page .rest{margin:0 0 42px}
+.airline-page .rest h2,.airline-page .roll h2{font-size:clamp(28px,3.5vw,40px);letter-spacing:-.045em;margin:0 0 10px}
+.airline-page .rest .intro,.airline-page .roll p{margin:0 0 18px;color:#b9b9c0;font-size:16px;line-height:1.5;max-width:46rem}
+.airline-page .rest-list{border:1px solid var(--line,#29292f);border-radius:16px;overflow:hidden;background:var(--panel,#0d0d0f)}
+.airline-page .rest-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;min-height:56px;padding:12px 18px;border-bottom:1px solid var(--line,#29292f)}
+.airline-page .rest-row:last-child{border-bottom:0}
+.airline-page .rest-row:hover{background:#141419}
+.airline-page .rest-row b{font-size:14px;letter-spacing:-.02em}
+.airline-page .rest-row small{display:block;margin-top:3px;color:#8a8a93;font-size:12px;line-height:1.35;font-weight:400}
+.airline-page .rest-row .n{font-size:20px;letter-spacing:-.04em;font-variant-numeric:tabular-nums;font-weight:750}
+.airline-page .rest-row .share{color:#aaaab2;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;text-align:right}
+.airline-page .rest-row.unknown-row{box-shadow:inset 3px 0 var(--unknown,#85858e)}
+.airline-page .rest-row.unknown-row .n{color:var(--unknown,#85858e)}
+.airline-page .note{margin:14px 0 0;color:#8a8a93;font-size:13px;line-height:1.5;max-width:46rem}
+.airline-page .roll{margin:0 0 24px}
+.airline-page .split{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line,#29292f);border-radius:16px;overflow:hidden;background:var(--panel,#0d0d0f)}
+.airline-page .split div{padding:20px 22px}
+.airline-page .split div:first-child{border-right:1px solid var(--line,#29292f)}
+.airline-page .split b{display:block;font-size:28px;letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+.airline-page .split span{color:#8a8a93;font-size:12px}
+.airline-page .support{margin-top:28px;padding:16px 18px;border:1px solid var(--line,#29292f);border-radius:14px;background:linear-gradient(100deg,rgba(41,216,255,.07),rgba(146,108,255,.05));color:#c4c4cb;font-size:13px;line-height:1.5}
+.airline-page .support b{color:#fff}
+@media(max-width:880px){
+.airline-page .pair,.airline-page .mean,.airline-page .split{grid-template-columns:1fr}
+.airline-page .card-next{border-right:0;border-bottom:1px solid var(--line,#29292f)}
+.airline-page .split div:first-child{border-right:0;border-bottom:1px solid var(--line,#29292f)}
+.airline-page .rest-row{grid-template-columns:minmax(0,1fr) auto;min-height:64px}
+.airline-page .rest-row .share{grid-column:2;grid-row:1}
+}
+@media(max-width:430px){.airline-page.airline-sub h1.ph{font-size:40px}}
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://wifiodds.com/"},{"@type":"ListItem","position":2,"name":"Airlines","item":"https://wifiodds.com/airlines/"},{"@type":"ListItem","position":3,"name":"JSX","item":"https://wifiodds.com/airlines/jsx/"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"JSX inflight WiFi","url":"https://wifiodds.com/airlines/jsx/","dateModified":"2026-08-16","isPartOf":{"@id":"https://wifiodds.com/#site"}}</script>
@@ -62,37 +123,71 @@
 <main id="main-content">
 <div class="ph-top"><nav class="crumb" aria-label="Breadcrumb"><a href="/">Home</a><span class="sep">→</span><a href="/airlines/">Airlines</a><span class="sep">→</span><span aria-current="page">JSX</span></nav>
 </div>
-<div class="airline-page">
-<header class="hero" style="padding-top:14px">
-  <span class="kicker">The forecast</span>
+<div class="airline-page airline-sub">
+  <span class="kicker">Airline page</span>
   <h1 class="ph">JSX</h1>
-  <p class="lede">JSX Next-Gen 100%. Streaming score 100. 56 of 56 aircraft next-gen today.</p>
+  <p class="lede">Count and percent share each Forecast-style card. Next-Gen and Streaming answer different questions.</p>
   <p class="footnote">Free onboard.</p>
-<p class="src"><span class="cls">Reported</span> Fleet state compiled from public JSX announcements, as_of <span data-date="as_of">2026-04</span>. Quality weights from Ookla Speedtest Intelligence, published_at <span data-date="published_at">2026-04-28</span>, checked_at <span data-date="checked_at">2026-08-16</span>.</p></header>
+  <p class="asof">Data current as of <b data-date="as_of">2026-04</b> · fleet checked <span data-date="checked_at">2026-08-16</span> · 56 aircraft</p>
 
-<section class="blk" id="snapshot">
-  <div class="sec-h"><h2>Snapshot</h2><span class="sub">Data current as of <b data-date="as_of">2026-04</b></span></div>
-  <div class="stats">
-    <div class="stat rv" data-figure-block="nextgen"><div class="n"><b>100%</b></div><div class="l">Next-Gen</div><div class="d">Next-gen fleet</div></div>
-    <div class="stat rv" data-figure-block="streaming"><div class="n"><b>100</b></div><div class="l">Streaming</div><div class="d">Whole-fleet Streaming score.</div></div>
-    <div class="stat rv" data-figure-block="fleet"><div class="n"><b>56</b><small> / 56</small></div><div class="l">Aircraft</div><div class="d">56 of 56 aircraft next-gen today.</div></div>
-    <div class="stat rv" data-figure-block="coverage"><div class="n"><b>100%</b></div><div class="l">Coverage</div><div class="d">Confirmed streaming coverage.</div></div>
+  <div class="pair">
+      <a class="card card-next" href="#what" data-figure-block="nextgen">
+        <div class="card-head"><span class="card-name">Next-Gen</span> <span class="card-code">Starlink today</span></div>
+        <div class="figs">
+          <div class="count"><b>56</b> <span>aircraft</span></div>
+          <div class="pct"><b>100%</b> <span>of fleet</span></div>
+        </div>
+        <p class="evidence">56 of 56 · modelled · as_of <b data-date="as_of">2026-04</b>, checked_at <span data-date="checked_at">2026-08-16</span>.</p>
+        <div class="fleet-band" aria-hidden="true"><i style="width:100%"></i></div>
+        <p class="why">Starlink only today. Amazon Leo is not flying yet. This is your chance of boarding one of these aircraft.</p>
+      </a>
+      <a class="card card-stream" href="#what" data-figure-block="streaming">
+        <div class="card-head"><span class="card-name">Streaming</span> <span class="card-code">Video works</span></div>
+        <div class="figs">
+          <div class="count"><b>56</b> <span>aircraft</span></div>
+          <div class="pct"><b>100%</b> <span>of fleet</span></div>
+        </div>
+        <p class="evidence">56 of 56 · 100% confirmed coverage · count is 56 next-gen plus 0 other streaming-capable aircraft, as_of <b data-date="as_of">2026-04</b>, checked_at <span data-date="checked_at">2026-08-16</span>.</p>
+        <div class="fleet-band" aria-hidden="true"><i style="width:100%"></i></div>
+        <p class="why">Usable wifi, video included. Next-gen is inside this count. It is not a second, matching number.</p>
+      </a>
   </div>
-</section>
 
-<section class="blk" id="tech-on-board">
-  <div class="sec-h"><h2>Tech on board</h2></div>
-  <div class="tech-row"><div><b>Starlink</b> <small>Next-Gen</small><div class="d">56 aircraft. as_of 2026-04.</div></div><div class="n">56</div></div>
-</section>
+  <section class="mean" id="what">
+    <article>
+      <h2>What Next-Gen means</h2>
+      <p>Starlink is the only next-gen system in the air today. <b>56 aircraft, 100%</b> of the JSX fleet. Per-flight odds on a booking site are a different question from this airline-wide share.</p>
+    </article>
+    <article>
+      <h2>What Streaming means</h2>
+      <p>Aircraft where video works. <b>56 aircraft, 100%</b>. That includes the 56 next-gen tails plus 0 with older satellite wifi that still streams. This card shows coverage, not a quality score.</p>
+    </article>
+  </section>
 
-<section class="blk" id="rollout">
-  <div class="sec-h"><h2>Rollout</h2></div>
-  <p>No dated rollout note beyond the snapshot.</p>
-</section>
+  <section class="rest" id="rest" aria-labelledby="rest-h">
+    <h2 id="rest-h">The rest of the fleet</h2>
+    <p class="intro">After next-gen and streaming, the leftover is older onboard wifi, no wifi, or no published system. Older satellite wifi that still streams is already in the Streaming card, not a vendor tile here.</p>
+    <div class="rest-list">
+      <div class="rest-row">
+        <div><b>Older onboard wifi</b> <small>Cabin systems that are not the streaming bucket.</small></div>
+        <span class="n">0</span>
+        <span class="share">0%</span>
+      </div>
+      <div class="rest-row">
+        <div><b>No wifi</b> <small>Published as unequipped.</small></div>
+        <span class="n">0</span>
+        <span class="share">0%</span>
+      </div>
+    </div>
+    <p class="note">0 + 0 + 0 = 0 aircraft not in the Streaming card. 56 + 0 = 56.</p>
+  </section>
 
-<section class="blk">
-  <div class="cta-row"><a class="btn" href="/airlines/">Airline directory</a><a class="btn ghost" href="/#all">Homepage rank list</a></div>
-</section>
+  <section class="roll" id="rollout" aria-labelledby="roll-h">
+    <h2 id="roll-h">Rollout</h2>
+  <p>No dated rollout split beyond the snapshot on this page.</p>
+  </section>
+
+  <p class="support"><b>Not on this page:</b> The retired 0-100 score or its name. Vendor tiles as the opening grid. Streaming-capable older-satellite aircraft sit inside the Streaming card.</p>
 </div>
 </main>
 <footer class="site">
