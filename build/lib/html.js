@@ -932,8 +932,13 @@ function page(o) {
     '' +
     o.body +
     '</main>\n' +
-    footer(o.updated, o.refreshAttemptedOn, o.wasRetained) +
     '</div>\n' +
+    /* The durable footer sits OUTSIDE .wrap: Home's band is full-bleed with
+       its own inner .sf-wrap, and leaving it inside the page wrap would inset
+       the band twice — the layout split §4.2 of the footer spec measured.
+       Classic footer() stays exported for leftover classic HTML and tests;
+       page() no longer calls it, the same split as masthead()/mastheadV2. */
+    footerV2(o.updated, o.refreshAttemptedOn, o.wasRetained) +
     (o.afterWrap || '') +
     THEME_SWITCH +
     '<script src="/assets/site.js?v=' + assetHash('assets/site.js') + '" defer></script>\n</body>\n</html>\n';

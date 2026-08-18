@@ -68,7 +68,7 @@ try {
           await page.goto(base + route, { waitUntil: 'load' });
           if (mutation === 'footer-nav-shrink') {
             await page.addStyleTag({ content:
-              'footer .ftop,footer .flinks>a,footer .footer-top>.brand,footer .footlinks>a{min-width:0!important;min-height:0!important;padding:0!important}' });
+              'footer .sitefoot-brand,footer .sitefoot-links>a{min-width:0!important;min-height:0!important;padding:0!important}' });
           }
           if (mutation === 'feature-tour-shrink') {
             await page.addStyleTag({ content:
@@ -91,7 +91,7 @@ try {
             }
 
             const footerTargets = [...document.querySelectorAll(
-              'footer .ftop, footer .flinks>a, footer .footer-top>.brand, footer .footlinks>a'
+              'footer .sitefoot-brand, footer .sitefoot-links>a'
             )].filter(visible).map(el => record(el, 'footer navigation'));
 
             const privacyStandalone = location.pathname === '/privacy'
