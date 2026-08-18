@@ -815,8 +815,113 @@ function footerV2(updated, refreshAttemptedOn, wasRetained) {
     '<style>' + FOOTER_CSS + '</style>\n';
 }
 
+/* ── THE DURABLE PAGE HERO (heroV2) ────────────────────────────────────────
+ * Owner visual FINDINGS, 17 Aug 2026 (~7:48pm PT): live /airlines/ and
+ * /feedback/ do not match the /methodology/ and /technology/ tops. The PR 25
+ * h1.ph clamp matched a font-size and nothing else, and the owner voided it
+ * as the visual lock. What the two whole-document pages actually share is a
+ * BAND: dark ground, a 72px grid fading in from the left edge, a soft
+ * cyan/violet glow bleeding off the right, a small glowing-dot kicker in
+ * letterspaced mono caps, a sentence headline whose last phrase carries the
+ * cyan→violet text gradient, and a wide lede under it. This component is
+ * that band, extracted once, so the next page-top match is a caller swap
+ * instead of a fourth hand copy that drifts.
+ *
+ * THE SOURCE OF TRUTH is build/templates/methodology.html's hero block, byte
+ * for byte where scoping allows. Methodology and technology differ by nudges
+ * (670/660 min-height, 68–118/64–112 clamp, cyan-first/violet-first glow,
+ * 11px/12px kicker): the include canonicalises on METHODOLOGY's values. The
+ * two live pages already read as one design across those nudge distances, so
+ * one value set is the durable form of "they match".
+ *
+ * WHAT DID NOT COME ALONG: the `.asof` date chip ("Method effective
+ * 28 Jul 2026" / "Technology map · 28 Jul 2026"). Those chips are a separate
+ * owner kill in flight on wo-method-tech-date-chips, and copying them here
+ * would ship the exact element another driver is deleting. The template's
+ * `.hero-bottom` two-column grid existed only to seat that chip, so it stays
+ * behind too; the lede keeps the same 700px measure as a plain max-width.
+ *
+ * EVERY name is unique to the component: `sitehero`, `sh-wrap`, `sh-kicker`,
+ * `sh-grad`, `sh-lede` — the `.mh-wrap` / `.sf-wrap` defence, because a
+ * class a page stylesheet also owns is a band a page stylesheet can move.
+ * site.css owns `.hero`, `.kicker`, `.lede`, `.ph`, and `h1` (serif token,
+ * weight 750, -.045em), so the scoped rules below RESTATE everything the
+ * template got from its own document for free: the Inter-first stack, h1
+ * weight 700, the ink color. The wrap formula is Home's own, RESOLVED
+ * (min(1240px,calc(100% - 48px)); 32px gutters under 700px), never
+ * var(--max) — /feedback/'s own head caps `.wrap` at 52rem and a shared
+ * token would squeeze this band the way it squeezed the pre-PR-22 masthead.
+ *
+ * The text gradient is pure CSS (background-clip), so unlike markSvg there
+ * is no SVG id to collide. ONE deliberate byte-level deviation from the
+ * template: the grid's left fade ships as `-webkit-mask-image` AND
+ * `mask-image`. The template carries only the unprefixed property; the twin
+ * is a strict superset that keeps the fade on older WebKit, and changes
+ * nothing where the unprefixed form already resolves. */
+var HERO_CSS =
+  /* Self-owned box model, ground and type, same defence as .sitebar. */
+  '.sitehero,.sitehero *{box-sizing:border-box}' +
+  '.sitehero{position:relative;overflow:hidden;min-height:670px;display:grid;align-items:center;' +
+  'background:var(--bg,#050505);border-bottom:1px solid var(--soft,#34343b);' +
+  'font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}' +
+  /* The glow: methodology's cyan-first radial, off the right edge, blurred.
+     Absolutely positioned inside overflow:hidden, so it can never widen the
+     page — no 100vw breakout tricks anywhere in this component. */
+  '.sitehero:before{content:"";position:absolute;width:700px;height:700px;right:-160px;top:-60px;' +
+  'background:radial-gradient(circle,rgba(41,216,255,.2),rgba(146,108,255,.09) 43%,transparent 70%);' +
+  'filter:blur(12px);pointer-events:none}' +
+  /* The grid: 1px hairlines every 72px, masked so it fades in from the left
+     and out again past the right. */
+  '.sitehero:after{content:"";position:absolute;inset:0;' +
+  'background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),' +
+  'linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);' +
+  'background-size:72px 72px;' +
+  '-webkit-mask-image:linear-gradient(to right,transparent 3%,#000 60%,transparent);' +
+  'mask-image:linear-gradient(to right,transparent 3%,#000 60%,transparent);' +
+  'pointer-events:none}' +
+  /* The template's `.wrap hero-inner` pair, merged: width from Home's
+     resolved formula, padding and stacking context from hero-inner. */
+  '.sitehero .sh-wrap{position:relative;z-index:1;width:min(1240px,calc(100% - 48px));margin:auto;' +
+  'padding:92px 0 84px}' +
+  '.sitehero .sh-kicker{display:flex;align-items:center;gap:9px;color:var(--cyan,#29d8ff);' +
+  'font:800 11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.15em;text-transform:uppercase}' +
+  '.sitehero .sh-kicker i{width:7px;height:7px;border-radius:50%;background:var(--cyan,#29d8ff);' +
+  'box-shadow:0 0 18px var(--cyan,#29d8ff)}' +
+  /* Everything site.css puts on h1 (serif token, 750, -.045em) is restated
+     here at higher specificity with the template's computed values. */
+  '.sitehero h1{max-width:1050px;margin:29px 0 32px;font-size:clamp(68px,8vw,118px);line-height:.88;' +
+  'letter-spacing:-.072em;font-family:inherit;font-weight:700;color:var(--ink,#fff)}' +
+  '.sitehero .sh-grad{color:transparent;background:linear-gradient(100deg,#fff 8%,#8beaff 54%,#a88cff 88%);' +
+  'background-clip:text;-webkit-background-clip:text}' +
+  /* main p{max-width:74ch} (site.css) loses to (0,2,0) here; 700px is the
+     template's hero-bottom column, kept as a plain measure. */
+  '.sitehero .sh-lede{margin:0;max-width:700px;color:#babac1;font-size:clamp(19px,2vw,26px);line-height:1.42}' +
+  /* The template's own 700px overrides, plus the include family's 390 step. */
+  '@media(max-width:700px){' +
+  '.sitehero{min-height:680px}' +
+  '.sitehero .sh-wrap{width:min(1240px,calc(100% - 32px));padding:74px 0 60px}' +
+  '.sitehero h1{font-size:clamp(55px,16vw,72px)}' +
+  '.sitehero .sh-lede{font-size:18px}' +
+  '}' +
+  '@media(max-width:390px){.sitehero .sh-wrap{width:calc(100% - 32px)}}';
+
+/* o: {kicker, title, grad, lede} — all plain text, escaped here. `title` is
+ * the sentence up to the gradient phrase; `grad` is the phrase itself,
+ * period included, exactly as the two source pages split theirs. The kicker
+ * arrives mixed case and the CSS uppercases it, same as the templates. */
+function heroV2(o) {
+  return '<section class="sitehero" data-hero>\n' +
+    '  <div class="sh-wrap">\n' +
+    '    <span class="sh-kicker"><i></i>' + esc(o.kicker) + '</span>\n' +
+    '    <h1>' + esc(o.title) + ' <span class="sh-grad">' + esc(o.grad) + '</span></h1>\n' +
+    '    <p class="sh-lede">' + esc(o.lede) + '</p>\n' +
+    '  </div>\n' +
+    '</section>\n' +
+    '<style>' + HERO_CSS + '</style>\n';
+}
+
 /* opts: {title, desc, canonical, here, suffix, section, crumb, jsonld[], body,
- *        extraHead, preWrap, afterWrap}
+ *        extraHead, preWrap, afterWrap, hero}
  *
  * preWrap / afterWrap exist for the template-backed pages (build/lib/tmpl.js):
  *   preWrap   — sits between <body> and <div class="wrap">. /united/ puts its
@@ -916,23 +1021,42 @@ function page(o) {
     /* Copied homepage header on every H.page route. Classic masthead() stays
        in this file for leftover classic HTML / tests; page() does not call it. */
     mastheadV2(o.here) +
-    '<div class="wrap">\n' +
-    subnav(o.section, o.canonical, o.suffix) +
-    /* <main> starts AFTER the subnav so the skip link actually skips the
-       navigation. It also stops every page's own <header class="hero"> from
-       computing to role=banner: a <header> inside <main> is not a banner, and
-       without this wrapper every one of the 31 routes exposed two unlabelled
-       banner landmarks. <main> has no default box styling, so this is a
-       null visual diff. */
-    '<main id="main-content">\n' +
-    /* 17 Aug 2026 owner GO: kill Date effective chip, not header include.
-       The page-head stamp is gone. BreadcrumbList JSON-LD stays: machine
-       path, no pixels. asofChip callers stay as-is; chipDate stays for the
-       homepage datestamp. */
-    '' +
-    o.body +
-    '</main>\n' +
-    '</div>\n' +
+    /* THE HERO SLOT (17 Aug 2026, hero-match). A page that passes o.hero gets
+       the whole-document shape: <main> opens right after the masthead and
+       holds the full-bleed heroV2 band FIRST, then the width-capped .wrap
+       with the subnav and body — the same nesting /methodology/ and
+       /technology/ use (<main id="main"> wrapping a full-bleed .hero). The
+       band needs the viewport and .wrap would cap it at the page column,
+       while parking it outside <main> would strand the page's h1 beyond the
+       skip target and reopen the two-banner drift fenced below. The skip
+       link still lands on #main-content, which now begins at the band: the
+       band IS the content, headline included. A page that passes no hero
+       renders the previous shape byte for byte. */
+    (o.hero
+      ? '<main id="main-content">\n' +
+        o.hero +
+        '<div class="wrap">\n' +
+        subnav(o.section, o.canonical, o.suffix) +
+        o.body +
+        '</div>\n' +
+        '</main>\n'
+      : '<div class="wrap">\n' +
+        subnav(o.section, o.canonical, o.suffix) +
+        /* <main> starts AFTER the subnav so the skip link actually skips the
+           navigation. It also stops every page's own <header class="hero"> from
+           computing to role=banner: a <header> inside <main> is not a banner, and
+           without this wrapper every one of the 31 routes exposed two unlabelled
+           banner landmarks. <main> has no default box styling, so this is a
+           null visual diff. */
+        '<main id="main-content">\n' +
+        /* 17 Aug 2026 owner GO: kill Date effective chip, not header include.
+           The page-head stamp is gone. BreadcrumbList JSON-LD stays: machine
+           path, no pixels. asofChip callers stay as-is; chipDate stays for the
+           homepage datestamp. */
+        '' +
+        o.body +
+        '</main>\n' +
+        '</div>\n') +
     /* The durable footer sits OUTSIDE .wrap: Home's band is full-bleed with
        its own inner .sf-wrap, and leaving it inside the page wrap would inset
        the band twice — the layout split §4.2 of the footer spec measured.
@@ -957,6 +1081,10 @@ module.exports = {
      caller swap, not a component edit. Nothing calls it yet — built HTML is
      byte-identical until the callers move. */
   footerV2: footerV2,
+  /* heroV2: the durable Methodology/Technology page-top band. Exported with
+     an H.page `hero` slot so wiring a page top is a caller swap; pages that
+     pass no hero build byte-identically. */
+  heroV2: heroV2,
   plateDate: plateDate, chipDate: chipDate,
   MARK_SVG: markSvg, FAVICON: FAVICON,
   /* THEME_BOOT and assetHash: exported additively for Render.home(), which does

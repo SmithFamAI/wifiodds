@@ -1326,6 +1326,11 @@ function directoryScopedCss() {
      exception below, matching the Review-AGREED mock. */
   return '' +
     '.dir-page a{color:inherit;text-decoration:none}' +
+    /* The heroV2 band owns the kicker/title/lede now (hero-match, 17 Aug
+       2026). The h1's 12px bottom margin used to open this column; with the
+       top block gone the column sets its own inset below the band's border.
+       .kicker/.lede rules stay: dir-head and future in-column uses. */
+    '.dir-page{padding-top:36px}' +
     '.dir-page .kicker{display:block;color:var(--cyan,#29d8ff);font:800 11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px}' +
     '.dir-page .lede{margin:.9rem 0 22px;color:#b9b9c0;font-size:18px;line-height:1.45;max-width:46rem}' +
     '.dir-page .asof{color:#777781;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;margin:0 0 22px}' +
@@ -1503,11 +1508,16 @@ function airlinesDirectory(m) {
   }).join('\n');
   var crumbs = [['/', 'Home'], ['/airlines/', 'Airlines']];
   var checked = esc(m.updated);
+  /* 17 Aug 2026 owner FINDINGS (hero-match): the directory top is the shared
+     heroV2 band — grid, glow, dot kicker, sentence headline with the gradient
+     last phrase — not the bare word title the PR 25 clamp dressed. Kicker and
+     lede ride into the band verbatim; the h1 becomes a sentence whose count
+     is the same keys.length the chips print, so the headline can never
+     disagree with the directory under it. The Fleet-checked provenance line
+     stays on the page (figures below still need their date) and now leads
+     the wrapped content. */
   var body =
     '<div class="dir-page">\n' +
-    '<span class="kicker">Airlines directory</span>\n' +
-    '<h1 class="ph">Airlines</h1>\n' +
-    '<p class="lede">Next-Gen and Streaming as count and percent, the same two cards as each carrier page. A missing count is Unpublished. It is not 0.</p>\n' +
     '<p class="asof">Fleet checked <span data-date="checked_at">' + checked + '</span> · Store 3.1.1</p>\n' +
     '<div class="stats" aria-label="Directory totals">\n' +
     '  <div class="chip"><b>' + keys.length + '</b> <span>carriers</span></div>\n' +
@@ -1533,6 +1543,13 @@ function airlinesDirectory(m) {
     canonical: '/airlines/', here: '/airlines/',
     updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained,
     mastheadV2: true,
+    hero: H.heroV2({
+      kicker: 'Airlines directory',
+      title: 'See all ' + keys.length + ' carriers, ranked by',
+      grad: 'your odds of next-gen WiFi.',
+      lede: 'Next-Gen and Streaming as count and percent, the same two cards as each carrier page. ' +
+        'A missing count is Unpublished. It is not 0.'
+    }),
     crumb: crumbs,
     extraHead: '<style>' + directoryScopedCss() + '</style>\n',
     body: body,
@@ -3980,6 +3997,19 @@ function feedbackPage(m) {
     canonical: '/feedback/', here: '/feedback/',
     updated: m.updated, refreshAttemptedOn: m.refreshAttemptedOn, wasRetained: m.wasRetained,
     mastheadV2: true,
+    /* 17 Aug 2026 owner FINDINGS (hero-match): the template's word-title top
+       (SITE kicker, bare "Feedback" h1) is replaced by the shared heroV2
+       band. Headline copy lives here beside the title/desc strings this
+       function already owns; the lede is the template's own sentence,
+       verbatim. The form below the band is fenced by apitest and does not
+       change: drag-drop, labels beside checks, visible marks, no owner
+       name. */
+    hero: H.heroV2({
+      kicker: 'Product feedback',
+      title: 'Tell us what worked, what broke, and',
+      grad: 'what to build next.',
+      lede: 'Use this form for the site or the extension. Flight WiFi measurements still have no public form.'
+    }),
     extraHead: t.head, body: t.body, afterWrap: t.foot,
     crumb: [['/', 'Home'], ['/feedback/', 'Feedback']],
     jsonld: [crumbLd([['/', 'Home'], ['/feedback/', 'Feedback']])]

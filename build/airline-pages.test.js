@@ -105,13 +105,54 @@ assert.ok(fs.existsSync(path.join(ROOT, 'united', 'data.json')),
 var directory = htmlOf('airlines/index.html');
 var dirText = visible(directory);
 assert.ok(dirText.indexOf('ConnectScore') === -1, 'directory does not revive ConnectScore');
-assert.ok(directory.indexOf('<h1 class="ph">Airlines</h1>') !== -1,
-  'directory title uses the shared public display treatment');
+/* 17 Aug 2026 owner FINDINGS: the PR 25 h1.ph clamp is VOID as the visual
+ * lock — a matched font-size is not a matched page top. The lock is the
+ * shared heroV2 band from /methodology/ and /technology/: the 72px grid,
+ * the right-edge glow, the glowing-dot kicker, and a sentence headline
+ * whose last phrase carries the cyan-to-violet text gradient. Bind to the
+ * include and to each page's own sentence; the old bare word titles must
+ * stay gone. */
+assert.ok(directory.indexOf('<section class="sitehero" data-hero>') !== -1,
+  'directory opens with the shared hero include');
+assert.ok(directory.indexOf('<h1>See all ' + LOCKED_KEYS.length +
+  ' carriers, ranked by <span class="sh-grad">your odds of next-gen WiFi.</span></h1>') !== -1,
+  'directory headline is the ranked-odds sentence, count and all, with the gradient last phrase');
+assert.ok(directory.indexOf('<h1 class="ph">Airlines</h1>') === -1,
+  'the bare word title is gone from the directory');
 assert.ok(!/\.dir-page h1\{[^}]*font-size/.test(directory),
   'directory CSS does not override the shared title scale');
 var feedback = htmlOf('feedback/index.html');
-assert.ok(feedback.indexOf('<h1 class="ph">Feedback</h1>') !== -1,
-  'feedback title keeps the shared public display treatment');
+assert.ok(feedback.indexOf('<section class="sitehero" data-hero>') !== -1,
+  'feedback opens with the shared hero include');
+assert.ok(feedback.indexOf('<h1>Tell us what worked, what broke, and ' +
+  '<span class="sh-grad">what to build next.</span></h1>') !== -1,
+  'feedback headline is a sentence with the gradient last phrase');
+assert.ok(feedback.indexOf('<h1 class="ph">Feedback</h1>') === -1,
+  'the bare word title is gone from feedback');
+[['directory', directory], ['feedback', feedback]].forEach(function (pair) {
+  var which = pair[0];
+  var html = pair[1];
+  assert.ok(html.indexOf('background-size:72px 72px') !== -1,
+    which + ' hero carries the 72px grid');
+  assert.ok(html.indexOf(
+    'radial-gradient(circle,rgba(41,216,255,.2),rgba(146,108,255,.09) 43%,transparent 70%)') !== -1,
+    which + ' hero carries the right-edge glow');
+  assert.ok(html.indexOf('.sitehero .sh-kicker i{') !== -1,
+    which + ' hero kicker has the glowing dot');
+  assert.ok(html.indexOf('linear-gradient(100deg,#fff 8%,#8beaff 54%,#a88cff 88%)') !== -1,
+    which + ' hero carries the headline text gradient');
+  /* The include's names are its own; a rule under .hero/.kicker/.lede here
+   * would be site.css's to move. And the band must sit inside <main>,
+   * before the width-capped wrap, or it is either a second banner landmark
+   * or a column-width stripe — both are the drift this include ends. */
+  assert.ok(html.indexOf('.sitehero{') !== -1 && html.indexOf('.sitehero .sh-wrap{') !== -1,
+    which + ' hero CSS is scoped under .sitehero');
+  var mainAt = html.indexOf('<main id="main-content">');
+  var heroAt = html.indexOf('<section class="sitehero"');
+  var wrapAt = html.indexOf('<div class="wrap">');
+  assert.ok(mainAt !== -1 && heroAt > mainAt && (wrapAt === -1 || wrapAt > heroAt),
+    which + ' hero sits inside main, before the width-capped wrap');
+});
 var dirSection = (/<section class="blk" id="directory"[\s\S]*?<\/section>/.exec(directory) || [''])[0];
 var dirSectionText = visible(dirSection);
 assert.ok(dirSection, 'directory has a directory section');
