@@ -5,11 +5,42 @@
   .pol p+p{margin-top:.7rem}
   .pol b{color:var(--ink);font-weight:700}
   .ff textarea{min-height:10rem}
-  .ffcheck{display:flex;align-items:flex-start;gap:.65rem;min-height:44px;
-    font:400 15px/1.45 var(--sans);color:var(--ink-soft);max-width:44rem}
-  .ffcheck input{width:1.15rem;height:1.15rem;margin:.15rem 0 0;flex:none;accent-color:var(--sky)}
+  .ff label.ffcheck{display:flex;flex-direction:row;align-items:flex-start;gap:.7rem;
+    min-height:44px;font:400 15px/1.45 var(--sans);color:var(--ink-soft);max-width:44rem;
+    cursor:pointer;text-transform:none;letter-spacing:normal}
+  .ff label.ffcheck input[type=checkbox]{
+    -webkit-appearance:none;appearance:none;box-sizing:border-box;
+    width:1.25rem;height:1.25rem;margin:.15rem 0 0;flex:none;padding:0;
+    border:2px solid var(--sky);border-radius:4px;background:var(--field-bg);
+    cursor:pointer;accent-color:var(--sky)}
+  .ff label.ffcheck input[type=checkbox]:checked{
+    background-color:var(--sky);border-color:var(--sky);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23f7f7f8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' d='M3.2 8.4l3.2 3.2 6.4-7.2'/%3E%3C/svg%3E");
+    background-size:12px 12px;background-position:center;background-repeat:no-repeat}
+  .ff label.ffcheck input[type=checkbox]:focus-visible{
+    outline:2px solid var(--sky);outline-offset:2px}
   .frm .btn{min-height:44px}
-  .ff input[type=file]{padding:.55rem 0;min-height:44px}
+  .ffdrop{position:relative;display:flex;align-items:center;justify-content:center;
+    min-height:8.5rem;padding:1.15rem 1.1rem;border:1.5px dashed var(--field-border);
+    border-radius:10px;background:var(--field-bg);cursor:pointer;max-width:44rem}
+  .ffdrop.is-drag,.ffdrop:focus-within{border-color:var(--sky);outline:2px solid var(--sky);outline-offset:2px}
+  .ff .ffdrop-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;padding:0;margin:0;
+    border:0;border-radius:10px;background:transparent;min-height:0;cursor:pointer;
+    -webkit-appearance:none;appearance:none;z-index:1}
+  .ffdrop-ui{display:flex;flex-direction:column;align-items:center;gap:.35rem;text-align:center;
+    pointer-events:none;max-width:28rem}
+  .ffdrop-title{font:600 15px/1.4 var(--sans);color:var(--ink)}
+  .ffdrop-hint{font:400 13px/1.45 var(--sans);color:var(--ink-soft)}
+  .ffshots{list-style:none;margin:.75rem 0 0;padding:0;display:flex;flex-direction:column;gap:.55rem;
+    max-width:44rem}
+  .ffshot{display:flex;align-items:center;gap:.7rem;min-height:44px;padding:.35rem .45rem;
+    border:1px solid var(--field-border);border-radius:8px;background:var(--field-bg)}
+  .ffshot img{width:44px;height:44px;object-fit:cover;border-radius:6px;flex:none;background:var(--panel)}
+  .ffshot-name{flex:1 1 auto;min-width:0;font:400 13px/1.4 var(--sans);color:var(--ink);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ffshot-rm{flex:none;min-width:44px;min-height:44px;padding:0 .7rem;border:1px solid var(--field-border);
+    border-radius:8px;background:transparent;color:var(--ink-soft);font:600 13px/1 var(--sans);cursor:pointer}
+  .ffshot-rm:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
   #feedback-ok,#feedback-err{margin:1rem 0 0;max-width:44rem}
   #feedback-ok[hidden],#feedback-err[hidden]{display:none}
   noscript p{margin-top:1rem;color:var(--ink-soft);max-width:44rem}
@@ -41,9 +72,17 @@
             autocomplete="off"></textarea></label>
       </div>
       <div class="ff wide">
-        <label><span class="lt">Screenshots (optional)</span>
-          <input id="feedback-shots" name="screenshots" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple></label>
-        <p class="note">JPEG, PNG, WebP, or GIF. Up to five files, 2 MB each.</p>
+        <span class="lt" id="feedback-shots-label">Screenshots (optional)</span>
+        <label class="ffdrop" id="feedback-drop" for="feedback-shots">
+          <input id="feedback-shots" class="ffdrop-input" name="screenshots" type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif" multiple
+            aria-labelledby="feedback-shots-label">
+          <span class="ffdrop-ui">
+            <span class="ffdrop-title">Drop screenshots here, or click to choose</span>
+            <span class="ffdrop-hint">JPEG, PNG, WebP, or GIF. Up to five files, 2 MB each.</span>
+          </span>
+        </label>
+        <ul id="feedback-shot-list" class="ffshots" hidden></ul>
       </div>
       <div class="ff">
         <label><span class="lt">Email (required)</span>
@@ -58,12 +97,14 @@
         <label>Leave this empty <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
       </div>
       <div class="ff wide">
-        <label class="ffcheck"><input type="checkbox" name="sendCopy" value="1">
+        <label class="ffcheck" for="feedback-send-copy">
+          <input id="feedback-send-copy" type="checkbox" name="sendCopy" value="1">
           <span>Send me a copy of this submission</span></label>
       </div>
       <div class="ff wide">
-        <label class="ffcheck"><input type="checkbox" name="allowFollowup" value="1">
-          <span>The developer may email me with follow-up questions</span></label>
+        <label class="ffcheck" for="feedback-allow-followup">
+          <input id="feedback-allow-followup" type="checkbox" name="allowFollowup" value="1">
+          <span>You may email me with follow-up questions</span></label>
       </div>
     </div>
     <div class="frm-ft">
@@ -82,7 +123,14 @@
   var form = document.getElementById('feedback-form');
   var ok = document.getElementById('feedback-ok');
   var err = document.getElementById('feedback-err');
-  if (!form || !window.fetch) return;
+  var input = document.getElementById('feedback-shots');
+  var drop = document.getElementById('feedback-drop');
+  var list = document.getElementById('feedback-shot-list');
+  var shots = [];
+  var writing = false;
+  var MAX_SHOTS = 5;
+  var MAX_BYTES = 2 * 1024 * 1024;
+  var TYPES = { 'image/jpeg': 1, 'image/png': 1, 'image/webp': 1, 'image/gif': 1 };
   function show(el, text) {
     if (ok) { ok.hidden = el !== ok; }
     if (err) {
@@ -91,6 +139,101 @@
     }
     if (el) el.scrollIntoView({ block: 'nearest' });
   }
+  function syncInput() {
+    if (!input || !window.DataTransfer) return;
+    writing = true;
+    var dt = new DataTransfer();
+    shots.forEach(function (s) { dt.items.add(s.file); });
+    input.files = dt.files;
+    writing = false;
+  }
+  function renderShots() {
+    if (!list) return;
+    list.hidden = shots.length === 0;
+    list.innerHTML = '';
+    shots.forEach(function (s, i) {
+      var li = document.createElement('li');
+      li.className = 'ffshot';
+      var img = document.createElement('img');
+      img.alt = '';
+      img.src = s.url;
+      var name = document.createElement('span');
+      name.className = 'ffshot-name';
+      name.textContent = s.file.name;
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ffshot-rm';
+      btn.setAttribute('aria-label', 'Remove ' + s.file.name);
+      btn.textContent = 'Remove';
+      btn.addEventListener('click', function () {
+        if (shots[i] && shots[i].url) URL.revokeObjectURL(shots[i].url);
+        shots.splice(i, 1);
+        syncInput();
+        renderShots();
+      });
+      li.appendChild(img);
+      li.appendChild(name);
+      li.appendChild(btn);
+      list.appendChild(li);
+    });
+  }
+  function addFiles(files) {
+    var firstErr = '';
+    Array.prototype.forEach.call(files || [], function (file) {
+      if (shots.length >= MAX_SHOTS) {
+        if (!firstErr) firstErr = 'That is more than five screenshots. The cap is five.';
+        return;
+      }
+      if (!TYPES[file.type]) {
+        if (!firstErr) firstErr = file.name + ' is not JPEG, PNG, WebP, or GIF.';
+        return;
+      }
+      if (file.size > MAX_BYTES) {
+        if (!firstErr) firstErr = file.name + ' is over 2 MB.';
+        return;
+      }
+      var dup = shots.some(function (s) {
+        return s.file.name === file.name && s.file.size === file.size &&
+          s.file.lastModified === file.lastModified;
+      });
+      if (dup) return;
+      shots.push({ file: file, url: URL.createObjectURL(file) });
+    });
+    syncInput();
+    renderShots();
+    if (firstErr) show(err, firstErr);
+    else if (err && !err.hidden && ok) show(null);
+  }
+  function clearShots() {
+    shots.forEach(function (s) { if (s.url) URL.revokeObjectURL(s.url); });
+    shots = [];
+    if (list) { list.innerHTML = ''; list.hidden = true; }
+  }
+  if (input) {
+    input.addEventListener('change', function () {
+      if (writing) return;
+      addFiles(input.files);
+    });
+  }
+  if (drop) {
+    ['dragenter', 'dragover'].forEach(function (ev) {
+      drop.addEventListener(ev, function (e) {
+        e.preventDefault();
+        drop.classList.add('is-drag');
+      });
+    });
+    drop.addEventListener('dragleave', function (e) {
+      if (!drop.contains(e.relatedTarget)) drop.classList.remove('is-drag');
+    });
+    drop.addEventListener('drop', function (e) {
+      e.preventDefault();
+      drop.classList.remove('is-drag');
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+        addFiles(e.dataTransfer.files);
+      }
+    });
+  }
+  if (!form || !window.fetch) return;
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     show(null);
@@ -103,6 +246,7 @@
       .then(function (out) {
         if (out.res.status === 201 && out.j && out.j.stored) {
           form.reset();
+          clearShots();
           ok.textContent = out.j.whatHappensNext || 'Got it. It is in the queue.';
           show(ok);
           return;

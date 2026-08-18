@@ -1321,13 +1321,13 @@ function airlineNewsItems(key) {
 
 function directoryScopedCss() {
   /* Directory-only. Do not restyle .sitebar / .masthead / .brand / nav.
+     The directory title uses the shared h1.ph display scale and ink color.
      Home chrome stays 78px mixed-case. Brand underline is a one-line
      exception below, matching the Review-AGREED mock. */
   return '' +
     '.dir-page a{color:inherit;text-decoration:none}' +
     '.dir-page .kicker{display:block;color:var(--cyan,#29d8ff);font:800 11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px}' +
-    '.dir-page h1{font-size:clamp(40px,6vw,72px);line-height:.92;letter-spacing:-.06em;margin:0 0 12px;font-weight:800}' +
-    '.dir-page .lede{margin:0 0 22px;color:#b9b9c0;font-size:18px;line-height:1.45;max-width:46rem}' +
+    '.dir-page .lede{margin:.9rem 0 22px;color:#b9b9c0;font-size:18px;line-height:1.45;max-width:46rem}' +
     '.dir-page .asof{color:#777781;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;margin:0 0 22px}' +
     '.dir-page .stats{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 28px}' +
     '.dir-page .chip{display:inline-flex;align-items:baseline;gap:8px;min-height:44px;padding:8px 14px;border:1px solid var(--line,#29292f);border-radius:12px;background:var(--panel,#0d0d0f)}' +
@@ -1382,7 +1382,6 @@ function directoryScopedCss() {
     '.dir-page .pair{grid-template-columns:1fr}' +
     '}' +
     '@media (max-width: 390px){' +
-    '.dir-page h1{font-size:36px}' +
     '.dir-page .lede{font-size:16px}' +
     '.dir-page .row{padding:14px 12px 12px;border-radius:14px}' +
     '.dir-page .nm{font-size:20px}' +
@@ -1507,7 +1506,7 @@ function airlinesDirectory(m) {
   var body =
     '<div class="dir-page">\n' +
     '<span class="kicker">Airlines directory</span>\n' +
-    '<h1>Airlines</h1>\n' +
+    '<h1 class="ph">Airlines</h1>\n' +
     '<p class="lede">Next-Gen and Streaming as count and percent, the same two cards as each carrier page. A missing count is Unpublished. It is not 0.</p>\n' +
     '<p class="asof">Fleet checked <span data-date="checked_at">' + checked + '</span> · Store 3.1.1</p>\n' +
     '<div class="stats" aria-label="Directory totals">\n' +
