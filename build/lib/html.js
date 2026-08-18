@@ -675,6 +675,146 @@ function footer(updated, refreshAttemptedOn, wasRetained) {
     '</footer>\n';
 }
 
+/* ── THE DURABLE FOOTER (footerV2), the footer the header pattern promised ──
+ * One include, copied from live Home's footer band, carried by every public
+ * route the way mastheadV2 carries the Home bar. Three footer families ship
+ * today — Home's `.footer`, three page-local `.footer` variants that already
+ * disagree with Home on gap, colour and link row, and the interior
+ * `footer.site` that site.css restyles — and this component retires all three
+ * once the callers move over. Classic footer() stays exported below for the
+ * leftover classic pages and tests, exactly as masthead() stayed.
+ *
+ * EVERY name here is unique to the component: `sitefoot`, `sf-wrap`,
+ * `sitefoot-top`, `sitefoot-brand`, `sitefoot-links`, `sitefoot-fine`.
+ * The footer-include spec sketched `<div class="wrap sf">`, but that sketch
+ * was measured against the PR 19 header, and the header has since learned
+ * better in this very file: `.mh-wrap` replaced `wrap mh` because a class a
+ * page stylesheet also owns is a bar a page stylesheet can move — site.css
+ * caps `.wrap` at 77.5rem with its own pads, /feedback/ and /privacy squeeze
+ * it to 52rem, /extension/ retunes --max. The same shared token would misplace
+ * this band the same way, so the wrap formula below is Home's own, RESOLVED
+ * (width:min(1240px,calc(100% - 48px)); 32px gutters under 700px), under a
+ * class nothing else styles. Do not add `wrap` here, and do not restyle
+ * `.sf-wrap` outside this file. Reusing `footer.site`, `.ftop`, `.flinks`,
+ * `.footer`, `.footlinks` or `.fine` would hand the band back to site.css and
+ * the page-local sheets — that is the `.masthead` failure this include exists
+ * to end.
+ *
+ * WHAT THE FINE PRINT KEEPS, and what left. The three disclosure rows are the
+ * classic footer()'s own sentences, verbatim — tracker credit, the
+ * estimate/unaffiliated line with the data date, and the no-accounts/
+ * extension-storage row. They are fences, not decoration; Home's shorter
+ * `.fine` is not a licence to cut them. Two rows did NOT come along:
+ *   - The `Site source` / `Extension source` row. Its hrefs are personal
+ *     `github.com/jeremyinthebay/...` URLs, and owner identity never goes on a
+ *     public surface. Live Home — the visual contract — ships no repo row.
+ *     Whoever wires footerV2 into the callers must retire apitest's
+ *     source-label assertions in the same change, not leave a red gate.
+ *   - The theme sentence. It promises "the switch in the header", and no
+ *     built page has one: `id="themetoggle"` appears in zero built HTML files
+ *     (measured 17 Aug 2026; only the no-op wiring script remains). A footer
+ *     must not describe a control that is not there.
+ *
+ * COLOURS: structural colours ride the same token chains mastheadV2 uses, so
+ * the pair can never disagree on a page; the two Home fine-print greys
+ * (#9999a1 links, #62626a fine) are literals because site.css defines no
+ * token that resolves to them and a token here would be a handle interiors
+ * could turn. The hairline is var(--line-soft,var(--line,#29292f)): interior
+ * dark --line-soft IS Home's #29292f, while bare --line would brighten to
+ * #65656d on the site.css routes.
+ *
+ * Callers must pass `updated` (plus refreshAttemptedOn/wasRetained where the
+ * data layer has them) — the date line is deliberately unguarded, same as
+ * classic footer(), so a caller that forgets prints a visibly broken claim
+ * instead of silently dropping a fence. */
+var FOOTER_CSS =
+  /* Self-owned box model, ground and type, same defence as .sitebar. */
+  '.sitefoot,.sitefoot *{box-sizing:border-box}' +
+  '.sitefoot{background:var(--bg,var(--paper,#050505));color:var(--muted,#a6a6ad);' +
+  'padding:44px 0 54px;' +
+  'font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}' +
+  /* The PR 19 repair, scoped to this component. Interior site.css says
+     `a{color:var(--link);text-decoration:underline}`; Home's global is
+     inherit/none. The :hover reset is load-bearing: site.css `a:hover` ties a
+     bare component selector at (0,1,1) and source order is not a fence. The
+     footer-copy test matches these two rules literally — keep them byte-stable. */
+  '.sitefoot a{color:inherit;text-decoration:none}' +
+  '.sitefoot a:hover{text-decoration:none}' +
+  /* Home's wrap formula with the token RESOLVED, exactly as .mh-wrap holds it:
+     var(--max) here would hand the band to any page that sets the token. */
+  '.sitefoot .sf-wrap{width:min(1240px,calc(100% - 48px));margin:auto;' +
+  'padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}' +
+  '.sitefoot .sitefoot-top{display:flex;align-items:center;justify-content:space-between;gap:20px}' +
+  /* The lockup matches the masthead brand: 21px mark, 20px/850 wordmark. */
+  '.sitefoot .sitefoot-brand{display:flex;align-items:center;gap:10px;min-height:44px;' +
+  'font-weight:850;letter-spacing:-.04em;font-size:20px;color:var(--ink,#fff)}' +
+  '.sitefoot .sitefoot-brand svg{width:21px;height:21px;flex:none;color:var(--cyan,#29d8ff)}' +
+  /* Home's row: 12px, #9999a1, gap 22px, 44px targets, mixed case. */
+  '.sitefoot .sitefoot-links{display:flex;gap:22px;color:#9999a1;font-size:12px}' +
+  '.sitefoot .sitefoot-links a{display:flex;align-items:center;min-height:44px;min-width:44px;' +
+  'text-transform:none;letter-spacing:normal}' +
+  '.sitefoot .sitefoot-links a:hover{color:var(--ink,#fff)}' +
+  /* Home's fine block: hairline, 11px, #62626a, readable measure. */
+  '.sitefoot .sitefoot-fine{margin-top:32px;padding-top:24px;' +
+  'border-top:1px solid var(--line-soft,var(--line,#29292f));' +
+  'color:#62626a;font-size:11px;line-height:1.5}' +
+  '.sitefoot .sitefoot-fine p{margin:0 0 10px;max-width:720px}' +
+  '.sitefoot .sitefoot-fine p:last-child{margin-bottom:0}' +
+  /* Fine-print links get their underline back ON PURPOSE: an 11px grey link
+     with no affordance is invisible. (0,2,1) and (0,2,2) outrank the blanket
+     resets above by specificity, not order. */
+  '.sitefoot .sitefoot-fine a{color:#9999a1;text-decoration:underline;text-underline-offset:2px}' +
+  '.sitefoot .sitefoot-fine a:hover{text-decoration:underline}' +
+  '.sitefoot a:focus-visible{outline:3px solid var(--cyan,var(--sky,#29d8ff));outline-offset:3px}' +
+  /* 700 is where every content container drops to 16px gutters; the band
+     follows or it sits 8px proud — the round-9 masthead defect. Home also
+     stacks brand over links here. */
+  '@media(max-width:700px){' +
+  '.sitefoot .sf-wrap{width:min(1240px,calc(100% - 32px))}' +
+  '.sitefoot .sitefoot-top{flex-direction:column;align-items:flex-start}' +
+  '.sitefoot .sitefoot-links{flex-wrap:wrap}' +
+  '}' +
+  '@media(max-width:390px){.sitefoot .sf-wrap{width:calc(100% - 32px)}}';
+
+function footerV2(updated, refreshAttemptedOn, wasRetained) {
+  /* Same retained-day contract as classic footer(): on a healed pull the line
+     carries both dates, because "updated" alone would claim a re-measurement
+     that did not happen. */
+  var updatedLine = (!wasRetained || !refreshAttemptedOn)
+    ? 'Data updated <b>' + esc(updated) + '</b>.'
+    : 'Checked <b>' + esc(refreshAttemptedOn) + '</b> · data as of <b>' + esc(updated) +
+      '</b> (the refresh ran but the count itself was not re-measured that day).';
+  return '<footer class="sitefoot" data-footer>\n' +
+    '  <div class="sf-wrap">\n' +
+    '    <div class="sitefoot-top">\n' +
+    '      <a class="sitefoot-brand" href="/" aria-label="WiFi Odds home">' + markSvg('ftv2', 21) + 'WiFi&nbsp;Odds</a>\n' +
+    /* Five labels, mixed case, relative hrefs — the canonical row live Home
+       ships. Extension lives in the header nav, not here; Home is the brand
+       link, not a sixth item. Do not restore the pre-28-Jul sitemap. */
+    '      <nav class="sitefoot-links" aria-label="Footer">\n' +
+    '        <a href="/methodology/">Methodology</a>\n' +
+    '        <a href="/technology/">Technology</a>\n' +
+    '        <a href="/airlines/">Airlines</a>\n' +
+    '        <a href="/feedback/">Feedback</a>\n' +
+    '        <a href="/privacy">Privacy</a>\n' +
+    '      </nav>\n' +
+    '    </div>\n' +
+    '    <div class="sitefoot-fine">\n' +
+    '      <p>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> ' +
+    '· <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> ' +
+    '(independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</p>\n' +
+    '      <p>' + updatedLine + ' Streaming scores and per-flight odds are ' +
+    'historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and ' +
+    'unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</p>\n' +
+    '      <p><b>No accounts, no analytics</b> on this site. The extension keeps local ' +
+    'preferences, Guard trips, and outcomes on the device. Its daily selector fetch still carries ' +
+    'an IP. Details are on the <a href="/privacy">privacy page</a>.</p>\n' +
+    '    </div>\n' +
+    '  </div>\n' +
+    '</footer>\n' +
+    '<style>' + FOOTER_CSS + '</style>\n';
+}
+
 /* opts: {title, desc, canonical, here, suffix, section, crumb, jsonld[], body,
  *        extraHead, preWrap, afterWrap}
  *
@@ -807,6 +947,11 @@ module.exports = {
      this file cannot break on the rename; nothing in the build uses it today. */
   topbar: masthead,
   subnav: subnav, crumb: crumb, credit: credit, footer: footer,
+  /* footerV2: the durable Home-footer include. Defined and exported here so
+     the wiring change (Home, methodology, technology, extension, H.page) is a
+     caller swap, not a component edit. Nothing calls it yet — built HTML is
+     byte-identical until the callers move. */
+  footerV2: footerV2,
   plateDate: plateDate, chipDate: chipDate,
   MARK_SVG: markSvg, FAVICON: FAVICON,
   /* THEME_BOOT and assetHash: exported additively for Render.home(), which does
