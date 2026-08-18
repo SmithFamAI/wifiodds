@@ -2199,7 +2199,11 @@ async function main() {
    * Render.home() does not call H.page() (it would duplicate all three and
    * drop the server-rendered data-view) — this is the build-time proof that
    * held, not just an intention in a comment. */
-  ok((home.match(/<nav\b/g) || []).length === 1, 'homepage: exactly one <nav>',
+  /* Two <nav>s since the footer include wiring (17 Aug 2026): the masthead's
+     primary nav plus footerV2's labelled footer nav. Live Home's footer row was
+     a <div>; the include upgrades it to the landmark it is. A third nav would
+     be the H.page() double-wrap this fence exists to catch. */
+  ok((home.match(/<nav\b/g) || []).length === 2, 'homepage: exactly two <nav>s (masthead + footer)',
     (home.match(/<nav\b/g) || []).length);
   ok((home.match(/<main\b/g) || []).length === 1, 'homepage: exactly one <main>',
     (home.match(/<main\b/g) || []).length);
@@ -2913,35 +2917,35 @@ async function main() {
    * and the check below still runs against every OTHER route unchanged. */
   ok(bootsDark === true, 'the homepage boot script still boots dark (DEFAULT_THEME unchanged)');
 
-  /* ── each repository link points where its LABEL says ─────────────────────
-   * The first version asserted both URLs were present somewhere in the footer.
-   * An auditor swapped the two labels, left the URLs alone, and it passed: a
-   * reader following "Site source" landed in the extension tree and the check
-   * saw nothing wrong. Presence is not correspondence.
-   *
-   * SCOPE: this checks every route's footer EXCEPT the V5 homepage. Render.home()
-   * does not call H.page() (see the go-live plan), so it carries the mockup's
-   * own static footer — Airlines / The Race / Methodology / Privacy — rather
-   * than html.js's footer(), which is the only place these two repo links
-   * live. Every other route is unchanged and still carries both links. */
-  var repoBad = [];
-  var EXPECT = [
-    { label: 'Site source', mustContain: '/jeremyinthebay/wifiodds' },
-    { label: 'Extension source', mustContain: '/jeremyinthebay/wifiodds-extension' }
-  ];
-  var repoSurface = fs.readFileSync(path.join(ROOT, 'privacy.html'), 'utf8');
-  EXPECT.forEach(function (e) {
-    var re = new RegExp('<a[^>]*href="([^"]+)"[^>]*>\\s*' + e.label + '[^<]*</a>');
-    var m = re.exec(repoSurface);
-    if (!m) { repoBad.push('no link labelled "' + e.label + '" on privacy.html'); return; }
-    if (m[1].indexOf(e.mustContain) === -1) {
-      repoBad.push('"' + e.label + '" points at ' + m[1] + ', which is not ' + e.mustContain);
-    }
+  /* ── the repository-source row is RETIRED (17 Aug 2026, footerV2 wiring) ──
+   * The check that lived here matched footer links labelled `Site source` /
+   * `Extension source` on privacy.html and verified each href named the repo
+   * its label claimed (presence is not correspondence — an auditor once
+   * swapped the two labels, left the URLs alone, and the old presence check
+   * passed). The durable footer include dropped the row entirely: its hrefs
+   * were personal github.com/jeremyinthebay/... URLs, and owner identity
+   * never goes on a public surface; live Home, the visual contract, ships no
+   * repo row. What remains to assert is the ABSENCE. A labelled source link
+   * reappearing in a footer means the owner-identity fence broke, and it must
+   * not come back quietly on the strength of an old green check. */
+  var repoRowBack = [];
+  ['index.html', 'privacy.html', 'methodology/index.html', 'extension/index.html'
+  ].forEach(function (rel) {
+    var f = path.join(ROOT, rel);
+    if (!fs.existsSync(f)) return;
+    var doc = fs.readFileSync(f, 'utf8');
+    ['Site source', 'Extension source'].forEach(function (label) {
+      if (new RegExp('<a[^>]*>\\s*' + label).test(doc)) {
+        repoRowBack.push(rel + ' has a link labelled "' + label + '"');
+      }
+    });
+    var foot = (/<footer class="sitefoot"[\s\S]*?<\/footer>/.exec(doc) || [''])[0];
+    if (foot.indexOf('jeremyinthebay') !== -1) repoRowBack.push(rel + ' footer carries an owner URL');
   });
-  eq(repoBad.length, 0,
-    'every repository link points at the repository its label names (checked on a ' +
-    'non-homepage route, since the V5 homepage carries the mockup\'s own footer)',
-    repoBad.join(' · '));
+  eq(repoRowBack.length, 0,
+    'no footer carries a repository-source row or owner URL (row retired with footerV2; ' +
+    'owner identity never goes on a public surface)',
+    repoRowBack.join(' · '));
 
   /* ── no element boundary may weld two values into a third ─────────────────
    * Every span rendered correctly. The layout was right. But `<span>37</span>`

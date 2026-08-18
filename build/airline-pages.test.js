@@ -182,20 +182,21 @@ assert.ok(/<strong>1,083<\/strong>/.test(unitedStream) && /<em>60%<\/em>/.test(u
   assert.ok(!/Unpublished/.test(next), key + ' Next-Gen is not Unpublished');
 });
 assert.ok(directory.indexOf('class="sitebar"') !== -1, 'directory reuses the live masthead');
-assert.ok(directory.indexOf('<footer class="site">') !== -1, 'directory reuses the live footer');
+assert.ok(directory.indexOf('class="sitefoot" data-footer') !== -1,
+  'directory carries the durable footer include');
 assert.ok(directory.indexOf('href="/airlines/"') !== -1 || directory.indexOf('>Airlines<') !== -1,
   'directory names itself Airlines');
 var dirNav = (/<nav id="primary-nav"[\s\S]*?<\/nav>/.exec(directory) || [''])[0];
 assert.ok(/<a href="\/airlines\/"[^>]*>Airlines<\/a>/.test(dirNav),
   'directory primary nav links Airlines to /airlines/');
-var dirFooter = (/<footer class="site">[\s\S]*?<\/footer>/.exec(directory) || [''])[0];
+var dirFooter = (/<footer class="sitefoot"[\s\S]*?<\/footer>/.exec(directory) || [''])[0];
 assert.ok(/<a href="\/airlines\/">Airlines<\/a>/.test(dirFooter),
   'directory footer still links Airlines to /airlines/');
 var home = htmlOf('index.html');
 var homeNav = (/<nav id="primary-nav"[\s\S]*?<\/nav>/.exec(home) || [''])[0];
 assert.ok(/<a href="\/airlines\/">Airlines<\/a>/.test(homeNav),
   'homepage Forecast masthead links Airlines to /airlines/');
-var homeFooter = (/<footer class="footer">[\s\S]*?<\/footer>/.exec(home) || [''])[0];
+var homeFooter = (/<footer class="sitefoot"[\s\S]*?<\/footer>/.exec(home) || [''])[0];
 assert.ok(/href="[^"]*\/airlines\/"[^>]*>Airlines<\/a>/.test(homeFooter),
   'homepage footer still links Airlines');
 assert.strictEqual((home.match(/<a class="row /g) || []).length, LOCKED_KEYS.length,
@@ -238,7 +239,8 @@ LOCKED_KEYS.forEach(function (key) {
   assert.ok(text.indexOf('ConnectScore') === -1,
     key + ' does not revive the ConnectScore label');
   assert.ok(html.indexOf('class="sitebar"') !== -1, key + ' reuses the live masthead');
-  assert.ok(html.indexOf('<footer class="site">') !== -1, key + ' reuses the live footer');
+  assert.ok(html.indexOf('class="sitefoot" data-footer') !== -1,
+    key + ' carries the durable footer include');
   assert.ok(html.indexOf('href="/airlines/"') !== -1, key + ' footer/directory link is present');
   assert.ok(!/\bhonest/i.test(text), key + ' does not use honest as product voice');
   var footnote = /class="footnote">([^<]+)/.exec(html);

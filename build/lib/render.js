@@ -659,6 +659,22 @@ function home(m) {
     throw new Error('Render.home: the inline masthead was not replaced by the unified component.');
   }
 
+  /* Footer wiring (17 Aug 2026): swap the mockup's own static footer — absolute
+     hrefs, no data date, no extension-storage fence — for the durable include
+     every public route now carries. The mockup's .footer/.footlinks/.fine CSS
+     stays in the template and matches nothing: footerV2's class names are
+     unique to the component on purpose. Function replacement for the same
+     reason as the masthead swap above: the include's SVG mark and CSS must
+     never meet String#replace's substitution scanner. */
+  var HOME_FOOT_RE = /<footer class="footer">[\s\S]*?<\/footer>/;
+  if (!HOME_FOOT_RE.test(out)) {
+    throw new Error('Render.home: could not find the mockup footer to replace with the durable ' +
+      'include. The template structure changed.');
+  }
+  out = out.replace(HOME_FOOT_RE, function () {
+    return H.footerV2(m.updated, m.refreshAttemptedOn, m.wasRetained);
+  });
+
   /* round 18 P0-01: the proof block + united-callout figures were hard-coded
      literals in the approved mockup, so the daily refresh updated the baked Big-4
      card and left "484 of 1,807 · checked 28 Jul" frozen — a false headline the
@@ -3255,7 +3271,8 @@ function methodologyPageLegacy(m) {
 /* ═══ THE WHOLE-DOCUMENT ROUTES ══════════════════════════════════════════
  * /methodology/ and /technology/ arrive from Codex as finished documents, the
  * same way build/templates/home.html did, and they are wired the same way:
- * the file is loaded as-is and ONLY the <head> essentials are injected.
+ * the file is loaded as-is, the <head> essentials are injected, and the shared
+ * chrome — masthead and the durable footer include — is swapped in.
  *
  * NEITHER CALLS H.page(). The templates already carry their own <body>, <nav>,
  * <main id="main"> and <footer>; page() would wrap a second <main> around them,
@@ -3309,7 +3326,7 @@ function assertOneDocument(out, label, marker) {
   return out;
 }
 
-function wholeDocument(name, canonical, label, marker, transform) {
+function wholeDocument(name, canonical, label, marker, m, transform) {
   var tpl = FS.readFileSync(PATH.join(__dirname, '..', 'templates', name + '.html'), 'utf8');
   if (transform) tpl = transform(tpl);
   /* round 18 P1-02: swap the template's own inline masthead (which hid the three
@@ -3322,6 +3339,22 @@ function wholeDocument(name, canonical, label, marker, transform) {
   } else {
     throw new Error('Render.' + label + ': could not find the inline masthead to replace with the ' +
       'unified component. The template structure changed.');
+  }
+  /* Footer wiring (17 Aug 2026): the same swap for the bottom of the page. Each
+     of these documents shipped its own .footer — link rows that disagreed with
+     Home (Extension in, Airlines out), page-local fine print with no tracker
+     credit on /extension/, and no data date anywhere. One include ends the
+     drift; the template's own .footer CSS remains and matches nothing. The
+     date line rides m the same way H.page routes get it, so a whole-document
+     page can no longer imply its disclosure is dateless. */
+  var FOOT_RE = /<footer class="footer">[\s\S]*?<\/footer>/;
+  if (FOOT_RE.test(tpl)) {
+    tpl = tpl.replace(FOOT_RE, function () {
+      return H.footerV2(m.updated, m.refreshAttemptedOn, m.wasRetained);
+    });
+  } else {
+    throw new Error('Render.' + label + ': could not find the page-local footer to replace with ' +
+      'the durable include. The template structure changed.');
   }
   var head = docHead(tpl, canonical, label);
   /* FUNCTION REPLACEMENT, not a string. The injected block carries a data: URI
@@ -3336,20 +3369,21 @@ function wholeDocument(name, canonical, label, marker, transform) {
  * The provenance page, rebuilt from ~/wifiodds-exchange/design-competition/
  * methodology-v1.html. The generator it replaces is methodologyPageLegacy()
  * above — kept, unrouted, and explained there. */
-function methodologyPage() {
+function methodologyPage(m) {
   return wholeDocument('methodology', '/methodology/', 'methodologyPage',
-    '<!--METHODOLOGY:HEAD_EXTRA-->');
+    '<!--METHODOLOGY:HEAD_EXTRA-->', m);
 }
 
 /* ═══ /technology/ (V1) ══════════════════════════════════════════════════
  * New route, from ~/wifiodds-exchange/design-competition/technology-v1.html.
  * The evergreen explainer for what the three WiFi eras actually feel like in a
- * seat. It carries no figure from `m`, which is why it takes no argument: every
- * claim on it is prose about hardware generations, and a page that interpolates
- * nothing cannot go stale against data.json. */
-function technologyPage() {
+ * seat. Its BODY carries no figure from `m`: every claim in it is prose about
+ * hardware generations, and prose that interpolates nothing cannot go stale
+ * against data.json. `m` feeds exactly one thing, the footer include's data
+ * date, which is the same line every H.page route carries. */
+function technologyPage(m) {
   return wholeDocument('technology', '/technology/', 'technologyPage',
-    '<!--TECHNOLOGY:HEAD_EXTRA-->');
+    '<!--TECHNOLOGY:HEAD_EXTRA-->', m);
 }
 
 /* ═══ /extension/ ════════════════════════════════════════════════════════
@@ -3373,11 +3407,12 @@ function technologyPage() {
  * chrome is scoped under .xw, because it and the site both define .wrap, h1,
  * h2, .card, .grid, .row and .note, and unscoped they fight in both directions.
  *
- * Like technologyPage() it takes no argument: no figure on it comes from `m`.
- * The percentages are dated captures, labelled as captures on the page. */
-function extensionPage() {
+ * Like technologyPage(), no figure in the BODY comes from `m` — the
+ * percentages are dated captures, labelled as captures on the page. `m` only
+ * feeds the footer include's data date. */
+function extensionPage(m) {
   return wholeDocument('extension-v3', '/extension/', 'extensionPage',
-    '<!--EXTENSION:HEAD_EXTRA-->', function (tpl) {
+    '<!--EXTENSION:HEAD_EXTRA-->', m, function (tpl) {
       assertReleaseTemplateSource(tpl, 'extensionPage');
       var marker = '<!--EXTENSION:RELEASE_META-->';
       if (tpl.split(marker).length !== 3) {
