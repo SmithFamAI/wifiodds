@@ -2098,16 +2098,27 @@ async function main() {
     'feedback page requires an email');
   ok(/name="screenshots"/.test(feedbackPage) && /multiple/.test(feedbackPage),
     'feedback page accepts multiple screenshots');
+  ok(/class="ffdrop"/.test(feedbackPage) && /Drop screenshots here, or click to choose/.test(feedbackPage),
+    'feedback screenshots use a drag-drop target');
   ok(/name="name"/.test(feedbackPage) && !/name="name"[^>]*required/.test(feedbackPage),
     'feedback page name is optional');
+  ok(!/\bJeremy\b/.test(renderedText(feedbackPage)),
+    'feedback page visible copy does not name the owner');
   ok(/name="sendCopy"/.test(feedbackPage) && !/name="sendCopy"[^>]*checked/.test(feedbackPage),
     'send-me-a-copy is present and unchecked');
   ok(/name="allowFollowup"/.test(feedbackPage) && !/name="allowFollowup"[^>]*checked/.test(feedbackPage),
     'follow-up checkbox is present and unchecked');
   ok(/Send me a copy of this submission/.test(feedbackPage),
     'feedback page uses the specified copy-checkbox label');
-  ok(/The developer may email me with follow-up questions/.test(feedbackPage),
+  ok(/You may email me with follow-up questions/.test(feedbackPage),
     'feedback page uses the specified follow-up label');
+  ok(feedbackPage.indexOf('The developer may email me with follow-up questions') === -1,
+    'feedback page does not use the old developer follow-up label');
+  ok(/\.ff label\.ffcheck\{[^}]*flex-direction:row/.test(feedbackPage),
+    'checkbox labels sit beside the boxes');
+  ok(/\.ff label\.ffcheck input\[type=checkbox\]:checked\{/.test(feedbackPage) &&
+    /background-image:url\("data:image\/svg\+xml/.test(feedbackPage),
+    'checked boxes draw a visible mark');
   ok(!/honest/i.test(renderedText(feedbackPage)), 'feedback page copy does not say honest');
   ok(!/\u2014/.test(renderedText(feedbackPage)), 'feedback page visible copy has no em dash');
   ok(renderedText(feedbackPage).indexOf('Nothing else is stored') === -1,

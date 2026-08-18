@@ -266,7 +266,7 @@ async function sendCopy(env, row, id) {
     '',
     row.name ? ('Name: ' + row.name) : 'Name: (not given)',
     'Email: ' + row.email,
-    row.allowFollowup ? 'You said the developer may email follow-up questions.' : '',
+    row.allowFollowup ? 'You said follow-up questions by email are allowed.' : '',
     '',
     row.message,
     '',
