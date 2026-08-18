@@ -46,13 +46,11 @@
   noscript p{margin-top:1rem;color:var(--ink-soft);max-width:44rem}
 </style>
 <!--@body-->
-<header class="hero pol">
-  <span class="kicker">Site</span>
-  <h1 class="ph">Feedback</h1>
-  <p class="lede">Use this form for the site or the extension. Flight WiFi measurements still have
-  no public form.</p>
-</header>
-
+<!-- The page top is the shared heroV2 band now (hero-match, 17 Aug 2026):
+     feedbackPage() passes it through H.page's hero slot, and the old
+     header block (SITE kicker, bare "Feedback" h1, the lede sentence)
+     moved into that call. The lede text rode along verbatim. Everything
+     from the callout down is unchanged. -->
 <div class="callout pol" style="margin-top:1.2rem">
   <span class="kicker">What we keep</span>
   <p>Your message and email. Your name if you type one. Screenshots if you attach them. The
