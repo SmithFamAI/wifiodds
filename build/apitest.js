@@ -1889,10 +1889,10 @@ async function main() {
   eq(HTML.EXT_VERSION, RELEASE.version, 'release ledger: shared EXT_VERSION is derived from the ledger');
   eq(require('crypto').createHash('sha256').update(fs.readFileSync(
     path.join(ROOT, 'build', 'extension-release.json'))).digest('hex'),
-  '9d3ac959429aec01d654c0bdbd2040e13ff8da070d30cc1470630ec94186cbfc',
+  '43cbd93711e8ea8dbeda2e281770a682506a36fcd2c314889c4f09164cbfe0af',
   'release ledger: approved record matches the ledger-bound extension candidate exactly');
-  eq(RELEASE.extensionCommit, '99f6b0b91a06a94e71a98ae458e22142513ff70b',
-    'release ledger: current 3.0.2 claims stay bound to the shipped extension commit');
+  eq(RELEASE.extensionCommit, '45c3e869e5195ccfffd4bf5e6f97a05c8c495d25',
+    'release ledger: current 3.1.1 claims stay bound to the shipped extension commit');
   var whatsNewStart = extensionBuilt.indexOf('id="whats-new"');
   var whatsNewEnd = extensionBuilt.indexOf('<section', whatsNewStart + 1);
   var releaseBoundText = renderedText(extensionBuilt.slice(whatsNewStart, whatsNewEnd));
@@ -1907,7 +1907,7 @@ async function main() {
   ok(!/Store listing was rewritten|rewrote the Store listing/i.test(releaseBoundText),
     'extension release notes do not claim the Store listing was rewritten');
   ok(extensionTemplate.indexOf('ConnectScore') === -1,
-    '3.1.0 visible terminology: no extension-template copy names ConnectScore outside the 3.0.2 release ledger');
+    '3.1.1 visible terminology: no extension-template copy names ConnectScore');
   var customerLedger = [];
   RELEASE.highlights.forEach(function (h) { customerLedger.push(h.home, h.full); });
   RELEASE.allowedFeatureClaims.forEach(function (feature) {
@@ -1944,9 +1944,9 @@ async function main() {
   }
   try {
     privacyPermissions.validate(privacy, 'privacy.html');
-    ok(true, 'privacy §7 matches live 3.0.2 grant kinds');
+    ok(true, 'privacy §7 matches live 3.1.1 grant kinds');
   } catch (err) {
-    ok(false, 'privacy §7 matches live 3.0.2 grant kinds', err.message);
+    ok(false, 'privacy §7 matches live 3.1.1 grant kinds', err.message);
   }
   eq((home.match(new RegExp('v' + RELEASE.version.replace(/\./g, '\\.') +
     ' · free · cleared review ' + releaseDate, 'g')) || []).length, 1,
