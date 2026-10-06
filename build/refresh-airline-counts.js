@@ -25,7 +25,13 @@ function isoDate(html, label) {
 }
 
 function countPair(value, label) {
-  const m = value.match(/([\d,]+)\s+of\s+([\d,]+)\s+(?:Alaska Airlines\s+)?aircraft\s+(?:\([^)]*\)\s+)?(?:have Starlink WiFi installed|equipped)/i);
+  // Three layouts, oldest first: "99 of 350 Alaska Airlines aircraft (28%) have Starlink WiFi
+  // installed" / "42 of 61 aircraft equipped"; the 2026-10 dedicated tracker headline
+  // "147 of 389 Alaska planes and Hawaiian Airbus jets 37% have Starlink"; and the 2026-10 hub
+  // row "105 of 347 ( 30% )".
+  const m = value.match(/([\d,]+)\s+of\s+([\d,]+)\s+(?:Alaska Airlines\s+)?aircraft\s+(?:\([^)]*\)\s+)?(?:have Starlink WiFi installed|equipped)/i)
+    || value.match(/([\d,]+)\s+of\s+([\d,]+)\s+(?:Alaska|United)\s+(?:planes|aircraft)[^%]{0,80}?\d+\s*%\s*have Starlink/i)
+    || value.match(/([\d,]+)\s+of\s+([\d,]+)\s*\(\s*\d+\s*%\s*\)/);
   if (!m) throw new Error(label + ': equipped/total count is missing');
   const equipped = Number(m[1].replace(/,/g, ''));
   const total = Number(m[2].replace(/,/g, ''));
@@ -44,16 +50,31 @@ function hubSection(html, key, nextKey) {
   return html.slice(start, end);
 }
 
+function hawaiianCount(sectionText) {
+  // Old hub layout gave "42 of 61 aircraft equipped". Since 2026-10 the hub counts Hawaiian by
+  // aircraft type and prints only the equipped count ("By aircraft type 42"); the denominator
+  // (42 Airbus + 19 Boeing 717s) is wifiodds' own and stays in airlines.js (total: null here).
+  try { return countPair(sectionText, 'Hawaiian hub'); } catch (e) { /* fall through */ }
+  const m = sectionText.match(/By aircraft type\s+([\d,]+)/);
+  if (!m) throw new Error('Hawaiian hub: equipped count is missing');
+  return { equipped: Number(m[1].replace(/,/g, '')), total: null };
+}
+
 function parseTrackerPages(alaskaHtml, hubHtml) {
   const alaskaDedicated = countPair(text(alaskaHtml), 'Alaska tracker');
-  const hawaiian = countPair(text(hubSection(hubHtml, 'hawaiian', 'alaska')), 'Hawaiian hub');
+  const hawaiian = hawaiianCount(text(hubSection(hubHtml, 'hawaiian', 'alaska')));
   const alaskaHub = countPair(text(hubSection(hubHtml, 'alaska')), 'Alaska hub');
-  if (alaskaDedicated.equipped !== alaskaHub.equipped || alaskaDedicated.total !== alaskaHub.total) {
+  // The dedicated tracker either reports Alaska alone (old) or Alaska plus the Hawaiian Airbus
+  // jets, which are all equipped (since 2026-10). Either way it must reconcile with the hub.
+  const sameAsHub = alaskaDedicated.equipped === alaskaHub.equipped && alaskaDedicated.total === alaskaHub.total;
+  const hubPlusHawaiian = alaskaDedicated.equipped === alaskaHub.equipped + hawaiian.equipped &&
+    alaskaDedicated.total === alaskaHub.total + hawaiian.equipped;
+  if (!sameAsHub && !hubPlusHawaiian) {
     throw new Error('Alaska sources disagree: dedicated ' + alaskaDedicated.equipped + '/' + alaskaDedicated.total +
-      ', hub ' + alaskaHub.equipped + '/' + alaskaHub.total);
+      ', hub ' + alaskaHub.equipped + '/' + alaskaHub.total + ', hub Hawaiian ' + hawaiian.equipped);
   }
   return {
-    alaska: { ...alaskaDedicated, asOf: isoDate(alaskaHtml, 'Alaska tracker') },
+    alaska: { ...alaskaHub, asOf: isoDate(alaskaHtml, 'Alaska tracker') },
     hawaiian: { ...hawaiian, asOf: isoDate(hubHtml, 'airlines hub') }
   };
 }
@@ -73,10 +94,16 @@ function currentCounts(body, key) {
 }
 
 function validateMove(key, current, next) {
-  if (next.total !== current.total) {
+  if (next.total === null || next.total === undefined) next.total = current.total;
+  // One-shot owner ruling for a republished denominator, exact match only:
+  // WIFIODDS_REBASELINE_ALASKA="105/347" (same shape as WIFIODDS_REBASELINE for United).
+  const ruling = String(process.env['WIFIODDS_REBASELINE_' + key.toUpperCase()] || '').match(/^(\d+)\/(\d+)/);
+  const ruled = ruling && Number(ruling[1]) === next.equipped && Number(ruling[2]) === next.total;
+  if (next.total !== current.total && !ruled) {
     throw new Error(key + ': denominator changed ' + current.total + ' -> ' + next.total + '; owner review required');
   }
   const delta = next.equipped - current.equipped;
+  if (ruled) return delta;
   if (delta < 0 || delta > 10) {
     throw new Error(key + ': equipped changed ' + current.equipped + ' -> ' + next.equipped +
       '; outside the accepted daily range of 0..10');
