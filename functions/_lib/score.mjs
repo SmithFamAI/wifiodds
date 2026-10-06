@@ -159,22 +159,21 @@ const WIFI_AIRLINES = {
   /* ── instrumented: the extension can show real per-flight odds for these ── */
   united: {
     name: "United", code: "UA", asOf: "2026-07",
-    nextGenSplit: { mainline: { n: 182, of: 1144 }, regional: { n: 341, of: 673 } },
+    nextGenSplit: { mainline: { n: 265, of: 1162 }, regional: { n: 352, of: 513 } },
     /* equipped/fleet MUST equal united/data.json fleet.equipped / fleet.total.
        They had drifted to 481/1807 while data.json said 481/1808, so the same
        homepage printed "481 of 1,807 (27%)" on the US card and "of 1,808
        aircraft" in the United section. build/prerender.js reconciles them from
        data.json on every build, and fails if it cannot find them. */
-    system: "starlink", equipped: 523, fleet: 1817, free: "loyalty-free",
+    system: "starlink", equipped: 617, fleet: 1675, free: "loyalty-free",
     instrumented: true, tracker: "unitedstarlinktracker.com",
     resolution: "tail",
     serviceTier: "mixed", restTier: "unknown",
     /* The only tail-resolved fleet on the site. Martin publishes the provider
        for every tail; the segments below are his hangar grid joined against his
-       tail registry — 1,631 tails, 1,577 of them with a published system.
-       United's own fleet is 1,808, so 177 tails are absent from the join
-       entirely; those and the 54 published-without-a-system tails are what
-       `unresolved` holds.
+       tail registry. Re-run 2026-10-06 from the per-type Wi-Fi bars on
+       unitedstarlinktracker.com/fleet (aria-label of each type row): 1,675
+       tails, 48 of them "not checked yet", which is what `unresolved` holds.
        reconcileUnited() in build/prerender.js rewrites the starlink row's `n`
        and `as` from data.json every morning and takes the difference out of
        `unresolved`, so the rows keep summing to 1,808. The other four rows move
@@ -182,33 +181,33 @@ const WIFI_AIRLINES = {
        creep stale by a handful of aircraft between joins. Re-run the join, do
        not nudge the numbers. */
     segments: [
-      { system: "starlink", n: 523, free: "loyalty-free", as: "2026-08-16",
+      { system: "starlink", n: 617, free: "loyalty-free", as: "2026-10-06",
         src: "united/data.json, the daily pull from unitedstarlinktracker.com",
         note: "Free for MileagePlus members, and joining is free." },
-      { system: "viasat", n: 525, free: "paid", as: "2026-07-25",
+      { system: "viasat", n: 440, free: "paid", as: "2026-10-06",
         src: "unitedstarlinktracker.com/fleet, hangar grid joined to the tail registry",
         note: "$8 for MileagePlus members, $10 for everyone else. The April 2026 " +
           "“free wifi expanded to Viasat” stories were a glitch United corrected." },
-      { system: "panasonic", n: 407, free: "paid", as: "2026-07-25",
+      { system: "panasonic", n: 416, free: "paid", as: "2026-10-06",
         src: "unitedstarlinktracker.com/fleet, hangar grid joined to the tail registry",
         note: "16.31 Mbps median and 833 ms in Ookla's 2H 2025 set, the slowest " +
           "major provider measured. $8 / $10." },
-      { system: "thales", n: 35, free: "paid", as: "2026-07-25",
+      { system: "thales", n: 22, free: "paid", as: "2026-10-06",
         src: "unitedstarlinktracker.com/fleet, hangar grid joined to the tail registry",
         note: "Thales FlytLIVE Ka. $8 / $10." },
-      { system: "none", n: 131, free: "none", as: "2026-07-25",
+      { system: "none", n: 132, free: "none", as: "2026-10-06",
         src: "unitedstarlinktracker.com/fleet, hangar grid joined to the tail registry",
         note: "CRJ-200, ERJ-145 and CRJ-700. No connectivity of any kind, and none " +
           "of them are in the Starlink programme, so this row shrinks when the " +
           "aircraft retire rather than when installs proceed." },
     ],
-    unresolved: { n: 196, why: "the tracker publishes no system for these tails" },
-    note: "523 of 1,817 aircraft, free for MileagePlus members. Odds swing a lot by route and aircraft type.",
+    unresolved: { n: 48, why: "the tracker publishes no system for these tails" },
+    note: "617 of 1,675 aircraft, free for MileagePlus members. Odds swing a lot by route and aircraft type.",
   },
   alaska: {
-    name: "Alaska", code: "AS", asOf: "2026-07",
+    name: "Alaska", code: "AS", asOf: "2026-10",
     nextGenSplit: "split-not-published",
-    system: "starlink", equipped: 99, fleet: 350, free: "free",
+    system: "starlink", equipped: 105, fleet: 347, free: "free",
     instrumented: true, tracker: "alaskastarlinktracker.com",
     resolution: "type",
     serviceTier: "mixed", restTier: "streaming",
@@ -222,10 +221,10 @@ const WIFI_AIRLINES = {
        and ATG-4 sub-fleets. Alaska's page says "about 237" — the 240 here ties
        the ledger to the 350 we publish. */
     segments: [
-      { system: "starlink", n: 99, free: "free", as: "2026-07-25",
+      { system: "starlink", n: 105, free: "free", as: "2026-10-06",
         src: "alaskastarlinktracker.com",
         note: "92 regional E175s and 7 mainline 737-8s, verified tail by tail." },
-      { system: "2ku", n: 240, free: "paid", as: "2026-07",
+      { system: "2ku", n: 231, free: "paid", as: "2026-07",
         src: "alaskaair.com inflight wifi page",
         note: "Gogo 2Ku on the mainline 737s. Paid per flight." },
       { system: "atg", n: 11, free: "paid", as: "2026-07",
@@ -233,7 +232,7 @@ const WIFI_AIRLINES = {
         note: "737-700s on Gogo ATG-4: 0.1–0.8 Mbps per device, but 260–310 ms. " +
           "Messaging and email work, streaming does not." },
     ],
-    note: "99 of 350 mainline + regional and installing fast. We publish alaskastarlinktracker.com's count; Alaska's own page says 142 of 384 group-wide, which folds in Hawaiian and leaves out the 11 737-700s. The ex-Hawaiian widebodies are counted under Hawaiian.",
+    note: "105 of 347 mainline + regional and installing fast. We publish alaskastarlinktracker.com's count; Alaska's own page says 142 of 384 group-wide, which folds in Hawaiian and leaves out the 11 737-700s. The ex-Hawaiian widebodies are counted under Hawaiian.",
   },
 
   /* ── Starlink, no per-flight instrumentation ── */
