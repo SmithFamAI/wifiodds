@@ -21,11 +21,16 @@ assert.throws(function () { R.validateMove('alaska', { equipped: 99, total: 350 
 assert.throws(function () { R.validateMove('alaska', { equipped: 99, total: 350 }, { equipped: 110, total: 350 }); }, /outside/);
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'airlines.js'), 'utf8');
-const moved = R.updateEntry(source, 'alaska', { equipped: 100, total: 350, asOf: '2026-08-05' });
+// Move Alaska by one aircraft from whatever airlines.js holds today, so the control
+// keeps proving the rewrite after every daily refresh instead of pinning one date's count.
+const live = /alaska: \{[\s\S]*?system: "starlink", equipped: (\d+), fleet: (\d+)/.exec(source);
+const liveEq = Number(live[1]), liveTot = Number(live[2]);
+const liveAtg = Number(/alaska: \{[\s\S]*?\{ system: "atg", n: (\d+)/.exec(source)[1]);
+const moved = R.updateEntry(source, 'alaska', { equipped: liveEq + 1, total: liveTot, asOf: '2026-08-05' });
 assert.strictEqual(moved.changed, true);
-assert.match(moved.source, /system: "starlink", equipped: 100, fleet: 350/);
-assert.match(moved.source, /\{ system: "2ku", n: 239/);
-assert.match(moved.source, /note: "100 of 350 mainline/);
+assert.match(moved.source, new RegExp('system: "starlink", equipped: ' + (liveEq + 1) + ', fleet: ' + liveTot));
+assert.match(moved.source, new RegExp('\\{ system: "2ku", n: ' + (liveTot - liveEq - 1 - liveAtg) + '\\b'));
+assert.match(moved.source, new RegExp('note: "' + (liveEq + 1) + ' of ' + liveTot + ' mainline'));
 
 const unchanged = R.updateEntry(source, 'hawaiian', { equipped: 42, total: 61, asOf: '2099-01-01' });
 assert.strictEqual(unchanged.changed, false);
