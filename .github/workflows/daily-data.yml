@@ -30,8 +30,11 @@ permissions:
 
 jobs:
   refresh:
-    runs-on: ubuntu-latest
-    timeout-minutes: 40
+    # macOS, not Linux: the homepage visual gate renders in WebKit and Chromium
+    # and compares against layouts tuned on a Mac. Linux WebKit font metrics
+    # failed one of 6,866 checks on the first run (2026-10-06).
+    runs-on: macos-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,7 +50,7 @@ jobs:
           cd ~/.wo-respo
           printf '{"name":"wo-respo","private":true,"dependencies":{"playwright":"1.62.0"}}\n' > package.json
           npm install >/dev/null
-          npx playwright install --with-deps chromium webkit
+          npx playwright install chromium webkit
 
       - name: Refresh, gate, and ship
         env:
