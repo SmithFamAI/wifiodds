@@ -1580,32 +1580,32 @@
   {
    "route": "DEN-ORD",
    "departures": 22,
-   "next": "Oct 6 1:25 PM MDT"
+   "next": "Oct 6 3:50 PM CDT"
   },
   {
    "route": "ORD-DEN",
    "departures": 20,
-   "next": "Oct 6 1:25 PM MDT"
+   "next": "Oct 6 3:50 PM CDT"
   },
   {
    "route": "ORD-LGA",
    "departures": 20,
-   "next": "Oct 6 3:28 PM EDT"
+   "next": "Oct 6 4:00 PM CDT"
   },
   {
    "route": "LGA-ORD",
    "departures": 18,
-   "next": "Oct 6 3:28 PM EDT"
+   "next": "Oct 6 4:00 PM CDT"
   },
   {
    "route": "DCA-EWR",
    "departures": 18,
-   "next": "Oct 6 3:25 PM EDT"
+   "next": "Oct 6 4:30 PM EDT"
   },
   {
    "route": "EWR-DCA",
-   "departures": 17,
-   "next": "Oct 6 3:25 PM EDT"
+   "departures": 16,
+   "next": "Oct 6 4:30 PM EDT"
   },
   {
    "route": "ASE-DEN",
@@ -1678,6 +1678,16 @@
    "next": "Oct 6 3:50 PM CDT"
   },
   {
+   "route": "BOS-ORD",
+   "departures": 13,
+   "next": "Oct 6 6:24 PM CDT"
+  },
+  {
+   "route": "ORD-BOS",
+   "departures": 13,
+   "next": "Oct 6 6:24 PM CDT"
+  },
+  {
    "route": "IAH-MAF",
    "departures": 13,
    "next": "Oct 6 2:35 PM CDT"
@@ -1710,12 +1720,12 @@
   {
    "route": "CVG-ORD",
    "departures": 12,
-   "next": "Oct 6 2:30 PM CDT"
+   "next": "Oct 6 4:10 PM EDT"
   },
   {
    "route": "ORD-CVG",
    "departures": 12,
-   "next": "Oct 6 2:30 PM CDT"
+   "next": "Oct 6 4:10 PM EDT"
   },
   {
    "route": "DEN-SLC",
@@ -1758,16 +1768,6 @@
    "next": "Oct 6 2:52 PM CDT"
   },
   {
-   "route": "BOS-ORD",
-   "departures": 12,
-   "next": "Oct 6 6:24 PM CDT"
-  },
-  {
-   "route": "ORD-BOS",
-   "departures": 11,
-   "next": "Oct 6 6:24 PM CDT"
-  },
-  {
    "route": "STL-ORD",
    "departures": 12,
    "next": "Oct 6 3:11 PM CDT"
@@ -1788,14 +1788,14 @@
    "next": "Oct 6 1:58 PM MDT"
   },
   {
-   "route": "DEN-SFO",
+   "route": "GRR-ORD",
    "departures": 11,
-   "next": "Oct 6 1:29 PM MDT"
+   "next": "Oct 6 3:00 PM CDT"
   },
   {
-   "route": "SFO-DEN",
+   "route": "ORD-GRR",
    "departures": 11,
-   "next": "Oct 6 1:29 PM MDT"
+   "next": "Oct 6 3:00 PM CDT"
   },
   {
    "route": "ORD-SBN",
@@ -1808,14 +1808,14 @@
    "next": "Oct 6 3:33 PM EDT"
   },
   {
-   "route": "ORD-GRR",
+   "route": "SFO-DEN",
    "departures": 11,
-   "next": "Oct 6 3:00 PM CDT"
+   "next": "Oct 6 12:35 PM PDT"
   },
   {
-   "route": "GRR-ORD",
+   "route": "DEN-SFO",
    "departures": 10,
-   "next": "Oct 6 3:00 PM CDT"
+   "next": "Oct 6 12:35 PM PDT"
   },
   {
    "route": "OKC-IAH",
@@ -1828,14 +1828,24 @@
    "next": "Oct 6 2:35 PM CDT"
   },
   {
-   "route": "DEN-LAX",
+   "route": "CLT-EWR",
    "departures": 10,
-   "next": "Oct 6 1:30 PM MDT"
+   "next": "Oct 6 3:59 PM EDT"
   },
   {
-   "route": "LAX-DEN",
+   "route": "EWR-CLT",
    "departures": 10,
-   "next": "Oct 6 1:30 PM MDT"
+   "next": "Oct 6 3:59 PM EDT"
+  },
+  {
+   "route": "DTW-EWR",
+   "departures": 10,
+   "next": "Oct 6 4:36 PM EDT"
+  },
+  {
+   "route": "EWR-DTW",
+   "departures": 10,
+   "next": "Oct 6 4:36 PM EDT"
   },
   {
    "route": "MSN-ORD",
@@ -1850,7 +1860,7 @@
  ],
  "routeCache": {
   "DEN-SFO": {
-   "ts": "2026-10-06T19:21:34.860Z",
+   "ts": "2026-10-06T19:31:05.150Z",
    "flights": [],
    "itineraries": [
     {
@@ -1997,7 +2007,7 @@
    ]
   },
   "SFO-DEN": {
-   "ts": "2026-10-06T19:21:35.400Z",
+   "ts": "2026-10-06T19:31:05.662Z",
    "flights": [],
    "itineraries": [
     {
@@ -2144,7 +2154,7 @@
    ]
   },
   "ORD-DEN": {
-   "ts": "2026-10-06T19:21:35.940Z",
+   "ts": "2026-10-06T19:31:06.186Z",
    "flights": [],
    "itineraries": [
     {
@@ -2291,7 +2301,7 @@
    ]
   },
   "DEN-ORD": {
-   "ts": "2026-10-06T19:21:36.489Z",
+   "ts": "2026-10-06T19:31:06.698Z",
    "flights": [],
    "itineraries": [
     {
@@ -2438,7 +2448,7 @@
    ]
   },
   "EWR-ORD": {
-   "ts": "2026-10-06T19:21:37.031Z",
+   "ts": "2026-10-06T19:31:07.210Z",
    "flights": [],
    "itineraries": [
     {
@@ -2585,7 +2595,7 @@
    ]
   },
   "ORD-EWR": {
-   "ts": "2026-10-06T19:21:37.598Z",
+   "ts": "2026-10-06T19:31:07.722Z",
    "flights": [],
    "itineraries": [
     {
@@ -2732,7 +2742,7 @@
    ]
   },
   "IAH-DEN": {
-   "ts": "2026-10-06T19:21:38.137Z",
+   "ts": "2026-10-06T19:31:08.234Z",
    "flights": [],
    "itineraries": [
     {
@@ -2879,7 +2889,7 @@
    ]
   },
   "DEN-IAH": {
-   "ts": "2026-10-06T19:21:38.694Z",
+   "ts": "2026-10-06T19:31:08.744Z",
    "flights": [],
    "itineraries": [
     {
@@ -3026,7 +3036,7 @@
    ]
   },
   "EWR-SFO": {
-   "ts": "2026-10-06T19:21:39.289Z",
+   "ts": "2026-10-06T19:31:09.301Z",
    "flights": [],
    "itineraries": [
     {
@@ -3182,7 +3192,7 @@
    ]
   },
   "SFO-EWR": {
-   "ts": "2026-10-06T19:21:39.882Z",
+   "ts": "2026-10-06T19:31:09.856Z",
    "flights": [],
    "itineraries": [
     {
@@ -3338,7 +3348,7 @@
    ]
   },
   "ORD-SFO": {
-   "ts": "2026-10-06T19:21:40.430Z",
+   "ts": "2026-10-06T19:31:10.370Z",
    "flights": [],
    "itineraries": [
     {
@@ -3485,7 +3495,7 @@
    ]
   },
   "SFO-ORD": {
-   "ts": "2026-10-06T19:21:40.983Z",
+   "ts": "2026-10-06T19:31:10.883Z",
    "flights": [],
    "itineraries": [
     {
@@ -3632,7 +3642,7 @@
    ]
   },
   "IAH-ORD": {
-   "ts": "2026-10-06T19:21:41.536Z",
+   "ts": "2026-10-06T19:31:11.392Z",
    "flights": [],
    "itineraries": [
     {
@@ -3779,7 +3789,7 @@
    ]
   },
   "ORD-IAH": {
-   "ts": "2026-10-06T19:21:42.167Z",
+   "ts": "2026-10-06T19:31:11.901Z",
    "flights": [],
    "itineraries": [
     {
@@ -3926,7 +3936,7 @@
    ]
   },
   "EWR-IAD": {
-   "ts": "2026-10-06T19:21:42.743Z",
+   "ts": "2026-10-06T19:31:12.425Z",
    "flights": [],
    "itineraries": [
     {
@@ -4073,7 +4083,7 @@
    ]
   },
   "IAD-EWR": {
-   "ts": "2026-10-06T19:21:43.296Z",
+   "ts": "2026-10-06T19:31:12.949Z",
    "flights": [],
    "itineraries": [
     {
@@ -4195,7 +4205,7 @@
    ]
   },
   "DEN-LAX": {
-   "ts": "2026-10-06T19:21:43.839Z",
+   "ts": "2026-10-06T19:31:13.459Z",
    "flights": [],
    "itineraries": [
     {
@@ -4342,7 +4352,7 @@
    ]
   },
   "LAX-DEN": {
-   "ts": "2026-10-06T19:21:44.387Z",
+   "ts": "2026-10-06T19:31:13.969Z",
    "flights": [],
    "itineraries": [
     {
@@ -4489,7 +4499,7 @@
    ]
   },
   "SFO-LAX": {
-   "ts": "2026-10-06T19:21:44.933Z",
+   "ts": "2026-10-06T19:31:14.479Z",
    "flights": [],
    "itineraries": [
     {
@@ -4636,7 +4646,7 @@
    ]
   },
   "LAX-SFO": {
-   "ts": "2026-10-06T19:21:45.479Z",
+   "ts": "2026-10-06T19:31:14.990Z",
    "flights": [],
    "itineraries": [
     {
@@ -4783,7 +4793,7 @@
    ]
   },
   "EWR-LAX": {
-   "ts": "2026-10-06T19:21:46.065Z",
+   "ts": "2026-10-06T19:31:15.544Z",
    "flights": [],
    "itineraries": [
     {
@@ -4939,7 +4949,7 @@
    ]
   },
   "LAX-EWR": {
-   "ts": "2026-10-06T19:21:46.648Z",
+   "ts": "2026-10-06T19:31:16.093Z",
    "flights": [],
    "itineraries": [
     {
@@ -5095,7 +5105,7 @@
    ]
   },
   "ORD-LAX": {
-   "ts": "2026-10-06T19:21:47.186Z",
+   "ts": "2026-10-06T19:31:16.614Z",
    "flights": [],
    "itineraries": [
     {
@@ -5242,7 +5252,7 @@
    ]
   },
   "LAX-ORD": {
-   "ts": "2026-10-06T19:21:47.728Z",
+   "ts": "2026-10-06T19:31:17.128Z",
    "flights": [],
    "itineraries": [
     {
@@ -5389,7 +5399,7 @@
    ]
   },
   "IAD-DEN": {
-   "ts": "2026-10-06T19:21:48.274Z",
+   "ts": "2026-10-06T19:31:17.651Z",
    "flights": [],
    "itineraries": [
     {
@@ -5536,7 +5546,7 @@
    ]
   },
   "DEN-IAD": {
-   "ts": "2026-10-06T19:21:48.815Z",
+   "ts": "2026-10-06T19:31:18.172Z",
    "flights": [],
    "itineraries": [
     {
@@ -5683,7 +5693,7 @@
    ]
   },
   "EWR-DEN": {
-   "ts": "2026-10-06T19:21:49.355Z",
+   "ts": "2026-10-06T19:31:18.684Z",
    "flights": [],
    "itineraries": [
     {
@@ -5830,7 +5840,7 @@
    ]
   },
   "DEN-EWR": {
-   "ts": "2026-10-06T19:21:49.892Z",
+   "ts": "2026-10-06T19:31:19.195Z",
    "flights": [],
    "itineraries": [
     {
@@ -5977,7 +5987,7 @@
    ]
   },
   "LGA-ORD": {
-   "ts": "2026-10-06T19:21:50.966Z",
+   "ts": "2026-10-06T19:31:20.232Z",
    "flights": [],
    "itineraries": [
     {
@@ -6024,7 +6034,7 @@
    ]
   },
   "DCA-EWR": {
-   "ts": "2026-10-06T19:21:51.523Z",
+   "ts": "2026-10-06T19:31:20.743Z",
    "flights": [],
    "itineraries": [
     {
@@ -6046,7 +6056,7 @@
    ]
   },
   "ORD-LGA": {
-   "ts": "2026-10-06T19:21:50.424Z",
+   "ts": "2026-10-06T19:31:19.718Z",
    "flights": [],
    "itineraries": [
     {
@@ -6093,7 +6103,7 @@
    ]
   },
   "ASE-DEN": {
-   "ts": "2026-10-06T19:21:52.610Z",
+   "ts": "2026-10-06T19:31:21.769Z",
    "flights": [],
    "itineraries": [
     {
@@ -6115,7 +6125,7 @@
    ]
   },
   "DEN-ASE": {
-   "ts": "2026-10-06T19:21:53.151Z",
+   "ts": "2026-10-06T19:31:22.281Z",
    "flights": [],
    "itineraries": [
     {
@@ -6137,7 +6147,7 @@
    ]
   },
   "EWR-DCA": {
-   "ts": "2026-10-06T19:21:52.075Z",
+   "ts": "2026-10-06T19:31:21.258Z",
    "flights": [],
    "itineraries": [
     {
@@ -6159,7 +6169,7 @@
    ]
   },
   "EWR-PIT": {
-   "ts": "2026-10-06T19:21:53.697Z",
+   "ts": "2026-10-06T19:31:22.796Z",
    "flights": [],
    "itineraries": [
     {
@@ -6206,7 +6216,7 @@
    ]
   },
   "PIT-EWR": {
-   "ts": "2026-10-06T19:21:54.233Z",
+   "ts": "2026-10-06T19:31:23.361Z",
    "flights": [],
    "itineraries": [
     {
@@ -6253,7 +6263,7 @@
    ]
   },
   "IND-ORD": {
-   "ts": "2026-10-06T19:21:54.775Z",
+   "ts": "2026-10-06T19:31:23.872Z",
    "flights": [],
    "itineraries": [
     {
@@ -6275,7 +6285,7 @@
    ]
   },
   "ORD-IND": {
-   "ts": "2026-10-06T19:21:55.313Z",
+   "ts": "2026-10-06T19:31:24.388Z",
    "flights": [],
    "itineraries": [
     {
@@ -6297,7 +6307,7 @@
    ]
   },
   "BOS-ORD": {
-   "ts": "2026-10-06T19:02:40.347Z",
+   "ts": "2026-10-06T19:31:24.902Z",
    "flights": [],
    "itineraries": [
     {
@@ -6369,7 +6379,7 @@
    ]
   },
   "ORD-BOS": {
-   "ts": "2026-10-06T19:02:40.917Z",
+   "ts": "2026-10-06T19:31:25.414Z",
    "flights": [],
    "itineraries": [
     {
