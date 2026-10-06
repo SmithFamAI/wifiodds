@@ -134,8 +134,16 @@ function strip(html) { return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ")
 function plausibilityGate(data, newEq, newTot, today) {
   const prevEq = data.fleet.equipped, prevTot = data.fleet.total;
   const hist = data.history || [];
-  const obsTotMove = hist.slice(1).reduce((mx, h, i) =>
-    Math.max(mx, Math.abs((h.total || 0) - (hist[i].total || 0))), 0);
+  // The tolerance is the largest day-over-day denominator move seen in history.
+  // An owner re-baseline (data.fleet.rebaseline) is a ruled jump, not an observed
+  // wobble, so the step that carries it is left out; otherwise one ruling of
+  // 142 aircraft would loosen the gate to ±142 for good.
+  const ruledMove = data.fleet.rebaseline && data.fleet.rebaseline.from && data.fleet.rebaseline.to
+    ? Math.abs(data.fleet.rebaseline.from.total - data.fleet.rebaseline.to.total) : null;
+  const obsTotMove = hist.slice(1).reduce((mx, h, i) => {
+    const move = Math.abs((h.total || 0) - (hist[i].total || 0));
+    return move === ruledMove ? mx : Math.max(mx, move);
+  }, 0);
   const EQ_BOUND = Math.max(10, data.fleet.last30 || 0);
   const TOT_TOL = Math.max(3, obsTotMove);
   const flags = [];
