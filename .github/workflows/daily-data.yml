@@ -45,8 +45,8 @@ jobs:
         run: |
           mkdir -p ~/.wo-respo
           cd ~/.wo-respo
-          npm init -y >/dev/null
-          npm install playwright@1.62 >/dev/null
+          printf '{"name":"wo-respo","private":true,"dependencies":{"playwright":"1.62.0"}}\n' > package.json
+          npm install >/dev/null
           npx playwright install --with-deps chromium webkit
 
       - name: Refresh, gate, and ship
