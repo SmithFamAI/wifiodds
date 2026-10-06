@@ -1095,7 +1095,16 @@ async function main() {
       'United API equipped count equals the current next-gen source rows');
     eq(uaApi.fleet.total, uaWholeFleet,
       'United API denominator equals the current whole-fleet source record');
-    eq(uaApi.fleet.total, 1817, 'United fleet total stays 1817');
+    /* The literal 1,817 guard retired on 2026-10-06 when the tracker republished
+     * United's fleet at 1,675 under an owner ruling (data.json fleet.rebaseline).
+     * The denominator is now guarded where it is measured: the plausibility gate
+     * in update-unitedstarlink.js refuses an unexplained move, and this check
+     * binds the API to the figure that gate accepted. */
+    var uaData = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'united', 'data.json'), 'utf8'));
+    eq(uaApi.fleet.total, uaData.fleet.total, 'United fleet total equals the gated united/data.json denominator');
+    ok(uaData.fleet.total === 1817 || !!(uaData.fleet.rebaseline && uaData.fleet.rebaseline.ruling) ||
+      (uaData.history || []).some(function (h) { return h.total === uaData.fleet.total; }),
+      'a United denominator away from 1,817 is on the record (owner re-baseline ruling or gated history)');
   }
   /* Round-18 P0-02: Delta is three rows out of 1,330 aircraft, all resolved:
      1,150 on Viasat or Hughes (modern-GEO 0.55, free) = 47.6 points; the 80
