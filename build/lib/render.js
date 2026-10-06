@@ -1697,30 +1697,33 @@ function airlineSubpage(m, key) {
     : (buckets.nextGen > 0
       ? 'Starlink only today. Amazon Leo is not flying yet. This is your chance of boarding one of these aircraft.'
       : 'Starlink is the only next-gen system in the air today. Amazon Leo is not flying yet. This fleet has no published next-gen aircraft in service.');
+  /* Card evidence lines read like a caption, not a build log (owner, 2026-10-06):
+     count, fleet, where the count comes from, and when it was last checked.
+     The dated provenance split (as_of vs checked_at) still prints once in the
+     snapshot line below the cards; it does not need to repeat on every card. */
+  var sourceWords = a.tracker
+    ? 'verified tail by tail at ' + esc(a.tracker)
+    : 'from ' + esc(a.name) + "'s published figures";
   var ngEvidence;
   if (unpublished) {
-    ngEvidence = 'Next-gen aircraft count Unpublished. Not a measured zero. as_of ' + asOfHtml +
-      ', checked_at ' + checkedAtHtml + '.';
+    ngEvidence = esc(a.name) + ' has not published a next-gen aircraft count. Not a measured zero. Checked ' +
+      checkedAtHtml + '.';
   } else if (!sourced) {
-    ngEvidence = 'Next-gen aircraft count Unpublished. No sourced segment list. as_of ' + asOfHtml +
-      ', checked_at ' + checkedAtHtml + '.';
+    ngEvidence = esc(a.name) + ' has not published a per-system aircraft list. Checked ' + checkedAtHtml + '.';
   } else {
-    ngEvidence = num(buckets.nextGen) + ' of ' + num(total) + ' · modelled · as_of ' + asOfHtml;
-    if (a.tracker) ngEvidence += ' · ' + esc(a.tracker);
-    if (key === 'united') ngEvidence += ' and united/data.json';
-    ngEvidence += ', checked_at ' + checkedAtHtml + '.';
+    ngEvidence = num(buckets.nextGen) + ' of ' + num(total) + ' aircraft · ' + sourceWords +
+      ' · checked ' + checkedAtHtml + '.';
   }
 
   var streamWhy = 'Usable wifi, video included. Next-gen is inside this count. It is not a second, matching number.';
   var streamEvidence;
   if (streamUnsourced) {
-    streamEvidence = 'Streaming aircraft count Unpublished. No sourced segment list to turn a percentage into a count. as_of ' +
-      asOfHtml + ', checked_at ' + checkedAtHtml + '.';
+    streamEvidence = esc(a.name) + ' has not published a per-system aircraft list, so there is no streaming count. Checked ' +
+      checkedAtHtml + '.';
   } else {
-    streamEvidence = num(streamCount) + ' of ' + num(total) + ' · ' + esc(streamPct) +
-      '% confirmed coverage · count is ' + num(buckets.nextGen) + ' next-gen plus ' +
-      num(buckets.streaming) + ' other streaming-capable aircraft, as_of ' + asOfHtml +
-      ', checked_at ' + checkedAtHtml + '.';
+    streamEvidence = num(streamCount) + ' of ' + num(total) + ' aircraft · ' + num(buckets.nextGen) +
+      ' with Starlink plus ' + num(buckets.streaming) + ' with older satellite wifi that still streams · checked ' +
+      checkedAtHtml + '.';
   }
 
   var lede = 'Count and percent share each Forecast-style card. Next-Gen and Streaming answer different questions.';
