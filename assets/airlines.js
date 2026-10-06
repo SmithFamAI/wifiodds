@@ -161,10 +161,9 @@ const WIFI_AIRLINES = {
     serviceTier: "mixed", restTier: "unknown",
     /* The only tail-resolved fleet on the site. Martin publishes the provider
        for every tail; the segments below are his hangar grid joined against his
-       tail registry — 1,631 tails, 1,577 of them with a published system.
-       United's own fleet is 1,808, so 177 tails are absent from the join
-       entirely; those and the 54 published-without-a-system tails are what
-       `unresolved` holds.
+       tail registry. Re-run 2026-10-06 from the per-type Wi-Fi bars on
+       unitedstarlinktracker.com/fleet (aria-label of each type row): 1,675
+       tails, 48 of them "not checked yet", which is what `unresolved` holds.
        reconcileUnited() in build/prerender.js rewrites the starlink row's `n`
        and `as` from data.json every morning and takes the difference out of
        `unresolved`, so the rows keep summing to 1,808. The other four rows move
@@ -175,24 +174,24 @@ const WIFI_AIRLINES = {
       { system: "starlink", n: 523, free: "loyalty-free", as: "2026-08-16",
         src: "united/data.json, the daily pull from unitedstarlinktracker.com",
         note: "Free for MileagePlus members, and joining is free." },
-      { system: "viasat", n: 525, free: "paid", as: "2026-07-25",
+      { system: "viasat", n: 440, free: "paid", as: "2026-10-06",
         src: "unitedstarlinktracker.com/fleet, hangar grid joined to the tail registry",
         note: "$8 for MileagePlus members, $10 for everyone else. The April 2026 " +
           "“free wifi expanded to Viasat” stories were a glitch United corrected." },
-      { system: "panasonic", n: 407, free: "paid", as: "2026-07-25",
+      { system: "panasonic", n: 416, free: "paid", as: "2026-10-06",
         src: "unitedstarlinktracker.com/fleet, hangar grid joined to the tail registry",
         note: "16.31 Mbps median and 833 ms in Ookla's 2H 2025 set, the slowest " +
           "major provider measured. $8 / $10." },
-      { system: "thales", n: 35, free: "paid", as: "2026-07-25",
+      { system: "thales", n: 22, free: "paid", as: "2026-10-06",
         src: "unitedstarlinktracker.com/fleet, hangar grid joined to the tail registry",
         note: "Thales FlytLIVE Ka. $8 / $10." },
-      { system: "none", n: 131, free: "none", as: "2026-07-25",
+      { system: "none", n: 132, free: "none", as: "2026-10-06",
         src: "unitedstarlinktracker.com/fleet, hangar grid joined to the tail registry",
         note: "CRJ-200, ERJ-145 and CRJ-700. No connectivity of any kind, and none " +
           "of them are in the Starlink programme, so this row shrinks when the " +
           "aircraft retire rather than when installs proceed." },
     ],
-    unresolved: { n: 196, why: "the tracker publishes no system for these tails" },
+    unresolved: { n: 48, why: "the tracker publishes no system for these tails" },
     note: "523 of 1,817 aircraft, free for MileagePlus members. Odds swing a lot by route and aircraft type.",
   },
   alaska: {
