@@ -207,13 +207,35 @@ function dirMini(row, kind) {
   assert.ok(end > 0, kind + ' mini closes');
   return slice.slice(0, end);
 }
+
+/* United's figures move every morning with united/data.json, so the controls
+   below derive the expected numbers from assets/airlines.js as the build left
+   it, instead of pinning one day's counts. The arithmetic mirrors the pages:
+   Next-Gen = Starlink; Streaming = Starlink + Viasat + Thales; the rest-of-fleet
+   rows are Panasonic, no Wi-Fi, and unresolved; percentages are of the fleet. */
+var U = A.WIFI_AIRLINES.united;
+function segN(system) {
+  var seg = U.segments.filter(function (x) { return x.system === system; })[0];
+  return seg ? seg.n : 0;
+}
+function fmt(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function pct(n) { return Math.round(n / U.fleet * 100) + '%'; }
+var EXP = {
+  ng: U.equipped, ngPct: pct(U.equipped),
+  stream: segN('starlink') + segN('viasat') + segN('thales'),
+  panasonic: segN('panasonic'), none: segN('none'), unresolved: U.unresolved.n,
+  ml: U.nextGenSplit.mainline, rg: U.nextGenSplit.regional
+};
+EXP.streamPct = pct(EXP.stream);
 var unitedRow = dirRow(directory, 'united');
 var unitedNext = dirMini(unitedRow, 'next');
 var unitedStream = dirMini(unitedRow, 'stream');
-assert.ok(/<strong>523<\/strong>/.test(unitedNext) && /<em>29%<\/em>/.test(unitedNext),
-  'United Next-Gen is 523 / 29%');
-assert.ok(/<strong>1,083<\/strong>/.test(unitedStream) && /<em>60%<\/em>/.test(unitedStream),
-  'United Streaming is 1,083 / 60%');
+assert.ok(unitedNext.indexOf('<strong>' + fmt(EXP.ng) + '</strong>') !== -1 &&
+  unitedNext.indexOf('<em>' + EXP.ngPct + '</em>') !== -1,
+  'United Next-Gen is ' + fmt(EXP.ng) + ' / ' + EXP.ngPct);
+assert.ok(unitedStream.indexOf('<strong>' + fmt(EXP.stream) + '</strong>') !== -1 &&
+  unitedStream.indexOf('<em>' + EXP.streamPct + '</em>') !== -1,
+  'United Streaming is ' + fmt(EXP.stream) + ' / ' + EXP.streamPct);
 ['airfrance', 'sas'].forEach(function (key) {
   var row = dirRow(directory, key);
   var next = dirMini(row, 'next');
@@ -339,21 +361,23 @@ assert.ok(!/Starlink[\s\S]{0,280}published_at/.test(united),
   'United Starlink row does not label a date published_at');
 var unitedNg = figureBlock(united, 'nextgen');
 var unitedStream = figureBlock(united, 'streaming');
-assert.ok(/523/.test(unitedNg) && /29%/.test(unitedNg),
-  'United Next-Gen prints 523 and 29% on the same card');
-assert.ok(/1,?083/.test(unitedStream) && /60%/.test(unitedStream),
-  'United Streaming prints 1,083 and 60% on the same card');
+assert.ok(unitedNg.indexOf(fmt(EXP.ng)) !== -1 && unitedNg.indexOf(EXP.ngPct) !== -1,
+  'United Next-Gen prints ' + fmt(EXP.ng) + ' and ' + EXP.ngPct + ' on the same card');
+assert.ok((unitedStream.indexOf(fmt(EXP.stream)) !== -1 || unitedStream.indexOf(String(EXP.stream)) !== -1) &&
+  unitedStream.indexOf(EXP.streamPct) !== -1,
+  'United Streaming prints ' + fmt(EXP.stream) + ' and ' + EXP.streamPct + ' on the same card');
 assert.ok(united.indexOf('data-figure-block="viasat"') === -1,
   'United has no Viasat figure block');
 assert.ok(!/<span class="card-name">Viasat<\/span>/.test(united),
   'United has no Viasat hero card');
 var unitedRest = (/id="rest"[\s\S]*?<\/section>/.exec(united) || [''])[0];
-assert.ok(/407/.test(unitedRest) && /131/.test(unitedRest) && /196/.test(unitedRest),
-  'United rest-of-fleet prints 407 / 131 / 196');
-assert.ok(/22%/.test(unitedRest) && /7%/.test(unitedRest) && /11%/.test(unitedRest),
-  'United rest-of-fleet prints 22% / 7% / 11%');
-assert.ok(/182 \/ 1,144/.test(united) && /341 \/ 673/.test(united),
-  'United rollout prints 182 / 1,144 and 341 / 673');
+[EXP.panasonic, EXP.none, EXP.unresolved].forEach(function (n) {
+  assert.ok(unitedRest.indexOf(fmt(n)) !== -1, 'United rest-of-fleet prints ' + fmt(n));
+  assert.ok(unitedRest.indexOf(pct(n)) !== -1, 'United rest-of-fleet prints ' + pct(n));
+});
+assert.ok(united.indexOf(fmt(EXP.ml.n) + ' / ' + fmt(EXP.ml.of)) !== -1 &&
+  united.indexOf(fmt(EXP.rg.n) + ' / ' + fmt(EXP.rg.of)) !== -1,
+  'United rollout prints ' + fmt(EXP.ml.n) + ' / ' + fmt(EXP.ml.of) + ' and ' + fmt(EXP.rg.n) + ' / ' + fmt(EXP.rg.of));
 
 var alaska = htmlOf('airlines/alaska/index.html');
 assert.ok(/alaskastarlinktracker\.com/.test(alaska),
@@ -367,9 +391,9 @@ assert.ok(/alaskastarlinktracker\.com/.test(alaska),
 });
 var unitedUnknown = (/class="rest-row unknown-row"[\s\S]*?<\/div>\s*<\/div>/.exec(united) || [''])[0];
 assert.ok(unitedUnknown.indexOf('class="rest-row unknown-row"') !== -1,
-  'United keeps the unknown row when unresolved is 196');
-assert.ok(/196/.test(unitedUnknown) && /11%/.test(unitedUnknown),
-  'United unknown row still prints 196 / 11%');
+  'United keeps the unknown row when unresolved is ' + EXP.unresolved);
+assert.ok(unitedUnknown.indexOf(fmt(EXP.unresolved)) !== -1 && unitedUnknown.indexOf(pct(EXP.unresolved)) !== -1,
+  'United unknown row still prints ' + fmt(EXP.unresolved) + ' / ' + pct(EXP.unresolved));
 ['airfrance', 'sas', 'westjet', 'airbaltic', 'qatar'].forEach(function (key) {
   var html = htmlOf('airlines/' + key + '/index.html');
   assert.ok(html.indexOf('class="rest-row unknown-row"') !== -1,
