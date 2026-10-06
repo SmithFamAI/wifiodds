@@ -20,7 +20,10 @@ if [ -n "$(git -C "$SOURCE" status --porcelain --untracked-files=normal)" ]; the
   exit 3
 fi
 
-node "$SOURCE/scripts/test-plausibility-gate.js" || exit 11
+# The gate proves it can fail before it is trusted to pass. An owner re-baseline
+# ruling in the environment is a one-shot override for the live run only; it must
+# not be visible to the proof, or the tampered cases would be accepted too.
+env -u WIFIODDS_REBASELINE -u WIFIODDS_REBASELINE_ALASKA node "$SOURCE/scripts/test-plausibility-gate.js" || exit 11
 (cd "$SOURCE" && node scripts/update-unitedstarlink.js) || exit 12
 node -e 'const d=require(process.argv[1]);const f=d.fleet&&d.fleet.plausibility&&d.fleet.plausibility.flags||[];if(f.length){console.error(f.join("\n"));process.exit(1)}' \
   "$SOURCE/public/unitedstarlink/data.json" || { echo "United plausibility flags require review" >&2; exit 13; }
