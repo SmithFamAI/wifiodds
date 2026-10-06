@@ -48,7 +48,21 @@ var crypto = require('crypto');
 var A = require('../assets/airlines.js');
 
 var ROOT = path.join(__dirname, '..');
-var CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+/* The Mac path first; on a Linux runner (GitHub Actions) fall back to the
+   Chromium that Playwright installed for the ship gates, or to $CHROME_PATH. */
+var CHROME = (function () {
+  var candidates = [
+    process.env.CHROME_PATH,
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser'
+  ].filter(Boolean);
+  try {
+    var pw = require(path.join(require('os').homedir(), '.wo-respo', 'node_modules', 'playwright'));
+    candidates.push(pw.chromium.executablePath());
+  } catch (e) { /* no Playwright here; the Mac path or $CHROME_PATH still apply */ }
+  for (var i = 0; i < candidates.length; i++) if (fs.existsSync(candidates[i])) return candidates[i];
+  return candidates[1];
+})();
 var OUT = path.join(ROOT, 'assets', 'og.png');
 
 /* ── the figures, and nothing that is not checked ─────────────────────────── */
