@@ -168,9 +168,13 @@ scores.
 ## Data
 
 `/united/data.json` holds the United roster the extension reads (Starlink tails,
-mainline vs regional). Keep that path. `build/prepare-daily-data.sh` copies a
-candidate into this repo from a source worktree that still contains
-`scripts/update-unitedstarlink.js`; that updater is not in this tree.
+mainline vs regional). Keep that path. The updater lives in
+`scripts/update-unitedstarlink.js` with its gate proof beside it.
+`build/daily-refresh.sh` stages both plus today's `united/data.json` into a
+disposable source worktree, runs `build/prepare-daily-data.sh` (fetch, gate,
+render, every ship check), then publishes through `build/ship.sh`.
+`.github/workflows/daily-data.yml` runs that every morning and opens an issue
+labelled `daily-refresh` when a gate refuses the day's numbers.
 
 `assets/airlines.js` is the scoring map the site and the API share. Change it
 here and keep the extension's copy in mind until one table replaces both.

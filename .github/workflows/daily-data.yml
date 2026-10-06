@@ -1,0 +1,104 @@
+name: daily data refresh
+
+# Owner: Claude (Cowork), on Jeremy's ruling of 2026-10-06. This workflow is the
+# one writer of united/data.json. It runs every morning, pulls the trackers,
+# passes every gate in build/ship.sh, commits to main, and Cloudflare Pages
+# deploys the push. A flagged measurement fails red and opens an issue; it
+# never heals numbers into the site.
+
+on:
+  schedule:
+    - cron: '10 13 * * *'   # 07:10 Denver in summer, 06:10 in winter
+  workflow_dispatch:
+    inputs:
+      rebaseline_united:
+        description: 'One-shot owner ruling, exact pair: "<equipped>/<total>:<ruling text>"'
+        required: false
+        default: ''
+      rebaseline_alaska:
+        description: 'One-shot owner ruling, exact pair: "<equipped>/<total>"'
+        required: false
+        default: ''
+
+concurrency:
+  group: daily-data
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Playwright where the ship gates look for it (~/.wo-respo)
+        run: |
+          mkdir -p ~/.wo-respo
+          cd ~/.wo-respo
+          npm init -y >/dev/null
+          npm install playwright@1.62 >/dev/null
+          npx playwright install --with-deps chromium webkit
+
+      - name: Refresh, gate, and ship
+        env:
+          WIFIODDS_DRIVER_ID: github-actions-daily
+          WIFIODDS_REBASELINE: ${{ github.event.inputs.rebaseline_united }}
+          WIFIODDS_REBASELINE_ALASKA: ${{ github.event.inputs.rebaseline_alaska }}
+          GIT_AUTHOR_NAME: wifiodds-daily
+          GIT_AUTHOR_EMAIL: daily@wifiodds.com
+          GIT_COMMITTER_NAME: wifiodds-daily
+          GIT_COMMITTER_EMAIL: daily@wifiodds.com
+        run: |
+          [ -n "$WIFIODDS_REBASELINE" ] || unset WIFIODDS_REBASELINE
+          [ -n "$WIFIODDS_REBASELINE_ALASKA" ] || unset WIFIODDS_REBASELINE_ALASKA
+          bash build/daily-refresh.sh 2>&1 | tee refresh.log
+          exit "${PIPESTATUS[0]}"
+
+      - name: Confirm the deploy serves today's data (by body, never by status code)
+        run: |
+          today=$(date -u +%F)
+          for i in $(seq 1 30); do
+            live=$(curl -sS --compressed --max-time 20 "https://wifiodds.com/united/data.json?cb=$RANDOM" \
+              | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const d=JSON.parse(s);console.log(d.updated, d.fleet.equipped+"/"+d.fleet.total, (d.roster||[]).length+" tails")})' 2>/dev/null || echo "unreadable")
+            echo "live: $live"
+            case "$live" in "$today"*) echo "deploy confirmed"; exit 0;; esac
+            sleep 20
+          done
+          echo "wifiodds.com never served updated=$today within 10 minutes" >&2
+          exit 1
+
+      - name: Open or update the failure issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tail -n 60 refresh.log > tail.txt 2>/dev/null || echo "(no refresh.log)" > tail.txt
+          title="daily data refresh failed: $(date -u +%F)"
+          body=$(printf 'Run: %s\n\nLast 60 lines:\n\n```\n%s\n```\n\nNothing was committed or pushed unless a line above says so. A plausibility flag needs an owner ruling (see build/daily-refresh.sh for the one-shot environment overrides).\n' \
+            "https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" "$(cat tail.txt)")
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --label daily-refresh --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "$body"
+          else
+            gh label create daily-refresh --repo "$GITHUB_REPOSITORY" --color d93f0b --description "unattended daily data refresh" 2>/dev/null || true
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --label daily-refresh --body "$body"
+          fi
+
+      - name: Close the failure issue on a green run
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for n in $(gh issue list --repo "$GITHUB_REPOSITORY" --label daily-refresh --state open --json number --jq '.[].number'); do
+            gh issue close "$n" --repo "$GITHUB_REPOSITORY" --comment "Green run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          done
