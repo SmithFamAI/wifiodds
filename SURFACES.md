@@ -93,6 +93,7 @@ one pitch should be. `build/routes.js` carries the reasoning per file.
 - `assets/cws/badge-border-medium.png`
 - `assets/selectors.json`
 - `assets/shot-united-1280x800.png`
+- `assets/united-starlink-badge.svg`
 - `assets/shot-navan-1280x800.png`
 - `assets/serif-400.woff2`
 - `assets/serif-700.woff2`
