@@ -148,7 +148,7 @@
 const WIFI_AIRLINES = {
   /* ── instrumented: the extension can show real per-flight odds for these ── */
   united: {
-    name: "United", code: "UA", asOf: "2026-07",
+    name: "United", code: "UA", asOf: "2026-10",
     nextGenSplit: { mainline: { n: 265, of: 1162 }, regional: { n: 352, of: 513 } },
     /* equipped/fleet MUST equal united/data.json fleet.equipped / fleet.total.
        They had drifted to 481/1807 while data.json said 481/1808, so the same
