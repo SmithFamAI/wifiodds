@@ -674,6 +674,10 @@ function reconcileUnited() {
 
   body = body
     .replace(RE_COUNTS, 'equipped: ' + eq + ', fleet: ' + tot)
+    /* asOf is the month the count was last measured (the per-tail tracker pull),
+       so the page's "Data current as of" line moves with the data instead of
+       pinning the month the entry was first written (it read 2026-07 on 2026-10-06). */
+    .replace(/asOf:\s*"\d{4}-\d{2}"/, 'asOf: "' + String(D.measurementAsOf || D.updated).slice(0, 7) + '"')
     /* the note quotes both numbers with a thousands comma */
     .replace(RE_NOTE, 'note: "' + eq.toLocaleString('en-US') + ' of ' +
       tot.toLocaleString('en-US') + ' aircraft')
