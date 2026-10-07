@@ -5,10 +5,11 @@
  * Deterministic: all fetching/parsing/writing happens here so the scheduled agent
  * only has to run it, sanity-check the summary, verify the live site, and commit.
  *
- * Sources (all unitedstarlinktracker.com — credit where due):
- *   /                      fleet headline (equipped/total/last30, mainline, express)
- *   /fleet                 per-type counts + mainline install pace
- *   /routes                top-60 routes by scheduled Starlink departures (48h)
+ * Sources (all unitedstarlinktracker.com — credit where due; JSON since 2026-10-07):
+ *   /api/data              totalCount, lastUpdated, fleetStats (mainline/express), the
+ *                          full Starlink roster with DateFound (headline, last30, pace, roster)
+ *   /api/fleet-summary     per-family installed/total (the fleet.types rows)
+ *   /routes                top-60 routes by scheduled Starlink departures (48h; HTML)
  *   /api/predict-flight    per-flight probability (JSON)
  *   /api/plan-route        ranked itineraries per route (JSON)
  *   /mcp                   predict_route_starlink → per-route flight ranking (text, parsed)
@@ -81,26 +82,6 @@ function typeFamily(s) {
   if (/767/i.test(s)) return "767";
   if (/757/i.test(s)) return "757";
   return s.replace(/^(Boeing|Airbus|Bombardier|Embraer)\s+/i, "");
-}
-
-// Full equipped-tail roster with per-tail install ("first seen") dates — the
-// authoritative source for "which specific jets went live, and when."
-async function mcpListAircraft(limit = 500, fleet) {
-  const r = await fetch(BASE + "/mcp", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream",
-      "User-Agent": "wifiodds-daily/1.0 (+https://wifiodds.com/)" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call",
-      params: { name: "list_starlink_aircraft", arguments: fleet ? { limit, fleet } : { limit } } }),
-  });
-  const t = await r.text();
-  let j; try { j = JSON.parse(t); } catch { const m = t.match(/data: (.*)/); j = m ? JSON.parse(m[1]) : null; }
-  const text = j?.result?.content?.[0]?.text || "";
-  const roster = [];
-  const re = /^(N\w+)\s+—\s+(.+?)\s+\((mainline|express),\s+.+?,\s+first seen (\d{4}-\d{2}-\d{2})\)/gm;
-  let m;
-  while ((m = re.exec(text))) roster.push({ tail: m[1], type: typeFamily(m[2]), fleet: m[3], seen: m[4] });
-  return roster;
 }
 
 function strip(html) { return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " "); }
@@ -278,15 +259,30 @@ async function main() {
   // `updated` field for a data.json written before these two fields existed.
   const priorMeasurementAsOf = data.measurementAsOf || data.updated;
 
-  // ── 1. fleet headline ───────────────────────────────
-  const home = strip(await get(BASE + "/"));
-  const mHead = home.match(/([\d,]+) of ([\d,]+) United Airlines aircraft \(\s*(\d+(?:\.\d+)?)\s*%\s*\) have Starlink WiFi installed\s*(?:,\s*including ([\d,]+) in the last 30 days)?/)
-    || home.match(/([\d,]+) of ([\d,]+) United aircraft\s*(\d+(?:\.\d+)?)\s*%\s*have Starlink(?:\s*·\s*\+\s*([\d,]+) in the last 30 days)?/);
-  if (!mHead) throw new Error("fleet headline not found on homepage");
+  // ── 1. fleet headline, from the tracker's open JSON ─────────────────
+  // /api/data and /api/fleet-summary are the published contract (see
+  // unitedstarlinktracker.com/methodology, "Get the data"). The HTML pages were
+  // redesigned in September 2026 and every regex here broke; the JSON carries
+  // the same figures under stable names and the tracker's own lastUpdated.
+  const api = await get(BASE + "/api/data", true);
+  const sum = await get(BASE + "/api/fleet-summary", true);
+  const ua = (sum.airlines || []).find((a) => a.code === "UA");
+  if (!api || !api.fleetStats || !Array.isArray(api.starlinkPlanes)) throw new Error("/api/data: unexpected shape");
+  if (!ua || !Number.isFinite(ua.installed) || !Number.isFinite(ua.total)) throw new Error("/api/fleet-summary: no UA entry");
   const num = (s) => +String(s).replace(/,/g, "");
+  const fs_ = api.fleetStats;
+  const newEq = fs_.express.starlink + fs_.mainline.starlink;
+  const newTot = fs_.express.total + fs_.mainline.total;
+  if (newEq !== ua.installed || newTot !== ua.total || newTot !== api.totalCount) {
+    throw new Error(`tracker JSON disagrees with itself: fleetStats ${newEq}/${newTot}, summary ${ua.installed}/${ua.total}, totalCount ${api.totalCount}`);
+  }
+  if (api.starlinkPlanes.length !== newEq) {
+    throw new Error(`tracker roster has ${api.starlinkPlanes.length} tails but the count is ${newEq}`);
+  }
+  data.tracker = { source: "unitedstarlinktracker.com/api/data", lastUpdated: api.lastUpdated };
 
   // ── 1a. the plausibility gate. Mutates data.fleet and returns its own flags.
-  const gate = plausibilityGate(data, num(mHead[1]), num(mHead[2]), today);
+  const gate = plausibilityGate(data, newEq, newTot, today);
   for (const line of gate.report) summary.push(line);
   // healed (P1-01): a fresh fleet measurement was NOT accepted this run
   // (equipped and/or total were rejected and the prior value kept). That
@@ -296,33 +292,25 @@ async function main() {
   // re-measured on a day it was not.
   const healed = gate.healed;
 
-  if (mHead[4]) data.fleet.last30 = num(mHead[4]);
-  // Old wording "Mainline 22% 265 / 1162"; 2026-10 wording "Mainline : 265 of 1,162 ( 22% )".
-  const mMain = home.match(/Mainline\s+\d+\s*%\s+(\d+)\s*\/\s*(\d+)/)
-    || home.match(/Mainline\s*:?\s*([\d,]+)\s+of\s+([\d,]+)\s*\(/);
-  const mExp = home.match(/Express\s+\d+\s*%\s+(\d+)\s*\/\s*(\d+)/)
-    || home.match(/Express\s*:?\s*([\d,]+)\s+of\s+([\d,]+)\s*\(/);
-  if (mMain) data.fleet.mainline = { equipped: num(mMain[1]), total: num(mMain[2]) };
-  if (mExp) data.fleet.express = { equipped: num(mExp[1]), total: num(mExp[2]) };
-  if (!mMain || !mExp) throw new Error("mainline/express split not found on homepage");
-  summary.push(`fleet: ${data.fleet.equipped}/${data.fleet.total}`);
+  // last30 is what the tracker prints as "+N in the last 30 days": tails whose
+  // DateFound is within the last 30 days.
+  const cutoff30 = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+  data.fleet.last30 = api.starlinkPlanes.filter((p) => p.DateFound >= cutoff30).length;
+  data.fleet.mainline = { equipped: fs_.mainline.starlink, total: fs_.mainline.total };
+  data.fleet.express = { equipped: fs_.express.starlink, total: fs_.express.total };
+  summary.push(`fleet: ${data.fleet.equipped}/${data.fleet.total} (tracker lastUpdated ${api.lastUpdated})`);
 
-  // ── 2. fleet page: pace + types ─────────────────────
-  const fleet = strip(await get(BASE + "/fleet"));
-  const mPace = fleet.match(/recent mainline pace of\s*~?\s*([\d.]+)\s*\/\s*week/);
-  if (mPace) data.fleet.mainlinePacePerWeek = +mPace[1];
-  const typePatterns = [
-    // Hub wording as of 2026-10-06: "E175 252 / 252 · 100%", "CRJ550", "737-800", "A321neo", "777".
-    // Older wording ("B737-800 95 / 141 67 %", "CRJ-550") still matches.
-    ["CRJ-550", /CRJ-?550[\s\S]{0,250}?(\d+)\s*\/\s*(\d+)[\s·]*(\d+)\s*%/], ["E175", /E175[\s\S]{0,250}?(\d+)\s*\/\s*(\d+)[\s·]*(\d+)\s*%/],
-    ["737-800", /B?737-800[\s\S]{0,250}?(\d+)\s*\/\s*(\d+)[\s·]*(\d+)\s*%/], ["A321neo", /\bA321(?:neo)?\b[\s\S]{0,250}?(\d+)\s*\/\s*(\d+)[\s·]*(\d+)\s*%/],
-    ["737-900", /B?737-900[\s\S]{0,250}?(\d+)\s*\/\s*(\d+)[\s·]*(\d+)\s*%/], ["777", /\bB?777\b[\s\S]{0,250}?(\d+)\s*\/\s*(\d+)[\s·]*(\d+)\s*%/],
-  ];
-  for (const t of data.fleet.types) {
-    const pat = typePatterns.find(([name]) => name === t.type);
-    if (!pat) continue;
-    const m = fleet.match(pat[1]);
-    if (m && +m[2] > 10) { t.equipped = +m[1]; t.total = +m[2]; }
+  // ── 2. pace + per-type counts, from the same JSON ───────────────────
+  // Mainline pace: mainline tails first seen in the last 28 days, per week.
+  const cutoff28 = new Date(Date.now() - 28 * 86400000).toISOString().slice(0, 10);
+  const mlRecent = api.starlinkPlanes.filter((p) => p.fleet === "mainline" && p.DateFound >= cutoff28).length;
+  data.fleet.mainlinePacePerWeek = Math.round(mlRecent / 4 * 10) / 10;
+  const familyFor = { "CRJ-550": "CRJ-550", "E175": "E175", "B737-800": "737-800", "A321": "A321neo", "B737-900": "737-900", "B777": "777" };
+  for (const f of (ua.families || [])) {
+    const name = familyFor[f.family];
+    if (!name) continue;
+    const t = data.fleet.types.find((x) => x.type === name);
+    if (t && f.total > 10) { t.equipped = f.installed; t.total = f.total; }
   }
   // ── 2a. atomic retention across the WHOLE fleet observation (P1-01 r12).
   // Every fleet field written above (last30, mainline, express, pace, types)
@@ -420,11 +408,11 @@ async function main() {
   // Each tail carries its own install ("first seen") date, so the on-page
   // changelog builds a real per-day timeline of which jets went live, by type.
   try {
-    // The hub's MCP caps list_starlink_aircraft at 500 per call and the fleet passed 500
-    // equipped tails in September 2026, so pull each fleet separately and merge.
-    const byFleet = await Promise.all([mcpListAircraft(500, "express"), mcpListAircraft(500, "mainline")]);
+    // The roster is the starlinkPlanes list from /api/data, already fetched above.
     const seenTail = new Set();
-    const roster = byFleet.flat().filter((r) => !seenTail.has(r.tail) && seenTail.add(r.tail));
+    const roster = api.starlinkPlanes
+      .map((p) => ({ tail: p.TailNumber, type: typeFamily(p.Aircraft), fleet: p.fleet, seen: p.DateFound }))
+      .filter((r) => r.tail && r.seen && !seenTail.has(r.tail) && seenTail.add(r.tail));
     if (roster.length >= data.fleet.equipped * 0.9) {   // sanity: near-full pull
       roster.sort((a, b) => (a.seen < b.seen ? 1 : a.seen > b.seen ? -1 : a.tail < b.tail ? -1 : 1));
       data.roster = roster;                              // newest install first

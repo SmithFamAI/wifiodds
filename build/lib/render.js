@@ -1776,8 +1776,9 @@ function airlineSubpage(m, key) {
       '    <div><b>' + num(split.mainline.n) + ' / ' + num(split.mainline.of) + '</b> <span>Mainline next-gen</span></div>\n' +
       '    <div><b>' + num(split.regional.n) + ' / ' + num(split.regional.of) + '</b> <span>Regional next-gen</span></div>\n' +
       '  </div>\n' +
-      P.srcLine('reported', 'united/data.json, daily pull from unitedstarlinktracker.com, checked_at ' +
-        checkedAtHtml + '.');
+      P.srcLine('reported', 'unitedstarlinktracker.com (@martinamps)' +
+        (m.trackerUpdated ? ', their data last updated ' + esc(m.trackerUpdated) : '') +
+        ' · checked ' + checkedAtHtml + '.');
   }
 
   var newsItems = airlineNewsItems(key);

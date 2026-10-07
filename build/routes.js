@@ -82,6 +82,7 @@ var REQUIRED = [
      absence would render as broken images inside a section whose whole argument
      is "these are real screenshots" — and a 200 would still be served. */
   'assets/shot-united-1280x800.png',
+  'assets/united-starlink-badge.svg',   /* @martinamps live badge, refreshed by build/daily-refresh.sh */
   'assets/shot-navan-1280x800.png',
   /* Source Serif 4, self-hosted, the site's speaking voice. A missing face is
      the quietest possible failure: the page still returns 200, still renders,

@@ -229,6 +229,9 @@ function build() {
     refreshAttemptedOn: dates.refreshAttemptedOn,
     wasRetained: dates.wasRetained,
     source: D.source || '',
+    /* The tracker's own "Data last updated" stamp (its /api/data lastUpdated),
+       which its citation rule asks us to carry alongside the count. */
+    trackerUpdated: (D.tracker && D.tracker.lastUpdated) ? String(D.tracker.lastUpdated).slice(0, 10) : null,
     fleet: F,
     sharePct: Math.round(F.equipped / F.total * 100),
     mainlinePct: Math.round(F.mainline.equipped / F.mainline.total * 100),

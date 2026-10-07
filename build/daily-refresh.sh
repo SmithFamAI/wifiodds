@@ -26,6 +26,19 @@ git -C "$SRC" init -q
 git -C "$SRC" add -A
 git -C "$SRC" -c user.email=daily@wifiodds.com -c user.name=daily-refresh commit -qm "seed from united/data.json"
 
+# His live badge (unitedstarlinktracker.com/embed), kept on this origin so the
+# pages make no third-party request. Refreshed daily; a failed fetch keeps the
+# committed copy rather than shipping an empty file.
+BADGE_TMP=$(mktemp)
+if curl -sS --compressed --max-time 20 -A 'wifiodds-daily/1.0 (+https://wifiodds.com/)' \
+     "https://unitedstarlinktracker.com/badge.svg?cb=$RANDOM" -o "$BADGE_TMP" \
+   && grep -q '<svg' "$BADGE_TMP" && grep -q 'aircraft' "$BADGE_TMP"; then
+  mv "$BADGE_TMP" assets/united-starlink-badge.svg
+else
+  echo "daily-refresh: badge.svg fetch failed or malformed; keeping the committed copy" >&2
+  rm -f "$BADGE_TMP"
+fi
+
 bash build/prepare-daily-data.sh "$SRC"
 rc=$?
 if [ $rc -ne 0 ]; then

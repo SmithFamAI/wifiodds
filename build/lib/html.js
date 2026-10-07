@@ -616,6 +616,21 @@ function credit(which) {
  * and a footer that still claimed it would be the site lying about its own
  * storage on thirty routes. Product feedback is stored server-side (D1/R2),
  * named on /privacy, and is not a browser write. */
+
+/* His live badge and his own "last updated" stamp (methodology#cite asks for
+   the date to travel with the count). The SVG is served from this origin, so
+   the page makes no third-party request; build/daily-refresh.sh refreshes it. */
+var TRACKER_UPDATED = (function () {
+  try {
+    var t = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', '..', 'united', 'data.json'), 'utf8')).tracker;
+    return t && t.lastUpdated ? String(t.lastUpdated).slice(0, 10) : null;
+  } catch (e) { return null; }
+})();
+function trackerBadge() {
+  return '<a class="tracker-badge" href="https://unitedstarlinktracker.com/" target="_blank" rel="noopener">' +
+    '<img src="/assets/united-starlink-badge.svg" alt="United Starlink rollout status" width="261" height="20"></a>' +
+    (TRACKER_UPDATED ? ' <span class="tracker-stamp">their data last updated ' + TRACKER_UPDATED + '</span>' : '');
+}
 function footer(updated, refreshAttemptedOn, wasRetained) {
   var updatedLine = (!wasRetained || !refreshAttemptedOn)
     ? 'Data updated <b>' + esc(updated) + '</b>.'
@@ -652,6 +667,7 @@ function footer(updated, refreshAttemptedOn, wasRetained) {
     '  <div class="frow">Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> ' +
     '· <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> ' +
     '(independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</div>\n' +
+    '  <div class="frow">' + trackerBadge() + '</div>\n' +
     /* THE LABELS MUST NAME THE REPOSITORY. apitest.js matches `<a href=...>Site
        source</a>` and `<a href=...>Extension source</a>` by label and then checks
        the href actually points at the repo that label names — the guard exists
@@ -803,6 +819,7 @@ function footerV2(updated, refreshAttemptedOn, wasRetained) {
     '      <p>Fleet data: <a href="https://unitedstarlinktracker.com" target="_blank" rel="noopener">unitedstarlinktracker.com</a> ' +
     '· <a href="https://alaskastarlinktracker.com" target="_blank" rel="noopener">alaskastarlinktracker.com</a> ' +
     '(independent community trackers by @martinamps) · every other airline from public announcements, July 2026.</p>\n' +
+    '      <p>' + trackerBadge() + '</p>\n' +
     '      <p>' + updatedLine + ' Streaming scores and per-flight odds are ' +
     'historical estimates, and aircraft assignments change until departure. WiFi Odds is unofficial and ' +
     'unaffiliated with any airline, SpaceX, Amazon, Viasat, or the trackers.</p>\n' +

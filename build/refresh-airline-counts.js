@@ -164,12 +164,44 @@ function arg(name) {
   return i >= 0 ? process.argv[i + 1] : null;
 }
 
+/* Since 2026-10-07 the counts come from the tracker's open JSON instead of its
+   HTML: /api/fleet-summary on the hub carries UA, HA and AS; /api/data on the
+   Alaska tracker carries the Alaska roster and totalCount as a cross-check.
+   --alaska-html / --hub-html keep the HTML path alive for the fixture test. */
+async function fetchJson(url) {
+  const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'cb=' + Date.now(), {
+    headers: { 'user-agent': UA, accept: 'application/json' }, redirect: 'follow'
+  });
+  if (!res.ok) throw new Error(url + ': HTTP ' + res.status);
+  return res.json();
+}
+
+async function fetchTrackerCounts() {
+  const summary = await fetchJson('https://airlinestarlinktracker.com/api/fleet-summary');
+  const alaskaData = await fetchJson('https://alaskastarlinktracker.com/api/data');
+  const row = function (code) {
+    const a = (summary.airlines || []).find(function (x) { return x.code === code; });
+    if (!a || !Number.isInteger(a.installed) || !Number.isInteger(a.total)) throw new Error('fleet-summary: no ' + code + ' row');
+    return { equipped: a.installed, total: a.total };
+  };
+  const alaska = row('AS');
+  const hawaiian = row('HA');
+  const rosterCount = (alaskaData.starlinkPlanes || []).length;
+  if (rosterCount !== alaska.equipped || alaskaData.totalCount !== alaska.total) {
+    throw new Error('Alaska sources disagree: summary ' + alaska.equipped + '/' + alaska.total +
+      ', alaska /api/data ' + rosterCount + '/' + alaskaData.totalCount);
+  }
+  const asOf = String(summary.generatedAt || alaskaData.lastUpdated || '').slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(asOf)) throw new Error('fleet-summary: generatedAt is missing');
+  return { alaska: { ...alaska, asOf }, hawaiian: { ...hawaiian, asOf } };
+}
+
 async function main() {
   const alaskaPath = arg('--alaska-html');
   const hubPath = arg('--hub-html');
-  const alaskaHtml = alaskaPath ? fs.readFileSync(alaskaPath, 'utf8') : await fetchPage('https://alaskastarlinktracker.com/');
-  const hubHtml = hubPath ? fs.readFileSync(hubPath, 'utf8') : await fetchPage('https://airlinestarlinktracker.com/airlines');
-  const counts = parseTrackerPages(alaskaHtml, hubHtml);
+  const counts = (alaskaPath || hubPath)
+    ? parseTrackerPages(fs.readFileSync(alaskaPath, 'utf8'), fs.readFileSync(hubPath, 'utf8'))
+    : await fetchTrackerCounts();
   let source = fs.readFileSync(AIRLINES_FILE, 'utf8');
   const alaska = updateEntry(source, 'alaska', counts.alaska); source = alaska.source;
   const hawaiian = updateEntry(source, 'hawaiian', counts.hawaiian); source = hawaiian.source;

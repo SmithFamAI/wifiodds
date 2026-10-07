@@ -1816,3 +1816,6 @@ ul.vstate .st.live{color:var(--good);border-color:currentColor}
 ul.vstate .st.blt{border-style:dashed}
 ul.vstate p{margin:0}
 @media(max-width:560px){ul.vstate li{grid-template-columns:1fr;gap:.3rem}}
+
+/* @martinamps live badge, served from this origin (build/daily-refresh.sh refreshes it). */
+.tracker-badge{display:inline-block;line-height:0;vertical-align:middle}.tracker-badge img{height:20px;width:auto}.tracker-stamp{margin-left:10px;font-size:12px;color:var(--muted,#9a9aa4)}
