@@ -181,7 +181,7 @@ const WIFI_AIRLINES = {
        creep stale by a handful of aircraft between joins. Re-run the join, do
        not nudge the numbers. */
     segments: [
-      { system: "starlink", n: 618, free: "loyalty-free", as: "2026-10-07",
+      { system: "starlink", n: 618, free: "loyalty-free", as: "2026-10-11",
         src: "united/data.json, the daily pull from unitedstarlinktracker.com",
         note: "Free for MileagePlus members, and joining is free." },
       { system: "viasat", n: 440, free: "paid", as: "2026-10-06",
