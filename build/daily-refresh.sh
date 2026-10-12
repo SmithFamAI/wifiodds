@@ -26,6 +26,15 @@ git -C "$SRC" init -q
 git -C "$SRC" add -A
 git -C "$SRC" -c user.email=daily@wifiodds.com -c user.name=daily-refresh commit -qm "seed from united/data.json"
 
+bash build/prepare-daily-data.sh "$SRC"
+rc=$?
+if [ $rc -ne 0 ]; then
+  echo "daily-refresh: prepare-daily-data.sh exited $rc; nothing committed, nothing pushed" >&2
+  exit $rc
+fi
+
+# Prepare must validate the clean starting tree before the badge changes it.
+# The final ship below checks the complete candidate, including this badge.
 # His live badge (unitedstarlinktracker.com/embed), kept on this origin so the
 # pages make no third-party request. Refreshed daily; a failed fetch keeps the
 # committed copy rather than shipping an empty file.
@@ -37,13 +46,6 @@ if curl -sS --compressed --max-time 20 -A 'wifiodds-daily/1.0 (+https://wifiodds
 else
   echo "daily-refresh: badge.svg fetch failed or malformed; keeping the committed copy" >&2
   rm -f "$BADGE_TMP"
-fi
-
-bash build/prepare-daily-data.sh "$SRC"
-rc=$?
-if [ $rc -ne 0 ]; then
-  echo "daily-refresh: prepare-daily-data.sh exited $rc; nothing committed, nothing pushed" >&2
-  exit $rc
 fi
 
 bash build/ship.sh "daily data refresh $TODAY"
