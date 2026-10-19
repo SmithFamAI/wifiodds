@@ -84,6 +84,9 @@ fi
 check_driver_lock || exit 89
 
 echo "── refresh ordering controls ─────────────────────────────"
+if ! node build/acquire-refresh-evidence.test.js; then
+  fail "diagnostic acquisition controls failed." 98
+fi
 if ! node build/daily-refresh.test.js; then
   fail "build/daily-refresh.test.js exited non-zero. Daily refresh ordering, badge fallback, or publication guards regressed." 98
 fi
