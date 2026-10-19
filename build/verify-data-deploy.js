@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const assert = require('node:assert/strict');
-const { reconcileMembership } = require('../scripts/reconcile-ua-membership.js');
+const { reconcileMembership, settleMembershipCapture } = require('../scripts/reconcile-ua-membership.js');
 const { validatePolicy, disclosure } = require('../scripts/ua-membership-policy.js');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -145,6 +145,13 @@ async function readMembershipSource(fixture) {
   return {api:json(values[0],'source API'),summary:json(values[1],'source summary'),registry:values[2].toString('utf8')};
 }
 
+async function verifyCapturedMembershipSource(data, tracker, source, timing) {
+  if (!source) return verifyMembershipSource(data, tracker, source);
+  const capture = await settleMembershipCapture(source.api, source.summary, timing);
+  console.log('membership capture clock: ' + JSON.stringify(capture));
+  return verifyMembershipSource(data, tracker, source, capture.evaluatedAt);
+}
+
 function checkApi(fails, key, body, expected) {
   let payload;
   try { payload = json(body, key + ' API'); }
@@ -231,7 +238,7 @@ async function main() {
   const expected = localExpected();
   const tracker = await readTracker(fixture, trackerPath);
   const source=expected.united.fleet.membership ? await readMembershipSource(fixture) : undefined;
-  try {verifyMembershipSource(expected.united,tracker,source);}
+  try {await verifyCapturedMembershipSource(expected.united,tracker,source);}
   catch(error) {
     console.error('tracker FAIL '+error.message);
     process.exit(1);
@@ -256,7 +263,7 @@ async function main() {
   console.log('verify-data-deploy: ' + samples + ' sample(s) accepted; source policy verified' + (requireCurrent ? '; current JSON/API/badge/homepage bodies match' : '; propagation lag may remain'));
 }
 
-module.exports = { rowOrder, parseUnitedTrackerCount, unitedPagesLag, verifyMembershipSource, sample };
+module.exports = { rowOrder, parseUnitedTrackerCount, unitedPagesLag, verifyMembershipSource, verifyCapturedMembershipSource, sample };
 if (require.main === module) main().catch(function (error) {
   console.error('verify-data-deploy: ' + error.message);
   process.exit(2);

@@ -148,4 +148,31 @@ function reconcileMembership(rawApi, rawSummary, registry, now = Date.now()) {
   if (held) result.provenance.disclosure = disclosure(result.provenance);
   return result;
 }
-module.exports = { reconcileMembership };
+// A retained Actions acquisition showed the summary's server clock 622 ms
+// ahead of the runner after all three bodies arrived. Wait once for a small
+// lead to elapse; never adjust a source clock or loosen the strict gate above.
+async function settleMembershipCapture(api, summary, { now = Date.now,
+  wait = ms => new Promise(resolve => setTimeout(resolve, ms)),
+  monotonic = () => performance.now() } = {}) {
+  const receivedAt = now();
+  const sourceAt = Date.parse(api && api.lastUpdated);
+  const generatedAt = Date.parse(summary && summary.generatedAt);
+  const lead = generatedAt - receivedAt;
+  const waitMs = Number.isFinite(sourceAt) && sourceAt <= receivedAt &&
+    receivedAt - sourceAt <= 7200000 && Number.isFinite(generatedAt) &&
+    generatedAt >= sourceAt && lead > 0 && lead <= 1000 ? lead : 0;
+  let waitElapsedMs = 0;
+  if (waitMs) {
+    const started = monotonic();
+    await wait(waitMs);
+    waitElapsedMs = monotonic() - started;
+  }
+  const evaluatedAt = now();
+  const capture = { receivedAt, evaluatedAt, waitMs, waitElapsedMs,
+    sourceTimestamp: Number.isFinite(sourceAt) ? new Date(sourceAt).toISOString() : null,
+    summaryGeneratedAt: Number.isFinite(generatedAt) ? new Date(generatedAt).toISOString() : null };
+  assert(Number.isFinite(waitElapsedMs) && waitElapsedMs >= 0 && waitElapsedMs <= 1000,
+    'membership: capture wait exceeded one-second budget: ' + JSON.stringify(capture));
+  return capture;
+}
+module.exports = { reconcileMembership, settleMembershipCapture };

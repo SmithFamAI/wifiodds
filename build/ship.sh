@@ -100,6 +100,9 @@ fi
 if ! node build/membership-correction.test.js; then
   fail "membership correction controls failed; source identity, atomic retention or expiry is unverified." 98
 fi
+if ! node build/membership-capture-clock.test.js; then
+  fail "membership capture clock controls failed; strict freshness must survive bounded capture settling." 98
+fi
 if ! node build/acquire-refresh-evidence.test.js; then
   fail "diagnostic acquisition controls failed." 98
 fi

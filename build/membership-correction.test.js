@@ -46,7 +46,7 @@ function html(f) {
   return '<script type="application/ld+json">' + JSON.stringify({ dateModified: f.sourceTime }) + '</script>' +
     f.rows.map(([tail, type, status, cls]) => `<a id="t-${tail}" title="${type} · ${tail} · ${status}" class="${cls}"></a>`).join('');
 }
-function run(f = fixture(), time = now, before = baseline) {
+function run(f = fixture(), time = now, before = baseline, advanceClock = false) {
   const dataPath = path.join(work, 'data.json');
   const bytes = JSON.stringify(before);
   fs.writeFileSync(dataPath, bytes);
@@ -58,7 +58,9 @@ function run(f = fixture(), time = now, before = baseline) {
 const fs=require('node:fs');
 const input=JSON.parse(fs.readFileSync(process.env.TEST_INPUT));
 const NativeDate=Date;
-global.Date=class extends NativeDate { constructor(...args){super(...(args.length?args:[process.env.TEST_NOW]));} static now(){return NativeDate.parse(process.env.TEST_NOW);} };
+let clock=NativeDate.parse(process.env.TEST_NOW);
+global.Date=class extends NativeDate { constructor(...args){super(...(args.length?args:[clock]));} static now(){return clock;} };
+if(process.env.TEST_CLOCK_ADVANCE==='true')global.setTimeout=(fn,ms)=>{clock+=ms;queueMicrotask(fn);};
 global.fetch=async url=>{
  const p=new URL(url).pathname;
  const values={'/api/data':input.api,'/api/fleet-summary':input.sum,'/fleet':input.registry,'/routes':'','/api/plan-route':{},'/mcp':{}};
@@ -66,7 +68,7 @@ global.fetch=async url=>{
  return {ok:true,status:200,json:async()=>structuredClone(values[p]),text:async()=>typeof values[p]==='string'?values[p]:JSON.stringify(values[p])};
 };
 `);
-  const env = { ...process.env, TEST_INPUT: inputPath, TEST_NOW: time, WIFIODDS_UNITED_DATA_FILE: dataPath };
+  const env = { ...process.env, TEST_INPUT: inputPath, TEST_NOW: time, TEST_CLOCK_ADVANCE: String(advanceClock), WIFIODDS_UNITED_DATA_FILE: dataPath };
   for (const key of Object.keys(env)) if (key.startsWith('WIFIODDS_REBASELINE')) delete env[key];
   const result = spawnSync(process.execPath, ['--require', preload, path.join(root, 'scripts/update-unitedstarlink.js'), '--max-cache-routes', '1'],
     { env, encoding: 'utf8', timeout: 10000 });
@@ -76,6 +78,22 @@ global.fetch=async url=>{
 let count = 0;
 function test(name, fn) { fn(); count++; console.log('PASS ' + name); }
 try {
+  test('real updater waits once for a bounded summary lead before unchanged checks', () => {
+    const f=fixture();f.sum.generatedAt=new Date(Date.parse(now)+622).toISOString();
+    const r=run(f,now,baseline,true);assert.equal(r.status,0,r.stderr);
+    assert.equal(r.data.fleet.total,3);assert(r.stdout.includes('"waitMs":622'));
+    assert(r.stdout.includes('"evaluatedAt":'+(Date.parse(now)+622)));
+  });
+  test('real updater retains original bytes when the clock does not catch up', () => {
+    const f=fixture();f.sum.generatedAt=new Date(Date.parse(now)+622).toISOString();
+    const r=run(f);assert.notEqual(r.status,0);assert(r.unchanged);
+    assert.match(r.stderr,/summary generation clock/);
+  });
+  test('real updater does not wait for a summary beyond the capture budget', () => {
+    const f=fixture();f.sum.generatedAt=new Date(Date.parse(now)+1001).toISOString();
+    const r=run(f,now,baseline,true);assert.notEqual(r.status,0);assert(r.unchanged);
+    assert(r.stdout.includes('"waitMs":0'));assert.match(r.stderr,/summary generation clock/);
+  });
   test('corrects only the proven unequipped conflict and retains N37484 and N34571', () => {
     const r = run(); assert.equal(r.status, 0, r.stderr);
     assert.equal(r.data.fleet.total, 3, 'N63571 must not inflate the candidate denominator');

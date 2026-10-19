@@ -22,7 +22,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const { reconcileMembership } = require("./reconcile-ua-membership.js");
+const { reconcileMembership, settleMembershipCapture } = require("./reconcile-ua-membership.js");
 const { membershipGate } = require("./ua-membership-policy.js");
 
 const BASE = "https://unitedstarlinktracker.com";
@@ -278,7 +278,9 @@ async function main() {
   const rawApi = await get(BASE + "/api/data", true);
   const rawSummary = await get(BASE + "/api/fleet-summary", true);
   const registry = await get(BASE + "/fleet");
-  const reconciled = reconcileMembership(rawApi, rawSummary, registry);
+  const capture = await settleMembershipCapture(rawApi, rawSummary);
+  console.log('membership capture clock: ' + JSON.stringify(capture));
+  const reconciled = reconcileMembership(rawApi, rawSummary, registry, capture.evaluatedAt);
   const api = reconciled.api, sum = reconciled.summary;
   const ua = (sum.airlines || []).find((a) => a.code === "UA");
   if (!api || !api.fleetStats || !Array.isArray(api.starlinkPlanes)) throw new Error("/api/data: unexpected shape");
