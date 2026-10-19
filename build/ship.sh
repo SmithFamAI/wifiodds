@@ -100,6 +100,9 @@ fi
 if ! node build/membership-correction.test.js; then
   fail "membership correction controls failed; source identity, atomic retention or expiry is unverified." 98
 fi
+if ! node build/acquire-refresh-evidence.test.js; then
+  fail "diagnostic acquisition controls failed." 98
+fi
 if ! node build/daily-refresh.test.js; then
   fail "build/daily-refresh.test.js exited non-zero. Daily refresh ordering, badge fallback, or publication guards regressed." 98
 fi

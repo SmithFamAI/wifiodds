@@ -11,6 +11,11 @@ on:
     - cron: '10 13 * * *'   # 07:10 Denver in summer, 06:10 in winter
   workflow_dispatch:
     inputs:
+      diagnostic_only:
+        description: 'Collect source evidence only; never refresh, commit, or publish data'
+        type: boolean
+        required: false
+        default: false
       rebaseline_united:
         description: 'One-shot owner ruling, exact pair: "<equipped>/<total>:<ruling text>"'
         required: false
@@ -33,7 +38,32 @@ permissions:
   issues: write
 
 jobs:
+  diagnostic:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.diagnostic_only }}
+    runs-on: macos-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Collect evidence without changing product data
+        run: node build/acquire-refresh-evidence.js
+      - name: Retain diagnostic evidence, including failed acquisition receipts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: refresh-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/wifiodds-evidence
+          retention-days: 1
+          if-no-files-found: error
+
   refresh:
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.diagnostic_only) }}
     # macOS, not Linux: the homepage visual gate renders in WebKit and Chromium
     # and compares against layouts tuned on a Mac. Linux WebKit font metrics
     # failed one of 6,866 checks on the first run (2026-10-06).
