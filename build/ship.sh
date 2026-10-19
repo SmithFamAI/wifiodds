@@ -48,6 +48,10 @@ check_driver_lock() {
   fi
 }
 
+check_membership_release() {
+  node scripts/ua-membership-policy.js united/data.json || fail "bounded membership approval or evidence expired before publication." 98
+}
+
 TREE_SNAPSHOT_FILES=""
 cleanup_tree_snapshots() {
   [ -z "$TREE_SNAPSHOT_FILES" ] || rm -f $TREE_SNAPSHOT_FILES
@@ -84,6 +88,15 @@ fi
 check_driver_lock || exit 89
 
 echo "── refresh ordering controls ─────────────────────────────"
+if ! node build/source-denial.test.js; then
+  fail "source denial controls failed; denied reads must stop with diagnostic evidence." 98
+fi
+if ! node build/membership-policy.test.js; then
+  fail "membership acceptance controls failed; the exact owner ruling is not enforced." 98
+fi
+if ! node build/membership-verifier.test.js; then
+  fail "membership verifier controls failed; current-data recovery cannot be proved." 98
+fi
 if ! node build/membership-correction.test.js; then
   fail "membership correction controls failed; source identity, atomic retention or expiry is unverified." 98
 fi
@@ -225,6 +238,7 @@ if [ -z "$CHANGED" ]; then
   if [ "$AHEAD" -gt 0 ]; then
     echo "no new file changes; resuming push of $AHEAD verified local commit(s)"
     check_driver_lock || fail "another live driver claimed the repository before the resumed push." 89
+    check_membership_release
     git push origin HEAD || fail "resumed branch push failed. The verified commit remains local." 96
     BR=$(git rev-parse --abbrev-ref HEAD)
     if [ "$BR" != "main" ]; then
@@ -236,6 +250,7 @@ if [ -z "$CHANGED" ]; then
       [ -z "$(git -C "$MAIN_TREE" status --porcelain --untracked-files=normal -- . \
         ':(exclude).playwright-mcp/**')" ] \
         || fail "main integration worktree is dirty: $MAIN_TREE" 97
+      check_membership_release
       git -C "$MAIN_TREE" merge -q --ff-only "$BR" \
         && git push -q origin HEAD:main \
         || fail "fast-forward of main from $BR failed; branch is pushed, main is not." 97
@@ -272,8 +287,10 @@ if ! cmp -s "$VERIFIED_TREE" "$CURRENT_TREE"; then
 against the tree that would actually ship." 99
 fi
 echo "verified-tree guard OK: commit bytes match the post-suite snapshot"
+check_membership_release
 git commit -m "$MSG" -m "Driver: $WIFIODDS_DRIVER_ID" \
   || fail "git commit failed (a pre-commit gate may have blocked it)." 95
+check_membership_release
 git push origin HEAD || fail "git push failed. The commit exists locally." 96
 
 BR=$(git rev-parse --abbrev-ref HEAD)
@@ -286,6 +303,7 @@ if [ "$BR" != "main" ]; then
   [ -z "$(git -C "$MAIN_TREE" status --porcelain --untracked-files=normal -- . \
     ':(exclude).playwright-mcp/**')" ] \
     || fail "main integration worktree is dirty: $MAIN_TREE" 97
+  check_membership_release
   git -C "$MAIN_TREE" merge -q --ff-only "$BR" \
     && git push -q origin HEAD:main \
     || fail "fast-forward of main from $BR failed; branch is pushed, main is not." 97

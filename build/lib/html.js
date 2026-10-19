@@ -627,9 +627,14 @@ var TRACKER_UPDATED = (function () {
   } catch (e) { return null; }
 })();
 function trackerBadge() {
+  var data = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', '..', 'united', 'data.json'), 'utf8'));
+  var note = require('../../scripts/ua-membership-policy.js').disclosure(data.fleet.membership);
   return '<a class="tracker-badge" href="https://unitedstarlinktracker.com/" target="_blank" rel="noopener">' +
-    '<img src="/assets/united-starlink-badge.svg" alt="United Starlink rollout status" width="261" height="20"></a>' +
-    (TRACKER_UPDATED ? ' <span class="tracker-stamp">their data last updated ' + TRACKER_UPDATED + '</span>' : '');
+    '<img src="/assets/united-starlink-badge.svg" alt="Cached raw United tracker badge" width="261" height="20"></a>' +
+    ' <span class="tracker-stamp">Cached raw tracker badge; it may lag the source snapshot.</span>' +
+    (TRACKER_UPDATED ? ' <span class="tracker-stamp">Source snapshot ' + TRACKER_UPDATED + '</span>' : '') +
+    (note ? '<br><span class="membership-note" data-membership-policy="ua-n63571-20261019">' + esc(note) +
+      ' <a href="https://registry.faa.gov/aircraftinquiry/Search/NNumberResult?NNumberTxt=63571" target="_blank" rel="noopener">FAA identity record</a>.</span>' : '');
 }
 function footer(updated, refreshAttemptedOn, wasRetained) {
   var updatedLine = (!wasRetained || !refreshAttemptedOn)

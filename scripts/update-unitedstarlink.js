@@ -23,6 +23,7 @@
 const fs = require("fs");
 const path = require("path");
 const { reconcileMembership } = require("./reconcile-ua-membership.js");
+const { membershipGate } = require("./ua-membership-policy.js");
 
 const BASE = "https://unitedstarlinktracker.com";
 const FILE = process.env.WIFIODDS_UNITED_DATA_FILE ||
@@ -40,10 +41,18 @@ async function get(url, asJson) {
       const r = await fetch(url + (url.includes("?") ? "&" : "?") + "cb=" + Math.random().toString(36).slice(2), {
         headers: { "User-Agent": "wifiodds-daily/1.0 (+https://wifiodds.com/)" },
       });
-      if (!r.ok) throw new Error("HTTP " + r.status);
+      if (!r.ok) {
+        const body=await r.text();
+        const details={server:r.headers.get('server'),cfRay:r.headers.get('cf-ray'),retryAfter:r.headers.get('retry-after'),
+          errorCode:(body.match(/error code:\s*(\d+)/i)||[])[1] || null,
+          bodySha256:require('node:crypto').createHash('sha256').update(body).digest('hex')};
+        const error=new Error('HTTP '+r.status+' '+JSON.stringify(details));
+        error.accessDenied=r.status===401 || r.status===403;
+        throw error;
+      }
       return asJson ? await r.json() : await r.text();
     } catch (e) {
-      if (attempt === 2) throw new Error(url + " → " + e.message);
+      if (e.accessDenied || attempt === 2) throw new Error(url + " → " + e.message);
       await sleep(1500 * (attempt + 1));
     }
   }
@@ -226,7 +235,7 @@ function plausibilityGate(data, newEq, newTot, today) {
   // append a new history point, or must carry the prior measurement forward.
   return { flags, report, bounds: { equipped: EQ_BOUND, total: TOT_TOL }, healed: healedEquipped || healedTotal };
 }
-module.exports = { plausibilityGate, DATA_FILE: FILE };
+module.exports = { plausibilityGate, DATA_FILE: FILE, get };
 
 /* Guarded: requiring this file for the gate must NOT kick off the refresh and
    start hitting the tracker. The run only happens when node is pointed at it. */
@@ -247,7 +256,8 @@ function retainFleet(data, fleetPrior) {
 module.exports.retainFleet = retainFleet;
 
 async function main() {
-  const data = JSON.parse(fs.readFileSync(FILE, "utf8"));
+  const baselineBytes = fs.readFileSync(FILE);
+  const data = JSON.parse(baselineBytes);
   const today = new Date().toISOString().slice(0, 10);
   const summary = [];
   // Snapshot the whole dated fleet observation BEFORE anything touches it,
@@ -283,11 +293,12 @@ async function main() {
   if (api.starlinkPlanes.length !== newEq) {
     throw new Error(`tracker roster has ${api.starlinkPlanes.length} tails but the count is ${newEq}`);
   }
+  // ── 1a. the plausibility gate. Mutates data.fleet and returns its own flags.
+  const gate = membershipGate({ baselineBytes, data, newEq, newTot, today, provenance: reconciled.provenance,
+    gateFn: plausibilityGate, request: process.env.WIFIODDS_REBASELINE,
+    evidence: process.env.WIFIODDS_MEMBERSHIP_EVIDENCE ? JSON.parse(process.env.WIFIODDS_MEMBERSHIP_EVIDENCE) : null });
   data.tracker = { source: "unitedstarlinktracker.com/api/data", lastUpdated: api.lastUpdated,
     candidateMembership: reconciled.provenance };
-
-  // ── 1a. the plausibility gate. Mutates data.fleet and returns its own flags.
-  const gate = plausibilityGate(data, newEq, newTot, today);
   for (const line of gate.report) summary.push(line);
   // healed (P1-01): a fresh fleet measurement was NOT accepted this run
   // (equipped and/or total were rejected and the prior value kept). That

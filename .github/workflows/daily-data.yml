@@ -19,6 +19,10 @@ on:
         description: 'One-shot owner ruling, exact pair: "<equipped>/<total>"'
         required: false
         default: ''
+      membership_evidence:
+        description: 'Fresh FAA observation receipt JSON for the exact October 19 United ruling; no credentials or personal registrant data'
+        required: false
+        default: ''
 
 concurrency:
   group: daily-data
@@ -57,6 +61,7 @@ jobs:
           WIFIODDS_DRIVER_ID: github-actions-daily
           WIFIODDS_REBASELINE: ${{ github.event.inputs.rebaseline_united }}
           WIFIODDS_REBASELINE_ALASKA: ${{ github.event.inputs.rebaseline_alaska }}
+          WIFIODDS_MEMBERSHIP_EVIDENCE: ${{ github.event.inputs.membership_evidence }}
           GIT_AUTHOR_NAME: wifiodds-daily
           GIT_AUTHOR_EMAIL: daily@wifiodds.com
           GIT_COMMITTER_NAME: wifiodds-daily
@@ -69,23 +74,28 @@ jobs:
           if [ -n "$WIFIODDS_REBASELINE$WIFIODDS_REBASELINE_ALASKA" ] && [ "$RULING_ACTOR" != "jeremyinthebay" ]; then
             echo "ruling inputs ignored: dispatched by $RULING_ACTOR, not the owner" | tee refresh.log
             unset WIFIODDS_REBASELINE WIFIODDS_REBASELINE_ALASKA
+            unset WIFIODDS_MEMBERSHIP_EVIDENCE
           fi
           [ -n "${WIFIODDS_REBASELINE:-}" ] || unset WIFIODDS_REBASELINE
           [ -n "${WIFIODDS_REBASELINE_ALASKA:-}" ] || unset WIFIODDS_REBASELINE_ALASKA
           bash build/daily-refresh.sh 2>&1 | tee -a refresh.log
           exit "${PIPESTATUS[0]}"
 
-      - name: Confirm the deploy serves today's data (by body, never by status code)
+      - name: Confirm current reviewed JSON, API, raw badge, and homepage bodies
         run: |
-          today=$(date -u +%F)
           for i in $(seq 1 30); do
-            live=$(curl -sS --compressed --max-time 20 "https://wifiodds.com/united/data.json?cb=$RANDOM" \
-              | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const d=JSON.parse(s);console.log(d.updated, d.fleet.equipped+"/"+d.fleet.total, (d.roster||[]).length+" tails")})' 2>/dev/null || echo "unreadable")
-            echo "live: $live"
-            case "$live" in "$today"*) echo "deploy confirmed"; exit 0;; esac
+            rc=0
+            node build/verify-data-deploy.js --require-current --samples 1 || rc=$?
+            if [ "$rc" -eq 0 ]; then
+              echo "current bodies confirmed for $(git rev-parse HEAD)"
+              exit 0
+            fi
+            # Only observed older Pages content is a propagation retry.
+            # Authentication denials, changed sources, and other failures stop.
+            [ "$rc" -eq 3 ] || exit "$rc"
             sleep 20
           done
-          echo "wifiodds.com never served updated=$today within 10 minutes" >&2
+          echo "current reviewed bodies were not confirmed within 10 minutes" >&2
           exit 1
 
       - name: Open or update the failure issue

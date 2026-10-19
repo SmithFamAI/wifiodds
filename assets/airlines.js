@@ -148,6 +148,7 @@
 const WIFI_AIRLINES = {
   /* ── instrumented: the extension can show real per-flight odds for these ── */
   united: {
+    membership: null,
     name: "United", code: "UA", asOf: "2026-10",
     nextGenSplit: { mainline: { n: 284, of: 1162 }, regional: { n: 352, of: 513 } },
     /* equipped/fleet MUST equal united/data.json fleet.equipped / fleet.total.

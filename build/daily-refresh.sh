@@ -21,7 +21,7 @@ TODAY=$(date -u +%F)
 SRC=$(mktemp -d)
 mkdir -p "$SRC/scripts" "$SRC/public/unitedstarlink"
 cp scripts/update-unitedstarlink.js scripts/test-plausibility-gate.js "$SRC/scripts/"
-cp scripts/reconcile-ua-membership.js scripts/ua-membership-hold.json "$SRC/scripts/" || exit 2
+cp scripts/reconcile-ua-membership.js scripts/ua-membership-policy.js scripts/ua-membership-hold.json "$SRC/scripts/" || exit 2
 cp united/data.json "$SRC/public/unitedstarlink/data.json"
 git -C "$SRC" init -q
 git -C "$SRC" add -A

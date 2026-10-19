@@ -5,6 +5,7 @@
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const hold = require('./ua-membership-hold.json');
+const { RULE, disclosure } = require('./ua-membership-policy.js');
 const digest = value => crypto.createHash('sha256').update(value).digest('hex');
 const clone = value => JSON.parse(JSON.stringify(value));
 const sum = (rows, key) => rows.reduce((n, row) => n + row[key], 0);
@@ -105,6 +106,8 @@ function reconcileMembership(rawApi, rawSummary, registry, now = Date.now()) {
   const excludedTails = [];
   const held = rows.find(row => row.tail === 'N63571');
   if (held) {
+    assert.equal(hold.expiresAt, RULE.holdExpiry, 'membership: fixed owner expiry changed');
+    assert.equal(hold.observedAt, RULE.evidenceObservedAt, 'membership: fixed evidence observation changed');
     assert.equal(hold.airline, 'UA'); assert.equal(hold.tail, 'N63571');
     const start = Date.parse(hold.observedAt), end = Date.parse(hold.expiresAt);
     assert(Number.isFinite(start) && Number.isFinite(end) && end > start && end - start <= 7 * 86400000 && now >= start && now < end,
@@ -134,13 +137,15 @@ function reconcileMembership(rawApi, rawSummary, registry, now = Date.now()) {
   assert.equal(members.size, api.totalCount, 'membership: corrected registry mismatch');
   assert.equal(sum(ua.families, 'total'), api.totalCount, 'membership: corrected family mismatch');
   assert.equal(segments.mainline.total + segments.express.total, api.totalCount, 'membership: corrected segment mismatch');
-  return { api, summary, provenance: {
+  const result = { api, summary, provenance: {
     sourceTimestamp: api.lastUpdated, registrySource: 'https://unitedstarlinktracker.com/fleet',
     raw, corrected: { equipped: equipped.size, total: members.size }, excludedTails,
     rawMembershipSha256: setHash(rows.map(row => row.tail)), membershipSha256: setHash(members),
     equippedSha256: setHash(equipped),
     setHashEncoding: 'UTF-8 sorted tails, LF separated, one final LF',
-    ...(held ? { holdId: hold.id, evidence: clone(hold.evidence), evidenceObservedAt: hold.observedAt, expiresAt: hold.expiresAt } : {})
+    ...(held ? { policyId: RULE.id, holdId: hold.id, evidence: clone(hold.evidence), evidenceObservedAt: hold.observedAt, expiresAt: hold.expiresAt } : {})
   } };
+  if (held) result.provenance.disclosure = disclosure(result.provenance);
+  return result;
 }
 module.exports = { reconcileMembership };

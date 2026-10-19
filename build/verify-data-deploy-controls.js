@@ -11,10 +11,20 @@ const ROOT = path.resolve(__dirname, '..');
 const canary = require('./verify-data-deploy.js');
 
 const work = fs.mkdtempSync(path.join(os.tmpdir(), 'wifiodds-data-canary-'));
+// These six controls exercise the unchanged ordinary/raw-equality contract.
+// Corrected-source proof has separate full-population controls. A disposable
+// reviewed tree keeps this suite usable after production adopts that policy.
+const reviewed = path.join(work,'reviewed');
+for(const rel of ['build/verify-data-deploy.js','scripts/reconcile-ua-membership.js','scripts/ua-membership-policy.js','scripts/ua-membership-hold.json','assets/airlines.js','index.html','assets/og.png','assets/united-starlink-badge.svg','united/data.json']) {
+  const dest=path.join(reviewed,rel);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.copyFileSync(path.join(ROOT,rel),dest);
+}
+const ordinary=JSON.parse(fs.readFileSync(path.join(reviewed,'united/data.json'),'utf8'));
+delete ordinary.fleet.membership;
+fs.writeFileSync(path.join(reviewed,'united/data.json'),JSON.stringify(ordinary));
 function copy(file) {
   const out = path.join(work, file);
   fs.mkdirSync(path.dirname(out), { recursive: true });
-  fs.copyFileSync(path.join(ROOT, file), out);
+  fs.copyFileSync(path.join(reviewed, file), out);
 }
 ['united/data.json', 'index.html', 'assets/og.png'].forEach(copy);
 const A = require(path.join(ROOT, 'assets/airlines.js')).WIFI_AIRLINES;
@@ -29,7 +39,7 @@ for (const key of ['alaska', 'hawaiian']) {
   fs.writeFileSync(file, JSON.stringify(apiPayload[key]));
 }
 
-const localUnited = JSON.parse(fs.readFileSync(path.join(ROOT, 'united/data.json'), 'utf8'));
+const localUnited = ordinary;
 function trackerPage(equipped, total) {
   return '<meta name="description" content="' + equipped + ' of ' + total +
     ' United aircraft have Starlink today, verified against united.com.">' +
@@ -71,7 +81,7 @@ assert.strictEqual(canary.unitedPagesLag({
 function run(expect, name, extraArgs) {
   const result = cp.spawnSync(process.execPath,
     ['build/verify-data-deploy.js', '--fixture-dir', work].concat(extraArgs || []),
-    { cwd: ROOT, encoding: 'utf8' });
+    { cwd: reviewed, encoding: 'utf8' });
   if (result.status !== expect) {
     console.error(name + ': expected exit ' + expect + ', got ' + result.status);
     console.error(result.stdout + result.stderr);

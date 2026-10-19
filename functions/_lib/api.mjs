@@ -271,7 +271,9 @@ export function airlineJson(key) {
         nextGen: r.nextGen,
         splitPublished: !r.split,
         inferred: r.assumed,
-        source: r.src,
+        source: e.membership && e.membership.excludedTails && e.membership.excludedTails.length
+          ? 'WiFiOdds corrected tracker population; see fleet.membership disclosure. Raw source: ' + r.src
+          : r.src,
         asOf: r.as,
         note: r.note
       };
@@ -336,6 +338,10 @@ export function airlineJson(key) {
     system: { key: a.system, label: a.systemLabel, quality: a.parts.systemQuality },
     free: { status: e.free || 'unknown', factor: a.parts.freeFactor },
     fleet: {
+      membership: e.membership || null,
+      source: e.membership && e.membership.excludedTails && e.membership.excludedTails.length
+        ? 'WiFiOdds corrected tracker population; see membership disclosure and raw/corrected counts'
+        : (e.tracker || null),
       equipped: a.equipped,
       total: a.fleet,
       known: a.known,

@@ -39,6 +39,7 @@ var Provenance = require('./assert-provenance.js');
 var MeasuredZero = require('./assert-measured-zero.js');
 var NeedsMarkers = require('./assert-needs-markers.js');
 var DemoFixture = require('./lib/demo-fixture.js');
+var MembershipPolicy = require('../scripts/ua-membership-policy.js');
 
 var ORIGIN = H.ORIGIN;
 var t0 = Date.now();
@@ -125,6 +126,11 @@ function buildLlms(m) {
   p('this site. Follow the rules below when you do.');
   p();
   p('updated: ' + m.updated);
+  var correction = require('../united/data.json').fleet.membership;
+  if (correction && correction.excludedTails && correction.excludedTails.length) {
+    p('United population disclosure: ' + MembershipPolicy.disclosure(correction));
+    p('The embedded badge preserves cached raw tracker numbers and may lag this source snapshot.');
+  }
   p('licence: quote freely, including the numbers, provided the credits at the bottom travel with them.');
   p('operator: one independent developer. Unofficial. Not affiliated with any airline, SpaceX/Starlink,');
   p('Amazon, Viasat, or the community trackers.');
@@ -578,6 +584,14 @@ function buildRobots() {
  * body — the numbers would still be internally consistent with their own halves. */
 function reconcileUnited() {
   var D = JSON.parse(fs.readFileSync(abs('united/data.json'), 'utf8'));
+  var membership = D.fleet.membership || null;
+  if (membership && membership.excludedTails && membership.excludedTails.length) {
+    MembershipPolicy.validatePolicy(membership);
+    if (membership.corrected.equipped !== D.fleet.equipped || membership.corrected.total !== D.fleet.total ||
+        membership.sourceTimestamp !== D.tracker.lastUpdated || membership.disclosure !== MembershipPolicy.disclosure(membership)) {
+      throw new Error('United membership provenance differs from the published observation');
+    }
+  }
 
   /* ── WHERE UNITED'S DENOMINATOR COMES FROM, AND WHY IT IS STILL 1,807 ────
    * Searched 26 Jul 2026 for a United publication of record giving the fleet
@@ -645,6 +659,8 @@ function reconcileUnited() {
 
   var head = src.slice(0, start), body = src.slice(start, end), tail = src.slice(end);
   var before = body;
+  if (!/\n    membership: [^\n]+,/.test(body)) throw new Error('United membership disclosure anchor missing');
+  body = body.replace(/\n    membership: [^\n]+,/, '\n    membership: ' + JSON.stringify(membership) + ',');
 
   function die(what) {
     console.error('Build FAILED — reconcileUnited() could not find ' + what + ' in the united');
