@@ -86,6 +86,10 @@ function fixture({ dailyScript = daily, failure = '', response = 'valid' } = {})
   }
   write(repo, 'scripts/test-plausibility-gate.js', prelude +
     `event('plausibility-proof');\nif (process.env.TEST_FAILURE === 'proof') process.exit(1);\n`);
+  // Daily staging must carry the real updater's correction dependencies.
+  for (const name of ['reconcile-ua-membership.js', 'ua-membership-hold.json']) {
+    write(repo, 'scripts/' + name, fs.readFileSync(path.join(__dirname, '..', 'scripts', name)));
+  }
   write(repo, 'scripts/update-unitedstarlink.js', prelude + `
 event('update');
 if (process.env.TEST_FAILURE === 'update') process.exit(1);

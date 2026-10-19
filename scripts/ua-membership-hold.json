@@ -1,0 +1,17 @@
+{
+  "id": "ua-n63571-faa-20261019",
+  "airline": "UA",
+  "tail": "N63571",
+  "observedAt": "2026-10-19T14:20:41.605Z",
+  "expiresAt": "2026-10-26T14:20:41.605Z",
+  "evidence": {
+    "url": "https://registry.faa.gov/aircraftinquiry/Search/NNumberResult?NNumberTxt=63571",
+    "responseSha256": "b095247c054980719b626d83833ca6ce0fbdb451fb453953097d727cedd54524",
+    "manufacturer": "AEROSTAR INTERNATIONAL INC",
+    "model": "RX 8",
+    "serial": "RX8-3127",
+    "aircraftType": "Balloon",
+    "registrationStatus": "Valid",
+    "pendingNumberChange": "None"
+  }
+}

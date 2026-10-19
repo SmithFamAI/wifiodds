@@ -22,6 +22,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { reconcileMembership } = require("./reconcile-ua-membership.js");
 
 const BASE = "https://unitedstarlinktracker.com";
 const FILE = process.env.WIFIODDS_UNITED_DATA_FILE ||
@@ -264,8 +265,11 @@ async function main() {
   // unitedstarlinktracker.com/methodology, "Get the data"). The HTML pages were
   // redesigned in September 2026 and every regex here broke; the JSON carries
   // the same figures under stable names and the tracker's own lastUpdated.
-  const api = await get(BASE + "/api/data", true);
-  const sum = await get(BASE + "/api/fleet-summary", true);
+  const rawApi = await get(BASE + "/api/data", true);
+  const rawSummary = await get(BASE + "/api/fleet-summary", true);
+  const registry = await get(BASE + "/fleet");
+  const reconciled = reconcileMembership(rawApi, rawSummary, registry);
+  const api = reconciled.api, sum = reconciled.summary;
   const ua = (sum.airlines || []).find((a) => a.code === "UA");
   if (!api || !api.fleetStats || !Array.isArray(api.starlinkPlanes)) throw new Error("/api/data: unexpected shape");
   if (!ua || !Number.isFinite(ua.installed) || !Number.isFinite(ua.total)) throw new Error("/api/fleet-summary: no UA entry");
@@ -279,7 +283,8 @@ async function main() {
   if (api.starlinkPlanes.length !== newEq) {
     throw new Error(`tracker roster has ${api.starlinkPlanes.length} tails but the count is ${newEq}`);
   }
-  data.tracker = { source: "unitedstarlinktracker.com/api/data", lastUpdated: api.lastUpdated };
+  data.tracker = { source: "unitedstarlinktracker.com/api/data", lastUpdated: api.lastUpdated,
+    candidateMembership: reconciled.provenance };
 
   // ── 1a. the plausibility gate. Mutates data.fleet and returns its own flags.
   const gate = plausibilityGate(data, newEq, newTot, today);
@@ -291,6 +296,9 @@ async function main() {
   // today may be appended, or the retained number would look independently
   // re-measured on a day it was not.
   const healed = gate.healed;
+  // Accepted provenance is part of the whole-fleet observation and is restored
+  // by retainFleet if the gate rejects it. Candidate metadata stays separate.
+  data.fleet.membership = reconciled.provenance;
 
   // last30 is what the tracker prints as "+N in the last 30 days": tails whose
   // DateFound is within the last 30 days.
