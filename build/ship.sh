@@ -112,6 +112,9 @@ fi
 if ! node build/home-order.test.js; then
   fail "build/home-order.test.js exited non-zero. The server-rendered homepage may no longer follow the published score order." 98
 fi
+if ! node build/home-source-disclosure.test.js; then
+  fail "build/home-source-disclosure.test.js exited non-zero. Homepage source disclosures may disagree with the API under a membership correction." 98
+fi
 if ! node build/refresh-airline-counts.test.js; then
   fail "build/refresh-airline-counts.test.js exited non-zero. Tracker parsing or count reconciliation is unsafe." 98
 fi

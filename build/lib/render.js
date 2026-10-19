@@ -341,13 +341,25 @@ function homeOddsLabel(a) {
   if (a.nextGenScore > 0) return 'Mixed fleet';
   return 'No next-gen aircraft yet';
 }
-function homeFigureSources(a) {
+/* Same qualification as the API's segments[].source (functions/_lib/api.mjs):
+ * when the airline's tracker population carries a membership correction, each
+ * raw segment source is published behind the corrected-population label. The
+ * page must name the same source strings the API does, so this mirrors that
+ * expression exactly, applied once to the raw segment.src. */
+var CORRECTED_SOURCE_PREFIX = 'WiFiOdds corrected tracker population; see fleet.membership disclosure. Raw source: ';
+function homeSegmentSource(entry, segment) {
+  return entry && entry.membership && entry.membership.excludedTails && entry.membership.excludedTails.length
+    ? CORRECTED_SOURCE_PREFIX + segment.src
+    : segment.src;
+}
+function homeFigureSources(m, a) {
   var seen = Object.create(null);
   var segments = a.segments || [];
+  var entry = m.A.WIFI_AIRLINES[a.key];
   /* Each published figure uses a whole-fleet denominator. Sources for the
    * non-qualifying and unresolved rows therefore contribute to the result too;
    * a disclosure that named only positive rows would omit denominator evidence. */
-  return segments.map(function (segment) { return segment.src; }).filter(function (source) {
+  return segments.map(function (segment) { return homeSegmentSource(entry, segment); }).filter(function (source) {
     var key = source && source.trim().toLowerCase();
     if (!key || seen[key]) return false;
     seen[key] = true;
@@ -367,13 +379,13 @@ function homeFigureEvidence(m, a, kind, id) {
   };
   return '<div class="figure-evidence" data-figure-evidence="' + kind + '" id="' + id + '"><span>' + labels[kind] + ' · ' +
     homeCheckedDate(a) + '</span><details class="figure-sources"><summary>Sources</summary>' +
-    '<p class="figure-source-list">' + esc(homeFigureSources(a)) + '</p></details></div>';
+    '<p class="figure-source-list">' + esc(homeFigureSources(m, a)) + '</p></details></div>';
 }
 function homeUnknownCoverageEvidence(m, a, id) {
   return '<div class="figure-evidence" data-figure-evidence="coverage" id="' + id + '"><span>' +
     'Confirmed streaming coverage · could not verify · ' + homeCheckedDate(a) +
     '</span><details class="figure-sources"><summary>Sources checked</summary><p class="figure-source-list">' +
-    esc(homeFigureSources(a)) + '</p></details></div>';
+    esc(homeFigureSources(m, a)) + '</p></details></div>';
 }
 /* The tier-only <small> label. Only prints a number when the uncertainty is a
  * real unresolved-aircraft count; a same-known-fleet ambiguous split (no
