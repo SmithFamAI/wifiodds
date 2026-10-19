@@ -54,10 +54,14 @@ function test(name, fn) { return Promise.resolve(fn()).then(() => { count++; con
     return ids.map(id => ({ id, got: listed(home, id), want }));
   }
   try {
-    await test('baseline: page sources equal API sources and stay unqualified', () => {
+    await test('committed data: page sources equal API sources, qualified only if the data carries a correction', () => {
+      // The same suite runs on the unchanged baseline and on a corrected daily
+      // candidate, so the expectation follows the committed membership state.
+      const m = JSON.parse(before).membership;
+      const corrected = !!(m && m.excludedTails && m.excludedTails.length);
       const rows = compare();
       rows.forEach(r => assert.equal(r.got, r.want, r.id));
-      rows.forEach(r => assert(!r.got.includes(PREFIX.trim()), r.id + ' must not be qualified without a correction'));
+      rows.forEach(r => assert.equal(r.got.includes('Raw source: '), corrected, r.id + ' qualification must match committed membership'));
     });
     await test('empty exclusion list stays unqualified', () => {
       setMembership({ excludedTails: [] });
