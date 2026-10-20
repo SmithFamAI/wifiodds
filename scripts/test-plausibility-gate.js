@@ -16,6 +16,7 @@
  */
 
 const fs = require("fs");
+const assert = require("node:assert/strict");
 const { plausibilityGate, DATA_FILE } = require("./update-unitedstarlink.js");
 
 const SRC = DATA_FILE;
@@ -128,6 +129,70 @@ run("restored · clean input again",
     console.log("   RESULT       PASS — whole fleet observation retained, gate report kept");
   }
 }
+
+// Rulings must be tied to history edges, not just the latest jump magnitude.
+// These are synthetic controls; none writes a receipt or changes live data.
+function regression(name, check) {
+  try {
+    check();
+    console.log(`\n── regression · ${name}\n   RESULT       PASS`);
+  } catch (error) {
+    failures++;
+    console.log(`\n── regression · ${name}\n   RESULT       FAIL — ${error.message}`);
+  }
+}
+function twoRulings() {
+  const d = clean();
+  d.history = [
+    { date: "2026-08-16", total: 1817 },
+    { date: "2026-10-06", total: 1675 },
+    { date: "2026-10-15", total: 1675 },
+    { date: "2026-10-19", total: 1678 },
+  ];
+  d.fleet.rebaseline = { on: "2026-10-19", from: { total: 1675 }, to: { total: 1678 } };
+  return d;
+}
+const boundOf = d => plausibilityGate(d, d.fleet.equipped, d.fleet.total, TODAY).bounds.total;
+regression("later receipt does not turn the historical ruled reset into tolerance", () => {
+  const d = twoRulings();
+  const receipt = structuredClone(d.fleet.rebaseline);
+  assert.equal(boundOf(d), 3);
+  assert.deepEqual(d.fleet.rebaseline, receipt);
+});
+regression("tolerance boundary flags a 3-aircraft wobble without healing", () => {
+  const d = twoRulings(), total = d.fleet.total;
+  const g = plausibilityGate(d, d.fleet.equipped, total + 3, TODAY);
+  assert.equal(g.healed, false);
+  assert.equal(g.flags.length, 1);
+  assert.equal(d.fleet.total, total + 3);
+});
+regression("one beyond tolerance retains both fields atomically", () => {
+  const d = twoRulings(), prior = { equipped:d.fleet.equipped, total:d.fleet.total };
+  const g = plausibilityGate(d, prior.equipped + 1, prior.total + 4, TODAY);
+  assert.equal(g.healed, true);
+  assert(g.flags.length > 0);
+  assert.equal(d.fleet.equipped, prior.equipped);
+  assert.equal(d.fleet.total, prior.total);
+});
+for (const [name, alter] of [
+  ["different predecessor date", d => { d.history[0].date = "2026-08-17"; }],
+  ["different ruling date", d => { d.history[1].date = "2026-10-07"; }],
+  ["equal magnitude with different endpoints", d => { d.history[0].total++; d.history[1].total++; }],
+]) regression("historical exclusion does not match " + name, () => {
+  const d = twoRulings(); alter(d); assert.equal(boundOf(d), 142);
+});
+regression("unrelated move matching the current ruling magnitude remains observed", () => {
+  const d = twoRulings();
+  d.history.push({ date:"2026-10-20", total:1688 }, { date:"2026-10-21", total:1698 });
+  d.fleet.rebaseline = { on:"2026-10-20", from:{total:1678}, to:{total:1688} };
+  assert.equal(boundOf(d), 10);
+});
+regression("a current receipt with a different date cannot exclude an observed edge", () => {
+  const d = twoRulings();
+  d.history.push({ date:"2026-10-20", total:1688 });
+  d.fleet.rebaseline = { on:"2026-10-21", from:{total:1678}, to:{total:1688} };
+  assert.equal(boundOf(d), 10);
+});
 
 console.log(`\nRESULT: ${failures ? `${failures} case(s) behaved wrongly` : "all cases behaved as specified"}`);
 process.exit(failures ? 1 : 0);

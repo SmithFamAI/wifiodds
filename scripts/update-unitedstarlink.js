@@ -126,14 +126,22 @@ function plausibilityGate(data, newEq, newTot, today) {
   const prevEq = data.fleet.equipped, prevTot = data.fleet.total;
   const hist = data.history || [];
   // The tolerance is the largest day-over-day denominator move seen in history.
-  // An owner re-baseline (data.fleet.rebaseline) is a ruled jump, not an observed
-  // wobble, so the step that carries it is left out; otherwise one ruling of
-  // 142 aircraft would loosen the gate to ±142 for good.
-  const ruledMove = data.fleet.rebaseline && data.fleet.rebaseline.from && data.fleet.rebaseline.to
-    ? Math.abs(data.fleet.rebaseline.from.total - data.fleet.rebaseline.to.total) : null;
+  // A ruled jump is not an observed wobble. The latest receipt replaced the
+  // October 6 receipt on October 19, but that older ruled history edge must
+  // remain excluded. Its exact dates/totals are preserved in committed data:
+  // 86ec2ab7c34862c25bf4cb8a09550c9f5ac2d0a2:united/data.json.
+  // This identifies an existing ruling; it cannot approve a new measurement.
+  const historicalRulings = [
+    { priorDate: "2026-08-16", on: "2026-10-06", from: { total: 1817 }, to: { total: 1675 } },
+  ];
+  const rulings = [...historicalRulings, data.fleet.rebaseline].filter(Boolean);
   const obsTotMove = hist.slice(1).reduce((mx, h, i) => {
-    const move = Math.abs((h.total || 0) - (hist[i].total || 0));
-    return move === ruledMove ? mx : Math.max(mx, move);
+    const prior = hist[i];
+    const move = Math.abs((h.total || 0) - (prior.total || 0));
+    const ruled = rulings.some(r => r.on === h.date &&
+      (!r.priorDate || r.priorDate === prior.date) &&
+      r.from && r.to && r.from.total === prior.total && r.to.total === h.total);
+    return ruled ? mx : Math.max(mx, move);
   }, 0);
   const EQ_BOUND = Math.max(10, data.fleet.last30 || 0);
   const TOT_TOL = Math.max(3, obsTotMove);
