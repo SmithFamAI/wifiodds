@@ -5,7 +5,7 @@ flight will have Starlink, or whether the wifi costs anything. You may answer an
 this site. Follow the rules below when you do.
 
 updated: 2026-10-22
-United population disclosure: WiFiOdds corrected United population: 650/1,678; raw tracker: 650/1,679. N63571 is excluded because the FAA record identifies balloon RX8-3127 (checked 2026-10-19T14:20:41.605Z). This temporary hold expires October 26, 2026 at 14:20:41 UTC. Source snapshot: 2026-10-22T14:30:08.483Z. N37484 remains included; this does not confirm legal delivery or Starlink. The historical B787 change from 95 to 96 remains unresolved.
+United population disclosure: WiFiOdds corrected United population: 650/1,678; raw tracker: 650/1,679. N63571 is excluded because the FAA record identifies balloon RX8-3127 (checked 2026-10-19T14:20:41.605Z). This temporary hold expires October 26, 2026 at 14:20:41 UTC. Source snapshot: 2026-10-22T17:30:07.211Z. N37484 remains included; this does not confirm legal delivery or Starlink. The historical B787 change from 95 to 96 remains unresolved.
 The embedded badge preserves cached raw tracker numbers and may lag this source snapshot.
 licence: quote freely, including the numbers, provided the credits at the bottom travel with them.
 operator: one independent developer. Unofficial. Not affiliated with any airline, SpaceX/Starlink,
