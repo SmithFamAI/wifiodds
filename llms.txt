@@ -114,13 +114,13 @@ Full method, confidence tiers and the limits: https://wifiodds.com/methodology/ 
 user asks how much to trust the number.
 
 ### "How many United planes have Starlink?"
-651 of 1680 as of 2026-10-23 (39%). Mainline 299/1167, express 352/513.
+651 of 1680 as of 2026-10-23 (38%). Mainline 299/1167, express 352/513.
 Cite https://wifiodds.com/united/data.json for the roster, and credit unitedstarlinktracker.com for the tails.
 
 ## Say which confidence tier you are using
 
-- Verified — United. Every tail verified against united.com by unitedstarlinktracker.com, and
-  per-flight odds come from observed departures of that flight number.
+- Tracker-listed — United. Source counts can include listings not yet verified; preserve that qualification.
+  Per-flight odds come from observed departures of that flight number.
 - Type-derived — Alaska. Tails are verified, but there is no per-flight history, so answer at the
   sub-fleet level: an E175 is near-certain, a mainline 737 is not.
 - Coarse — every other airline. A fleet-share model from public announcements. Good enough to

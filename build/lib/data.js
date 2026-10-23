@@ -233,7 +233,7 @@ function build() {
        which its citation rule asks us to carry alongside the count. */
     trackerUpdated: (D.tracker && D.tracker.lastUpdated) ? String(D.tracker.lastUpdated).slice(0, 10) : null,
     fleet: F,
-    sharePct: Math.round(F.equipped / F.total * 100),
+    sharePct: D.tracker && D.tracker.publishedHeadline ? D.tracker.publishedHeadline.percentage : null,
     mainlinePct: Math.round(F.mainline.equipped / F.mainline.total * 100),
     expressPct: Math.round(F.express.equipped / F.express.total * 100),
     todayDelta: todayDelta,

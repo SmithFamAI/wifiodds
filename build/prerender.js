@@ -267,8 +267,8 @@ function buildLlms(m) {
   p();
   p('## Say which confidence tier you are using');
   p();
-  p('- Verified — United. Every tail verified against united.com by unitedstarlinktracker.com, and');
-  p('  per-flight odds come from observed departures of that flight number.');
+  p('- Tracker-listed — United. Source counts can include listings not yet verified; preserve that qualification.');
+  p('  Per-flight odds come from observed departures of that flight number.');
   p('- Type-derived — Alaska. Tails are verified, but there is no per-flight history, so answer at the');
   p('  sub-fleet level: an E175 is near-certain, a mainline 737 is not.');
   p('- Coarse — every other airline. A fleet-share model from public announcements. Good enough to');

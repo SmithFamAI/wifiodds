@@ -60,6 +60,7 @@ function reconcileMembership(rawApi, rawSummary, registry, now = Date.now()) {
   for (const row of [...ua.families, ua]) {
     assert(Number.isSafeInteger(row.total) && Number.isSafeInteger(row.installed) && row.total >= row.installed && row.installed >= 0,
       'membership: invalid family/airline counts');
+    assert(row.percentage == null || (typeof row.percentage==='number' && Number.isFinite(row.percentage) && row.percentage>=0 && row.percentage<=100), 'membership: invalid source percentage');
   }
   const segments = api.fleetStats;
   for (const name of ['mainline', 'express']) {

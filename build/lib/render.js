@@ -1458,7 +1458,8 @@ function directoryRow(m, key, rank) {
   var streamUnsourced = !sourced;
   var total = buckets.total;
   var asOf = a.asOf || 'Unknown';
-  var ngPct = (!unpublished && sourced && total) ? String(homeNum(a.nextGenScore, key + '.nextGenScore')) : null;
+  var ngPct = (!unpublished && sourced && total) ? String(key === 'united'
+    ? m.D.tracker.publishedHeadline.percentage : homeNum(a.nextGenScore, key + '.nextGenScore')) : null;
   var streamPct = (!streamUnsourced && total) ? homeFmtPct(sf.pct) : null;
   var streamCount = sourced ? buckets.floorCertain : null;
   var ngCode = unpublished ? 'Unpublished' : (buckets.nextGenLabels.length && buckets.nextGenLabels.every(function (s) {
@@ -1698,7 +1699,8 @@ function airlineSubpage(m, key) {
   var total = buckets.total;
   var sourced = buckets.sourced;
   var streamUnsourced = !sourced;
-  var ngPct = (!unpublished && sourced && total) ? String(homeNum(a.nextGenScore, key + '.nextGenScore')) : null;
+  var ngPct = (!unpublished && sourced && total) ? String(key === 'united'
+    ? m.D.tracker.publishedHeadline.percentage : homeNum(a.nextGenScore, key + '.nextGenScore')) : null;
   var streamPct = (!streamUnsourced && total) ? homeFmtPct(sf.pct) : null;
   var streamCount = sourced ? buckets.floorCertain : null;
 

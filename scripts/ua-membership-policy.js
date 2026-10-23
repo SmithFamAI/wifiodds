@@ -6,18 +6,14 @@ const RULE = Object.freeze({ id: 'ua-tracker-parity-20261023',
   effectiveAt: '2026-10-23T16:43:20Z' });
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
 const familyNames = { 'B737-700':'737-700','B737-800':'737-800','B737-900':'737-900',
-  'B737-MAX8':'737 MAX','B737-MAX9':'737 MAX','B737-MAX10':'737 MAX',
+  'B737-MAX8':'737 MAX 8','B737-MAX9':'737 MAX 9','B737-MAX10':'737 MAX 10',
   A321:'A321neo',B757:'757',B767:'767',B777:'777',B787:'787',unknown:'Type not listed' };
 const displayFamily = family => familyNames[family] || family;
 function sourceTypes(families) {
-  const types=new Map();
-  for(const f of families) {
-    const type=displayFamily(f.family),seg=f.body==='regional'?'express':'mainline';
-    const row=types.get(type)||{type,equipped:0,total:0,seg};
-    assert.equal(row.seg,seg,'source parity: family segment conflict');
-    row.equipped+=f.installed;row.total+=f.total;types.set(type,row);
-  }
-  return [...types.values()];
+  // Keep the publisher's individual rows and percentages; do not regroup or round.
+  return families.map(f => ({type:displayFamily(f.family), sourceFamily:f.family,
+    equipped:f.installed,total:f.total,seg:f.body==='regional'?'express':'mainline',
+    percentage:f.percentage ?? null}));
 }
 function validatePolicy(p, now = Date.now()) {
   assert(p && p.policyId === RULE.id, 'source parity: unknown policy');

@@ -145,6 +145,7 @@ try {
     ['missing registry member', f => { f.rows.pop(); }],
     ['equipped membership mismatch', f => { f.api.starlinkPlanes[0].TailNumber = 'N999ZZ'; }],
     ['segment disagreement', f => { f.api.fleetStats.mainline.total++; }],
+    ['invalid source percentage', f => { f.sum.airlines[0].families[0].percentage = '100'; }],
     ['family disagreement', f => { f.sum.airlines[0].families[0].total++; }],
     ['balanced family corruption', f => { f.sum.airlines[0].families[0].total++; f.sum.airlines[0].families[1].total--; }],
     ['balanced equipped family corruption', f => { f.sum.airlines[0].families[0].installed--; f.sum.airlines[0].families[1].installed++; }],

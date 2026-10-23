@@ -13,6 +13,13 @@ function source(){
 function args(){return {data:{fleet:{equipped:640,total:1678,last30:50,published:{url:'https://publisher.invalid/history'},rebaseline:{historic:true}},history:[{date:'2026-10-18',equipped:640,total:1678}]},newEq:645,newTot:1679,today:'2026-10-19',provenance:source(),gateFn:plausibilityGate,now};}
 function ready(){const a=args();const before=structuredClone(a.data);membershipGate(a);const d=a.data;d.fleet.membership=a.provenance;d.tracker={lastUpdated:f.sourceTimestamp,candidateMembership:structuredClone(a.provenance)};d.updated=d.measurementAsOf='2026-10-19';d.tracker.publishedHeadline={equipped:645,total:1679,percentage:38,sourceTimestamp:f.sourceTimestamp};d.fleet.types=sourceTypes(a.provenance.sourceFamilies);for(const seg of ['mainline','express']){const rows=d.fleet.types.filter(x=>x.seg===seg);d.fleet[seg]={equipped:rows.reduce((n,x)=>n+x.equipped,0),total:rows.reduce((n,x)=>n+x.total,0)};}d.knownTails=f.equipped.map(x=>x.TailNumber).sort();d.roster=d.knownTails.map(tail=>({tail}));return {d,before};}
 let count=0;function test(name,fn){fn();count++;console.log('PASS '+name);}
+test('publisher MAX families and percentages remain separate',()=>{
+ const rows=sourceTypes([{family:'B737-MAX8',body:'narrowbody',installed:3,total:123,percentage:2.4},
+   {family:'B737-MAX9',body:'narrowbody',installed:35,total:183,percentage:19.1},
+   {family:'B737-MAX10',body:'narrowbody',installed:0,total:1,percentage:0}]);
+ assert.deepEqual(rows.map(x=>[x.type,x.equipped,x.total,x.percentage]),
+   [['737 MAX 8',3,123,2.4],['737 MAX 9',35,183,19.1],['737 MAX 10',0,1,0]]);
+});
 test('exact unadjusted source accepted without approval override',()=>{const a=args();const receipt=structuredClone(a.data.fleet.rebaseline);const g=membershipGate(a);assert.deepEqual(g.flags,[]);assert.equal(a.data.fleet.total,1679);assert.deepEqual(a.data.fleet.rebaseline,receipt);});
 test('large coherent publisher changes remain atomic and advisory',()=>{const a=args();a.data.fleet.equipped=1;a.data.fleet.total=10;const g=membershipGate(a);assert(!g.healed);assert.deepEqual(g.flags,[]);assert.equal(a.data.fleet.equipped,645);assert.equal(a.data.fleet.total,1679);assert.equal(a.data.fleet.plausibility.sourceComparisons.length,2);});
 test('unqualified legacy plausibility still rejects large changes',()=>{const a=args();a.data.fleet.total=10;const g=plausibilityGate(a.data,645,1679,a.today);assert(g.healed);assert(g.flags.length);assert.equal(a.data.fleet.total,10);});

@@ -99,8 +99,8 @@ data.fleet.equipped += 1;
 data.measurementAsOf = data.updated = new Date().toISOString().slice(0,10);
 data.knownTails.push('N20000');data.knownTails.sort();data.roster=data.knownTails.map(tail=>({tail}));
 const hash=require('crypto').createHash('sha256').update(data.knownTails.join('\\n')+'\\n').digest('hex');
-data.fleet.express.equipped=101;data.fleet.types[0].equipped=101;
-const p=data.fleet.membership;p.raw.equipped=p.corrected.equipped=101;p.equippedSha256=hash;p.sourceFamilies[0].installed=101;
+data.fleet.express.equipped=101;data.fleet.types[0].equipped=101;data.fleet.types[0].percentage=10.1;
+const p=data.fleet.membership;p.raw.equipped=p.corrected.equipped=101;p.equippedSha256=hash;p.sourceFamilies[0].installed=101;p.sourceFamilies[0].percentage=10.1;
 data.tracker.candidateMembership=structuredClone(p);data.tracker.publishedHeadline.equipped=101;
 if(process.env.TEST_FAILURE==='release-policy')data.fleet.membership.excludedTails=['N63571'];
 if (process.env.TEST_FAILURE === 'plausibility') data.fleet.plausibility.flags.push('fixture implausible measurement');
@@ -114,12 +114,12 @@ fs.writeFileSync(file, JSON.stringify(data) + '\\n');
   const membership={policyId:'ua-tracker-parity-20261023',sourceTimestamp,
     raw:{equipped:100,total:1000},corrected:{equipped:100,total:1000},excludedTails:[],
     rawMembershipSha256:'a'.repeat(64),membershipSha256:'a'.repeat(64),equippedSha256:equippedHash,
-    sourceFamilies:[{family:'E175',body:'regional',installed:100,total:1000}]};
+    sourceFamilies:[{family:'E175',body:'regional',installed:100,total:1000,percentage:10}]};
   write(repo, 'united/data.json', JSON.stringify({
     updated:date,measurementAsOf:date,history:[],leaderboard:[],knownTails,roster:knownTails.map(tail=>({tail})),
     tracker:{lastUpdated:sourceTimestamp,candidateMembership:structuredClone(membership),publishedHeadline:{equipped:100,total:1000,percentage:10,sourceTimestamp}},
     fleet:{equipped:100,total:1000,membership,mainline:{equipped:0,total:0},express:{equipped:100,total:1000},
-      types:[{type:'E175',equipped:100,total:1000,seg:'express'}],plausibility:{flags:[]}}
+      types:[{type:'E175',sourceFamily:'E175',equipped:100,total:1000,seg:'express',percentage:10}],plausibility:{flags:[]}}
   })+'\n');
   write(repo, 'assets/airlines.js', 'exports.WIFI_AIRLINES = {alaska:{equipped:1,fleet:10,segments:[{as:"2099-01-01"}]},hawaiian:{equipped:1,fleet:10,segments:[{as:"2099-01-01"}]}};\n');
   write(repo, 'assets/united-starlink-badge.svg', oldBadge);

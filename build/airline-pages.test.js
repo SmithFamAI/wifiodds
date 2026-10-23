@@ -221,7 +221,7 @@ function segN(system) {
 function fmt(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 function pct(n) { return Math.round(n / U.fleet * 100) + '%'; }
 var EXP = {
-  ng: U.equipped, ngPct: pct(U.equipped),
+  ng: U.equipped, ngPct: require('../united/data.json').tracker.publishedHeadline.percentage + '%',
   stream: segN('starlink') + segN('viasat') + segN('thales'),
   panasonic: segN('panasonic'), none: segN('none'), unresolved: U.unresolved.n,
   ml: U.nextGenSplit.mainline, rg: U.nextGenSplit.regional
@@ -327,7 +327,7 @@ LOCKED_KEYS.forEach(function (key) {
     assert.ok(!/\d+\s*%/.test(ng), key + ' next-gen field does not print a percent');
     assert.ok(!/\b0\b/.test(ng), key + ' next-gen field does not print a sourced-looking zero');
   } else {
-    assert.ok(nextGenStat(html).indexOf(String(scored.nextGenScore) + '%') !== -1,
+    assert.ok(nextGenStat(html).indexOf(String(key === 'united' ? require('../united/data.json').tracker.publishedHeadline.percentage : scored.nextGenScore) + '%') !== -1,
       key + ' next-gen field prints the published odds');
   }
 });

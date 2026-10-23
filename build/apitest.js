@@ -835,7 +835,13 @@ async function main() {
       ok(a.fleet.equippedPct > 0,
         a.key + ': a published nonzero equipped share never renders as fleet.equippedPct 0');
     }
-    if (a.fleet.equippedShare != null && a.nextGen.share != null &&
+    if (a.key === 'united') {
+      samePublishedShareCount++;
+      eq(a.fleet.equippedPct, a.fleet.membership.sourcePercentages.summary,
+        'United fleet percentage preserves the source summary without model rounding');
+      eq(a.fleet.equippedPctSource, 'https://unitedstarlinktracker.com/api/fleet-summary',
+        'United fleet percentage names the source surface');
+    } else if (a.fleet.equippedShare != null && a.nextGen.share != null &&
         a.fleet.equippedShare === a.nextGen.share) {
       samePublishedShareCount++;
       eq(a.fleet.equippedPct, a.nextGen.pct,
@@ -1015,7 +1021,7 @@ async function main() {
   eq(publishedNonzeroEquippedShareCount, 16,
     'all 16 published nonzero equipped shares are covered by the false-zero invariant');
   eq(samePublishedShareCount, 13,
-    'all 13 non-null equal-share airlines are covered by the percentage-agreement invariant');
+    'all 13 non-null equal-share airlines are covered by their source or modeled percentage contract');
 
   /* ── D2: United's mainline + regional next-gen odds sum to its own totals. ──
    * This is the check that stops the split from quietly drifting away from the

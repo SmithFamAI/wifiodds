@@ -47,7 +47,7 @@ export const SOURCES = [
     name: 'unitedstarlinktracker.com',
     url: 'https://unitedstarlinktracker.com',
     by: '@martinamps',
-    covers: 'United per-tail fleet verification and per-flight Starlink history'
+    covers: 'United tracker-listed fleet and per-flight Starlink history'
   },
   {
     name: 'alaskastarlinktracker.com',
@@ -352,7 +352,9 @@ export function airlineJson(key) {
        * caught. A consumer must check this field before trusting the pct. */
       equippedPublished: a.equippedPublished !== false,
       equippedShare: a.equippedPublished === false ? null : round(a.parts.pctEquipped, 4),
-      equippedPct: a.equippedPublished === false ? null : publishedPct(a.parts.pctEquipped),
+      equippedPct: a.equippedPublished === false ? null : (a.key === 'united'
+        ? (e.membership?.sourcePercentages?.summary ?? null) : publishedPct(a.parts.pctEquipped)),
+      equippedPctSource: a.key === 'united' ? 'https://unitedstarlinktracker.com/api/fleet-summary' : null,
       basis: a.fleet ? 'tail-counts' : 'fleetwide-coverage'
     },
     perFlightOdds: a.instrumented,

@@ -37,123 +37,173 @@
   "types": [
    {
     "type": "E175",
+    "sourceFamily": "E175",
     "equipped": 252,
     "total": 252,
-    "seg": "express"
+    "seg": "express",
+    "percentage": 100
    },
    {
     "type": "CRJ-550",
+    "sourceFamily": "CRJ-550",
     "equipped": 100,
     "total": 103,
-    "seg": "express"
+    "seg": "express",
+    "percentage": 97.1
    },
    {
     "type": "A321neo",
+    "sourceFamily": "A321",
     "equipped": 68,
     "total": 77,
-    "seg": "mainline"
+    "seg": "mainline",
+    "percentage": 88.3
    },
    {
     "type": "737-800",
+    "sourceFamily": "B737-800",
     "equipped": 99,
     "total": 141,
-    "seg": "mainline"
+    "seg": "mainline",
+    "percentage": 70.2
    },
    {
     "type": "737-900",
+    "sourceFamily": "B737-900",
     "equipped": 88,
     "total": 148,
-    "seg": "mainline"
+    "seg": "mainline",
+    "percentage": 59.5
    },
    {
-    "type": "737 MAX",
-    "equipped": 38,
-    "total": 307,
-    "seg": "mainline"
+    "type": "737 MAX 9",
+    "sourceFamily": "B737-MAX9",
+    "equipped": 35,
+    "total": 183,
+    "seg": "mainline",
+    "percentage": 19.1
    },
    {
     "type": "777",
+    "sourceFamily": "B777",
     "equipped": 4,
     "total": 96,
-    "seg": "mainline"
+    "seg": "mainline",
+    "percentage": 4.2
+   },
+   {
+    "type": "737 MAX 8",
+    "sourceFamily": "B737-MAX8",
+    "equipped": 3,
+    "total": 123,
+    "seg": "mainline",
+    "percentage": 2.4
    },
    {
     "type": "787",
+    "sourceFamily": "B787",
     "equipped": 2,
     "total": 96,
-    "seg": "mainline"
+    "seg": "mainline",
+    "percentage": 2.1
    },
    {
     "type": "CRJ-200",
+    "sourceFamily": "CRJ-200",
     "equipped": 0,
     "total": 90,
-    "seg": "express"
+    "seg": "express",
+    "percentage": 0
    },
    {
     "type": "A319",
+    "sourceFamily": "A319",
     "equipped": 0,
     "total": 76,
-    "seg": "mainline"
+    "seg": "mainline",
+    "percentage": 0
    },
    {
     "type": "A320",
+    "sourceFamily": "A320",
     "equipped": 0,
     "total": 71,
-    "seg": "mainline"
+    "seg": "mainline",
+    "percentage": 0
    },
    {
     "type": "757",
+    "sourceFamily": "B757",
     "equipped": 0,
     "total": 61,
-    "seg": "mainline"
+    "seg": "mainline",
+    "percentage": 0
    },
    {
     "type": "ERJ-145",
+    "sourceFamily": "ERJ-145",
     "equipped": 0,
     "total": 55,
-    "seg": "express"
+    "seg": "express",
+    "percentage": 0
    },
    {
     "type": "767",
+    "sourceFamily": "B767",
     "equipped": 0,
     "total": 53,
-    "seg": "mainline"
+    "seg": "mainline",
+    "percentage": 0
    },
    {
     "type": "737-700",
+    "sourceFamily": "B737-700",
     "equipped": 0,
     "total": 40,
-    "seg": "mainline"
+    "seg": "mainline",
+    "percentage": 0
    },
    {
     "type": "E170",
+    "sourceFamily": "E170",
     "equipped": 0,
     "total": 8,
-    "seg": "express"
+    "seg": "express",
+    "percentage": 0
    },
    {
     "type": "CRJ-700",
+    "sourceFamily": "CRJ-700",
     "equipped": 0,
     "total": 5,
-    "seg": "express"
+    "seg": "express",
+    "percentage": 0
+   },
+   {
+    "type": "737 MAX 10",
+    "sourceFamily": "B737-MAX10",
+    "equipped": 0,
+    "total": 1,
+    "seg": "mainline",
+    "percentage": 0
    },
    {
     "type": "Type not listed",
+    "sourceFamily": "unknown",
     "equipped": 0,
     "total": 1,
-    "seg": "mainline"
+    "seg": "mainline",
+    "percentage": 0
    }
   ],
   "plausibility": {
    "checkedOn": "2026-10-23",
    "bounds": {
-    "equipped": 57,
+    "equipped": 58,
     "total": 3
    },
    "flags": [],
-   "sourceComparisons": [
-    "source denominator moved 1678 → 1680; historical tolerance 3; publishing reconciled source unchanged"
-   ]
+   "sourceComparisons": []
   },
   "rebaseline": {
    "on": "2026-10-19",
@@ -187,7 +237,7 @@
   },
   "membership": {
    "policyId": "ua-tracker-parity-20261023",
-   "sourceTimestamp": "2026-10-23T16:12:56.432Z",
+   "sourceTimestamp": "2026-10-23T17:12:54.717Z",
    "registrySource": "https://unitedstarlinktracker.com/fleet",
    "raw": {
     "equipped": 651,
@@ -2645,14 +2695,24 @@
  ],
  "leaderboard": [
   {
-   "route": "LGA-ORD",
+   "route": "ORD-IAH",
    "departures": 18,
-   "next": "Oct 23 12:00 PM CDT"
+   "next": "Oct 23 12:45 PM CDT"
   },
   {
-   "route": "ORD-LGA",
+   "route": "IAH-ORD",
+   "departures": 15,
+   "next": "Oct 23 12:45 PM CDT"
+  },
+  {
+   "route": "DCA-EWR",
    "departures": 16,
-   "next": "Oct 23 12:00 PM CDT"
+   "next": "Oct 23 2:00 PM EDT"
+  },
+  {
+   "route": "EWR-DCA",
+   "departures": 16,
+   "next": "Oct 23 2:00 PM EDT"
   },
   {
    "route": "ORD-DEN",
@@ -2665,24 +2725,29 @@
    "next": "Oct 23 12:46 PM CDT"
   },
   {
-   "route": "ORD-IAH",
-   "departures": 18,
-   "next": "Oct 23 12:45 PM CDT"
+   "route": "LGA-ORD",
+   "departures": 17,
+   "next": "Oct 23 2:28 PM EDT"
   },
   {
-   "route": "IAH-ORD",
-   "departures": 13,
-   "next": "Oct 23 12:45 PM CDT"
-  },
-  {
-   "route": "DCA-EWR",
+   "route": "ORD-LGA",
    "departures": 15,
-   "next": "Oct 23 1:00 PM EDT"
+   "next": "Oct 23 2:28 PM EDT"
   },
   {
-   "route": "EWR-DCA",
+   "route": "ASE-DEN",
    "departures": 15,
-   "next": "Oct 23 1:00 PM EDT"
+   "next": "Oct 23 11:31 AM MDT"
+  },
+  {
+   "route": "DEN-ASE",
+   "departures": 14,
+   "next": "Oct 23 11:31 AM MDT"
+  },
+  {
+   "route": "PIT-EWR",
+   "departures": 15,
+   "next": "Oct 23 2:05 PM EDT"
   },
   {
    "route": "EWR-PIT",
@@ -2690,9 +2755,9 @@
    "next": "Oct 23 2:05 PM EDT"
   },
   {
-   "route": "PIT-EWR",
-   "departures": 14,
-   "next": "Oct 23 2:05 PM EDT"
+   "route": "SFO-ORD",
+   "departures": 15,
+   "next": "Oct 23 12:40 PM CDT"
   },
   {
    "route": "ORD-SFO",
@@ -2700,13 +2765,8 @@
    "next": "Oct 23 12:40 PM CDT"
   },
   {
-   "route": "SFO-ORD",
-   "departures": 14,
-   "next": "Oct 23 12:40 PM CDT"
-  },
-  {
    "route": "ORD-LAX",
-   "departures": 14,
+   "departures": 15,
    "next": "Oct 23 10:44 AM PDT"
   },
   {
@@ -2715,18 +2775,8 @@
    "next": "Oct 23 10:44 AM PDT"
   },
   {
-   "route": "ASE-DEN",
-   "departures": 13,
-   "next": "Oct 23 11:20 AM MDT"
-  },
-  {
-   "route": "DEN-ASE",
-   "departures": 13,
-   "next": "Oct 23 11:20 AM MDT"
-  },
-  {
    "route": "LAX-DEN",
-   "departures": 14,
+   "departures": 15,
    "next": "Oct 23 11:45 AM MDT"
   },
   {
@@ -2746,23 +2796,13 @@
   },
   {
    "route": "MCO-EWR",
-   "departures": 14,
-   "next": "Oct 23 1:10 PM EDT"
+   "departures": 15,
+   "next": "Oct 23 1:48 PM EDT"
   },
   {
    "route": "EWR-MCO",
-   "departures": 11,
-   "next": "Oct 23 1:10 PM EDT"
-  },
-  {
-   "route": "EWR-ORD",
-   "departures": 13,
-   "next": "Oct 23 1:08 PM EDT"
-  },
-  {
-   "route": "ORD-EWR",
-   "departures": 12,
-   "next": "Oct 23 1:08 PM EDT"
+   "departures": 10,
+   "next": "Oct 23 1:48 PM EDT"
   },
   {
    "route": "ORD-STL",
@@ -2805,14 +2845,44 @@
    "next": "Oct 23 1:50 PM EDT"
   },
   {
-   "route": "CMH-EWR",
+   "route": "EWR-ORD",
    "departures": 12,
-   "next": "Oct 23 1:20 PM EDT"
+   "next": "Oct 23 2:00 PM EDT"
+  },
+  {
+   "route": "ORD-EWR",
+   "departures": 11,
+   "next": "Oct 23 2:00 PM EDT"
+  },
+  {
+   "route": "ORD-LAS",
+   "departures": 13,
+   "next": "Oct 23 10:50 AM PDT"
+  },
+  {
+   "route": "LAS-ORD",
+   "departures": 10,
+   "next": "Oct 23 10:50 AM PDT"
+  },
+  {
+   "route": "CMH-EWR",
+   "departures": 11,
+   "next": "Oct 23 2:00 PM EDT"
   },
   {
    "route": "EWR-CMH",
+   "departures": 11,
+   "next": "Oct 23 2:00 PM EDT"
+  },
+  {
+   "route": "SFO-DEN",
+   "departures": 12,
+   "next": "Oct 23 1:29 PM MDT"
+  },
+  {
+   "route": "DEN-SFO",
    "departures": 10,
-   "next": "Oct 23 1:20 PM EDT"
+   "next": "Oct 23 1:29 PM MDT"
   },
   {
    "route": "EWR-IND",
@@ -2825,26 +2895,6 @@
    "next": "Oct 23 4:00 PM EDT"
   },
   {
-   "route": "ORD-LAS",
-   "departures": 12,
-   "next": "Oct 23 10:50 AM PDT"
-  },
-  {
-   "route": "LAS-ORD",
-   "departures": 10,
-   "next": "Oct 23 10:50 AM PDT"
-  },
-  {
-   "route": "EWR-DEN",
-   "departures": 11,
-   "next": "Oct 23 1:22 PM EDT"
-  },
-  {
-   "route": "DEN-EWR",
-   "departures": 10,
-   "next": "Oct 23 1:22 PM EDT"
-  },
-  {
    "route": "CMH-ORD",
    "departures": 10,
    "next": "Oct 23 12:53 PM CDT"
@@ -2855,14 +2905,14 @@
    "next": "Oct 23 12:53 PM CDT"
   },
   {
-   "route": "DEN-SFO",
+   "route": "DEN-EWR",
    "departures": 10,
-   "next": "Oct 23 11:15 AM MDT"
+   "next": "Oct 23 11:37 AM MDT"
   },
   {
-   "route": "SFO-DEN",
+   "route": "EWR-DEN",
    "departures": 10,
-   "next": "Oct 23 11:15 AM MDT"
+   "next": "Oct 23 11:37 AM MDT"
   },
   {
    "route": "DEN-SLC",
@@ -2873,11 +2923,21 @@
    "route": "SLC-DEN",
    "departures": 10,
    "next": "Oct 23 11:48 AM MDT"
+  },
+  {
+   "route": "LEX-ORD",
+   "departures": 10,
+   "next": "Oct 23 1:56 PM EDT"
+  },
+  {
+   "route": "ORD-LEX",
+   "departures": 10,
+   "next": "Oct 23 1:56 PM EDT"
   }
  ],
  "routeCache": {
   "DEN-SFO": {
-   "ts": "2026-10-23T16:56:55.470Z",
+   "ts": "2026-10-23T17:27:25.856Z",
    "flights": [],
    "itineraries": [
     {
@@ -2892,6 +2952,31 @@
        "route": "DEN-SFO",
        "p": 94,
        "obs": 74,
+       "conf": "high"
+      }
+     ]
+    },
+    {
+     "via": [
+      "CLD"
+     ],
+     "joint": 100,
+     "any": 100,
+     "coverage": "full",
+     "hours": 4.3,
+     "legs": [
+      {
+       "fn": "UA5507",
+       "route": "DEN-CLD",
+       "p": 100,
+       "obs": 7,
+       "conf": "high"
+      },
+      {
+       "fn": "UA5519",
+       "route": "CLD-SFO",
+       "p": 100,
+       "obs": 19,
        "conf": "high"
       }
      ]
@@ -2963,10 +3048,10 @@
        "conf": "high"
       },
       {
-       "fn": "UA4763",
+       "fn": "UA5457",
        "route": "SLC-SFO",
        "p": 100,
-       "obs": 74,
+       "obs": 12,
        "conf": "high"
       }
      ]
@@ -2978,7 +3063,7 @@
      "joint": 100,
      "any": 100,
      "coverage": "full",
-     "hours": 3.9,
+     "hours": 4,
      "legs": [
       {
        "fn": "UA5655",
@@ -2988,36 +3073,11 @@
        "conf": "high"
       },
       {
-       "fn": "UA5338",
+       "fn": "UA5349",
        "route": "FAT-SFO",
        "p": 100,
        "obs": 8,
        "conf": "high"
-      }
-     ]
-    },
-    {
-     "via": [
-      "MRY"
-     ],
-     "joint": 98.8,
-     "any": 100,
-     "coverage": "full",
-     "hours": 3.9,
-     "legs": [
-      {
-       "fn": "UA5438",
-       "route": "DEN-MRY",
-       "p": 100,
-       "obs": 73,
-       "conf": "high"
-      },
-      {
-       "fn": "UA5249",
-       "route": "MRY-SFO",
-       "p": 99,
-       "obs": 6,
-       "conf": "medium"
       }
      ]
     }
@@ -7744,8 +7804,8 @@
      "fn": "UA1214",
      "dep": "5:30 PM",
      "aircraft": "A321neo",
-     "prob": 61,
-     "obs": 95,
+     "prob": 62,
+     "obs": 96,
      "conf": "medium",
      "verdict": "good",
      "onRoute": true
@@ -7765,7 +7825,7 @@
      "dep": "7:56 PM",
      "aircraft": "737-800 / MAX mix",
      "prob": 32,
-     "obs": 123,
+     "obs": 124,
      "conf": "medium",
      "verdict": "risky",
      "onRoute": true
@@ -8504,13 +8564,13 @@
  "roster": [
   {
    "tail": "N37528",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-20"
   },
   {
    "tail": "N17405",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-19"
   },
@@ -8522,7 +8582,7 @@
   },
   {
    "tail": "N17441",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-18"
   },
@@ -8534,7 +8594,7 @@
   },
   {
    "tail": "N37561",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-17"
   },
@@ -8558,13 +8618,13 @@
   },
   {
    "tail": "N47570",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-15"
   },
   {
    "tail": "N37560",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-14"
   },
@@ -8576,19 +8636,19 @@
   },
   {
    "tail": "N37563",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-13"
   },
   {
    "tail": "N17574",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-12"
   },
   {
    "tail": "N27568",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-12"
   },
@@ -8606,19 +8666,19 @@
   },
   {
    "tail": "N77578",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-11"
   },
   {
    "tail": "N17411",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-10"
   },
   {
    "tail": "N77580",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-10"
   },
@@ -8630,13 +8690,13 @@
   },
   {
    "tail": "N17403",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-08"
   },
   {
    "tail": "N37318",
-   "type": "737 MAX",
+   "type": "737 MAX 8",
    "fleet": "mainline",
    "seen": "2026-10-08"
   },
@@ -8648,7 +8708,7 @@
   },
   {
    "tail": "N17432",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-07"
   },
@@ -8666,7 +8726,7 @@
   },
   {
    "tail": "N17566",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-05"
   },
@@ -8678,25 +8738,25 @@
   },
   {
    "tail": "N37516",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-05"
   },
   {
    "tail": "N17423",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-03"
   },
   {
    "tail": "N37513",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-03"
   },
   {
    "tail": "N47517",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-03"
   },
@@ -8708,13 +8768,13 @@
   },
   {
    "tail": "N17410",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-10-02"
   },
   {
    "tail": "N37308",
-   "type": "737 MAX",
+   "type": "737 MAX 8",
    "fleet": "mainline",
    "seen": "2026-10-02"
   },
@@ -8750,7 +8810,7 @@
   },
   {
    "tail": "N17565",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-09-29"
   },
@@ -8774,13 +8834,13 @@
   },
   {
    "tail": "N37531",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-09-27"
   },
   {
    "tail": "N37538",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-09-27"
   },
@@ -8792,7 +8852,7 @@
   },
   {
    "tail": "N37530",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-09-26"
   },
@@ -8804,7 +8864,7 @@
   },
   {
    "tail": "N27539",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-09-25"
   },
@@ -8822,7 +8882,7 @@
   },
   {
    "tail": "N27519",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-09-24"
   },
@@ -8870,7 +8930,7 @@
   },
   {
    "tail": "N27509",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-09-19"
   },
@@ -8882,7 +8942,7 @@
   },
   {
    "tail": "N37532",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-09-18"
   },
@@ -8894,7 +8954,7 @@
   },
   {
    "tail": "N17326",
-   "type": "737 MAX",
+   "type": "737 MAX 8",
    "fleet": "mainline",
    "seen": "2026-09-17"
   },
@@ -8906,7 +8966,7 @@
   },
   {
    "tail": "N37440",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-09-16"
   },
@@ -8918,7 +8978,7 @@
   },
   {
    "tail": "N17420",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-09-14"
   },
@@ -8930,7 +8990,7 @@
   },
   {
    "tail": "N37537",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-09-14"
   },
@@ -8942,7 +9002,7 @@
   },
   {
    "tail": "N27419",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-09-11"
   },
@@ -8966,13 +9026,13 @@
   },
   {
    "tail": "N17401",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-09-09"
   },
   {
    "tail": "N27439",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-09-09"
   },
@@ -9314,7 +9374,7 @@
   },
   {
    "tail": "N47569",
-   "type": "737 MAX",
+   "type": "737 MAX 9",
    "fleet": "mainline",
    "seen": "2026-08-07"
   },
@@ -12413,10 +12473,10 @@
  "measurementAsOf": "2026-10-23",
  "tracker": {
   "source": "unitedstarlinktracker.com/api/data",
-  "lastUpdated": "2026-10-23T16:12:56.432Z",
+  "lastUpdated": "2026-10-23T17:12:54.717Z",
   "candidateMembership": {
    "policyId": "ua-tracker-parity-20261023",
-   "sourceTimestamp": "2026-10-23T16:12:56.432Z",
+   "sourceTimestamp": "2026-10-23T17:12:54.717Z",
    "registrySource": "https://unitedstarlinktracker.com/fleet",
    "raw": {
     "equipped": 651,
@@ -12586,7 +12646,7 @@
    "equipped": 651,
    "total": 1680,
    "percentage": 38,
-   "sourceTimestamp": "2026-10-23T16:12:56.432Z",
+   "sourceTimestamp": "2026-10-23T17:12:54.717Z",
    "source": "https://unitedstarlinktracker.com/"
   }
  }
