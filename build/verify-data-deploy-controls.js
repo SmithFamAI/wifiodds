@@ -11,7 +11,7 @@ const ROOT = path.resolve(__dirname, '..');
 const canary = require('./verify-data-deploy.js');
 
 const work = fs.mkdtempSync(path.join(os.tmpdir(), 'wifiodds-data-canary-'));
-// These six controls exercise the unchanged ordinary/raw-equality contract.
+// These controls exercise the unchanged ordinary/raw-equality contract.
 // Corrected-source proof has separate full-population controls. A disposable
 // reviewed tree keeps this suite usable after production adopts that policy.
 const reviewed = path.join(work,'reviewed');
@@ -77,6 +77,62 @@ assert.strictEqual(canary.unitedPagesLag({
   measurementAsOf: localUnited.measurementAsOf,
   fleet: { equipped: localUnited.fleet.equipped + 1, total: localUnited.fleet.total }
 }, { united: localUnited }), false, 'same-date wrong count is not Pages lag');
+
+// The pre-fix predicate. Same-day commits share measurementAsOf, so this
+// returned false and the confirm step hard-failed on the byte check. The
+// assertions below fail if unitedPagesLag() is reverted to this.
+function unitedPagesLagBeforeSameDateBytes(served, expected) {
+  if (!served || !served.fleet) return false;
+  const asOf = served.measurementAsOf || served.updated;
+  const expAsOf = expected.united && expected.united.measurementAsOf;
+  if (typeof asOf !== 'string' || typeof expAsOf !== 'string' || asOf >= expAsOf) return false;
+  const equipped = served.fleet.equipped;
+  const total = served.fleet.total;
+  if (!Number.isInteger(equipped) || !Number.isInteger(total) || total <= 0 || equipped < 0 || equipped > total) {
+    return false;
+  }
+  return true;
+}
+const sameDateBytes = Buffer.from(JSON.stringify(localUnited));
+const sameDateExpected = { united: localUnited, unitedBytes: sameDateBytes };
+const sameDateServed = JSON.parse(sameDateBytes.toString('utf8'));
+const differentBytes = Buffer.from(JSON.stringify(Object.assign(JSON.parse(sameDateBytes.toString('utf8')), { earlierSameDay: true })));
+const differentServed = JSON.parse(differentBytes.toString('utf8'));
+const invalidServed = JSON.parse(differentBytes.toString('utf8'));
+invalidServed.fleet = { equipped: -1, total: localUnited.fleet.total };
+const newerServed = JSON.parse(differentBytes.toString('utf8'));
+newerServed.measurementAsOf = '2999-01-01';
+const olderServed = {
+  measurementAsOf: dayBefore(localUnited.measurementAsOf),
+  fleet: { equipped: localUnited.fleet.equipped - 9, total: localUnited.fleet.total }
+};
+const requireBytes = { requireCurrent: true, servedBytes: differentBytes };
+assert.strictEqual(unitedPagesLagBeforeSameDateBytes(differentServed, sameDateExpected), false,
+  'self-test: old logic does not treat a same-date byte mismatch as lag');
+assert.notStrictEqual(
+  canary.unitedPagesLag(differentServed, sameDateExpected, requireBytes),
+  unitedPagesLagBeforeSameDateBytes(differentServed, sameDateExpected),
+  'self-test: same-date byte lag must fail against the old logic'
+);
+assert.strictEqual(canary.unitedPagesLag(olderServed, sameDateExpected), true,
+  'served older date is Pages lag');
+assert.strictEqual(canary.unitedPagesLag(differentServed, sameDateExpected, requireBytes), true,
+  'served same date, valid shape, different bytes, --require-current is Pages lag');
+assert.strictEqual(canary.unitedPagesLag(sameDateServed, sameDateExpected, {
+  requireCurrent: true, servedBytes: sameDateBytes
+}), false, 'served same date and identical bytes is not Pages lag');
+assert.strictEqual(canary.unitedPagesLag(invalidServed, sameDateExpected, {
+  requireCurrent: true, servedBytes: Buffer.from(JSON.stringify(invalidServed))
+}), false, 'served same date with an invalid shape is not Pages lag');
+assert.strictEqual(canary.unitedPagesLag(newerServed, sameDateExpected, {
+  requireCurrent: true, servedBytes: Buffer.from(JSON.stringify(newerServed))
+}), false, 'served newer date is not Pages lag');
+assert.strictEqual(canary.unitedPagesLag(differentServed, sameDateExpected, {
+  requireCurrent: false, servedBytes: differentBytes
+}), false, 'without --require-current a same-date byte mismatch is not Pages lag');
+assert.strictEqual(canary.unitedPagesLag(differentServed, sameDateExpected), false,
+  'without --require-current the two-argument call is unchanged');
+console.log('self-test: old same-date byte predicate is not lag; current predicate is lag');
 
 function run(expect, name, extraArgs) {
   const result = cp.spawnSync(process.execPath,
@@ -147,5 +203,71 @@ fs.writeFileSync(alaskaFile, JSON.stringify(apiPayload.alaska));
 
 run(0, 'clean fixture');
 
+function dayAfter(iso) {
+  const d = new Date(iso + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+function installCurrentRoutes() {
+  fs.copyFileSync(path.join(reviewed, 'assets/united-starlink-badge.svg'), path.join(work, 'assets/united-starlink-badge.svg'));
+  const unitedApi = { airline: { fleet: { equipped: localUnited.fleet.equipped, total: localUnited.fleet.total } } };
+  const file = path.join(work, 'api', 'airlines', 'united');
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, JSON.stringify(unitedApi));
+}
+function writeServedUnited(mutate) {
+  const served = JSON.parse(fs.readFileSync(unitedFile, 'utf8'));
+  mutate(served);
+  fs.writeFileSync(unitedFile, JSON.stringify(served));
+}
+installCurrentRoutes();
+run(0, 'require-current same-date identical bytes', ['--require-current']);
+
+writeServedUnited(function (served) { served.earlierSameDay = true; });
+result = run(3, 'require-current same-date different bytes', ['--require-current']);
+if (!/LAG United Pages still serving/.test(result.stdout) || !/propagation lag/.test(result.stderr)) {
+  console.error('same-date byte lag was not retried:\n' + result.stdout + result.stderr);
+  process.exit(1);
+}
+if (result.stdout.indexOf('as of ' + localUnited.measurementAsOf) < 0) {
+  console.error('same-date byte lag did not name the shared measurement date:\n' + result.stdout);
+  process.exit(1);
+}
+copy('united/data.json');
+
+writeServedUnited(function (served) { served.fleet.equipped = -1; });
+result = run(1, 'require-current same-date invalid shape', ['--require-current']);
+if (/propagation lag/.test(result.stderr) || /LAG United Pages/.test(result.stdout)) {
+  console.error('invalid shape was treated as Pages lag:\n' + result.stdout + result.stderr);
+  process.exit(1);
+}
+copy('united/data.json');
+
+writeServedUnited(function (served) { served.measurementAsOf = dayAfter(localUnited.measurementAsOf); });
+result = run(1, 'require-current newer measurement date', ['--require-current']);
+if (!/United measurementAsOf=/.test(result.stderr) || /propagation lag/.test(result.stderr) || /LAG United Pages/.test(result.stdout)) {
+  console.error('newer measurement date did not stay a hard failure:\n' + result.stdout + result.stderr);
+  process.exit(1);
+}
+copy('united/data.json');
+
+writeServedUnited(function (served) { served.earlierSameDay = true; });
+result = run(1, 'same-date different bytes without --require-current');
+if (/LAG United Pages/.test(result.stdout) || !/United body differs/.test(result.stderr)) {
+  console.error('same-date byte mismatch without --require-current changed behavior:\n' + result.stdout + result.stderr);
+  process.exit(1);
+}
+copy('united/data.json');
+
+const homeFile = path.join(work, 'index.html');
+const homeBytes = fs.readFileSync(homeFile);
+fs.writeFileSync(homeFile, Buffer.concat([homeBytes, Buffer.from('\n')]));
+result = run(1, 'require-current homepage mismatch with current United JSON', ['--require-current']);
+fs.writeFileSync(homeFile, homeBytes);
+if (/propagation lag/.test(result.stderr) || /LAG United Pages/.test(result.stdout) || !/homepage bytes differ/.test(result.stderr)) {
+  console.error('current United JSON did not keep a homepage mismatch hard:\n' + result.stdout + result.stderr);
+  process.exit(1);
+}
+
 fs.rmSync(work, { recursive: true, force: true });
-console.log('verify-data-deploy controls: 6 passed');
+console.log('verify-data-deploy controls: 12 passed');
