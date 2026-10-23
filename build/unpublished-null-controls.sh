@@ -7,13 +7,22 @@ observed=0
 work=$(mktemp -d "${TMPDIR:-/tmp}/wifiodds-unpublished-null.XXXXXX")
 trap 'rm -rf "$work"' EXIT HUP INT TERM
 
+isolate() {
+  target="$work/$1"
+  mkdir -p "$target"
+  # Test the candidate bytes, including uncommitted changes, rather than HEAD.
+  git ls-files -z | tar -cf - --null -T - | tar -xf - -C "$target"
+  git -C "$target" init -q
+  git -C "$target" add -A
+  git -C "$target" -c user.name='WiFi Odds control' -c user.email='controls@wifiodds.invalid' \
+    commit -q -m 'control baseline'
+}
+
 run_mutation() {
   name=$1
   expression=$2
   replacement=$3
-  target="$work/$name"
-  mkdir -p "$target"
-  git archive HEAD | tar -x -C "$target"
+  isolate "$name"
   perl -0pi -e "s/\\Q$expression\\E/$replacement/ or die qq(mutation did not land\\n)" \
     "$target/functions/_lib/api.mjs"
   if (cd "$target" && node build/apitest.js >/dev/null 2>&1); then
@@ -25,8 +34,8 @@ run_mutation() {
 }
 
 run_mutation equipped-pct-zero \
-  'equippedPct: a.equippedPublished === false ? null : publishedPct(a.parts.pctEquipped)' \
-  'equippedPct: a.equippedPublished === false ? 0 : publishedPct(a.parts.pctEquipped)'
+  'equippedPct: a.equippedPublished === false ? null :' \
+  'equippedPct: a.equippedPublished === false ? 0 :'
 run_mutation equipped-share-zero \
   'equippedShare: a.equippedPublished === false ? null : round(a.parts.pctEquipped, 4)' \
   'equippedShare: a.equippedPublished === false ? 0 : round(a.parts.pctEquipped, 4)'
@@ -42,7 +51,8 @@ run_mutation nextgen-ranked-true \
   'ranked: a.nextGenPublished !== false,' \
   'ranked: true,'
 
-node build/apitest.js >/dev/null
+isolate clean
+(cd "$target" && node build/apitest.js >/dev/null)
 observed=$((observed + 1))
 echo "PASS clean: unpublished equipped values remain false and null, unpublished next-gen is not a numeric 0"
 
