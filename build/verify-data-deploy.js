@@ -66,17 +66,22 @@ function parseUnitedTrackerCount(html) {
   return { equipped: equipped, total: total };
 }
 
-function unitedPagesLag(served, expected) {
+function unitedPagesLag(served, expected, detail) {
   if (!served || !served.fleet) return false;
   const asOf = served.measurementAsOf || served.updated;
   const expAsOf = expected.united && expected.united.measurementAsOf;
-  if (typeof asOf !== 'string' || typeof expAsOf !== 'string' || asOf >= expAsOf) return false;
+  if (typeof asOf !== 'string' || typeof expAsOf !== 'string' || asOf > expAsOf) return false;
   const equipped = served.fleet.equipped;
   const total = served.fleet.total;
-  if (!Number.isInteger(equipped) || !Number.isInteger(total) || total <= 0 || equipped < 0 || equipped > total) {
-    return false;
-  }
-  return true;
+  const shapeOk = Number.isInteger(equipped) && Number.isInteger(total) && total > 0 && equipped >= 0 && equipped <= total;
+  if (asOf < expAsOf) return shapeOk;
+  // Same measurementAsOf. A second same-day ship keeps this date. Under
+  // --require-current, Pages still serving the earlier body is lag (exit 3).
+  // An invalid shape stays a hard failure. refreshAttemptedOn is only a
+  // calendar date, so it does not separate two commits from the same day.
+  if (!shapeOk || !detail || detail.requireCurrent !== true) return false;
+  if (detail.servedBytes == null || expected.unitedBytes == null) return false;
+  return sha(detail.servedBytes) !== sha(expected.unitedBytes);
 }
 
 async function get(base, fixture, route, sample) {
@@ -184,7 +189,10 @@ async function sample(base, fixture, expected, n, requireCurrent = false) {
   }
 
   const servedUnited = json(values[0].body, 'served United data');
-  if (unitedPagesLag(servedUnited, expected)) {
+  if (unitedPagesLag(servedUnited, expected, {
+    requireCurrent: process.argv.includes('--require-current'),
+    servedBytes: values[0].body
+  })) {
     console.log('sample ' + n + ' LAG United Pages still serving ' +
       servedUnited.fleet.equipped + '/' + servedUnited.fleet.total +
       ' as of ' + (servedUnited.measurementAsOf || servedUnited.updated) +
