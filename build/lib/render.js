@@ -2782,7 +2782,7 @@ function methodologyPageLegacy(m) {
     '  <span class="kicker"><span class="dot"></span>Methodology · data eff ' +
     esc(H.plateDate(m.updated)) + '</span>\n' +
     '  <h1 class="ph">How WiFi Odds knows what it knows</h1>\n' +
-    '  <p class="lede">Every number on this site is listed by the tracker by an independent ' +
+    '  <p class="lede">Every number on this site is reported by an independent ' +
     'community tracker, derived from an aircraft type, or modelled from what an airline said in ' +
     'public. The page says which. Below: the confidence tiers, the formula with a worked example, ' +
     'the fence around the projected number, the three measurements of Starlink speed that disagree ' +
@@ -3996,7 +3996,7 @@ function alaskaRollout(m) {
           'Yes — where Starlink is installed it is free for everyone onboard, with no loyalty program, ' +
           'tier or purchase required.'],
         ['How many Alaska planes have Starlink?',
-          num(al.equipped) + ' of ' + num(al.fleet) + ' (' + pct + '%), listed by the tracker by ' +
+          num(al.equipped) + ' of ' + num(al.fleet) + ' (' + pct + '%), verified tail by tail by ' +
           'alaskastarlinktracker.com (@martinamps), an independent community tracker.']
       ].map(function (f) {
         return { '@type': 'Question', name: f[0], acceptedAnswer: { '@type': 'Answer', text: f[1] } };
