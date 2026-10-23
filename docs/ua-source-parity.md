@@ -1,0 +1,15 @@
+# United tracker source parity
+
+Jeremy's October 23, 2026 instruction is to match unitedstarlinktracker.com. This supersedes the October 19 N63571 exclusion. Historical acceptance and data rows remain records; the old hold expiry does not govern raw source publication. No bespoke denominator acceptance or independent aircraft correction is applied.
+
+The updater requires a coherent, fresh API, summary, full registry and public headline. Unique membership, exact equipped sets, family and segment counts, source dates, bounded clock settling and publisher attribution remain mandatory. Disagreement stops before writing. Current source:651/1680 at2026-10-23T16:12:56.432Z. N63571 remains included; N37483 is included but not equipped. This does not establish delivery, operation, airworthiness or equipment for either tail.
+
+For a fully reconciled cohort, numerical changes relative to history become explicit sourceComparisons instead of corrections or pair-specific owner approvals. Counts remain atomic and unchanged. Unqualified calls retain old plausibility behavior; missing official publisher context still raises a blocking flag. WIFIODDS_REBASELINE cannot select counts. This intentional semantic change requires exact Tier A review before release.
+
+All fleet type rows derive from the same source families, including small and unknown families; roster types use the validated registry mapping. Old history/acceptance and separately dated official publisher figures remain unchanged. Membership raw and corrected are equal, excludedTails is empty, policyId is ua-tracker-parity-20261023. Release validation binds count, segment, type, roster, headline, provenance and freshness. Existing ship and review gates still apply.
+
+The source homepage truncates to38%, summary reports38.8%; mainline HTML25% versus API25.621251%, express HTML68% versus API68.615984%. The homepage labels its captured tracker headline separately from WiFiOdds modeled scores. Per-flight estimates, the curated-flight MAX risk heuristic and composite scoring remain modeled metrics outside this scope. N641SY is listed/not yet verified in the registry although source segment unverified fields say zero. Preserve its source membership and qualify aggregate claims as tracker-listed.
+
+Exact source bodies/clocks are retained in the private task evidence. No fixture is live evidence. Reacquire/requalify if older than two hours or changed; do not edit clocks. No ownership, schedule, model, access or unrelated PR35 change.
+
+Engineering hold: two headless social-card renders timed out. The first wrote pixels but did not complete finalization; the second also timed out. No third attempt under the repository two-try rule. The generator now specifies the captured38% and tracker-listed wording, but PNG/manifest still contain prior production bytes. Aggregate checks must remain failing for this stale artifact. Complete rendering on a different authorized system, rerun aggregate checks and obtain a new exact-candidate review before seeking publication approval. Never publish the obsolete adjusted1679 candidate70569d5.

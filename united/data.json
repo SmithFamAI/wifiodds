@@ -1,9 +1,9 @@
 {
- "updated": "2026-10-22",
+ "updated": "2026-10-23",
  "source": "unitedstarlinktracker.com (API + server pages), seeded from 7/23/2026 research pull",
  "fleet": {
-  "equipped": 650,
-  "total": 1678,
+  "equipped": 651,
+  "total": 1680,
   "published": {
    "equipped": 450,
    "total": 1552,
@@ -19,10 +19,10 @@
    "crossCheck": "United's own Investor Update of 2026-01-20 (ir.united.com/static-files/4e68b31c-fddf-4a62-9573-bdf931dd26cc) planned 2Q26 at 1,129 mainline + 432 regional = 1,561; the actual 1,552 lands 9 aircraft under plan.",
    "whyBothFields": "equipped and total here come from ONE publisher describing ONE population, so the ratio is coherent. The tracker's live equipped (fleet.equipped) counts a LARGER population than United's own fleet -- fleet.total is the tracker's population, not United's. Dividing the tracker's equipped by United's total would overstate United's share. Do not mix the two."
   },
-  "last30": 57,
+  "last30": 58,
   "mainline": {
-   "equipped": 298,
-   "total": 1165
+   "equipped": 299,
+   "total": 1167
   },
   "express": {
    "equipped": 352,
@@ -36,27 +36,27 @@
   ],
   "types": [
    {
-    "type": "CRJ-550",
-    "equipped": 100,
-    "total": 103,
-    "seg": "express"
-   },
-   {
     "type": "E175",
     "equipped": 252,
     "total": 252,
     "seg": "express"
    },
    {
-    "type": "737-800",
-    "equipped": 99,
-    "total": 141,
-    "seg": "mainline"
+    "type": "CRJ-550",
+    "equipped": 100,
+    "total": 103,
+    "seg": "express"
    },
    {
     "type": "A321neo",
     "equipped": 68,
     "total": 77,
+    "seg": "mainline"
+   },
+   {
+    "type": "737-800",
+    "equipped": 99,
+    "total": 141,
     "seg": "mainline"
    },
    {
@@ -66,37 +66,94 @@
     "seg": "mainline"
    },
    {
+    "type": "737 MAX",
+    "equipped": 38,
+    "total": 307,
+    "seg": "mainline"
+   },
+   {
     "type": "777",
     "equipped": 4,
     "total": 96,
     "seg": "mainline"
    },
    {
-    "type": "737 MAX 8/9",
-    "equipped": 0,
-    "total": 285,
+    "type": "787",
+    "equipped": 2,
+    "total": 96,
     "seg": "mainline"
    },
    {
-    "type": "A319 / A320",
+    "type": "CRJ-200",
     "equipped": 0,
-    "total": 143,
+    "total": 90,
+    "seg": "express"
+   },
+   {
+    "type": "A319",
+    "equipped": 0,
+    "total": 76,
     "seg": "mainline"
    },
    {
-    "type": "757-300",
+    "type": "A320",
     "equipped": 0,
-    "total": 60,
+    "total": 71,
+    "seg": "mainline"
+   },
+   {
+    "type": "757",
+    "equipped": 0,
+    "total": 61,
+    "seg": "mainline"
+   },
+   {
+    "type": "ERJ-145",
+    "equipped": 0,
+    "total": 55,
+    "seg": "express"
+   },
+   {
+    "type": "767",
+    "equipped": 0,
+    "total": 53,
+    "seg": "mainline"
+   },
+   {
+    "type": "737-700",
+    "equipped": 0,
+    "total": 40,
+    "seg": "mainline"
+   },
+   {
+    "type": "E170",
+    "equipped": 0,
+    "total": 8,
+    "seg": "express"
+   },
+   {
+    "type": "CRJ-700",
+    "equipped": 0,
+    "total": 5,
+    "seg": "express"
+   },
+   {
+    "type": "Type not listed",
+    "equipped": 0,
+    "total": 1,
     "seg": "mainline"
    }
   ],
   "plausibility": {
-   "checkedOn": "2026-10-22",
+   "checkedOn": "2026-10-23",
    "bounds": {
     "equipped": 57,
     "total": 3
    },
-   "flags": []
+   "flags": [],
+   "sourceComparisons": [
+    "source denominator moved 1678 → 1680; historical tolerance 3; publishing reconciled source unchanged"
+   ]
   },
   "rebaseline": {
    "on": "2026-10-19",
@@ -129,38 +186,172 @@
    }
   },
   "membership": {
-   "sourceTimestamp": "2026-10-22T17:30:07.211Z",
+   "policyId": "ua-tracker-parity-20261023",
+   "sourceTimestamp": "2026-10-23T16:12:56.432Z",
    "registrySource": "https://unitedstarlinktracker.com/fleet",
    "raw": {
-    "equipped": 650,
-    "total": 1679
+    "equipped": 651,
+    "total": 1680
    },
    "corrected": {
-    "equipped": 650,
-    "total": 1678
+    "equipped": 651,
+    "total": 1680
    },
-   "excludedTails": [
-    "N63571"
-   ],
-   "rawMembershipSha256": "0ad2498535428ed0787c5b6ff1cbfe8df2808e9987d9f35d010e785d6120e669",
-   "membershipSha256": "147302a88365849f8aa3ab619691c8e036307ffd16b462f4c1c15bc95f8668ab",
-   "equippedSha256": "c60e1a443e0e9a1e180451e24b240f93dbccad8de89ebb05d1752aa0ce777204",
+   "excludedTails": [],
+   "rawMembershipSha256": "8b8edaa403113379cfd0d28247d0d956ee74e07de808e7ff42ec36354bae49d6",
+   "membershipSha256": "8b8edaa403113379cfd0d28247d0d956ee74e07de808e7ff42ec36354bae49d6",
+   "equippedSha256": "7abf6e53c1d15c67413c7b62c70e7d4694fe62a73b841a74c2142e1eb4065511",
    "setHashEncoding": "UTF-8 sorted tails, LF separated, one final LF",
-   "policyId": "ua-n63571-20261019",
-   "holdId": "ua-n63571-faa-20261019",
-   "evidence": {
-    "url": "https://registry.faa.gov/aircraftinquiry/Search/NNumberResult?NNumberTxt=63571",
-    "responseSha256": "b095247c054980719b626d83833ca6ce0fbdb451fb453953097d727cedd54524",
-    "manufacturer": "AEROSTAR INTERNATIONAL INC",
-    "model": "RX 8",
-    "serial": "RX8-3127",
-    "aircraftType": "Balloon",
-    "registrationStatus": "Valid",
-    "pendingNumberChange": "None"
+   "listedNotVerifiedTails": [
+    "N641SY"
+   ],
+   "sourcePercentages": {
+    "summary": 38.8,
+    "mainline": 25.621251071122536,
+    "express": 68.61598440545808
    },
-   "evidenceObservedAt": "2026-10-19T14:20:41.605Z",
-   "expiresAt": "2026-10-26T14:20:41.605Z",
-   "disclosure": "WiFiOdds corrected United population: 650/1,678; raw tracker: 650/1,679. N63571 is excluded because the FAA record identifies balloon RX8-3127 (checked 2026-10-19T14:20:41.605Z). This temporary hold expires October 26, 2026 at 14:20:41 UTC. Source snapshot: 2026-10-22T17:30:07.211Z. N37484 remains included; this does not confirm legal delivery or Starlink. The historical B787 change from 95 to 96 remains unresolved."
+   "sourceFamilies": [
+    {
+     "family": "E175",
+     "body": "regional",
+     "installed": 252,
+     "total": 252,
+     "percentage": 100
+    },
+    {
+     "family": "CRJ-550",
+     "body": "regional",
+     "installed": 100,
+     "total": 103,
+     "percentage": 97.1
+    },
+    {
+     "family": "A321",
+     "body": "narrowbody",
+     "installed": 68,
+     "total": 77,
+     "percentage": 88.3
+    },
+    {
+     "family": "B737-800",
+     "body": "narrowbody",
+     "installed": 99,
+     "total": 141,
+     "percentage": 70.2
+    },
+    {
+     "family": "B737-900",
+     "body": "narrowbody",
+     "installed": 88,
+     "total": 148,
+     "percentage": 59.5
+    },
+    {
+     "family": "B737-MAX9",
+     "body": "narrowbody",
+     "installed": 35,
+     "total": 183,
+     "percentage": 19.1
+    },
+    {
+     "family": "B777",
+     "body": "widebody",
+     "installed": 4,
+     "total": 96,
+     "percentage": 4.2
+    },
+    {
+     "family": "B737-MAX8",
+     "body": "narrowbody",
+     "installed": 3,
+     "total": 123,
+     "percentage": 2.4
+    },
+    {
+     "family": "B787",
+     "body": "widebody",
+     "installed": 2,
+     "total": 96,
+     "percentage": 2.1
+    },
+    {
+     "family": "CRJ-200",
+     "body": "regional",
+     "installed": 0,
+     "total": 90,
+     "percentage": 0
+    },
+    {
+     "family": "A319",
+     "body": "narrowbody",
+     "installed": 0,
+     "total": 76,
+     "percentage": 0
+    },
+    {
+     "family": "A320",
+     "body": "narrowbody",
+     "installed": 0,
+     "total": 71,
+     "percentage": 0
+    },
+    {
+     "family": "B757",
+     "body": "narrowbody",
+     "installed": 0,
+     "total": 61,
+     "percentage": 0
+    },
+    {
+     "family": "ERJ-145",
+     "body": "regional",
+     "installed": 0,
+     "total": 55,
+     "percentage": 0
+    },
+    {
+     "family": "B767",
+     "body": "widebody",
+     "installed": 0,
+     "total": 53,
+     "percentage": 0
+    },
+    {
+     "family": "B737-700",
+     "body": "narrowbody",
+     "installed": 0,
+     "total": 40,
+     "percentage": 0
+    },
+    {
+     "family": "E170",
+     "body": "regional",
+     "installed": 0,
+     "total": 8,
+     "percentage": 0
+    },
+    {
+     "family": "CRJ-700",
+     "body": "regional",
+     "installed": 0,
+     "total": 5,
+     "percentage": 0
+    },
+    {
+     "family": "B737-MAX10",
+     "body": "narrowbody",
+     "installed": 0,
+     "total": 1,
+     "percentage": 0
+    },
+    {
+     "family": "unknown",
+     "body": "narrowbody",
+     "installed": 0,
+     "total": 1,
+     "percentage": 0
+    }
+   ]
   }
  },
  "history": [
@@ -2373,302 +2564,334 @@
    },
    "moved": [],
    "newTails": []
+  },
+  {
+   "date": "2026-10-23",
+   "equipped": 651,
+   "total": 1680,
+   "mainline": 299,
+   "express": 352,
+   "types": {
+    "757": 0,
+    "767": 0,
+    "777": 4,
+    "787": 2,
+    "E175": 252,
+    "CRJ-550": 100,
+    "A321neo": 68,
+    "737-800": 99,
+    "737-900": 88,
+    "737 MAX": 38,
+    "CRJ-200": 0,
+    "A319": 0,
+    "A320": 0,
+    "ERJ-145": 0,
+    "737-700": 0,
+    "E170": 0,
+    "CRJ-700": 0,
+    "Type not listed": 0
+   },
+   "leaderboard": {
+    "LGA-ORD": 18,
+    "ORD-LGA": 16,
+    "ORD-DEN": 17,
+    "DEN-ORD": 15,
+    "ORD-IAH": 18,
+    "IAH-ORD": 13,
+    "DCA-EWR": 15,
+    "EWR-DCA": 15,
+    "EWR-PIT": 14,
+    "PIT-EWR": 14,
+    "ORD-SFO": 14,
+    "SFO-ORD": 14,
+    "ORD-LAX": 14,
+    "LAX-ORD": 13,
+    "ASE-DEN": 13,
+    "DEN-ASE": 13,
+    "LAX-DEN": 14,
+    "DEN-LAX": 12,
+    "ORD-IND": 14,
+    "IND-ORD": 12,
+    "MCO-EWR": 14,
+    "EWR-MCO": 11,
+    "EWR-ORD": 13,
+    "ORD-EWR": 12,
+    "ORD-STL": 13,
+    "STL-ORD": 12,
+    "DEN-IAH": 12,
+    "IAH-DEN": 12,
+    "MCO-ORD": 12,
+    "ORD-MCO": 12,
+    "ORD-SDF": 12,
+    "SDF-ORD": 12,
+    "CMH-EWR": 12,
+    "EWR-CMH": 10,
+    "EWR-IND": 11,
+    "IND-EWR": 11,
+    "ORD-LAS": 12,
+    "LAS-ORD": 10,
+    "EWR-DEN": 11,
+    "DEN-EWR": 10,
+    "CMH-ORD": 10,
+    "ORD-CMH": 10,
+    "DEN-SFO": 10,
+    "SFO-DEN": 10,
+    "DEN-SLC": 10,
+    "SLC-DEN": 10
+   },
+   "moved": [],
+   "newTails": []
   }
  ],
  "leaderboard": [
   {
-   "route": "ORD-DEN",
-   "departures": 21,
-   "next": "Oct 22 1:30 PM CDT"
-  },
-  {
-   "route": "DEN-ORD",
-   "departures": 18,
-   "next": "Oct 22 1:30 PM CDT"
-  },
-  {
    "route": "LGA-ORD",
    "departures": 18,
-   "next": "Oct 22 1:00 PM CDT"
+   "next": "Oct 23 12:00 PM CDT"
   },
   {
    "route": "ORD-LGA",
    "departures": 16,
-   "next": "Oct 22 1:00 PM CDT"
+   "next": "Oct 23 12:00 PM CDT"
   },
   {
-   "route": "ASE-DEN",
-   "departures": 16,
-   "next": "Oct 22 1:15 PM MDT"
+   "route": "ORD-DEN",
+   "departures": 17,
+   "next": "Oct 23 12:46 PM CDT"
   },
   {
-   "route": "DEN-ASE",
-   "departures": 16,
-   "next": "Oct 22 1:15 PM MDT"
-  },
-  {
-   "route": "PIT-EWR",
-   "departures": 16,
-   "next": "Oct 22 2:05 PM EDT"
-  },
-  {
-   "route": "EWR-PIT",
+   "route": "DEN-ORD",
    "departures": 15,
-   "next": "Oct 22 2:05 PM EDT"
+   "next": "Oct 23 12:46 PM CDT"
   },
   {
    "route": "ORD-IAH",
-   "departures": 16,
-   "next": "Oct 22 1:45 PM CDT"
+   "departures": 18,
+   "next": "Oct 23 12:45 PM CDT"
   },
   {
    "route": "IAH-ORD",
+   "departures": 13,
+   "next": "Oct 23 12:45 PM CDT"
+  },
+  {
+   "route": "DCA-EWR",
    "departures": 15,
-   "next": "Oct 22 1:45 PM CDT"
-  },
-  {
-   "route": "LAX-DEN",
-   "departures": 16,
-   "next": "Oct 22 1:30 PM MDT"
-  },
-  {
-   "route": "DEN-LAX",
-   "departures": 14,
-   "next": "Oct 22 1:30 PM MDT"
+   "next": "Oct 23 1:00 PM EDT"
   },
   {
    "route": "EWR-DCA",
    "departures": 15,
-   "next": "Oct 22 2:00 PM EDT"
+   "next": "Oct 23 1:00 PM EDT"
   },
   {
-   "route": "DCA-EWR",
+   "route": "EWR-PIT",
    "departures": 14,
-   "next": "Oct 22 2:00 PM EDT"
+   "next": "Oct 23 2:05 PM EDT"
   },
   {
-   "route": "EWR-ORD",
-   "departures": 15,
-   "next": "Oct 22 1:55 PM CDT"
-  },
-  {
-   "route": "ORD-EWR",
+   "route": "PIT-EWR",
    "departures": 14,
-   "next": "Oct 22 1:55 PM CDT"
+   "next": "Oct 23 2:05 PM EDT"
   },
   {
    "route": "ORD-SFO",
-   "departures": 15,
-   "next": "Oct 22 3:35 PM CDT"
+   "departures": 14,
+   "next": "Oct 23 12:40 PM CDT"
   },
   {
    "route": "SFO-ORD",
    "departures": 14,
-   "next": "Oct 22 3:35 PM CDT"
+   "next": "Oct 23 12:40 PM CDT"
   },
   {
-   "route": "IND-ORD",
+   "route": "ORD-LAX",
    "departures": 14,
-   "next": "Oct 22 3:03 PM EDT"
+   "next": "Oct 23 10:44 AM PDT"
+  },
+  {
+   "route": "LAX-ORD",
+   "departures": 13,
+   "next": "Oct 23 10:44 AM PDT"
+  },
+  {
+   "route": "ASE-DEN",
+   "departures": 13,
+   "next": "Oct 23 11:20 AM MDT"
+  },
+  {
+   "route": "DEN-ASE",
+   "departures": 13,
+   "next": "Oct 23 11:20 AM MDT"
+  },
+  {
+   "route": "LAX-DEN",
+   "departures": 14,
+   "next": "Oct 23 11:45 AM MDT"
+  },
+  {
+   "route": "DEN-LAX",
+   "departures": 12,
+   "next": "Oct 23 11:45 AM MDT"
   },
   {
    "route": "ORD-IND",
    "departures": 14,
-   "next": "Oct 22 3:03 PM EDT"
+   "next": "Oct 23 12:53 PM CDT"
+  },
+  {
+   "route": "IND-ORD",
+   "departures": 12,
+   "next": "Oct 23 12:53 PM CDT"
+  },
+  {
+   "route": "MCO-EWR",
+   "departures": 14,
+   "next": "Oct 23 1:10 PM EDT"
+  },
+  {
+   "route": "EWR-MCO",
+   "departures": 11,
+   "next": "Oct 23 1:10 PM EDT"
+  },
+  {
+   "route": "EWR-ORD",
+   "departures": 13,
+   "next": "Oct 23 1:08 PM EDT"
+  },
+  {
+   "route": "ORD-EWR",
+   "departures": 12,
+   "next": "Oct 23 1:08 PM EDT"
   },
   {
    "route": "ORD-STL",
-   "departures": 15,
-   "next": "Oct 22 3:11 PM CDT"
+   "departures": 13,
+   "next": "Oct 23 12:45 PM CDT"
   },
   {
    "route": "STL-ORD",
-   "departures": 13,
-   "next": "Oct 22 3:11 PM CDT"
-  },
-  {
-   "route": "IAH-OKC",
-   "departures": 14,
-   "next": "Oct 22 1:50 PM CDT"
-  },
-  {
-   "route": "OKC-IAH",
-   "departures": 13,
-   "next": "Oct 22 1:50 PM CDT"
-  },
-  {
-   "route": "IAH-MAF",
-   "departures": 13,
-   "next": "Oct 22 2:13 PM CDT"
-  },
-  {
-   "route": "MAF-IAH",
-   "departures": 13,
-   "next": "Oct 22 2:13 PM CDT"
-  },
-  {
-   "route": "EWR-CMH",
-   "departures": 13,
-   "next": "Oct 22 5:00 PM EDT"
-  },
-  {
-   "route": "CMH-EWR",
    "departures": 12,
-   "next": "Oct 22 5:00 PM EDT"
-  },
-  {
-   "route": "IAH-DEN",
-   "departures": 13,
-   "next": "Oct 22 4:30 PM CDT"
+   "next": "Oct 23 12:45 PM CDT"
   },
   {
    "route": "DEN-IAH",
    "departures": 12,
-   "next": "Oct 22 4:30 PM CDT"
+   "next": "Oct 23 11:47 AM MDT"
   },
   {
-   "route": "ORD-MCO",
-   "departures": 14,
-   "next": "Oct 22 2:24 PM EDT"
+   "route": "IAH-DEN",
+   "departures": 12,
+   "next": "Oct 23 11:47 AM MDT"
   },
   {
    "route": "MCO-ORD",
-   "departures": 11,
-   "next": "Oct 22 2:24 PM EDT"
+   "departures": 12,
+   "next": "Oct 23 12:55 PM CDT"
+  },
+  {
+   "route": "ORD-MCO",
+   "departures": 12,
+   "next": "Oct 23 12:55 PM CDT"
   },
   {
    "route": "ORD-SDF",
    "departures": 12,
-   "next": "Oct 22 3:00 PM CDT"
+   "next": "Oct 23 1:50 PM EDT"
   },
   {
    "route": "SDF-ORD",
    "departures": 12,
-   "next": "Oct 22 3:00 PM CDT"
+   "next": "Oct 23 1:50 PM EDT"
   },
   {
-   "route": "CVG-ORD",
+   "route": "CMH-EWR",
    "departures": 12,
-   "next": "Oct 22 2:05 PM EDT"
+   "next": "Oct 23 1:20 PM EDT"
   },
   {
-   "route": "ORD-CVG",
-   "departures": 11,
-   "next": "Oct 22 2:05 PM EDT"
-  },
-  {
-   "route": "SFO-DEN",
-   "departures": 12,
-   "next": "Oct 22 1:29 PM MDT"
-  },
-  {
-   "route": "DEN-SFO",
-   "departures": 11,
-   "next": "Oct 22 1:29 PM MDT"
-  },
-  {
-   "route": "ORD-YYZ",
-   "departures": 12,
-   "next": "Oct 22 12:59 PM CDT"
-  },
-  {
-   "route": "YYZ-ORD",
-   "departures": 11,
-   "next": "Oct 22 12:59 PM CDT"
-  },
-  {
-   "route": "EWR-DEN",
-   "departures": 12,
-   "next": "Oct 22 2:38 PM EDT"
-  },
-  {
-   "route": "DEN-EWR",
+   "route": "EWR-CMH",
    "departures": 10,
-   "next": "Oct 22 2:38 PM EDT"
+   "next": "Oct 23 1:20 PM EDT"
   },
   {
    "route": "EWR-IND",
    "departures": 11,
-   "next": "Oct 22 4:00 PM EDT"
+   "next": "Oct 23 4:00 PM EDT"
   },
   {
    "route": "IND-EWR",
    "departures": 11,
-   "next": "Oct 22 4:00 PM EDT"
+   "next": "Oct 23 4:00 PM EDT"
   },
   {
-   "route": "SLC-DEN",
+   "route": "ORD-LAS",
+   "departures": 12,
+   "next": "Oct 23 10:50 AM PDT"
+  },
+  {
+   "route": "LAS-ORD",
+   "departures": 10,
+   "next": "Oct 23 10:50 AM PDT"
+  },
+  {
+   "route": "EWR-DEN",
    "departures": 11,
-   "next": "Oct 22 1:08 PM MDT"
+   "next": "Oct 23 1:22 PM EDT"
+  },
+  {
+   "route": "DEN-EWR",
+   "departures": 10,
+   "next": "Oct 23 1:22 PM EDT"
+  },
+  {
+   "route": "CMH-ORD",
+   "departures": 10,
+   "next": "Oct 23 12:53 PM CDT"
+  },
+  {
+   "route": "ORD-CMH",
+   "departures": 10,
+   "next": "Oct 23 12:53 PM CDT"
+  },
+  {
+   "route": "DEN-SFO",
+   "departures": 10,
+   "next": "Oct 23 11:15 AM MDT"
+  },
+  {
+   "route": "SFO-DEN",
+   "departures": 10,
+   "next": "Oct 23 11:15 AM MDT"
   },
   {
    "route": "DEN-SLC",
    "departures": 10,
-   "next": "Oct 22 1:08 PM MDT"
+   "next": "Oct 23 11:48 AM MDT"
   },
   {
-   "route": "EWR-DTW",
-   "departures": 11,
-   "next": "Oct 22 2:00 PM EDT"
-  },
-  {
-   "route": "DTW-EWR",
+   "route": "SLC-DEN",
    "departures": 10,
-   "next": "Oct 22 2:00 PM EDT"
-  },
-  {
-   "route": "LAX-ORD",
-   "departures": 11,
-   "next": "Oct 22 1:00 PM CDT"
-  },
-  {
-   "route": "ORD-LAX",
-   "departures": 10,
-   "next": "Oct 22 1:00 PM CDT"
+   "next": "Oct 23 11:48 AM MDT"
   }
  ],
  "routeCache": {
   "DEN-SFO": {
-   "ts": "2026-10-22T17:56:50.897Z",
+   "ts": "2026-10-23T16:56:55.470Z",
    "flights": [],
    "itineraries": [
     {
      "via": [],
-     "joint": 93.4,
-     "any": 93.4,
+     "joint": 93.6,
+     "any": 93.6,
      "coverage": "full",
-     "hours": 2.8,
+     "hours": 2.7,
      "legs": [
       {
        "fn": "UA1812",
        "route": "DEN-SFO",
-       "p": 93,
-       "obs": 73,
-       "conf": "high"
-      }
-     ]
-    },
-    {
-     "via": [
-      "CLD"
-     ],
-     "joint": 100,
-     "any": 100,
-     "coverage": "full",
-     "hours": 4.3,
-     "legs": [
-      {
-       "fn": "UA5507",
-       "route": "DEN-CLD",
-       "p": 100,
-       "obs": 8,
-       "conf": "high"
-      },
-      {
-       "fn": "UA5519",
-       "route": "CLD-SFO",
-       "p": 100,
-       "obs": 19,
+       "p": 94,
+       "obs": 74,
        "conf": "high"
       }
      ]
@@ -2686,14 +2909,39 @@
        "fn": "UA5923",
        "route": "DEN-BOI",
        "p": 100,
-       "obs": 51,
+       "obs": 52,
        "conf": "high"
       },
       {
        "fn": "UA4639",
        "route": "BOI-SFO",
        "p": 100,
-       "obs": 68,
+       "obs": 69,
+       "conf": "high"
+      }
+     ]
+    },
+    {
+     "via": [
+      "RNO"
+     ],
+     "joint": 100,
+     "any": 100,
+     "coverage": "full",
+     "hours": 4.2,
+     "legs": [
+      {
+       "fn": "UA5335",
+       "route": "DEN-RNO",
+       "p": 100,
+       "obs": 22,
+       "conf": "high"
+      },
+      {
+       "fn": "UA5899",
+       "route": "RNO-SFO",
+       "p": 100,
+       "obs": 18,
        "conf": "high"
       }
      ]
@@ -2725,25 +2973,25 @@
     },
     {
      "via": [
-      "RNO"
+      "FAT"
      ],
      "joint": 100,
      "any": 100,
      "coverage": "full",
-     "hours": 4,
+     "hours": 3.9,
      "legs": [
       {
-       "fn": "UA4736",
-       "route": "DEN-RNO",
+       "fn": "UA5655",
+       "route": "DEN-FAT",
        "p": 100,
-       "obs": 8,
+       "obs": 73,
        "conf": "high"
       },
       {
-       "fn": "UA5899",
-       "route": "RNO-SFO",
+       "fn": "UA5338",
+       "route": "FAT-SFO",
        "p": 100,
-       "obs": 18,
+       "obs": 8,
        "conf": "high"
       }
      ]
@@ -2755,7 +3003,7 @@
      "joint": 98.8,
      "any": 100,
      "coverage": "full",
-     "hours": 3.8,
+     "hours": 3.9,
      "legs": [
       {
        "fn": "UA5438",
@@ -7349,8 +7597,8 @@
      "fn": "UA1812",
      "dep": "1:25 PM",
      "aircraft": "A321neo",
-     "prob": 50,
-     "obs": 182,
+     "prob": 51,
+     "obs": 186,
      "conf": "medium",
      "verdict": "good",
      "onRoute": true
@@ -7359,8 +7607,8 @@
      "fn": "UA1561",
      "dep": "11:20 AM",
      "aircraft": "A321neo / 737-900",
-     "prob": 67,
-     "obs": 213,
+     "prob": 68,
+     "obs": 216,
      "conf": "medium",
      "verdict": "good",
      "onRoute": false
@@ -7370,7 +7618,7 @@
      "dep": "5:54 PM",
      "aircraft": "A321neo",
      "prob": 46,
-     "obs": 231,
+     "obs": 233,
      "conf": "medium",
      "verdict": "good",
      "onRoute": true
@@ -7380,7 +7628,7 @@
      "dep": "7:25 PM",
      "aircraft": "A321neo",
      "prob": 53,
-     "obs": 203,
+     "obs": 206,
      "conf": "medium",
      "verdict": "good",
      "onRoute": false
@@ -7389,8 +7637,8 @@
      "fn": "UA1450",
      "dep": "12:25 PM",
      "aircraft": "A321neo",
-     "prob": 40,
-     "obs": 146,
+     "prob": 41,
+     "obs": 148,
      "conf": "medium",
      "verdict": "good",
      "onRoute": true
@@ -7399,8 +7647,8 @@
      "fn": "UA2367",
      "dep": "5:15 AM",
      "aircraft": "737 MAX 9",
-     "prob": 17,
-     "obs": 109,
+     "prob": 19,
+     "obs": 110,
      "conf": "medium",
      "verdict": "avoid",
      "onRoute": false
@@ -7410,7 +7658,7 @@
      "dep": "9:10 PM",
      "aircraft": "A321neo / 737-800",
      "prob": 73,
-     "obs": 149,
+     "obs": 150,
      "conf": "medium",
      "verdict": "best",
      "onRoute": true
@@ -7419,8 +7667,8 @@
      "fn": "UA1301",
      "dep": "6:00 AM",
      "aircraft": "MAX 8 / 737-900",
-     "prob": 20,
-     "obs": 106,
+     "prob": 21,
+     "obs": 107,
      "conf": "medium",
      "verdict": "risky",
      "onRoute": false
@@ -7430,7 +7678,7 @@
      "dep": "3:47 PM",
      "aircraft": "757-300",
      "prob": 1,
-     "obs": 82,
+     "obs": 83,
      "conf": "medium",
      "verdict": "avoid",
      "onRoute": false
@@ -7439,8 +7687,8 @@
      "fn": "UA1506",
      "dep": "9:43 AM",
      "aircraft": "A321neo / A319",
-     "prob": 48,
-     "obs": 179,
+     "prob": 47,
+     "obs": 182,
      "conf": "medium",
      "verdict": "good",
      "onRoute": true
@@ -7496,7 +7744,7 @@
      "fn": "UA1214",
      "dep": "5:30 PM",
      "aircraft": "A321neo",
-     "prob": 60,
+     "prob": 61,
      "obs": 95,
      "conf": "medium",
      "verdict": "good",
@@ -7507,7 +7755,7 @@
      "dep": "4:10 PM",
      "aircraft": "737 / MAX mix",
      "prob": 29,
-     "obs": 92,
+     "obs": 93,
      "conf": "medium",
      "verdict": "risky",
      "onRoute": true
@@ -7526,8 +7774,8 @@
      "fn": "UA2436",
      "dep": "6:56 PM",
      "aircraft": "narrowbody mix",
-     "prob": 38,
-     "obs": 96,
+     "prob": 40,
+     "obs": 97,
      "conf": "medium",
      "verdict": "good",
      "onRoute": true
@@ -7537,7 +7785,7 @@
      "dep": "12:43 PM",
      "aircraft": "A321neo (mixed WiFi)",
      "prob": 70,
-     "obs": 186,
+     "obs": 189,
      "conf": "medium",
      "verdict": "best",
      "onRoute": true
@@ -7546,8 +7794,8 @@
      "fn": "UA1233",
      "dep": "6:15 AM",
      "aircraft": "narrowbody mix",
-     "prob": 51,
-     "obs": 117,
+     "prob": 50,
+     "obs": 119,
      "conf": "medium",
      "verdict": "good",
      "onRoute": true
@@ -7557,7 +7805,7 @@
      "dep": "9:08 PM",
      "aircraft": "narrowbody mix",
      "prob": 29,
-     "obs": 98,
+     "obs": 99,
      "conf": "medium",
      "verdict": "ok",
      "onRoute": true
@@ -7566,8 +7814,8 @@
      "fn": "UA1479",
      "dep": "5:00 AM",
      "aircraft": "narrowbody mix",
-     "prob": 42,
-     "obs": 160,
+     "prob": 43,
+     "obs": 162,
      "conf": "medium",
      "verdict": "good",
      "onRoute": true
@@ -7577,7 +7825,7 @@
      "dep": "12:00 PM",
      "aircraft": "narrowbody mix",
      "prob": 0,
-     "obs": 69,
+     "obs": 70,
      "conf": "medium",
      "verdict": "avoid",
      "onRoute": true
@@ -7824,6 +8072,7 @@
   "N37474",
   "N37513",
   "N37516",
+  "N37528",
   "N37530",
   "N37531",
   "N37532",
@@ -8253,6 +8502,12 @@
   "N94556"
  ],
  "roster": [
+  {
+   "tail": "N37528",
+   "type": "737 MAX",
+   "fleet": "mainline",
+   "seen": "2026-10-20"
+  },
   {
    "tail": "N17405",
    "type": "737 MAX",
@@ -12154,44 +12409,185 @@
    "seen": "2025-03-14"
   }
  ],
- "refreshAttemptedOn": "2026-10-22",
- "measurementAsOf": "2026-10-22",
+ "refreshAttemptedOn": "2026-10-23",
+ "measurementAsOf": "2026-10-23",
  "tracker": {
   "source": "unitedstarlinktracker.com/api/data",
-  "lastUpdated": "2026-10-22T17:30:07.211Z",
+  "lastUpdated": "2026-10-23T16:12:56.432Z",
   "candidateMembership": {
-   "sourceTimestamp": "2026-10-22T17:30:07.211Z",
+   "policyId": "ua-tracker-parity-20261023",
+   "sourceTimestamp": "2026-10-23T16:12:56.432Z",
    "registrySource": "https://unitedstarlinktracker.com/fleet",
    "raw": {
-    "equipped": 650,
-    "total": 1679
+    "equipped": 651,
+    "total": 1680
    },
    "corrected": {
-    "equipped": 650,
-    "total": 1678
+    "equipped": 651,
+    "total": 1680
    },
-   "excludedTails": [
-    "N63571"
-   ],
-   "rawMembershipSha256": "0ad2498535428ed0787c5b6ff1cbfe8df2808e9987d9f35d010e785d6120e669",
-   "membershipSha256": "147302a88365849f8aa3ab619691c8e036307ffd16b462f4c1c15bc95f8668ab",
-   "equippedSha256": "c60e1a443e0e9a1e180451e24b240f93dbccad8de89ebb05d1752aa0ce777204",
+   "excludedTails": [],
+   "rawMembershipSha256": "8b8edaa403113379cfd0d28247d0d956ee74e07de808e7ff42ec36354bae49d6",
+   "membershipSha256": "8b8edaa403113379cfd0d28247d0d956ee74e07de808e7ff42ec36354bae49d6",
+   "equippedSha256": "7abf6e53c1d15c67413c7b62c70e7d4694fe62a73b841a74c2142e1eb4065511",
    "setHashEncoding": "UTF-8 sorted tails, LF separated, one final LF",
-   "policyId": "ua-n63571-20261019",
-   "holdId": "ua-n63571-faa-20261019",
-   "evidence": {
-    "url": "https://registry.faa.gov/aircraftinquiry/Search/NNumberResult?NNumberTxt=63571",
-    "responseSha256": "b095247c054980719b626d83833ca6ce0fbdb451fb453953097d727cedd54524",
-    "manufacturer": "AEROSTAR INTERNATIONAL INC",
-    "model": "RX 8",
-    "serial": "RX8-3127",
-    "aircraftType": "Balloon",
-    "registrationStatus": "Valid",
-    "pendingNumberChange": "None"
+   "listedNotVerifiedTails": [
+    "N641SY"
+   ],
+   "sourcePercentages": {
+    "summary": 38.8,
+    "mainline": 25.621251071122536,
+    "express": 68.61598440545808
    },
-   "evidenceObservedAt": "2026-10-19T14:20:41.605Z",
-   "expiresAt": "2026-10-26T14:20:41.605Z",
-   "disclosure": "WiFiOdds corrected United population: 650/1,678; raw tracker: 650/1,679. N63571 is excluded because the FAA record identifies balloon RX8-3127 (checked 2026-10-19T14:20:41.605Z). This temporary hold expires October 26, 2026 at 14:20:41 UTC. Source snapshot: 2026-10-22T17:30:07.211Z. N37484 remains included; this does not confirm legal delivery or Starlink. The historical B787 change from 95 to 96 remains unresolved."
+   "sourceFamilies": [
+    {
+     "family": "E175",
+     "body": "regional",
+     "installed": 252,
+     "total": 252,
+     "percentage": 100
+    },
+    {
+     "family": "CRJ-550",
+     "body": "regional",
+     "installed": 100,
+     "total": 103,
+     "percentage": 97.1
+    },
+    {
+     "family": "A321",
+     "body": "narrowbody",
+     "installed": 68,
+     "total": 77,
+     "percentage": 88.3
+    },
+    {
+     "family": "B737-800",
+     "body": "narrowbody",
+     "installed": 99,
+     "total": 141,
+     "percentage": 70.2
+    },
+    {
+     "family": "B737-900",
+     "body": "narrowbody",
+     "installed": 88,
+     "total": 148,
+     "percentage": 59.5
+    },
+    {
+     "family": "B737-MAX9",
+     "body": "narrowbody",
+     "installed": 35,
+     "total": 183,
+     "percentage": 19.1
+    },
+    {
+     "family": "B777",
+     "body": "widebody",
+     "installed": 4,
+     "total": 96,
+     "percentage": 4.2
+    },
+    {
+     "family": "B737-MAX8",
+     "body": "narrowbody",
+     "installed": 3,
+     "total": 123,
+     "percentage": 2.4
+    },
+    {
+     "family": "B787",
+     "body": "widebody",
+     "installed": 2,
+     "total": 96,
+     "percentage": 2.1
+    },
+    {
+     "family": "CRJ-200",
+     "body": "regional",
+     "installed": 0,
+     "total": 90,
+     "percentage": 0
+    },
+    {
+     "family": "A319",
+     "body": "narrowbody",
+     "installed": 0,
+     "total": 76,
+     "percentage": 0
+    },
+    {
+     "family": "A320",
+     "body": "narrowbody",
+     "installed": 0,
+     "total": 71,
+     "percentage": 0
+    },
+    {
+     "family": "B757",
+     "body": "narrowbody",
+     "installed": 0,
+     "total": 61,
+     "percentage": 0
+    },
+    {
+     "family": "ERJ-145",
+     "body": "regional",
+     "installed": 0,
+     "total": 55,
+     "percentage": 0
+    },
+    {
+     "family": "B767",
+     "body": "widebody",
+     "installed": 0,
+     "total": 53,
+     "percentage": 0
+    },
+    {
+     "family": "B737-700",
+     "body": "narrowbody",
+     "installed": 0,
+     "total": 40,
+     "percentage": 0
+    },
+    {
+     "family": "E170",
+     "body": "regional",
+     "installed": 0,
+     "total": 8,
+     "percentage": 0
+    },
+    {
+     "family": "CRJ-700",
+     "body": "regional",
+     "installed": 0,
+     "total": 5,
+     "percentage": 0
+    },
+    {
+     "family": "B737-MAX10",
+     "body": "narrowbody",
+     "installed": 0,
+     "total": 1,
+     "percentage": 0
+    },
+    {
+     "family": "unknown",
+     "body": "narrowbody",
+     "installed": 0,
+     "total": 1,
+     "percentage": 0
+    }
+   ]
+  },
+  "publishedHeadline": {
+   "equipped": 651,
+   "total": 1680,
+   "percentage": 38,
+   "sourceTimestamp": "2026-10-23T16:12:56.432Z",
+   "source": "https://unitedstarlinktracker.com/"
   }
  }
 }

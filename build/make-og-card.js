@@ -108,7 +108,7 @@ must(unitedScored.equippedPublished === true,
 must(unitedScored.equipped === equipped,
   'scoreAirline("united").equipped (' + unitedScored.equipped + ') disagrees with united/data.json (' + equipped + ')');
 
-var pct = Math.round(equipped / fleet * 100);
+var pct = data.tracker && data.tracker.publishedHeadline ? data.tracker.publishedHeadline.percentage : Math.round(equipped / fleet * 100);
 var asOf = data.updated;
 must(/^\d{4}-\d{2}-\d{2}$/.test(asOf), 'united/data.json updated is not an ISO date (got ' + asOf + ')');
 
@@ -190,7 +190,7 @@ function html() {
     '  <p class="lede">Starlink and Amazon Leo odds for every flight, across ' + airlineCount + ' airlines.</p>\n' +
     '  <div class="foot">\n' +
     '    <div class="proof"><b>' + commas(equipped) + ' of ' + commas(fleet) + '</b>' +
-    '<span>United aircraft flying Starlink · ' + pct + '% of the fleet</span></div>\n' +
+    '<span>United aircraft listed with Starlink · ' + pct + '% of the fleet</span></div>\n' +
     /* THE CREDIT TRAVELS WITH THE NUMBERS. The two figures above are
        @martinamps' tracker data, not ours. The homepage footer printed 484 and
        1,807 with no attribution until 28 Jul 2026 and that was fixed; a card

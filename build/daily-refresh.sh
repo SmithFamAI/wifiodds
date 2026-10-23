@@ -11,7 +11,7 @@
 #
 # One-shot owner rulings pass through the environment and apply only when the
 # tracker returns exactly the ruled pair:
-#   WIFIODDS_REBASELINE="617/1675:<ruling text>"   United (see update-unitedstarlink.js)
+# United mirrors the reconciled tracker source; WIFIODDS_REBASELINE is rejected.
 #   WIFIODDS_REBASELINE_ALASKA="105/347"           Alaska (see refresh-airline-counts.js)
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 2

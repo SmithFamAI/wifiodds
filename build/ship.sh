@@ -49,7 +49,7 @@ check_driver_lock() {
 }
 
 check_membership_release() {
-  node scripts/ua-membership-policy.js united/data.json || fail "bounded membership approval or evidence expired before publication." 98
+  node scripts/ua-membership-policy.js united/data.json || fail "source parity or evidence validation failed before publication." 98
 }
 
 TREE_SNAPSHOT_FILES=""
@@ -92,13 +92,13 @@ if ! node build/source-denial.test.js; then
   fail "source denial controls failed; denied reads must stop with diagnostic evidence." 98
 fi
 if ! node build/membership-policy.test.js; then
-  fail "membership acceptance controls failed; the exact owner ruling is not enforced." 98
+  fail "source parity policy controls failed." 98
 fi
 if ! node build/membership-verifier.test.js; then
   fail "membership verifier controls failed; current-data recovery cannot be proved." 98
 fi
 if ! node build/membership-correction.test.js; then
-  fail "membership correction controls failed; source identity, atomic retention or expiry is unverified." 98
+  fail "source reconciliation controls failed; membership, schema or source clocks are unverified." 98
 fi
 if ! node build/membership-capture-clock.test.js; then
   fail "membership capture clock controls failed; strict freshness must survive bounded capture settling." 98

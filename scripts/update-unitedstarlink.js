@@ -22,8 +22,8 @@
 
 const fs = require("fs");
 const path = require("path");
-const { reconcileMembership, settleMembershipCapture } = require("./reconcile-ua-membership.js");
-const { membershipGate } = require("./ua-membership-policy.js");
+const { reconcileMembership, settleMembershipCapture, publishedHeadline } = require("./reconcile-ua-membership.js");
+const { membershipGate, sourceTypes } = require("./ua-membership-policy.js");
 
 const BASE = "https://unitedstarlinktracker.com";
 const FILE = process.env.WIFIODDS_UNITED_DATA_FILE ||
@@ -122,7 +122,10 @@ function strip(html) { return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ")
  *
  * Exported so its failure can be PROVEN against a tampered copy of the input
  * rather than asserted. See scripts/test-plausibility-gate.js. */
-function plausibilityGate(data, newEq, newTot, today) {
+// Source parity is enabled only by membershipGate after full cohort validation.
+// History bounds remain diagnostic there; ordinary unqualified calls retain
+// their original rejection behavior. Publisher/shape/source checks still block.
+function plausibilityGate(data, newEq, newTot, today, sourceParity = false) {
   const prevEq = data.fleet.equipped, prevTot = data.fleet.total;
   const hist = data.history || [];
   // The tolerance is the largest day-over-day denominator move seen in history.
@@ -146,6 +149,7 @@ function plausibilityGate(data, newEq, newTot, today) {
   const EQ_BOUND = Math.max(10, data.fleet.last30 || 0);
   const TOT_TOL = Math.max(3, obsTotMove);
   const flags = [];
+  const sourceComparisons = [];
   // healedEquipped/healedTotal (P1-01): true only when THIS field's freshly
   // scraped value was REJECTED and the prior value kept. Case 5 in
   // test-plausibility-gate.js ("denominator wobbles by 1") still pushes a flag
@@ -162,7 +166,7 @@ function plausibilityGate(data, newEq, newTot, today) {
   // any other value is still judged by the bounds below. The ruling is written
   // into data.fleet.rebaseline so the accepted jump is on the record.
   const rb = String(process.env.WIFIODDS_REBASELINE || "").match(/^(\d+)\/(\d+):(.+)$/);
-  if (rb && +rb[1] === newEq && +rb[2] === newTot) {
+  if (!sourceParity && rb && +rb[1] === newEq && +rb[2] === newTot) {
     data.fleet.equipped = newEq;
     data.fleet.total = newTot;
     data.fleet.rebaseline = { on: today, from: { equipped: prevEq, total: prevTot },
@@ -185,7 +189,11 @@ function plausibilityGate(data, newEq, newTot, today) {
   // floor, never the blend. So the measurement is ATOMIC: judge both fields
   // first, and if EITHER is rejected, retain BOTH prior values with the prior
   // date. No field of a partially rejected measurement survives on its own.
-  if (Number.isFinite(prevEq) && Math.abs(newEq - prevEq) > EQ_BOUND) {
+  if (sourceParity && Number.isFinite(prevEq) && Math.abs(newEq-prevEq)>EQ_BOUND)
+    sourceComparisons.push(`source equipped moved ${prevEq} → ${newEq}; historical bound ${EQ_BOUND}; publishing reconciled source unchanged`);
+  if (sourceParity && Number.isFinite(prevTot) && newTot!==prevTot)
+    sourceComparisons.push(`source denominator moved ${prevTot} → ${newTot}; historical tolerance ${TOT_TOL}; publishing reconciled source unchanged`);
+  if (!sourceParity && Number.isFinite(prevEq) && Math.abs(newEq - prevEq) > EQ_BOUND) {
     flags.push(`equipped moved ${prevEq} → ${newEq} (${newEq - prevEq >= 0 ? "+" : ""}${newEq - prevEq}), ` +
       `beyond the bound of ${EQ_BOUND} (max(10, last30=${data.fleet.last30})). ` +
       `HEALED: kept ${prevEq}. Either the tracker changed shape or the parse is wrong — check by hand.`);
@@ -193,7 +201,7 @@ function plausibilityGate(data, newEq, newTot, today) {
   }
 
   let totWobble = null;
-  if (Number.isFinite(prevTot) && newTot !== prevTot) {
+  if (!sourceParity && Number.isFinite(prevTot) && newTot !== prevTot) {
     const moved = Math.abs(newTot - prevTot);
     if (moved > TOT_TOL) {
       flags.push(`fleet denominator moved ${prevTot} → ${newTot} (${moved} aircraft), beyond the ` +
@@ -233,8 +241,9 @@ function plausibilityGate(data, newEq, newTot, today) {
       "dropped from data.json; the page has nothing to cite. Restore it from git.");
   }
 
-  data.fleet.plausibility = { checkedOn: today, bounds: { equipped: EQ_BOUND, total: TOT_TOL }, flags };
+  data.fleet.plausibility = { checkedOn: today, bounds: { equipped: EQ_BOUND, total: TOT_TOL }, flags, ...(sourceParity ? { sourceComparisons } : {}) };
   const report = flags.map((f) => `PLAUSIBILITY FLAG: ${f}`);
+  report.push(...sourceComparisons);
   if (rebaselineNote) report.push(rebaselineNote);
   if (!flags.length) report.push(`plausibility: clean (equipped bound ${EQ_BOUND}, total tolerance ${TOT_TOL})`);
   // healed (P1-01): true when EITHER field's fresh measurement was rejected
@@ -286,6 +295,8 @@ async function main() {
   const rawApi = await get(BASE + "/api/data", true);
   const rawSummary = await get(BASE + "/api/fleet-summary", true);
   const registry = await get(BASE + "/fleet");
+  const home = await get(BASE + "/");
+  const headline = publishedHeadline(home,rawApi);
   const capture = await settleMembershipCapture(rawApi, rawSummary);
   console.log('membership capture clock: ' + JSON.stringify(capture));
   const reconciled = reconcileMembership(rawApi, rawSummary, registry, capture.evaluatedAt);
@@ -308,7 +319,7 @@ async function main() {
     gateFn: plausibilityGate, request: process.env.WIFIODDS_REBASELINE,
     evidence: process.env.WIFIODDS_MEMBERSHIP_EVIDENCE ? JSON.parse(process.env.WIFIODDS_MEMBERSHIP_EVIDENCE) : null });
   data.tracker = { source: "unitedstarlinktracker.com/api/data", lastUpdated: api.lastUpdated,
-    candidateMembership: reconciled.provenance };
+    candidateMembership: reconciled.provenance, publishedHeadline: headline };
   for (const line of gate.report) summary.push(line);
   // healed (P1-01): a fresh fleet measurement was NOT accepted this run
   // (equipped and/or total were rejected and the prior value kept). That
@@ -334,13 +345,7 @@ async function main() {
   const cutoff28 = new Date(Date.now() - 28 * 86400000).toISOString().slice(0, 10);
   const mlRecent = api.starlinkPlanes.filter((p) => p.fleet === "mainline" && p.DateFound >= cutoff28).length;
   data.fleet.mainlinePacePerWeek = Math.round(mlRecent / 4 * 10) / 10;
-  const familyFor = { "CRJ-550": "CRJ-550", "E175": "E175", "B737-800": "737-800", "A321": "A321neo", "B737-900": "737-900", "B777": "777" };
-  for (const f of (ua.families || [])) {
-    const name = familyFor[f.family];
-    if (!name) continue;
-    const t = data.fleet.types.find((x) => x.type === name);
-    if (t && f.total > 10) { t.equipped = f.installed; t.total = f.total; }
-  }
+  data.fleet.types=sourceTypes(ua.families);
   // ── 2a. atomic retention across the WHOLE fleet observation (P1-01 r12).
   // Every fleet field written above (last30, mainline, express, pace, types)
   // shares measurementAsOf with the headline pair. If the gate rejected the
@@ -440,7 +445,7 @@ async function main() {
     // The roster is the starlinkPlanes list from /api/data, already fetched above.
     const seenTail = new Set();
     const roster = api.starlinkPlanes
-      .map((p) => ({ tail: p.TailNumber, type: typeFamily(p.Aircraft), fleet: p.fleet, seen: p.DateFound }))
+      .map((p) => ({ tail: p.TailNumber, type: reconciled.rosterTypes[p.TailNumber], fleet: p.fleet, seen: p.DateFound }))
       .filter((r) => r.tail && r.seen && !seenTail.has(r.tail) && seenTail.add(r.tail));
     if (roster.length >= data.fleet.equipped * 0.9) {   // sanity: near-full pull
       roster.sort((a, b) => (a.seen < b.seen ? 1 : a.seen > b.seen ? -1 : a.tail < b.tail ? -1 : 1));
@@ -485,7 +490,7 @@ async function main() {
   // today's date. `updated` is kept equal to measurementAsOf — that is the
   // semantics the repo (build/lib/data.js) already reads it for.
   data.refreshAttemptedOn = today;
-  data.measurementAsOf = healed ? priorMeasurementAsOf : today;
+  data.measurementAsOf = healed ? priorMeasurementAsOf : api.lastUpdated.slice(0,10);
   data.updated = data.measurementAsOf;
 
   if (!healed) {

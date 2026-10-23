@@ -1,79 +1,47 @@
 'use strict';
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
-const RULE = Object.freeze({
-  id: 'ua-n63571-20261019',
-  approvalId: 'Sentinel_a86c6d9cddb48191a14825407a697f3d',
-  request: '645/1678:Sentinel_a86c6d9cddb48191a14825407a697f3d',
-  approvedAt: '2026-10-19T15:01:46Z', initialDeadline: '2026-10-20T15:01:46Z',
-  holdExpiry: '2026-10-26T14:20:41.605Z', evidenceObservedAt: '2026-10-19T14:20:41.605Z',
-  baselineSha256: '6bdbc1f1eb47876896a1fa9aed8d4333fd967ead9cbcd9f92751bb811f8de5a7',
-  rawMembershipSha256: '0ad2498535428ed0787c5b6ff1cbfe8df2808e9987d9f35d010e785d6120e669',
-  membershipSha256: '147302a88365849f8aa3ab619691c8e036307ffd16b462f4c1c15bc95f8668ab',
-  equippedSha256: '91defde172152ba6923a5e217a35d7656f6a3d2d1aad30a2c3b6379e4f39469c'
-});
-const EXPECTED_FLAG = 'fleet denominator moved 1675 → 1678 (within the 3-aircraft tolerance, so accepted). Flagged anyway: this number should move rarely and deliberately.';
+const RULE = Object.freeze({ id: 'ua-tracker-parity-20261023',
+  ownerInstruction: 'Sentinel_59cd9f9427748191b7415003be319e41',
+  effectiveAt: '2026-10-23T16:43:20Z' });
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
+const familyNames = { 'B737-700':'737-700','B737-800':'737-800','B737-900':'737-900',
+  'B737-MAX8':'737 MAX','B737-MAX9':'737 MAX','B737-MAX10':'737 MAX',
+  A321:'A321neo',B757:'757',B767:'767',B777:'777',B787:'787',unknown:'Type not listed' };
+const displayFamily = family => familyNames[family] || family;
+function sourceTypes(families) {
+  const types=new Map();
+  for(const f of families) {
+    const type=displayFamily(f.family),seg=f.body==='regional'?'express':'mainline';
+    const row=types.get(type)||{type,equipped:0,total:0,seg};
+    assert.equal(row.seg,seg,'source parity: family segment conflict');
+    row.equipped+=f.installed;row.total+=f.total;types.set(type,row);
+  }
+  return [...types.values()];
+}
 function validatePolicy(p, now = Date.now()) {
-  assert(p && p.policyId === RULE.id && p.holdId === 'ua-n63571-faa-20261019', 'membership policy: unknown policy/hold');
-  assert.deepEqual(p.excludedTails, ['N63571'], 'membership policy: exact N63571 exclusion required');
-  assert.equal(p.expiresAt, RULE.holdExpiry, 'membership policy: fixed hold expiry changed');
-  assert.equal(p.evidenceObservedAt, RULE.evidenceObservedAt, 'membership policy: fixed hold observation changed');
-  assert(now >= Date.parse(p.evidenceObservedAt) && now < Date.parse(RULE.holdExpiry), 'membership policy: hold expired or not yet valid');
-  assert(p.raw && p.corrected && Number.isSafeInteger(p.raw.total) && p.raw.total === p.corrected.total + 1 &&
-    Number.isSafeInteger(p.raw.equipped) && p.raw.equipped === p.corrected.equipped, 'membership policy: correction arithmetic differs');
-  const expected = require('./ua-membership-hold.json').evidence;
-  assert.deepEqual(p.evidence, expected, 'membership policy: identity evidence differs');
+  assert(p && p.policyId === RULE.id, 'source parity: unknown policy');
+  assert.deepEqual(p.excludedTails, [], 'source parity: exclusions are not permitted');
+  assert.deepEqual(p.raw, p.corrected, 'source parity: adjusted counts are not permitted');
+  assert(p.raw && Number.isSafeInteger(p.raw.total) && p.raw.total > 0 &&
+    Number.isSafeInteger(p.raw.equipped) && p.raw.equipped >= 0 && p.raw.equipped <= p.raw.total,
+    'source parity: invalid source counts');
+  for (const key of ['rawMembershipSha256','membershipSha256','equippedSha256'])
+    assert(/^[a-f0-9]{64}$/.test(p[key]), 'source parity: missing full-set hash');
+  assert.equal(p.membershipSha256,p.rawMembershipSha256,'source parity: membership was adjusted');
+  for (const key of ['holdId','expiresAt','evidence','evidenceObservedAt','disclosure'])
+    assert(!Object.hasOwn(p,key),'source parity: active correction evidence is not permitted');
+  const at=Date.parse(p.sourceTimestamp);
+  assert(Number.isFinite(at) && at<=now && now-at<=7200000,'source parity: source must be within two hours');
   return p;
 }
-function withoutLegacyOverride(fn) {
-  const old = process.env.WIFIODDS_REBASELINE;
-  delete process.env.WIFIODDS_REBASELINE;
-  try { return fn(); } finally {
-    if (old === undefined) delete process.env.WIFIODDS_REBASELINE;
-    else process.env.WIFIODDS_REBASELINE = old;
-  }
-}
-function membershipGate({ baselineBytes, data, newEq, newTot, today, provenance, gateFn, now = Date.now(), request, evidence }) {
-  if (!request) return withoutLegacyOverride(() => gateFn(data, newEq, newTot, today));
-  assert.equal(request, RULE.request, 'membership approval: exact approved request required');
-  assert(now >= Date.parse(RULE.approvedAt) && now < Date.parse(RULE.initialDeadline), 'membership approval: outside initial acceptance window');
-  assert.equal(hash(baselineBytes), RULE.baselineSha256, 'membership approval: baseline bytes changed');
-  assert.deepEqual(data, JSON.parse(baselineBytes), 'membership approval: baseline object changed');
-  assert.equal(newEq, 645, 'membership approval: approved pair changed');
-  assert.equal(newTot, 1678, 'membership approval: approved pair changed');
-  validatePolicy(provenance, now);
-  assert.deepEqual(provenance.raw, { equipped: 645, total: 1679 }, 'membership approval: approved population changed');
-  assert.deepEqual(provenance.corrected, { equipped: 645, total: 1678 }, 'membership approval: approved population changed');
-  for (const key of ['rawMembershipSha256','membershipSha256','equippedSha256'])
-    assert.equal(provenance[key], RULE[key], 'membership approval: approved population changed (' + key + ')');
-  const sourceAt = Date.parse(provenance.sourceTimestamp);
-  assert(Number.isFinite(sourceAt) && sourceAt <= now && now-sourceAt <= 7200000, 'membership approval: source freshness failed');
-  assert(evidence && evidence.approvalId === RULE.approvalId && evidence.faa, 'membership approval: fresh FAA evidence receipt required');
-  const faa = evidence.faa, observed = Date.parse(faa.observedAt);
-  assert(Number.isFinite(observed) && observed >= Date.parse(RULE.approvedAt) && observed <= now && now-observed <= 7200000,
-    'membership approval: fresh FAA observation required');
-  assert(/^[a-f0-9]{64}$/.test(faa.responseSha256) && faa.responseSha256 !== '0'.repeat(64), 'membership approval: FAA response hash required');
-  const expected = require('./ua-membership-hold.json').evidence;
-  for (const key of ['url','manufacturer','model','serial','aircraftType','registrationStatus','pendingNumberChange'])
-    assert.equal(faa[key], expected[key], 'membership approval: FAA identity changed (' + key + ')');
-  // A supplied receipt is an operator claim; the release review must bind it to
-  // the actual permitted response. It is never a substitute for that response.
-  const trial = structuredClone(data);
-  const ordinary = withoutLegacyOverride(() => gateFn(trial,newEq,newTot,today));
-  assert(!ordinary.healed && Array.isArray(ordinary.flags) && ordinary.flags.length === 1 && ordinary.flags[0] === EXPECTED_FLAG,
-    'membership approval: expected sole reviewed denominator flag without healing');
-  const saved = process.env.WIFIODDS_REBASELINE;
-  process.env.WIFIODDS_REBASELINE = RULE.request;
-  let result;
-  try { result = gateFn(data,newEq,newTot,today); } finally {
-    if (saved === undefined) delete process.env.WIFIODDS_REBASELINE; else process.env.WIFIODDS_REBASELINE=saved;
-  }
-  assert(!result.healed && result.flags.length === 0, 'membership approval: acceptance failed');
-  data.fleet.rebaseline.approvalId = RULE.approvalId;
-  data.fleet.rebaseline.acceptedAt = new Date(now).toISOString();
-  data.fleet.rebaseline.faaConfirmation = structuredClone(faa);
-  return result;
+function membershipGate({data,newEq,newTot,today,provenance,gateFn,now=Date.now(),request}) {
+  assert(!request && !process.env.WIFIODDS_REBASELINE,'source parity: rebaseline overrides are not permitted');
+  validatePolicy(provenance,now);
+  assert.deepEqual(provenance.raw,{equipped:newEq,total:newTot},'source parity: pair differs from reconciled source');
+  // Numerical history comparisons remain visible, but cannot change a fully
+  // reconciled publisher observation. Structural and publisher failures block.
+  return gateFn(data,newEq,newTot,today,true);
 }
 function disclosure(p) {
   if (!p || !Array.isArray(p.excludedTails) || p.excludedTails.length === 0) return '';
@@ -83,46 +51,41 @@ function disclosure(p) {
     '). This temporary hold expires October 26, 2026 at 14:20:41 UTC. Source snapshot: ' + p.sourceTimestamp +
     '. N37484 remains included; this does not confirm legal delivery or Starlink. The historical B787 change from 95 to 96 remains unresolved.';
 }
-function assertRelease(data, request, now = Date.now(), previous) {
-  const p=data.fleet.membership;
-  if(p && p.excludedTails && p.excludedTails.length) validatePolicy(p,now);
-  const accepted=data.fleet.rebaseline;
-  const prior=previous && previous.fleet && previous.fleet.rebaseline;
-  const active=!!((p && p.policyId===RULE.id) || (accepted && accepted.approvalId===RULE.approvalId));
-  if(active) validatePolicy(p,now);
-  const alreadyPublished=!!(prior && accepted && prior.approvalId===RULE.approvalId &&
-    prior.acceptedAt===accepted.acceptedAt && previous.fleet.membership && previous.fleet.membership.policyId===RULE.id);
-  // A dropped environment variable cannot turn a resumed first publication
-  // into an ordinary refresh. The remote baseline must already carry this
-  // acceptance. A missing/stale remote ref conservatively requires the rule.
-  if(!request && (!active || alreadyPublished)) {
-    if(alreadyPublished) assert.deepEqual(accepted,prior,'release: published acceptance receipt changed');
-    return;
+function assertRelease(data,request,now=Date.now(),previous) {
+  assert(!request,'source parity release: rebaseline overrides are not permitted');
+  const p=validatePolicy(data.fleet.membership,now);
+  assert.deepEqual(p.raw,{equipped:data.fleet.equipped,total:data.fleet.total},'source parity release: count differs');
+  assert.equal(data.tracker && data.tracker.lastUpdated,p.sourceTimestamp,'source parity release: source clock differs');
+  assert.deepEqual(data.tracker.candidateMembership,p,'source parity release: observation differs');
+  assert.equal(data.measurementAsOf,p.sourceTimestamp.slice(0,10),'source parity release: measurement date differs');
+  assert.equal(data.updated,data.measurementAsOf,'source parity release: updated date differs');
+  assert(Array.isArray(data.fleet.plausibility.flags) && data.fleet.plausibility.flags.length===0,'source parity release: validation flags remain');
+  assert.deepEqual(data.fleet.types,sourceTypes(p.sourceFamilies),'source parity release: type rows differ');
+  for(const seg of ['mainline','express']) {
+    const rows=data.fleet.types.filter(x=>x.seg===seg);
+    assert.deepEqual(data.fleet[seg],{equipped:rows.reduce((n,x)=>n+x.equipped,0),total:rows.reduce((n,x)=>n+x.total,0)},'source parity release: segments differ');
   }
-  assert.equal(request,RULE.request,'release: exact approved request required');
-  assert(now >= Date.parse(RULE.approvedAt) && now < Date.parse(RULE.initialDeadline),'release: initial acceptance window closed');
-  validatePolicy(p,now);
-  assert(accepted && accepted.approvalId===RULE.approvalId,'release: exact acceptance receipt missing');
-  const at=Date.parse(accepted.acceptedAt);
-  assert(at >= Date.parse(RULE.approvedAt) && at <= now && at < Date.parse(RULE.initialDeadline),'release: invalid acceptance clock');
-  assert.equal(data.fleet.equipped,645,'release: approved equipped count changed');
-  assert.equal(data.fleet.total,1678,'release: approved total changed');
-  for(const key of ['rawMembershipSha256','membershipSha256','equippedSha256']) assert.equal(p[key],RULE[key],'release: approved population changed');
-  for(const [label,clock] of [['source',p.sourceTimestamp],['FAA',accepted.faaConfirmation && accepted.faaConfirmation.observedAt]]) {
-    const t=Date.parse(clock);
-    assert(Number.isFinite(t) && t <= now && now-t <= 7200000,'release: '+label+' evidence expired');
+  assert.equal(data.fleet.types.reduce((n,x)=>n+x.total,0),p.raw.total,'source parity release: family total differs');
+  assert.equal(data.fleet.types.reduce((n,x)=>n+x.equipped,0),p.raw.equipped,'source parity release: family equipped differs');
+  const headline=data.tracker.publishedHeadline;
+  assert(headline && headline.equipped===p.raw.equipped && headline.total===p.raw.total &&
+    headline.sourceTimestamp===p.sourceTimestamp && headline.percentage===Math.floor(100*p.raw.equipped/p.raw.total),
+    'source parity release: public headline differs');
+  const tails=data.knownTails;
+  assert(Array.isArray(tails) && tails.length===p.raw.equipped && new Set(tails).size===tails.length,'source parity release: equipped roster incomplete');
+  assert.equal(hash([...tails].sort().join('\n')+'\n'),p.equippedSha256,'source parity release: equipped roster differs');
+  assert.deepEqual((data.roster||[]).map(x=>x.tail).sort(),[...tails].sort(),'source parity release: roster differs');
+  if(previous) {
+    assert.deepEqual(data.fleet.rebaseline,previous.fleet.rebaseline,'source parity release: historical receipt changed');
+    assert.deepEqual(data.fleet.published,previous.fleet.published,'source parity release: official source changed');
+    assert.deepEqual(data.history.slice(0,previous.history.length),previous.history,'source parity release: history changed');
   }
 }
-module.exports = { RULE, EXPECTED_FLAG, membershipGate, validatePolicy, disclosure, assertRelease };
+module.exports={RULE,membershipGate,validatePolicy,disclosure,assertRelease,sourceTypes,displayFamily};
 if(require.main===module) {
   try {
     const data=JSON.parse(require('node:fs').readFileSync(process.argv[2],'utf8'));
-    let previous;
-    if((data.fleet.membership && data.fleet.membership.policyId===RULE.id) ||
-       (data.fleet.rebaseline && data.fleet.rebaseline.approvalId===RULE.approvalId)) {
-      previous=JSON.parse(require('node:child_process').execFileSync('git',['show','origin/main:united/data.json'],{encoding:'utf8',stdio:['ignore','pipe','pipe']}));
-    }
+    const previous=JSON.parse(require('node:child_process').execFileSync('git',['show','origin/main:united/data.json'],{encoding:'utf8',stdio:['ignore','pipe','pipe']}));
     assertRelease(data,process.env.WIFIODDS_REBASELINE,Date.now(),previous);
-  }
-  catch(e) {console.error('membership release guard: '+e.message);process.exitCode=1;}
+  } catch(e) { console.error('membership release guard: '+e.message);process.exitCode=1; }
 }

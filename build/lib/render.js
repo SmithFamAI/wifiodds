@@ -700,6 +700,7 @@ function home(m) {
     P_DATE: String(Number(dparts[2])) + ' ' + MON[Number(dparts[1]) - 1] + ' ' + dparts[0],
     P_EQUIPPED: num(homeNum(m.fleet.equipped, 'fleet.equipped')),
     P_TOTAL: num(homeNum(m.fleet.total, 'fleet.total')),
+    P_TRACKER_PCT: m.D.tracker && m.D.tracker.publishedHeadline ? String(m.D.tracker.publishedHeadline.percentage) + '%' : 'not captured',
     P_INSTALLDAYS: num(homeNum(m.archiveDays, 'archiveDays')),
     P_MAINLINE: num(homeNum(m.fleet.mainline.equipped, 'fleet.mainline.equipped')),
     P_REGIONAL: num(homeNum(m.fleet.express.equipped, 'fleet.express.equipped')),
@@ -1714,7 +1715,7 @@ function airlineSubpage(m, key) {
      The dated provenance split (as_of vs checked_at) still prints once in the
      snapshot line below the cards; it does not need to repeat on every card. */
   var sourceWords = a.tracker
-    ? 'verified tail by tail at ' + esc(a.tracker)
+    ? 'listed by the tracker at ' + esc(a.tracker)
     : 'from ' + esc(a.name) + "'s published figures";
   var ngEvidence;
   if (unpublished) {
@@ -2065,7 +2066,7 @@ function fleetPage(m) {
 
   return H.page({
     title: 'United Starlink fleet — every equipped tail, live',
-    desc: num(m.fleet.equipped) + ' of ' + num(m.fleet.total) + ' United aircraft equipped: the hangar ' +
+    desc: num(m.fleet.equipped) + ' of ' + num(m.fleet.total) + ' United aircraft listed with Starlink: the hangar ' +
       'floor, the install pace, and the full tail registry with install dates. Data by unitedstarlinktracker.com.',
     canonical: '/united/fleet/', here: '/united/fleet/', suffix: 'United',
     section: 'united',
@@ -2285,7 +2286,7 @@ function racePage(m) {
     'anywhere with a public per-tail archive. That is why United is where the per-flight odds come ' +
     'from, and why every other airline’s curve gets read against this one.</p>\n' +
     '  <div class="chips" style="margin:14px 0 16px">' +
-    P.kpi(num(m.fleet.equipped), 'United aircraft equipped', 'verified tail by tail') +
+    P.kpi(num(m.fleet.equipped), 'United aircraft listed with Starlink', 'listed by the tracker') +
     P.kpi(m.sharePct + '%', 'Of the United fleet', 'of ' + num(m.fleet.total) + ' aircraft') +
     P.kpi(String(m.archiveDays), 'Days of install history', 'since ' +
       esc(DL.shortMonth(m.firstDay)) + ' 2025') +
@@ -2781,7 +2782,7 @@ function methodologyPageLegacy(m) {
     '  <span class="kicker"><span class="dot"></span>Methodology · data eff ' +
     esc(H.plateDate(m.updated)) + '</span>\n' +
     '  <h1 class="ph">How WiFi Odds knows what it knows</h1>\n' +
-    '  <p class="lede">Every number on this site is verified tail by tail by an independent ' +
+    '  <p class="lede">Every number on this site is listed by the tracker by an independent ' +
     'community tracker, derived from an aircraft type, or modelled from what an airline said in ' +
     'public. The page says which. Below: the confidence tiers, the formula with a worked example, ' +
     'the fence around the projected number, the three measurements of Starlink speed that disagree ' +
@@ -3995,7 +3996,7 @@ function alaskaRollout(m) {
           'Yes — where Starlink is installed it is free for everyone onboard, with no loyalty program, ' +
           'tier or purchase required.'],
         ['How many Alaska planes have Starlink?',
-          num(al.equipped) + ' of ' + num(al.fleet) + ' (' + pct + '%), verified tail by tail by ' +
+          num(al.equipped) + ' of ' + num(al.fleet) + ' (' + pct + '%), listed by the tracker by ' +
           'alaskastarlinktracker.com (@martinamps), an independent community tracker.']
       ].map(function (f) {
         return { '@type': 'Question', name: f[0], acceptedAnswer: { '@type': 'Answer', text: f[1] } };

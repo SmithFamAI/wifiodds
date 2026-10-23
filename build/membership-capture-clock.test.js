@@ -32,7 +32,7 @@ async function main() {
   await test('observed 622ms lead waits once then passes the unchanged gate', async () => {
     const r = await run(); assert.ifError(r.error); assert.deepEqual(r.waits,[622]);
     assert.equal(r.capture.receivedAt,initial); assert.equal(r.capture.evaluatedAt,initial+622);
-    assert.deepEqual(r.result.provenance.corrected,{equipped:645,total:1678});
+    assert.deepEqual(r.result.provenance.corrected,{equipped:645,total:1679});
   });
   for (const lead of [-1,0]) await test('nonfuture summary '+lead+'ms needs no wait',async()=>{
     const r=await run({lead});assert.ifError(r.error);assert.deepEqual(r.waits,[]);
@@ -70,7 +70,7 @@ async function main() {
   });
   await test('deployment verifier uses capture settling and full strict source checks',async()=>{
     const source=input();const provenance=reconcileMembership(source.api,source.summary,source.registry,initial+622).provenance;
-    const data={tracker:{lastUpdated:source.api.lastUpdated},fleet:{equipped:645,total:1678,membership:provenance}};
+    const data={tracker:{lastUpdated:source.api.lastUpdated},fleet:{equipped:645,total:1679,membership:provenance}};
     let clock=initial;const waits=[];
     const result=await verifyCapturedMembershipSource(data,{equipped:645,total:1679},source,{now:()=>clock,wait:async ms=>{waits.push(ms);clock+=ms;}});
     assert.deepEqual(result,provenance);assert.deepEqual(waits,[622]);

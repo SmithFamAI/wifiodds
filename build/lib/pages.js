@@ -463,7 +463,7 @@ function tierLetter(a) {
  * disagree about order. Column headers do not exist here, so no sort
  * affordance points at one. */
 function todayTierWord(a) {
-  if (a.key === 'united') return 'tail-verified';
+  if (a.key === 'united') return 'tracker-listed';
   if (a.instrumented) return 'type-derived';
   return 'fleet-share';
 }

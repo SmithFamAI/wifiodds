@@ -1,11 +1,10 @@
 'use strict';
 
-// A proposed, time-bounded source correction. This module never accepts a
-// denominator change: the existing plausibility and publication gates still run.
+// Reconcile complete publisher surfaces without changing source membership.
+// The owner requires tracker parity; disagreement is an error, not a correction.
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
-const hold = require('./ua-membership-hold.json');
-const { RULE, disclosure } = require('./ua-membership-policy.js');
+const { RULE, displayFamily } = require('./ua-membership-policy.js');
 const digest = value => crypto.createHash('sha256').update(value).digest('hex');
 const clone = value => JSON.parse(JSON.stringify(value));
 const sum = (rows, key) => rows.reduce((n, row) => n + row[key], 0);
@@ -43,6 +42,7 @@ function reconcileMembership(rawApi, rawSummary, registry, now = Date.now()) {
     typeof api.flightsByTail === 'object' && !Array.isArray(api.flightsByTail), 'membership: malformed API');
   for (const key of Object.keys(api.flightsByTail)) {
     assert(/^[A-Z0-9]+$/.test(key), 'membership: noncanonical flight tail key; review rather than rename');
+    assert(Array.isArray(api.flightsByTail[key]), 'membership: malformed flight evidence');
   }
   const members = new Set(rows.map(row => row.tail));
   assert(rows.length > 0 && members.size === rows.length, 'membership: empty or duplicate registry');
@@ -103,50 +103,36 @@ function reconcileMembership(rawApi, rawSummary, registry, now = Date.now()) {
   assert.equal(sum(regional, 'installed'), segments.express.starlink, 'membership: regional equipped mismatch');
 
   const raw = { equipped: equipped.size, total: rows.length };
-  const excludedTails = [];
-  const held = rows.find(row => row.tail === 'N63571');
-  if (held) {
-    assert.equal(hold.expiresAt, RULE.holdExpiry, 'membership: fixed owner expiry changed');
-    assert.equal(hold.observedAt, RULE.evidenceObservedAt, 'membership: fixed evidence observation changed');
-    assert.equal(hold.airline, 'UA'); assert.equal(hold.tail, 'N63571');
-    const start = Date.parse(hold.observedAt), end = Date.parse(hold.expiresAt);
-    assert(Number.isFinite(start) && Number.isFinite(end) && end > start && end - start <= 7 * 86400000 && now >= start && now < end,
-      'membership: identity evidence hold expired or not yet valid; review required');
-    assert.equal(hold.evidence.aircraftType, 'Balloon');
-    assert.equal(hold.evidence.serial, 'RX8-3127');
-    assert.equal(hold.evidence.pendingNumberChange, 'None');
-    assert.equal(held.type, 'Type not listed', 'membership: held aircraft type changed');
-    assert.equal(held.status, 'Not checked yet', 'membership: held aircraft status changed');
-    assert.deepEqual(held.classes, ['tail-dim'], 'membership: held aircraft state changed');
-    assert(!equipped.has(hold.tail), 'membership: held aircraft became equipped');
-    assert(!Object.hasOwn(api.flightsByTail, hold.tail) ||
-      (Array.isArray(api.flightsByTail[hold.tail]) && api.flightsByTail[hold.tail].length === 0),
-    'membership: held aircraft has conflicting or malformed flight evidence');
-    assert.deepEqual(rows.filter(row => row.type === 'Type not listed').map(row => row.tail), [hold.tail],
-      'membership: unknown population changed');
-    const unknown = ua.families.filter(row => row.family === 'unknown');
-    assert.equal(unknown.length, 1, 'membership: expected one unknown family');
-    assert.equal(unknown[0].body, 'narrowbody');
-    assert.equal(unknown[0].total, 1); assert.equal(unknown[0].installed, 0);
-    api.totalCount--; segments.mainline.total--; ua.total--;
-    segments.mainline.percentage = 100 * segments.mainline.starlink / segments.mainline.total;
-    ua.percentage = Math.round(1000 * ua.installed / ua.total) / 10;
-    ua.families = ua.families.filter(row => row.family !== 'unknown');
-    members.delete(hold.tail); excludedTails.push(hold.tail);
-  }
-  assert.equal(members.size, api.totalCount, 'membership: corrected registry mismatch');
-  assert.equal(sum(ua.families, 'total'), api.totalCount, 'membership: corrected family mismatch');
-  assert.equal(segments.mainline.total + segments.express.total, api.totalCount, 'membership: corrected segment mismatch');
-  const result = { api, summary, provenance: {
+  const rosterTypes=Object.fromEntries([...equipped].map(tail=>[tail,displayFamily(familyByType[byTail.get(tail).type][0])]));
+  const result = { api, summary, rosterTypes, provenance: {
+    policyId: RULE.id,
     sourceTimestamp: api.lastUpdated, registrySource: 'https://unitedstarlinktracker.com/fleet',
-    raw, corrected: { equipped: equipped.size, total: members.size }, excludedTails,
-    rawMembershipSha256: setHash(rows.map(row => row.tail)), membershipSha256: setHash(members),
+    raw, corrected: clone(raw), excludedTails: [],
+    rawMembershipSha256: setHash(members), membershipSha256: setHash(members),
     equippedSha256: setHash(equipped),
     setHashEncoding: 'UTF-8 sorted tails, LF separated, one final LF',
-    ...(held ? { policyId: RULE.id, holdId: hold.id, evidence: clone(hold.evidence), evidenceObservedAt: hold.observedAt, expiresAt: hold.expiresAt } : {})
+    listedNotVerifiedTails: rows.filter(row => equipped.has(row.tail) && /not yet verified/i.test(row.status)).map(row => row.tail).sort(),
+    sourcePercentages: { summary: ua.percentage ?? null,
+      mainline: segments.mainline.percentage ?? null, express: segments.express.percentage ?? null },
+    sourceFamilies: clone(ua.families)
   } };
-  if (held) result.provenance.disclosure = disclosure(result.provenance);
   return result;
+}
+// The public headline is a separate publisher surface. A coherent API must not
+// silently replace a disagreeing site headline, percentage or source date.
+function publishedHeadline(html,api) {
+  const text=String(html).replace(/<!--[\s\S]*?-->/g,'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ');
+  const pair=String(html).match(/<title>United Starlink Tracker: ([\d,]+) of ([\d,]+) Planes Have Starlink<\/title>/i);
+  assert(pair,'membership: public headline missing');
+  const equipped=Number(pair[1].replace(/,/g,'')),total=Number(pair[2].replace(/,/g,''));
+  assert.equal(equipped,api.starlinkPlanes.length,'membership: public headline equipped differs');
+  assert.equal(total,api.totalCount,'membership: public headline total differs');
+  const date=[...String(html).matchAll(/"dateModified"\s*:\s*"([^"]+)"/g)].map(m=>m[1]);
+  assert(date.length && date.every(x=>x===api.lastUpdated),'membership: public headline clock differs');
+  const pct=String(html).match(/United planes \((\d+)%\) have Starlink/i);
+  assert(pct && Number(pct[1])===Math.floor(100*equipped/total),'membership: public headline percentage differs');
+  return {equipped,total,percentage:Number(pct[1]),sourceTimestamp:api.lastUpdated,
+    source:'https://unitedstarlinktracker.com/'};
 }
 // A retained Actions acquisition showed the summary's server clock 622 ms
 // ahead of the runner after all three bodies arrived. Wait once for a small
@@ -175,4 +161,4 @@ async function settleMembershipCapture(api, summary, { now = Date.now,
     'membership: capture wait exceeded one-second budget: ' + JSON.stringify(capture));
   return capture;
 }
-module.exports = { reconcileMembership, settleMembershipCapture };
+module.exports = { reconcileMembership, settleMembershipCapture, publishedHeadline };

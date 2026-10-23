@@ -122,12 +122,12 @@ function verifyMembershipSource(data, tracker, source, now = Date.now()) {
     return null;
   }
   assert(Array.isArray(p.excludedTails) && p.raw && p.corrected, 'membership metadata is malformed');
-  if (p.excludedTails.length) validatePolicy(p,now);
+  validatePolicy(p,now);
   assert(source && source.api && source.summary && typeof source.registry === 'string', 'complete membership source required');
   const derived = reconcileMembership(source.api,source.summary,source.registry,now).provenance;
   assert.deepEqual(p,derived,'accepted membership provenance differs from complete source');
   assert.deepEqual(tracker,derived.raw,'raw tracker headline differs from complete source');
-  assert.deepEqual(derived.corrected,{equipped:data.fleet.equipped,total:data.fleet.total},'corrected count differs from artifact');
+  assert.deepEqual(derived.corrected,{equipped:data.fleet.equipped,total:data.fleet.total},'source count differs from artifact');
   assert.equal(data.tracker && data.tracker.lastUpdated,derived.sourceTimestamp,'accepted source clock differs');
   if (p.excludedTails.length) assert.equal(p.disclosure,disclosure(p),'correction disclosure differs');
   return derived;

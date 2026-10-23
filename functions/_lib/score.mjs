@@ -158,15 +158,15 @@
 const WIFI_AIRLINES = {
   /* ── instrumented: the extension can show real per-flight odds for these ── */
   united: {
-    membership: {"sourceTimestamp":"2026-10-22T17:30:07.211Z","registrySource":"https://unitedstarlinktracker.com/fleet","raw":{"equipped":650,"total":1679},"corrected":{"equipped":650,"total":1678},"excludedTails":["N63571"],"rawMembershipSha256":"0ad2498535428ed0787c5b6ff1cbfe8df2808e9987d9f35d010e785d6120e669","membershipSha256":"147302a88365849f8aa3ab619691c8e036307ffd16b462f4c1c15bc95f8668ab","equippedSha256":"c60e1a443e0e9a1e180451e24b240f93dbccad8de89ebb05d1752aa0ce777204","setHashEncoding":"UTF-8 sorted tails, LF separated, one final LF","policyId":"ua-n63571-20261019","holdId":"ua-n63571-faa-20261019","evidence":{"url":"https://registry.faa.gov/aircraftinquiry/Search/NNumberResult?NNumberTxt=63571","responseSha256":"b095247c054980719b626d83833ca6ce0fbdb451fb453953097d727cedd54524","manufacturer":"AEROSTAR INTERNATIONAL INC","model":"RX 8","serial":"RX8-3127","aircraftType":"Balloon","registrationStatus":"Valid","pendingNumberChange":"None"},"evidenceObservedAt":"2026-10-19T14:20:41.605Z","expiresAt":"2026-10-26T14:20:41.605Z","disclosure":"WiFiOdds corrected United population: 650/1,678; raw tracker: 650/1,679. N63571 is excluded because the FAA record identifies balloon RX8-3127 (checked 2026-10-19T14:20:41.605Z). This temporary hold expires October 26, 2026 at 14:20:41 UTC. Source snapshot: 2026-10-22T17:30:07.211Z. N37484 remains included; this does not confirm legal delivery or Starlink. The historical B787 change from 95 to 96 remains unresolved."},
+    membership: {"policyId":"ua-tracker-parity-20261023","sourceTimestamp":"2026-10-23T16:12:56.432Z","registrySource":"https://unitedstarlinktracker.com/fleet","raw":{"equipped":651,"total":1680},"corrected":{"equipped":651,"total":1680},"excludedTails":[],"rawMembershipSha256":"8b8edaa403113379cfd0d28247d0d956ee74e07de808e7ff42ec36354bae49d6","membershipSha256":"8b8edaa403113379cfd0d28247d0d956ee74e07de808e7ff42ec36354bae49d6","equippedSha256":"7abf6e53c1d15c67413c7b62c70e7d4694fe62a73b841a74c2142e1eb4065511","setHashEncoding":"UTF-8 sorted tails, LF separated, one final LF","listedNotVerifiedTails":["N641SY"],"sourcePercentages":{"summary":38.8,"mainline":25.621251071122536,"express":68.61598440545808},"sourceFamilies":[{"family":"E175","body":"regional","installed":252,"total":252,"percentage":100},{"family":"CRJ-550","body":"regional","installed":100,"total":103,"percentage":97.1},{"family":"A321","body":"narrowbody","installed":68,"total":77,"percentage":88.3},{"family":"B737-800","body":"narrowbody","installed":99,"total":141,"percentage":70.2},{"family":"B737-900","body":"narrowbody","installed":88,"total":148,"percentage":59.5},{"family":"B737-MAX9","body":"narrowbody","installed":35,"total":183,"percentage":19.1},{"family":"B777","body":"widebody","installed":4,"total":96,"percentage":4.2},{"family":"B737-MAX8","body":"narrowbody","installed":3,"total":123,"percentage":2.4},{"family":"B787","body":"widebody","installed":2,"total":96,"percentage":2.1},{"family":"CRJ-200","body":"regional","installed":0,"total":90,"percentage":0},{"family":"A319","body":"narrowbody","installed":0,"total":76,"percentage":0},{"family":"A320","body":"narrowbody","installed":0,"total":71,"percentage":0},{"family":"B757","body":"narrowbody","installed":0,"total":61,"percentage":0},{"family":"ERJ-145","body":"regional","installed":0,"total":55,"percentage":0},{"family":"B767","body":"widebody","installed":0,"total":53,"percentage":0},{"family":"B737-700","body":"narrowbody","installed":0,"total":40,"percentage":0},{"family":"E170","body":"regional","installed":0,"total":8,"percentage":0},{"family":"CRJ-700","body":"regional","installed":0,"total":5,"percentage":0},{"family":"B737-MAX10","body":"narrowbody","installed":0,"total":1,"percentage":0},{"family":"unknown","body":"narrowbody","installed":0,"total":1,"percentage":0}]},
     name: "United", code: "UA", asOf: "2026-10",
-    nextGenSplit: { mainline: { n: 298, of: 1165 }, regional: { n: 352, of: 513 } },
+    nextGenSplit: { mainline: { n: 299, of: 1167 }, regional: { n: 352, of: 513 } },
     /* equipped/fleet MUST equal united/data.json fleet.equipped / fleet.total.
        They had drifted to 481/1807 while data.json said 481/1808, so the same
        homepage printed "481 of 1,807 (27%)" on the US card and "of 1,808
        aircraft" in the United section. build/prerender.js reconciles them from
        data.json on every build, and fails if it cannot find them. */
-    system: "starlink", equipped: 650, fleet: 1678, free: "loyalty-free",
+    system: "starlink", equipped: 651, fleet: 1680, free: "loyalty-free",
     instrumented: true, tracker: "unitedstarlinktracker.com",
     resolution: "tail",
     serviceTier: "mixed", restTier: "unknown",
@@ -182,7 +182,7 @@ const WIFI_AIRLINES = {
        creep stale by a handful of aircraft between joins. Re-run the join, do
        not nudge the numbers. */
     segments: [
-      { system: "starlink", n: 650, free: "loyalty-free", as: "2026-10-22",
+      { system: "starlink", n: 651, free: "loyalty-free", as: "2026-10-23",
         src: "united/data.json, the daily pull from unitedstarlinktracker.com",
         note: "Free for MileagePlus members, and joining is free." },
       { system: "viasat", n: 440, free: "paid", as: "2026-10-06",
@@ -202,8 +202,8 @@ const WIFI_AIRLINES = {
           "of them are in the Starlink programme, so this row shrinks when the " +
           "aircraft retire rather than when installs proceed." },
     ],
-    unresolved: { n: 18, why: "the tracker publishes no system for these tails" },
-    note: "650 of 1,678 aircraft, free for MileagePlus members. Odds swing a lot by route and aircraft type.",
+    unresolved: { n: 19, why: "the tracker publishes no system for these tails" },
+    note: "651 of 1,680 aircraft, free for MileagePlus members. Odds swing a lot by route and aircraft type.",
   },
   alaska: {
     name: "Alaska", code: "AS", asOf: "2026-10",
