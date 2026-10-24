@@ -219,7 +219,11 @@ function segN(system) {
   return seg ? seg.n : 0;
 }
 function fmt(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
-function pct(n) { return Math.round(n / U.fleet * 100) + '%'; }
+function pct(n) {
+  var share = n / U.fleet * 100;
+  // Existing modeled-share display keeps one decimal below one percent.
+  return (share > 0 && share < 1 ? share.toFixed(1) : Math.round(share)) + '%';
+}
 var EXP = {
   ng: U.equipped, ngPct: require('../united/data.json').tracker.publishedHeadline.percentage + '%',
   stream: segN('starlink') + segN('viasat') + segN('thales'),
@@ -399,6 +403,58 @@ assert.ok(unitedUnknown.indexOf(fmt(EXP.unresolved)) !== -1 && unitedUnknown.ind
   assert.ok(html.indexOf('class="rest-row unknown-row"') !== -1,
     key + ' keeps the unknown row when unresolved is above zero');
 });
+
+// Synthetic formatting fixtures exercise the real renderer; they are not source evidence.
+var Data = require('./lib/data.js');
+var Render = require('./lib/render.js');
+function renderResidual(total, unresolved) {
+  var saved = A.WIFI_AIRLINES.united;
+  try {
+    var u = JSON.parse(JSON.stringify(saved));
+    A.WIFI_AIRLINES.united = u;
+    var other = u.segments.filter(function (s) { return s.system !== 'starlink'; })
+      .reduce(function (n, s) { return n + s.n; }, 0);
+    var equipped = total - other - unresolved;
+    assert.ok(equipped >= 0);
+    u.fleet = total;
+    u.equipped = equipped;
+    u.segments.find(function (s) { return s.system === 'starlink'; }).n = equipped;
+    u.unresolved.n = unresolved;
+    var model = Data.build();
+    model.D.tracker.publishedHeadline.percentage = Math.floor(100 * equipped / total);
+    return Render.airlineSubpage(model, 'united');
+  } finally {
+    A.WIFI_AIRLINES.united = saved;
+  }
+}
+function assertResidual(html, expectedCount, expectedShare) {
+  var rows = Array.from(html.matchAll(
+    /<div class="rest-row unknown-row">\s*<div><b>No published system<\/b>[\s\S]*?<\/div>\s*<span class="n">([^<]*)<\/span>\s*<span class="share">([^<]*)<\/span>\s*<\/div>/g
+  ));
+  if (expectedCount === 0) {
+    assert.strictEqual(rows.length, 0);
+    assert.ok(!html.includes('class="rest-row unknown-row"'));
+    return;
+  }
+  assert.strictEqual(rows.length, 1, 'exactly one named unknown row');
+  assert.strictEqual(rows[0][1], fmt(expectedCount), 'unknown count');
+  assert.strictEqual(rows[0][2], expectedShare, 'unknown share');
+}
+assertResidual(united, EXP.unresolved, pct(EXP.unresolved));
+var fractional = renderResidual(1680, 14);
+assertResidual(fractional, 14, '0.8%');
+var oldShare = '<span class="share">0.8%</span>';
+assert.strictEqual(fractional.split(oldShare).length - 1, 1, 'percentage mutation lands exactly once');
+assert.throws(function () {
+  assertResidual(fractional.replace(oldShare, '<span class="share">1%</span>'), 14, '0.8%');
+}, /unknown share/);
+var oldCount = '<span class="n">14</span>';
+assert.strictEqual(fractional.split(oldCount).length - 1, 1, 'count mutation lands exactly once');
+assert.throws(function () {
+  assertResidual(fractional.replace(oldCount, '<span class="n">15</span>'), 14, '0.8%');
+}, /unknown count/);
+assertResidual(renderResidual(2000, 20), 20, '1%');
+assertResidual(renderResidual(2000, 0), 0, null);
 
 var sasPage = htmlOf('airlines/sas/index.html');
 var sasScore = A.scoreAirline('sas');
