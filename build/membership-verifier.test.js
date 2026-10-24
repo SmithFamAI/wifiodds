@@ -38,7 +38,8 @@ async function main(){
   try {
     assert.deepEqual(await run(),[]);n++;console.log('PASS strict complete current bodies');
     const lag=structuredClone(data);lag.measurementAsOf='2026-10-15';put('united/data.json',JSON.stringify(lag));
-    assert((await run()).some(x=>x.includes('propagation lag')));n++;console.log('PASS lag cannot prove current recovery');
+    const unprovenLag=await run();
+    assert(unprovenLag.length>0 && !unprovenLag.propagationLag);n++;console.log('PASS older content without a pinned prior artifact is a hard failure');
     put('api/airlines/united',JSON.stringify({airline:{fleet:{equipped:-1,total:0}}}));
     assert.equal((await run()).invalidShape,true);n++;console.log('PASS impossible API counts are defects even with lag');
     put('api/airlines/united',JSON.stringify(unitedApi));

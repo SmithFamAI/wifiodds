@@ -97,6 +97,9 @@ fi
 if ! node build/membership-verifier.test.js; then
   fail "membership verifier controls failed; current-data recovery cannot be proved." 98
 fi
+if ! node build/deploy-propagation.test.js; then
+  fail "deployment propagation controls failed; only known prior artifacts may be retried." 98
+fi
 if ! node build/membership-correction.test.js; then
   fail "source reconciliation controls failed; membership, schema or source clocks are unverified." 98
 fi

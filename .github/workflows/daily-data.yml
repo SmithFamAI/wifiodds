@@ -112,10 +112,17 @@ jobs:
           exit "${PIPESTATUS[0]}"
 
       - name: Confirm current reviewed JSON, API, raw badge, and homepage bodies
+        id: confirm_deploy
+        env:
+          PRIOR_COMMIT: ${{ github.sha }}
         run: |
+          umask 077
+          mkdir -p "$RUNNER_TEMP/wifiodds-deploy-evidence"
           for i in $(seq 1 30); do
             rc=0
-            node build/verify-data-deploy.js --require-current --samples 1 || rc=$?
+            node build/verify-data-deploy.js --require-current --samples 1 \
+              --prior-commit "$PRIOR_COMMIT" \
+              --evidence-dir "$RUNNER_TEMP/wifiodds-deploy-evidence/attempt-$i" || rc=$?
             if [ "$rc" -eq 0 ]; then
               echo "current bodies confirmed for $(git rev-parse HEAD)"
               exit 0
@@ -127,6 +134,15 @@ jobs:
           done
           echo "current reviewed bodies were not confirmed within 10 minutes" >&2
           exit 1
+
+      - name: Retain deployment confirmation responses
+        if: ${{ always() && steps.confirm_deploy.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-confirm-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/wifiodds-deploy-evidence
+          retention-days: 1
+          if-no-files-found: ignore
 
       - name: Open or update the failure issue
         if: failure()
