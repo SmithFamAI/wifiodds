@@ -158,15 +158,15 @@
 const WIFI_AIRLINES = {
   /* ── instrumented: the extension can show real per-flight odds for these ── */
   united: {
-    membership: {"policyId":"ua-tracker-parity-20261023","sourceTimestamp":"2026-10-24T16:17:17.227Z","registrySource":"https://unitedstarlinktracker.com/fleet","raw":{"equipped":656,"total":1680},"corrected":{"equipped":656,"total":1680},"excludedTails":[],"rawMembershipSha256":"8b8edaa403113379cfd0d28247d0d956ee74e07de808e7ff42ec36354bae49d6","membershipSha256":"8b8edaa403113379cfd0d28247d0d956ee74e07de808e7ff42ec36354bae49d6","equippedSha256":"51c7de3c6246844d43fbe761f6e89715137301696ea1826ad93f99aa734b4f9a","setHashEncoding":"UTF-8 sorted tails, LF separated, one final LF","listedNotVerifiedTails":["N641SY"],"sourcePercentages":{"summary":39,"mainline":25.96401028277635,"express":68.81091617933723},"sourceFamilies":[{"family":"E175","body":"regional","installed":252,"total":252,"percentage":100},{"family":"CRJ-550","body":"regional","installed":101,"total":103,"percentage":98.1},{"family":"A321","body":"narrowbody","installed":68,"total":77,"percentage":88.3},{"family":"B737-800","body":"narrowbody","installed":100,"total":141,"percentage":70.9},{"family":"B737-900","body":"narrowbody","installed":89,"total":148,"percentage":60.1},{"family":"B737-MAX9","body":"narrowbody","installed":37,"total":183,"percentage":20.2},{"family":"B777","body":"widebody","installed":4,"total":96,"percentage":4.2},{"family":"B737-MAX8","body":"narrowbody","installed":3,"total":123,"percentage":2.4},{"family":"B787","body":"widebody","installed":2,"total":96,"percentage":2.1},{"family":"CRJ-200","body":"regional","installed":0,"total":90,"percentage":0},{"family":"A319","body":"narrowbody","installed":0,"total":76,"percentage":0},{"family":"A320","body":"narrowbody","installed":0,"total":71,"percentage":0},{"family":"B757","body":"narrowbody","installed":0,"total":61,"percentage":0},{"family":"ERJ-145","body":"regional","installed":0,"total":55,"percentage":0},{"family":"B767","body":"widebody","installed":0,"total":53,"percentage":0},{"family":"B737-700","body":"narrowbody","installed":0,"total":40,"percentage":0},{"family":"E170","body":"regional","installed":0,"total":8,"percentage":0},{"family":"CRJ-700","body":"regional","installed":0,"total":5,"percentage":0},{"family":"B737-MAX10","body":"narrowbody","installed":0,"total":1,"percentage":0},{"family":"unknown","body":"narrowbody","installed":0,"total":1,"percentage":0}]},
+    membership: {"policyId":"ua-tracker-parity-20261023","sourceTimestamp":"2026-10-26T19:05:40.841Z","registrySource":"https://unitedstarlinktracker.com/fleet","raw":{"equipped":660,"total":1681},"corrected":{"equipped":660,"total":1681},"excludedTails":[],"rawMembershipSha256":"f0f71c682d290ed926b531cb8b04de366bbc79381113bde6ccde5219ae96097c","membershipSha256":"f0f71c682d290ed926b531cb8b04de366bbc79381113bde6ccde5219ae96097c","equippedSha256":"d63dd6d8c20ae6da12ea1061675135752329cb9a3e95e06d534d21a7156c0944","setHashEncoding":"UTF-8 sorted tails, LF separated, one final LF","listedNotVerifiedTails":["N641SY"],"sourcePercentages":{"summary":39.3,"mainline":26.1986301369863,"express":69.00584795321637},"sourceFamilies":[{"family":"E175","body":"regional","installed":252,"total":252,"percentage":100},{"family":"CRJ-550","body":"regional","installed":101,"total":103,"percentage":98.1},{"family":"A321","body":"narrowbody","installed":68,"total":77,"percentage":88.3},{"family":"B737-800","body":"narrowbody","installed":100,"total":141,"percentage":70.9},{"family":"B737-900","body":"narrowbody","installed":90,"total":148,"percentage":60.8},{"family":"B737-MAX9","body":"narrowbody","installed":39,"total":184,"percentage":21.2},{"family":"B777","body":"widebody","installed":4,"total":96,"percentage":4.2},{"family":"B737-MAX8","body":"narrowbody","installed":3,"total":123,"percentage":2.4},{"family":"B787","body":"widebody","installed":2,"total":96,"percentage":2.1},{"family":"CRJ-200","body":"regional","installed":0,"total":90,"percentage":0},{"family":"A319","body":"narrowbody","installed":0,"total":76,"percentage":0},{"family":"A320","body":"narrowbody","installed":0,"total":71,"percentage":0},{"family":"B757","body":"narrowbody","installed":0,"total":61,"percentage":0},{"family":"ERJ-145","body":"regional","installed":0,"total":55,"percentage":0},{"family":"B767","body":"widebody","installed":0,"total":53,"percentage":0},{"family":"B737-700","body":"narrowbody","installed":0,"total":40,"percentage":0},{"family":"E170","body":"regional","installed":0,"total":8,"percentage":0},{"family":"CRJ-700","body":"regional","installed":0,"total":5,"percentage":0},{"family":"B737-MAX10","body":"narrowbody","installed":0,"total":1,"percentage":0},{"family":"unknown","body":"narrowbody","installed":0,"total":1,"percentage":0}],"sourceDuplicateTails":[{"tail":"N89349","rows":2,"fleet":"express","operatedBy":"Mesa dba UAX","aircraft":["ERJ-175","E175SC"]}]},
     name: "United", code: "UA", asOf: "2026-10",
-    nextGenSplit: { mainline: { n: 303, of: 1167 }, regional: { n: 353, of: 513 } },
+    nextGenSplit: { mainline: { n: 306, of: 1168 }, regional: { n: 354, of: 513 } },
     /* equipped/fleet MUST equal united/data.json fleet.equipped / fleet.total.
        They had drifted to 481/1807 while data.json said 481/1808, so the same
        homepage printed "481 of 1,807 (27%)" on the US card and "of 1,808
        aircraft" in the United section. build/prerender.js reconciles them from
        data.json on every build, and fails if it cannot find them. */
-    system: "starlink", equipped: 656, fleet: 1680, free: "loyalty-free",
+    system: "starlink", equipped: 660, fleet: 1681, free: "loyalty-free",
     instrumented: true, tracker: "unitedstarlinktracker.com",
     resolution: "tail",
     serviceTier: "mixed", restTier: "unknown",
@@ -182,7 +182,7 @@ const WIFI_AIRLINES = {
        creep stale by a handful of aircraft between joins. Re-run the join, do
        not nudge the numbers. */
     segments: [
-      { system: "starlink", n: 656, free: "loyalty-free", as: "2026-10-24",
+      { system: "starlink", n: 660, free: "loyalty-free", as: "2026-10-26",
         src: "united/data.json, the daily pull from unitedstarlinktracker.com",
         note: "Free for MileagePlus members, and joining is free." },
       { system: "viasat", n: 440, free: "paid", as: "2026-10-06",
@@ -202,8 +202,8 @@ const WIFI_AIRLINES = {
           "of them are in the Starlink programme, so this row shrinks when the " +
           "aircraft retire rather than when installs proceed." },
     ],
-    unresolved: { n: 14, why: "the tracker publishes no system for these tails" },
-    note: "656 of 1,680 aircraft, free for MileagePlus members. Odds swing a lot by route and aircraft type.",
+    unresolved: { n: 11, why: "the tracker publishes no system for these tails" },
+    note: "660 of 1,681 aircraft, free for MileagePlus members. Odds swing a lot by route and aircraft type.",
   },
   alaska: {
     name: "Alaska", code: "AS", asOf: "2026-10",
