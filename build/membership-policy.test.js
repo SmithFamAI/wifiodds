@@ -41,4 +41,18 @@ test('environment override cannot affect raw parity',()=>{const old=process.env.
 test('release binds exact counts, clock, roster and preserves prior records',()=>{const {d,before}=ready();assertRelease(d,undefined,now,before);for(const change of [x=>x.fleet.total--,x=>x.fleet.mainline.total--,x=>x.fleet.types[0].total--,x=>x.tracker.publishedHeadline.percentage++,x=>x.tracker.lastUpdated='wrong',x=>x.knownTails.pop(),x=>x.roster.pop(),x=>x.fleet.rebaseline.changed=true,x=>x.history[0].total++,x=>x.fleet.published.url='changed',x=>x.fleet.plausibility.flags.push('bad')]){const bad=structuredClone(d);change(bad);assert.throws(()=>assertRelease(bad,undefined,now,before));}});
 test('old hold expiry cannot block a fresh unadjusted source',()=>{const p=source();p.sourceTimestamp='2026-10-27T14:00:00Z';validatePolicy(p,Date.parse('2026-10-27T14:30:00Z'));});
 test('public headline counts, percentage and clock must match',()=>{const api={totalCount:4,starlinkPlanes:[{},{}],lastUpdated:'2026-10-23T14:00:00Z'};const html='<title>United Starlink Tracker: 2 of 4 Planes Have Starlink</title><meta content="United planes (50%) have Starlink">'+JSON.stringify({dateModified:api.lastUpdated});assert.equal(publishedHeadline(html,api).percentage,50);for(const bad of [html.replace('2 of 4','2 of 5'),html.replace('50%','49%'),html.replace('14:00:00','15:00:00')])assert.throws(()=>publishedHeadline(bad,api));});
+test('tracker-counted same-aircraft duplicate explains the unique roster gap',()=>{
+  const {d,before}=ready();
+  const tail=d.knownTails[0];
+  d.fleet.membership.sourceDuplicateTails=[{tail,rows:2,fleet:'express',operatedBy:'Mesa dba UAX',aircraft:['ERJ-175','E175SC']}];
+  d.fleet.membership.raw.equipped++;d.fleet.membership.corrected.equipped++;
+  d.tracker.candidateMembership=structuredClone(d.fleet.membership);
+  d.fleet.equipped++;d.fleet.express.equipped++;d.tracker.publishedHeadline.equipped++;
+  assertRelease(d,undefined,now,before);
+  const short=structuredClone(d);short.knownTails.pop();
+  assert.throws(()=>assertRelease(short,undefined,now,before),/equipped roster incomplete/);
+  const moved=structuredClone(d);moved.fleet.membership.sourceDuplicateTails[0].fleet='mainline';
+  moved.tracker.candidateMembership=structuredClone(moved.fleet.membership);
+  assert.throws(()=>assertRelease(moved,undefined,now,before),/segments differ/);
+});
 console.log('membership source parity policy controls: '+count+' passed');

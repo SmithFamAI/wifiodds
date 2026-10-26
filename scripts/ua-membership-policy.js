@@ -47,6 +47,23 @@ function disclosure(p) {
     '). This temporary hold expires October 26, 2026 at 14:20:41 UTC. Source snapshot: ' + p.sourceTimestamp +
     '. N37484 remains included; this does not confirm legal delivery or Starlink. The historical B787 change from 95 to 96 remains unresolved.';
 }
+function duplicateExtras(p) {
+  const listed = p && p.sourceDuplicateTails;
+  if (listed == null) return { extra: 0, byFleet: { mainline: 0, express: 0 }, rows: [] };
+  assert(Array.isArray(listed) && listed.length > 0, 'source parity release: duplicate tails malformed');
+  const byFleet = { mainline: 0, express: 0 }, seen = new Set();
+  let extra = 0;
+  for (const row of listed) {
+    assert(row && typeof row.tail === 'string' && /^[A-Z0-9]+$/.test(row.tail) && !seen.has(row.tail) &&
+      (row.fleet === 'mainline' || row.fleet === 'express') && Number.isSafeInteger(row.rows) && row.rows >= 2,
+      'source parity release: duplicate tails malformed');
+    seen.add(row.tail);
+    const add = row.rows - 1;
+    extra += add;
+    byFleet[row.fleet] += add;
+  }
+  return { extra, byFleet, rows: listed };
+}
 function assertRelease(data,request,now=Date.now(),previous) {
   assert(!request,'source parity release: rebaseline overrides are not permitted');
   const p=validatePolicy(data.fleet.membership,now);
@@ -57,18 +74,20 @@ function assertRelease(data,request,now=Date.now(),previous) {
   assert.equal(data.updated,data.measurementAsOf,'source parity release: updated date differs');
   assert(Array.isArray(data.fleet.plausibility.flags) && data.fleet.plausibility.flags.length===0,'source parity release: validation flags remain');
   assert.deepEqual(data.fleet.types,sourceTypes(p.sourceFamilies),'source parity release: type rows differ');
+  const extras=duplicateExtras(p);
   for(const seg of ['mainline','express']) {
     const rows=data.fleet.types.filter(x=>x.seg===seg);
-    assert.deepEqual(data.fleet[seg],{equipped:rows.reduce((n,x)=>n+x.equipped,0),total:rows.reduce((n,x)=>n+x.total,0)},'source parity release: segments differ');
+    assert.deepEqual(data.fleet[seg],{equipped:rows.reduce((n,x)=>n+x.equipped,0)+extras.byFleet[seg],total:rows.reduce((n,x)=>n+x.total,0)},'source parity release: segments differ');
   }
   assert.equal(data.fleet.types.reduce((n,x)=>n+x.total,0),p.raw.total,'source parity release: family total differs');
-  assert.equal(data.fleet.types.reduce((n,x)=>n+x.equipped,0),p.raw.equipped,'source parity release: family equipped differs');
+  assert.equal(data.fleet.types.reduce((n,x)=>n+x.equipped,0)+extras.extra,p.raw.equipped,'source parity release: family equipped differs');
   const headline=data.tracker.publishedHeadline;
   assert(headline && headline.equipped===p.raw.equipped && headline.total===p.raw.total &&
     headline.sourceTimestamp===p.sourceTimestamp && headline.percentage===Math.floor(100*p.raw.equipped/p.raw.total),
     'source parity release: public headline differs');
   const tails=data.knownTails;
-  assert(Array.isArray(tails) && tails.length===p.raw.equipped && new Set(tails).size===tails.length,'source parity release: equipped roster incomplete');
+  assert(Array.isArray(tails) && tails.length+extras.extra===p.raw.equipped && new Set(tails).size===tails.length,'source parity release: equipped roster incomplete');
+  for (const row of extras.rows) assert(tails.includes(row.tail),'source parity release: duplicate tail missing from roster');
   assert.equal(hash([...tails].sort().join('\n')+'\n'),p.equippedSha256,'source parity release: equipped roster differs');
   assert.deepEqual((data.roster||[]).map(x=>x.tail).sort(),[...tails].sort(),'source parity release: roster differs');
   if(previous) {
