@@ -10,6 +10,29 @@ const clone = value => JSON.parse(JSON.stringify(value));
 const sum = (rows, key) => rows.reduce((n, row) => n + row[key], 0);
 const sorted = set => [...set].sort();
 const setHash = values => digest(sorted(values).join('\n') + '\n');
+// A repeated TailNumber is the tracker's own row, not a second aircraft, only when
+// every copy shares that tail, fleet, and operator. The headline keeps the raw
+// row count. Registry membership and the equipped hash stay one tail each.
+function sameAircraftDuplicates(planes) {
+  const groups = new Map();
+  for (const row of planes) {
+    const tail = row && row.TailNumber;
+    const list = groups.get(tail);
+    if (list) list.push(row);
+    else groups.set(tail, [row]);
+  }
+  const allowed = [];
+  for (const [tail, copies] of groups) {
+    if (copies.length === 1) continue;
+    const fleet = copies[0].fleet, operatedBy = copies[0].OperatedBy;
+    const same = typeof tail === 'string' && /^[A-Z0-9]+$/.test(tail) && copies.every(row =>
+      row.TailNumber === tail && row.fleet === fleet && row.OperatedBy === operatedBy);
+    if (!same) return { ok: false, allowed: [], extra: 0 };
+    allowed.push({ tail, rows: copies.length, fleet, operatedBy, aircraft: copies.map(row => row.Aircraft) });
+  }
+  allowed.sort((a, b) => a.tail < b.tail ? -1 : a.tail > b.tail ? 1 : 0);
+  return { ok: true, allowed, extra: allowed.reduce((n, row) => n + row.rows - 1, 0) };
+}
 const familyByType = {
   'ERJ-145': ['ERJ-145', 'regional'], E175: ['E175', 'regional'], E170: ['E170', 'regional'],
   CRJ200: ['CRJ-200', 'regional'], CRJ550: ['CRJ-550', 'regional'], CRJ700: ['CRJ-700', 'regional'],
@@ -47,7 +70,17 @@ function reconcileMembership(rawApi, rawSummary, registry, now = Date.now()) {
   const members = new Set(rows.map(row => row.tail));
   assert(rows.length > 0 && members.size === rows.length, 'membership: empty or duplicate registry');
   const equipped = new Set(api.starlinkPlanes.map(row => row.TailNumber));
-  assert.equal(equipped.size, api.starlinkPlanes.length, 'membership: duplicate equipped tail');
+  const trackerEquipped = api.starlinkPlanes.length;
+  const duplicateTails = sameAircraftDuplicates(api.starlinkPlanes);
+  const duplicateExtra = trackerEquipped - equipped.size;
+  if (!duplicateTails.ok || duplicateExtra !== duplicateTails.extra) {
+    assert.equal(equipped.size, trackerEquipped, 'membership: duplicate equipped tail');
+  }
+  for (const dup of duplicateTails.allowed) {
+    console.log('membership: source duplicate tail ' + dup.tail +
+      ' counted as the tracker counts it (' + dup.rows + ' source rows, fleet ' +
+      dup.fleet + ', OperatedBy ' + dup.operatedBy + ', aircraft ' + dup.aircraft.join(' / ') + ')');
+  }
   assert.deepEqual(sorted(equipped), sorted(new Set(rows.filter(row => row.classes.includes('tail-sl')).map(row => row.tail))),
     'membership: registry/API equipped sets disagree');
   for (const tail of equipped) assert(members.has(tail), 'membership: equipped tail outside registry');
@@ -72,11 +105,11 @@ function reconcileMembership(rawApi, rawSummary, registry, now = Date.now()) {
   }
   assert.equal(api.totalCount, rows.length, 'membership: full registry/total mismatch');
   assert.equal(ua.total, rows.length, 'membership: summary/registry mismatch');
-  assert.equal(ua.installed, equipped.size, 'membership: summary/equipped mismatch');
+  assert.equal(ua.installed, trackerEquipped, 'membership: summary/equipped mismatch');
   assert.equal(segments.mainline.total + segments.express.total, rows.length, 'membership: segment total mismatch');
-  assert.equal(segments.mainline.starlink + segments.express.starlink, equipped.size, 'membership: segment equipped mismatch');
+  assert.equal(segments.mainline.starlink + segments.express.starlink, trackerEquipped, 'membership: segment equipped mismatch');
   assert.equal(sum(ua.families, 'total'), ua.total, 'membership: family total mismatch');
-  assert.equal(sum(ua.families, 'installed'), ua.installed, 'membership: family equipped mismatch');
+  assert.equal(sum(ua.families, 'installed') + duplicateTails.extra, ua.installed, 'membership: family equipped mismatch');
   const byTail = new Map(rows.map(row => [row.tail, row]));
   const registryFamilies = new Map();
   for (const row of rows) {
@@ -100,10 +133,11 @@ function reconcileMembership(rawApi, rawSummary, registry, now = Date.now()) {
       'membership: equipped tail segment differs from registry');
   }
   const regional = ua.families.filter(row => row.body === 'regional');
+  const expressExtra = duplicateTails.allowed.reduce((n, row) => n + (row.fleet === 'express' ? row.rows - 1 : 0), 0);
   assert.equal(sum(regional, 'total'), segments.express.total, 'membership: regional population mismatch');
-  assert.equal(sum(regional, 'installed'), segments.express.starlink, 'membership: regional equipped mismatch');
+  assert.equal(sum(regional, 'installed') + expressExtra, segments.express.starlink, 'membership: regional equipped mismatch');
 
-  const raw = { equipped: equipped.size, total: rows.length };
+  const raw = { equipped: trackerEquipped, total: rows.length };
   const rosterTypes=Object.fromEntries([...equipped].map(tail=>[tail,displayFamily(familyByType[byTail.get(tail).type][0])]));
   const result = { api, summary, rosterTypes, provenance: {
     policyId: RULE.id,
@@ -117,6 +151,9 @@ function reconcileMembership(rawApi, rawSummary, registry, now = Date.now()) {
       mainline: segments.mainline.percentage ?? null, express: segments.express.percentage ?? null },
     sourceFamilies: clone(ua.families)
   } };
+  if (duplicateTails.allowed.length) result.provenance.sourceDuplicateTails = duplicateTails.allowed.map(row => ({
+    tail: row.tail, rows: row.rows, fleet: row.fleet, operatedBy: row.operatedBy, aircraft: row.aircraft
+  }));
   return result;
 }
 // The public headline is a separate publisher surface. A coherent API must not

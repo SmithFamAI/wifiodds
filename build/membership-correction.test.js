@@ -7,6 +7,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 const work = fs.mkdtempSync(path.join(os.tmpdir(), 'wo-membership-'));
@@ -168,8 +169,71 @@ try {
     assert.equal(r.status,0,r.stderr);assert.equal(r.data.fleet.total,4);assert.equal(r.data.fleet.membership.expiresAt,undefined);
   });
   test('duplicate equipped tail rejects before writing', () => {
-    const f = fixture(); f.api.starlinkPlanes[1] = structuredClone(f.api.starlinkPlanes[0]);
-    const r = run(f); assert.notEqual(r.status, 0); assert(r.unchanged);
+    const f = fixture();
+    f.api.starlinkPlanes[1].TailNumber = f.api.starlinkPlanes[0].TailNumber;
+    f.api.starlinkPlanes[0].OperatedBy = 'Mesa dba UAX';
+    f.api.starlinkPlanes[1].OperatedBy = 'Mesa dba UAX';
+    const r = run(f);
+    assert.notEqual(r.status, 0); assert(r.unchanged);
+    assert.match(r.stderr, /membership: duplicate equipped tail/);
+  });
+  test('same-aircraft duplicate tail counts as the tracker counts it', () => {
+    const f = fixture();
+    f.rows.find(row => row[0] === 'N100EX')[0] = 'N89349';
+    f.rows.push(['N200EX', 'E175', 'Not checked yet', 'tail-dim']);
+    const first = f.api.starlinkPlanes[1];
+    first.TailNumber = 'N89349';
+    first.Aircraft = 'ERJ-175';
+    first.OperatedBy = 'Mesa dba UAX';
+    first.DateFound = '2026-01-06';
+    const second = structuredClone(first);
+    second.Aircraft = 'E175SC';
+    f.api.starlinkPlanes.push(second);
+    f.api.totalCount = 5;
+    f.api.fleetStats.express.total = 2;
+    f.api.fleetStats.express.starlink = 2;
+    const ua = f.sum.airlines[0];
+    ua.total = 5;
+    ua.installed = 3;
+    ua.families.find(row => row.family === 'E175').total = 2;
+    const r = run(f);
+    assert.equal(r.status, 0, r.stderr);
+    assert.equal(r.data.fleet.equipped, 3);
+    assert.equal(r.data.fleet.equipped, f.api.starlinkPlanes.length);
+    assert.equal(r.data.fleet.membership.raw.equipped, 3);
+    assert.deepEqual(r.data.fleet.membership.raw, r.data.fleet.membership.corrected);
+    assert.deepEqual(r.data.fleet.membership.excludedTails, []);
+    assert.equal(r.data.fleet.express.equipped, 2);
+    assert.equal(r.data.fleet.mainline.equipped, 1);
+    assert.equal(r.data.fleet.types.find(row => row.type === 'E175').equipped, 1);
+    const unique = ['N34571', 'N89349'].sort().join('\n') + '\n';
+    assert.equal(r.data.fleet.membership.equippedSha256, crypto.createHash('sha256').update(unique).digest('hex'));
+    assert.deepEqual(r.data.fleet.membership.sourceDuplicateTails, [{
+      tail: 'N89349', rows: 2, fleet: 'express', operatedBy: 'Mesa dba UAX', aircraft: ['ERJ-175', 'E175SC']
+    }]);
+    assert.match(r.stdout, /membership: source duplicate tail N89349 counted as the tracker counts it \(2 source rows, fleet express, OperatedBy Mesa dba UAX, aircraft ERJ-175 \/ E175SC\)/);
+  });
+  test('an unexplained duplicate gap still rejects before writing', () => {
+    const f = fixture();
+    const same = structuredClone(f.api.starlinkPlanes[1]);
+    same.Aircraft = 'E175SC';
+    f.api.starlinkPlanes[1].OperatedBy = same.OperatedBy = 'Mesa dba UAX';
+    f.api.starlinkPlanes.push(same);
+    f.api.starlinkPlanes[0].TailNumber = f.api.starlinkPlanes[1].TailNumber;
+    const r = run(f);
+    assert.notEqual(r.status, 0); assert(r.unchanged);
+    assert.match(r.stderr, /membership: duplicate equipped tail/);
+  });
+  test('different operator on one tail rejects before writing', () => {
+    const f = fixture();
+    const dup = structuredClone(f.api.starlinkPlanes[1]);
+    dup.Aircraft = 'E175SC';
+    f.api.starlinkPlanes[1].OperatedBy = 'Mesa dba UAX';
+    dup.OperatedBy = 'Republic dba UAX';
+    f.api.starlinkPlanes.push(dup);
+    const r = run(f);
+    assert.notEqual(r.status, 0); assert(r.unchanged);
+    assert.match(r.stderr, /membership: duplicate equipped tail/);
   });
 } finally { fs.rmSync(work, { recursive: true, force: true }); }
 console.log(`membership source-parity controls: ${count} passed`);
