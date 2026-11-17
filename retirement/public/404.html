@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#050505">
+<meta name="color-scheme" content="dark">
+<title>WiFi Odds has been shut down</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='128 128 768 768'%3E%3Cdefs%3E%3ClinearGradient id='fnRamp' x1='270' y1='700' x2='754' y2='700' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%2329d8ff'/%3E%3Cstop offset='1' stop-color='%23926cff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='128' y='128' width='768' height='768' rx='160' fill='%23050505'/%3E%3Cpath d='M292 700A320 320 0 1 1 732 700' fill='none' stroke='url(%23fnRamp)' stroke-width='68' stroke-linecap='round'/%3E%3Cg transform='translate(0 -24)'%3E%3Crect x='267' y='405' width='176' height='134' rx='24' fill='url(%23fnRamp)'/%3E%3Crect x='581' y='405' width='176' height='134' rx='24' fill='url(%23fnRamp)'/%3E%3Cpath d='M443 472h35M546 472h35' stroke='%23f7f7f8' stroke-width='24' stroke-linecap='round'/%3E%3Crect x='466' y='362' width='92' height='220' rx='38' fill='%23f7f7f8'/%3E%3Ccircle cx='512' cy='472' r='31' fill='url(%23fnRamp)'/%3E%3Cpath d='M449 300Q512 341 575 300Q563 251 512 251Q461 251 449 300Z' fill='url(%23fnRamp)'/%3E%3C/g%3E%3Cpath d='M512 612C499 612 492 625 489 645L480 704L410 747C399 754 393 765 393 779L478 754L483 807L457 829V846L512 831L567 846V829L541 807L546 754L631 779C631 765 625 754 614 747L544 704L535 645C532 625 525 612 512 612Z' fill='%23f7f7f8'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #050505;
+    --panel: #0d0d0f;
+    --ink: #ffffff;
+    --muted: #a6a6ad;
+    --lede: #b9b9c0;
+    --line: #29292f;
+    --cyan: #29d8ff;
+    --violet: #926cff;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 88% -10%, rgba(41, 216, 255, 0.16), transparent 42%),
+      radial-gradient(circle at 0% 110%, rgba(146, 108, 255, 0.14), transparent 38%),
+      var(--bg);
+    color: var(--ink);
+    font: 400 16px/1.5 Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .skip {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    transform: translateY(-150%);
+    background: #fff;
+    color: #050505;
+    padding: 10px 14px;
+    min-height: 44px;
+    z-index: 2;
+    border-radius: 8px;
+    font-weight: 750;
+  }
+  .skip:focus { transform: none; }
+  main {
+    width: min(640px, calc(100% - 40px));
+    margin: 0 auto;
+    padding: 64px 0 72px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 36px;
+  }
+  .mark {
+    width: 36px;
+    height: 36px;
+    color: var(--cyan);
+    flex: none;
+  }
+  .word {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(40px, 7vw, 56px);
+    line-height: 0.96;
+    letter-spacing: -0.055em;
+    font-weight: 800;
+    max-width: 12ch;
+  }
+  .thanks {
+    margin: 18px 0 0;
+    color: var(--lede);
+    font-size: 18px;
+    line-height: 1.45;
+  }
+  .links {
+    list-style: none;
+    margin: 40px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+  .links a {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 16px;
+    row-gap: 4px;
+    align-items: center;
+    min-height: 44px;
+    padding: 18px 18px 16px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    color: inherit;
+    text-decoration: none;
+  }
+  .links a:hover {
+    border-color: #3d3d47;
+    background: #121216;
+  }
+  .links a:focus-visible {
+    outline: 3px solid var(--cyan);
+    outline-offset: 3px;
+  }
+  .name {
+    grid-column: 1;
+    font-size: 17px;
+    font-weight: 750;
+    letter-spacing: -0.03em;
+  }
+  .desc {
+    grid-column: 1;
+    color: var(--lede);
+    font-size: 15px;
+  }
+  .host {
+    grid-column: 1;
+    margin-top: 4px;
+    color: var(--muted);
+    font: 12px/1.4 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    overflow-wrap: anywhere;
+  }
+  .arrow {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    align-self: center;
+    color: var(--cyan);
+    font-size: 20px;
+    line-height: 1;
+  }
+  @media (max-width: 480px) {
+    main { width: min(100% - 32px, 640px); padding-top: 40px; }
+    h1 { font-size: 36px; }
+    .links a { padding: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#links">Skip to the links</a>
+<main>
+  <div class="brand">
+    <svg class="mark" viewBox="128 128 768 768" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="wo-mk" x1="270" y1="700" x2="754" y2="700" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#29d8ff"/>
+          <stop offset="1" stop-color="#926cff"/>
+        </linearGradient>
+      </defs>
+      <path d="M292 700A320 320 0 1 1 732 700" fill="none" stroke="url(#wo-mk)" stroke-width="68" stroke-linecap="round"/>
+      <g transform="translate(0 -24)">
+        <rect x="267" y="405" width="176" height="134" rx="24" fill="url(#wo-mk)"/>
+        <rect x="581" y="405" width="176" height="134" rx="24" fill="url(#wo-mk)"/>
+        <path d="M443 472h35M546 472h35" stroke="currentColor" stroke-width="24" stroke-linecap="round"/>
+        <rect x="466" y="362" width="92" height="220" rx="38" fill="currentColor"/>
+        <circle cx="512" cy="472" r="31" fill="url(#wo-mk)"/>
+        <path d="M449 300Q512 341 575 300Q563 251 512 251Q461 251 449 300Z" fill="url(#wo-mk)"/>
+      </g>
+      <path d="M512 612C499 612 492 625 489 645L480 704L410 747C399 754 393 765 393 779L478 754L483 807L457 829V846L512 831L567 846V829L541 807L546 754L631 779C631 765 625 754 614 747L544 704L535 645C532 625 525 612 512 612Z" fill="currentColor"/>
+    </svg>
+    <p class="word">WiFi Odds</p>
+  </div>
+  <h1>WiFi Odds has been shut down</h1>
+  <p class="thanks">Thank you for using it.</p>
+  <ul class="links" id="links">
+    <li>
+      <a href="https://airlinestarlinktracker.com/">
+        <span class="name">Airline Starlink Tracker</span>
+        <span class="desc">the definitive Starlink tracker</span>
+        <span class="host">airlinestarlinktracker.com</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    </li>
+    <li>
+      <a href="https://unitedstarlinktracker.com/chrome">
+        <span class="name">United Starlink Tracker Chrome extension</span>
+        <span class="desc">the definitive Chrome extension</span>
+        <span class="host">unitedstarlinktracker.com/chrome</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    </li>
+    <li>
+      <a href="https://unitedstarlinktracker.com/">
+        <span class="name">United Starlink Tracker</span>
+        <span class="host">unitedstarlinktracker.com</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    </li>
+    <li>
+      <a href="https://alaskastarlinktracker.com/">
+        <span class="name">Alaska Airlines Starlink Tracker</span>
+        <span class="host">alaskastarlinktracker.com</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    </li>
+  </ul>
+</main>
+</body>
+</html>
